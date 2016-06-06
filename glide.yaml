@@ -1,0 +1,4 @@
+package: git.topfreegames.com/topfreegames/khan
+import:
+- package: github.com/franela/goblin
+- package: github.com/onsi/gomega
