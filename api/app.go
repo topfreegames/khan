@@ -6,27 +6,30 @@ import (
 
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres" //This is required to use postgres with gorm
-	"github.com/plimble/ace"
+	"github.com/kataras/iris"
+	"github.com/kataras/iris/middleware/logger"
+	"github.com/kataras/iris/middleware/recovery"
 	"github.com/spf13/viper"
 )
 
 //App is a struct that represents a Khan API Application
 type App struct {
+	Debug      bool
 	Port       int
 	Host       string
 	ConfigPath string
-	App        *ace.Ace
+	App        *iris.Iris
 	Db         *gorm.DB
 	Config     *viper.Viper
 }
 
 //GetDefaultApp returns a new Khan API Application bound to 0.0.0.0:8888
 func GetDefaultApp() *App {
-	return GetApp("0.0.0.0", 8888, "./config/local.yaml")
+	return GetApp("0.0.0.0", 8888, "./config/local.yaml", true)
 }
 
 //GetApp returns a new Khan API Application
-func GetApp(host string, port int, configPath string) *App {
+func GetApp(host string, port int, configPath string, debug bool) *App {
 	app := &App{
 		Host:       host,
 		Port:       port,
@@ -91,35 +94,23 @@ func (app *App) connectDatabase() {
 }
 
 func (app *App) configureApplication() {
-	app.App = ace.New()
+	app.App = iris.New()
+	a := app.App
 
-	app.App.Use(func(c *ace.C) {
-		c.Set("app", app)
-		c.Next()
-	})
+	if app.Debug {
+		iris.Use(logger.New(iris.Logger()))
+	}
+	iris.Use(recovery.New(os.Stderr))
+
+	a.Get("/healthcheck", HealthCheckHandler(app))
 }
 
 func (app *App) finalizeApp() {
 	app.Db.Close()
 }
 
-//URL specifies a triple of method, path and request handler
-type URL struct {
-	Method  string
-	Path    string
-	Handler ace.HandlerFunc
-}
-
-//AddHandlers adds the specified handlers to the route
-func (app *App) AddHandlers(urls ...URL) {
-	for _, currURL := range urls {
-		urls := []ace.HandlerFunc{currURL.Handler}
-		app.App.Handle(currURL.Method, currURL.Path, urls)
-	}
-}
-
 //Start starts listening for web requests at specified host and port
 func (app *App) Start() {
 	defer app.finalizeApp()
-	app.App.Run(fmt.Sprintf("%s:%d", app.Host, app.Port))
+	app.App.Listen(fmt.Sprintf("%s:%d", app.Host, app.Port))
 }

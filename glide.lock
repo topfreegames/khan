@@ -1,12 +1,37 @@
-hash: 67ff2419c8afda7a29f5e9c5cf683aa56afe6d7e66dbcb49a6c2474254a14a2a
-updated: 2016-06-07T09:44:41.94806791-03:00
+hash: 291db6797dbf333c89f5b292174ac940196c0c1f0f2cdd8882895758fdd099d9
+updated: 2016-06-07T14:56:18.965496788-03:00
 imports:
 - name: github.com/BurntSushi/toml
   version: f0aeabca5a127c4078abb8c8d64298b147264b55
+- name: github.com/davecgh/go-spew
+  version: 5215b55f46b2b919f50a1df0eaa5886afe4e3b3d
+  subpackages:
+  - spew
+- name: github.com/eknkc/amber
+  version: 91774f050c1453128146169b626489e60108ec03
+  subpackages:
+  - parser
+- name: github.com/fatih/color
+  version: 533cd7fd8a85905f67a1753afb4deddc85ea174f
+- name: github.com/flosch/pongo2
+  version: 7f5515449ea9bbeb00256d9cbb654c556e7d0146
 - name: github.com/franela/goblin
   version: efa9910a3ea4ccb7ee4b977571318af2e51ba05f
 - name: github.com/fsnotify/fsnotify
   version: 30411dbcefb7a1da7e84f75530ad3abe4011b4f8
+- name: github.com/garyburd/redigo
+  version: b8dc90050f24c1a73a52f107f3f575be67b21b7c
+  subpackages:
+  - redis
+  - internal
+- name: github.com/gavv/gojsondiff
+  version: 36046c6e558e7f854ebd3fd97d1e9812ebe8709b
+  subpackages:
+  - formatter
+- name: github.com/gavv/httpexpect
+  version: 468c7adba41fa6ee650c335c2bc9060433f0f5d1
+  subpackages:
+  - fasthttpexpect
 - name: github.com/hashicorp/hcl
   version: d7400db7143f8e869812e50a53acd6c8d92af3b8
   subpackages:
@@ -18,16 +43,57 @@ imports:
   - hcl/strconv
   - json/scanner
   - json/token
+- name: github.com/imdario/mergo
+  version: 50d4dbd4eb0e84778abe37cefef140271d96fade
 - name: github.com/inconshreveable/mousetrap
   version: 76626ae9c91c4f2a10f34cad8ce83ea42c93bb75
+- name: github.com/iris-contrib/websocket
+  version: b754661664740b86f44f7bb34ba11e44b6194445
 - name: github.com/jinzhu/gorm
   version: bf0e23607840019d62e32e87e9af48e881d74b1e
   subpackages:
   - dialects/postgres
 - name: github.com/jinzhu/inflection
   version: 3272df6c21d04180007eb3349844c89a3856bc25
-- name: github.com/julienschmidt/httprouter
-  version: 77366a47451a56bb3ba682481eed85b64fea14e8
+- name: github.com/Joker/jade
+  version: db4d7e4f68708c5020c392b380e3565df2132840
+- name: github.com/kataras/iris
+  version: 721e9ef66f6ac30ba9c8d1b3b464b7c2181bcb60
+  subpackages:
+  - iris
+  - middleware/logger
+  - middleware/recovery
+  - bindings
+  - config
+  - context
+  - errors
+  - logger
+  - mail
+  - render/rest
+  - render/template
+  - server
+  - sessions
+  - sessions/providers/memory
+  - sessions/providers/redis
+  - sessions/store
+  - utils
+  - websocket
+  - render/template/engine/amber
+  - render/template/engine/html
+  - render/template/engine/jade
+  - render/template/engine/markdown
+  - render/template/engine/pongo
+  - sessions/providers/redis/service
+- name: github.com/klauspost/compress
+  version: 14eb9c4951195779ecfbec34431a976de7335b0a
+  subpackages:
+  - gzip
+  - flate
+  - zlib
+- name: github.com/klauspost/cpuid
+  version: 09cded8978dc9e80714c4d85b0322337b0a1e5e0
+- name: github.com/klauspost/crc32
+  version: 19b0b332c9e4516a6370a0456e6182c3b5036720
 - name: github.com/lib/pq
   version: ee1442bda7bd1b6a84e913bdb421cb1874ec629d
   subpackages:
@@ -35,24 +101,29 @@ imports:
   - oid
 - name: github.com/magiconair/properties
   version: c265cfa48dda6474e208715ca93e987829f572f8
+- name: github.com/mattn/go-colorable
+  version: 9056b7a9f2d1f2d96498d6d146acd1f9d5ed3d59
+- name: github.com/mattn/go-isatty
+  version: 56b76bdf51f7708750eac80fa38b952bb9f32639
+  repo: https://github.com/mattn/go-isatty
+- name: github.com/microcosm-cc/bluemonday
+  version: 4ac6f27528d0a3f2a59e0b0a6f6b3ff0bb89fe20
 - name: github.com/mitchellh/mapstructure
   version: d2dd0262208475919e1a362f675cfc0e7c10e905
 - name: github.com/onsi/gomega
   version: c73e51675ad2455a4515b6213eb7145eaade4824
-- name: github.com/oxtoacart/bpool
-  version: 4e1c5567d7c2dd59fa4c7c83d34c2f3528b025d6
-- name: github.com/philhofer/fwd
-  version: 98c11a7a6ec829d672b03833c3d69a7fae1ca972
-- name: github.com/plimble/ace
-  version: 8ece619a879d9795f046003428a0940dc8152829
-- name: github.com/plimble/sessions
-  version: 9b87d5a817e27cd53d02ea97c30603626a9c579b
-- name: github.com/plimble/utils
-  version: fe08d46675cd09e170c0fb6b7b4e4587e14d0451
+- name: github.com/pmezard/go-difflib
+  version: d8ed2627bdf02c080bf22230dbb337003b7aba2d
   subpackages:
-  - pool
-- name: github.com/satori/go.uuid
-  version: f9ab0dce87d815821e221626b772e3475a0d2749
+  - difflib
+- name: github.com/russross/blackfriday
+  version: 1d6b8e9301e720b08a8938b8c25c018285885438
+- name: github.com/sergi/go-diff
+  version: 97b2266dfe4bd4ea1b81a463322f04f8b724801e
+  subpackages:
+  - diffmatchpatch
+- name: github.com/shurcooL/sanitized_anchor_name
+  version: 10ef21a441db47d8b13ebcc5fd2310f636973c77
 - name: github.com/spf13/cast
   version: 27b586b42e29bec072fe7379259cc719e1289da6
 - name: github.com/spf13/cobra
@@ -63,10 +134,22 @@ imports:
   version: cb88ea77998c3f024757528e3305022ab50b43be
 - name: github.com/spf13/viper
   version: c1ccc378a054ea8d4e38d8c67f6938d4760b53dd
-- name: github.com/tinylib/msgp
-  version: 05e600edf28f1b907005ddf6b0488fe68b819971
+- name: github.com/stretchr/testify
+  version: 8d64eb7173c7753d6419fd4a9caf057398611364
   subpackages:
-  - msgp
+  - assert
+  - require
+- name: github.com/valyala/fasthttp
+  version: efbb037c40c52079e7ba605abb055ad7470a12de
+  subpackages:
+  - fasthttpadaptor
+- name: github.com/yudai/golcs
+  version: d1c525dea8ce39ea9a783d33cf08932305373f2c
+- name: golang.org/x/net
+  version: 154d9f9ea81208afed560f4cf27b4860c8ed1904
+  subpackages:
+  - html
+  - html/atom
 - name: golang.org/x/sys
   version: 076b546753157f758b316e59bcb51e6807c04057
   subpackages:

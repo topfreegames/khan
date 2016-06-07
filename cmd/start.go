@@ -17,11 +17,11 @@ package cmd
 import (
 	"github.com/spf13/cobra"
 	"github.com/topfreegames/khan/api"
-	"github.com/topfreegames/khan/handlers"
 )
 
 var host string
 var port int
+var debug bool
 
 // startCmd represents the start command
 var startCmd = &cobra.Command{
@@ -34,13 +34,14 @@ environment variables to override configuration keys.`,
 			host,
 			port,
 			cfgFile,
+			debug,
 		)
 
-		app.AddHandlers(api.URL{
-			Method:  "GET",
-			Path:    "/healthcheck",
-			Handler: handlers.HealthcheckHandler,
-		})
+		//app.AddHandlers(api.URL{
+		//Method:  "GET",
+		//Path:    "/healthcheck",
+		//Handler: handlers.HealthcheckHandler,
+		//})
 
 		app.Start()
 	},
@@ -59,4 +60,5 @@ func init() {
 	// is called directly, e.g.:
 	startCmd.Flags().StringVarP(&host, "bind", "b", "0.0.0.0", "Host to bind khan to")
 	startCmd.Flags().IntVarP(&port, "port", "p", 8888, "Port to bind khan to")
+	startCmd.Flags().BoolVarP(&debug, "debug", "d", false, "Debug mode")
 }
