@@ -13,6 +13,7 @@ type App struct {
 	Host       string
 	ConfigPath string
 	App        *ace.Ace
+	Config     *viper.Viper
 }
 
 //GetDefaultApp returns a new Khan API Application bound to 0.0.0.0:8888
@@ -26,6 +27,7 @@ func GetApp(host string, port int, configPath string) *App {
 		Host:       host,
 		Port:       port,
 		ConfigPath: configPath,
+		Config:     viper.New(),
 	}
 	app.Configure()
 	return app
@@ -39,20 +41,25 @@ func (app *App) Configure() {
 }
 
 func (app *App) setConfigurationDefaults() {
-	viper.SetDefault("healthcheck.workingText", "WORKING")
+	app.Config.SetDefault("healthcheck.workingText", "WORKING")
 }
 
 func (app *App) loadConfiguration() {
-	viper.SetConfigFile(app.ConfigPath)
-	viper.AutomaticEnv()
+	app.Config.SetConfigFile(app.ConfigPath)
+	app.Config.AutomaticEnv()
 
-	if err := viper.ReadInConfig(); err == nil {
-		fmt.Println("Using config file:", viper.ConfigFileUsed())
+	if err := app.Config.ReadInConfig(); err == nil {
+		fmt.Println("Using config file:", app.Config.ConfigFileUsed())
 	}
 }
 
 func (app *App) configureApplication() {
 	app.App = ace.New()
+
+	app.App.Use(func(c *ace.C) {
+		c.Set("app", app)
+		c.Next()
+	})
 }
 
 //URL specifies a triple of method, path and request handler

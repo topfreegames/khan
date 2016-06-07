@@ -1,10 +1,63 @@
-hash: 474be5e165381f8776596a1f0fd848b543368770ea3d2820a6a07087173083b0
-updated: 2016-06-06T23:29:01.274010394-03:00
+hash: 67ff2419c8afda7a29f5e9c5cf683aa56afe6d7e66dbcb49a6c2474254a14a2a
+updated: 2016-06-07T00:58:05.36907629-03:00
 imports:
+- name: github.com/BurntSushi/toml
+  version: f0aeabca5a127c4078abb8c8d64298b147264b55
 - name: github.com/franela/goblin
   version: efa9910a3ea4ccb7ee4b977571318af2e51ba05f
+- name: github.com/fsnotify/fsnotify
+  version: 30411dbcefb7a1da7e84f75530ad3abe4011b4f8
+- name: github.com/hashicorp/hcl
+  version: d7400db7143f8e869812e50a53acd6c8d92af3b8
+  subpackages:
+  - hcl/ast
+  - hcl/parser
+  - hcl/token
+  - json/parser
+  - hcl/scanner
+  - hcl/strconv
+  - json/scanner
+  - json/token
+- name: github.com/jinzhu/gorm
+  version: bf0e23607840019d62e32e87e9af48e881d74b1e
+- name: github.com/julienschmidt/httprouter
+  version: 77366a47451a56bb3ba682481eed85b64fea14e8
+- name: github.com/magiconair/properties
+  version: c265cfa48dda6474e208715ca93e987829f572f8
+- name: github.com/mitchellh/mapstructure
+  version: d2dd0262208475919e1a362f675cfc0e7c10e905
 - name: github.com/onsi/gomega
   version: c73e51675ad2455a4515b6213eb7145eaade4824
+- name: github.com/oxtoacart/bpool
+  version: 4e1c5567d7c2dd59fa4c7c83d34c2f3528b025d6
+- name: github.com/philhofer/fwd
+  version: 98c11a7a6ec829d672b03833c3d69a7fae1ca972
 - name: github.com/plimble/ace
   version: 8ece619a879d9795f046003428a0940dc8152829
+- name: github.com/plimble/sessions
+  version: 9b87d5a817e27cd53d02ea97c30603626a9c579b
+- name: github.com/plimble/utils
+  version: fe08d46675cd09e170c0fb6b7b4e4587e14d0451
+  subpackages:
+  - pool
+- name: github.com/satori/go.uuid
+  version: f9ab0dce87d815821e221626b772e3475a0d2749
+- name: github.com/spf13/cast
+  version: 27b586b42e29bec072fe7379259cc719e1289da6
+- name: github.com/spf13/jwalterweatherman
+  version: 33c24e77fb80341fe7130ee7c594256ff08ccc46
+- name: github.com/spf13/pflag
+  version: cb88ea77998c3f024757528e3305022ab50b43be
+- name: github.com/spf13/viper
+  version: c1ccc378a054ea8d4e38d8c67f6938d4760b53dd
+- name: github.com/tinylib/msgp
+  version: 05e600edf28f1b907005ddf6b0488fe68b819971
+  subpackages:
+  - msgp
+- name: golang.org/x/sys
+  version: 076b546753157f758b316e59bcb51e6807c04057
+  subpackages:
+  - unix
+- name: gopkg.in/yaml.v2
+  version: a83829b6f1293c91addabc89d0571c246397bbf4
 devImports: []
