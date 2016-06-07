@@ -11,6 +11,7 @@ setup-ci:
 	@sudo add-apt-repository -y ppa:masterminds/glide && sudo apt-get update
 	@sudo apt-get install -y glide
 	@go get -v github.com/spf13/cobra/cobra
+	@go get github.com/mattn/goveralls
 	@glide install
 
 build:
