@@ -2,11 +2,6 @@ language: go
 sudo: false
 services:
   - postgresql
-addons:
-  apt:
-    packages:
-    - postgresql
-    - postgresql-contrib
 install:
   - make setup
 script:
