@@ -18,6 +18,9 @@ build:
 	@go build $(PACKAGES)
 	@go build
 
+run:
+	@go run main.go
+
 test: drop-test
 	@go test $(PACKAGES)
 

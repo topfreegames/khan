@@ -20,18 +20,21 @@ import (
 	"github.com/topfreegames/khan/handlers"
 )
 
+var host string
+var port int
+
 // startCmd represents the start command
 var startCmd = &cobra.Command{
 	Use:   "start",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Short: "starts khan server",
+	Long: `Starts khan server with the specified arguments. You can use
+environment variables to override configuration keys.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		app := api.GetDefaultApp()
+		app := api.GetApp(
+			host,
+			port,
+			cfgFile,
+		)
 
 		app.AddHandlers(api.URL{
 			Method:  "GET",
@@ -54,6 +57,6 @@ func init() {
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	// startCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-
+	startCmd.Flags().StringVarP(&host, "bind", "b", "0.0.0.0", "Host to bind khan to")
+	startCmd.Flags().IntVarP(&port, "port", "p", 8888, "Port to bind khan to")
 }
