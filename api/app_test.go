@@ -21,7 +21,7 @@ func Test(t *testing.T) {
 		})
 
 		g.It("should create app with custom arguments", func() {
-			app := GetApp("127.0.0.1", 9999)
+			app := GetApp("127.0.0.1", 9999, "./config/local.yaml")
 			Expect(app.Port).To(Equal(9999))
 			Expect(app.Host).To(Equal("127.0.0.1"))
 		})

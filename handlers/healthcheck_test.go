@@ -19,7 +19,7 @@ func Test(t *testing.T) {
 	g.Describe("Healthcheck Handler", func() {
 		g.It("should get healthcheck", func() {
 			app := api.GetDefaultApp()
-			app.AddHandlers(api.Url{
+			app.AddHandlers(api.URL{
 				Method:  "GET",
 				Path:    "/healthcheck",
 				Handler: HealthcheckHandler,
