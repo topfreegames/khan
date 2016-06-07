@@ -2,5 +2,9 @@ package: github.com/topfreegames/khan
 import:
 - package: github.com/franela/goblin
 - package: github.com/onsi/gomega
-- package: github.com/plimble/ace
 - package: github.com/jinzhu/gorm
+- package: github.com/kataras/iris
+  subpackages:
+  - iris
+- package: github.com/Joker/jade
+- package: github.com/gavv/httpexpect

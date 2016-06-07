@@ -19,7 +19,7 @@ build:
 	@go build
 
 run:
-	@go run main.go
+	@go run main.go start -d -c ./config/local.yaml
 
 build-docker:
 	@docker build -t khan .

@@ -30,8 +30,8 @@ func Execute(cmd *cobra.Command) {
 func init() {
 	//cobra.OnInitialize(initConfig)
 
-	RootCmd.PersistentFlags().StringVar(
-		&cfgFile, "config", "./config/local.yaml",
+	RootCmd.PersistentFlags().StringVarP(
+		&cfgFile, "config", "c", "./config/local.yaml",
 		"config file (default is ./config/local.yaml",
 	)
 }
