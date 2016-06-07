@@ -8,8 +8,8 @@ setup:
 	@glide install
 
 setup-ci:
-	@add-apt-repository -y ppa:masterminds/glide && sudo apt-get update
-	@apt-get install -y glide
+	@sudo add-apt-repository -y ppa:masterminds/glide && sudo apt-get update
+	@sudo apt-get install -y glide
 	@go get -v github.com/spf13/cobra/cobra
 	@glide install
 
