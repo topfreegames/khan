@@ -18,7 +18,7 @@ func Test(t *testing.T) {
 
 	g.Describe("Healthcheck Handler", func() {
 		g.It("should get healthcheck", func() {
-			app := api.GetDefaultApp()
+			app := api.GetApp("0.0.0.0", 8888, "../config/test.yaml")
 			app.AddHandlers(api.URL{
 				Method:  "GET",
 				Path:    "/healthcheck",

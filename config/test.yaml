@@ -1,5 +1,5 @@
 postgres:
-  user: "khan"
-  dbName: "khan"
+  user: "khan_test"
+  dbName: "khan_test"
   host: "localhost"
   port: 5433

@@ -2,7 +2,10 @@ package api
 
 import (
 	"fmt"
+	"os"
 
+	"github.com/jinzhu/gorm"
+	_ "github.com/jinzhu/gorm/dialects/postgres"
 	"github.com/plimble/ace"
 	"github.com/spf13/viper"
 )
@@ -13,6 +16,7 @@ type App struct {
 	Host       string
 	ConfigPath string
 	App        *ace.Ace
+	Db         *gorm.DB
 	Config     *viper.Viper
 }
 
@@ -37,11 +41,16 @@ func GetApp(host string, port int, configPath string) *App {
 func (app *App) Configure() {
 	app.setConfigurationDefaults()
 	app.loadConfiguration()
+	app.connectDatabase()
 	app.configureApplication()
 }
 
 func (app *App) setConfigurationDefaults() {
 	app.Config.SetDefault("healthcheck.workingText", "WORKING")
+	app.Config.SetDefault("postgres.host", "localhost")
+	app.Config.SetDefault("postgres.user", "khan")
+	app.Config.SetDefault("postgres.dbName", "khan")
+	app.Config.SetDefault("postgres.port", 5433)
 }
 
 func (app *App) loadConfiguration() {
@@ -53,6 +62,27 @@ func (app *App) loadConfiguration() {
 	}
 }
 
+func (app *App) connectDatabase() {
+	host := app.Config.GetString("postgres.host")
+	user := app.Config.GetString("postgres.user")
+	dbName := app.Config.GetString("postgres.dbname")
+	password := app.Config.GetString("postgres.password")
+	port := app.Config.GetInt("postgres.port")
+
+	db, err := gorm.Open(
+		"postgres",
+		fmt.Sprintf("host=%s user=%s port=%d dbname=%s password=%s", host, user, port, dbName, password),
+	)
+	if err != nil {
+		fmt.Printf(
+			"Could not connect to Postgres at %s:%d with user %s and db %s with password %s\n",
+			host, port, user, dbName, password,
+		)
+		os.Exit(1)
+	}
+	app.Db = db
+}
+
 func (app *App) configureApplication() {
 	app.App = ace.New()
 
@@ -60,6 +90,10 @@ func (app *App) configureApplication() {
 		c.Set("app", app)
 		c.Next()
 	})
+}
+
+func (app *App) finalizeApp() {
+	app.Db.Close()
 }
 
 //URL specifies a triple of method, path and request handler
@@ -79,5 +113,6 @@ func (app *App) AddHandlers(urls ...URL) {
 
 //Start starts listening for web requests at specified host and port
 func (app *App) Start() {
+	defer app.finalizeApp()
 	app.App.Run(fmt.Sprintf("%s:%d", app.Host, app.Port))
 }
