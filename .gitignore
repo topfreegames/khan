@@ -24,4 +24,4 @@ _testmain.go
 *.prof
 coverage*.out
 vendor/
-./khan
+/khan
