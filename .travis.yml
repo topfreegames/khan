@@ -10,4 +10,4 @@ install:
 script:
   - make coverage
 after_success:
-  - goveralls -repotoken 1x4Z26mH24UgLN5V1INQQRppJtz7bG6RM
+  - goveralls -coverprofile=coverage-all.out -repotoken 1x4Z26mH24UgLN5V1INQQRppJtz7bG6RM
