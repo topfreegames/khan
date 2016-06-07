@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/postgres"
+	_ "github.com/jinzhu/gorm/dialects/postgres" //This is required to use postgres with gorm
 	"github.com/plimble/ace"
 	"github.com/spf13/viper"
 )
