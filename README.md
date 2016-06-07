@@ -10,3 +10,14 @@ Khan will drive all your enemies to the sea (and also take care of your game's c
 ## Setup
 
 Run `make setup`.
+
+
+## Running with docker
+
+Provided you have docker installed, to build Khan's image run:
+
+    $ make build-docker
+
+To run a new khan instance, run:
+
+    $ make run-docker
