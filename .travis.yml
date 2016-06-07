@@ -13,11 +13,11 @@ install:
   - make setup-ci
   - make drop-test
 
+script:
+  - $HOME/gopath/bin/goveralls -service=travis-ci
+
 deploy:
   - docker build -t khan .
   - docker login -e="$DOCKER_EMAIL" -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
-  - docker tag khan:latest tfgco/khan:`cat version.txt`.$TRAVIS_BUILD_NUMBER
-  - docker push tfgco/khan:`cat version.txt`.$TRAVIS_BUILD_NUMBER
-
-script:
-  - $HOME/gopath/bin/goveralls -service=travis-ci
+  - docker tag khan:latest tfgco/khan:$(cat version.txt).$TRAVIS_BUILD_NUMBER
+  - docker push tfgco/khan:$(cat version.txt).$TRAVIS_BUILD_NUMBER
