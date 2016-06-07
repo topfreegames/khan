@@ -3,6 +3,7 @@ package api
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres" //This is required to use postgres with gorm
@@ -60,6 +61,7 @@ func (app *App) setConfigurationDefaults() {
 func (app *App) loadConfiguration() {
 	app.Config.SetConfigFile(app.ConfigPath)
 	app.Config.SetEnvPrefix("khan")
+	app.Config.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	app.Config.AutomaticEnv()
 
 	if err := app.Config.ReadInConfig(); err == nil {
