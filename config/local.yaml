@@ -2,4 +2,5 @@ postgres:
   user: "khan"
   dbName: "khan"
   host: "localhost"
-  port: 5433
+  port: 5432
+  sslMode: "disable"

@@ -50,7 +50,8 @@ func (app *App) setConfigurationDefaults() {
 	app.Config.SetDefault("postgres.host", "localhost")
 	app.Config.SetDefault("postgres.user", "khan")
 	app.Config.SetDefault("postgres.dbName", "khan")
-	app.Config.SetDefault("postgres.port", 5433)
+	app.Config.SetDefault("postgres.port", 5432)
+	app.Config.SetDefault("postgres.sslMode", "disable")
 }
 
 func (app *App) loadConfiguration() {
@@ -68,15 +69,20 @@ func (app *App) connectDatabase() {
 	dbName := app.Config.GetString("postgres.dbname")
 	password := app.Config.GetString("postgres.password")
 	port := app.Config.GetInt("postgres.port")
+	sslMode := app.Config.GetString("postgres.sslMode")
 
-	db, err := gorm.Open(
-		"postgres",
-		fmt.Sprintf("host=%s user=%s port=%d dbname=%s password=%s", host, user, port, dbName, password),
-	)
+	connStr :=
+		fmt.Sprintf("host=%s user=%s port=%d sslmode=%s dbname=%s", host, user, port, sslMode, dbName)
+
+	if password != "" {
+		connStr += fmt.Sprintf(" password=%s", password)
+	}
+
+	db, err := gorm.Open("postgres", connStr)
 	if err != nil {
 		fmt.Printf(
-			"Could not connect to Postgres at %s:%d with user %s and db %s with password %s\n",
-			host, port, user, dbName, password,
+			"Could not connect to Postgres at %s:%d with user %s and db %s with password %s (%s)\n",
+			host, port, user, dbName, password, err,
 		)
 		os.Exit(1)
 	}
