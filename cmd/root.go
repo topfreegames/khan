@@ -28,7 +28,7 @@ func Execute(cmd *cobra.Command) {
 }
 
 func init() {
-	cobra.OnInitialize(initConfig)
+	//cobra.OnInitialize(initConfig)
 
 	RootCmd.PersistentFlags().StringVar(
 		&cfgFile, "config", "./config/local.yaml",
@@ -41,7 +41,7 @@ func initConfig() {
 	if cfgFile != "" { // enable ability to specify config file via flag
 		viper.SetConfigFile(cfgFile)
 	}
-
+	viper.SetEnvPrefix("khan")
 	viper.SetConfigName(".khan") // name of config file (without extension)
 	viper.AddConfigPath("$HOME") // adding home directory as first search path
 	viper.AutomaticEnv()         // read in environment variables that match

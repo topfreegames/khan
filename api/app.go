@@ -56,7 +56,9 @@ func (app *App) setConfigurationDefaults() {
 
 func (app *App) loadConfiguration() {
 	app.Config.SetConfigFile(app.ConfigPath)
+	app.Config.SetEnvPrefix("khan")
 	app.Config.AutomaticEnv()
+	fmt.Println(app.Config.GetInt("postgres.port"))
 
 	if err := app.Config.ReadInConfig(); err == nil {
 		fmt.Println("Using config file:", app.Config.ConfigFileUsed())
@@ -77,6 +79,8 @@ func (app *App) connectDatabase() {
 	if password != "" {
 		connStr += fmt.Sprintf(" password=%s", password)
 	}
+
+	fmt.Println(connStr)
 
 	db, err := gorm.Open("postgres", connStr)
 	if err != nil {
