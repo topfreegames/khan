@@ -1,0 +1,10 @@
+hash: 474be5e165381f8776596a1f0fd848b543368770ea3d2820a6a07087173083b0
+updated: 2016-06-06T23:29:01.274010394-03:00
+imports:
+- name: github.com/franela/goblin
+  version: efa9910a3ea4ccb7ee4b977571318af2e51ba05f
+- name: github.com/onsi/gomega
+  version: c73e51675ad2455a4515b6213eb7145eaade4824
+- name: github.com/plimble/ace
+  version: 8ece619a879d9795f046003428a0940dc8152829
+devImports: []
