@@ -3,7 +3,7 @@ sudo: false
 services:
   - postgresql
 install:
-  - make setup
+  - make setup-ci
 script:
   - make test
 after_success:

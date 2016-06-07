@@ -7,6 +7,12 @@ setup:
 	@go get -v github.com/spf13/cobra/cobra
 	@glide install
 
+setup-ci:
+	@add-apt-repository -y ppa:masterminds/glide && sudo apt-get update
+	@apt-get install -y glide
+	@go get -v github.com/spf13/cobra/cobra
+	@glide install
+
 build:
 	@go build $(PACKAGES)
 	@go build
