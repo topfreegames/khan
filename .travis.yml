@@ -7,7 +7,6 @@ services:
   - postgresql
 install:
   - make setup-ci
+  - make drop-test
 script:
-  - make coverage
-after_success:
-  - goveralls -coverprofile=coverage-all.out -repotoken 1x4Z26mH24UgLN5V1INQQRppJtz7bG6RM
+  - $HOME/gopath/bin/goveralls -service=travis-ci
