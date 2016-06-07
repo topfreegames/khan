@@ -21,6 +21,12 @@ build:
 run:
 	@go run main.go
 
+build-docker:
+	@docker build -t khan .
+
+run-docker:
+	@docker run -i -t --rm -e "KHAN_POSTGRES.HOST=10.0.20.81" -p 8080:8080 khan
+
 test: drop-test
 	@go test $(PACKAGES)
 
