@@ -16,5 +16,5 @@ install:
 script:
   - $HOME/gopath/bin/goveralls -service=travis-ci
 
-deploy:
+after_success:
   - ./push_to_docker.sh
