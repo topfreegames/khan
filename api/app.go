@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/plimble/ace"
-	"github.com/topfreegames/khan/handlers"
 )
 
 //App is a struct that represents a Khan API Application
@@ -36,7 +35,21 @@ func (app *App) Configure() {
 
 func (app *App) configureApplication() {
 	app.App = ace.New()
-	app.App.GET("/healthcheck", handlers.HealthcheckHandler)
+}
+
+//Url specifies a triple of method, path and request handler
+type Url struct {
+	Method  string
+	Path    string
+	Handler ace.HandlerFunc
+}
+
+//AddHandlers adds the specified handlers to the route
+func (app *App) AddHandlers(urls ...Url) {
+	for _, currURL := range urls {
+		urls := []ace.HandlerFunc{currURL.Handler}
+		app.App.Handle(currURL.Method, currURL.Path, urls)
+	}
 }
 
 //Start starts listening for web requests at specified host and port
