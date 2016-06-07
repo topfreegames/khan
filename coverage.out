@@ -1,8 +1,5 @@
 mode: count
-git.topfreegames.com/topfreegames/khan/cmd/root.go:23.34,24.38 1 1
-git.topfreegames.com/topfreegames/khan/cmd/root.go:24.38,27.3 2 0
-git.topfreegames.com/topfreegames/khan/cmd/root.go:30.13,37.2 2 1
-git.topfreegames.com/topfreegames/khan/cmd/root.go:40.19,41.19 1 0
-git.topfreegames.com/topfreegames/khan/cmd/root.go:45.2,50.45 4 0
-git.topfreegames.com/topfreegames/khan/cmd/root.go:41.19,43.3 1 0
-git.topfreegames.com/topfreegames/khan/cmd/root.go:50.45,52.3 1 0
+github.com/topfreegames/khan/handlers/healthcheck.go:6.35,11.16 4 1
+github.com/topfreegames/khan/handlers/healthcheck.go:16.2,16.64 1 1
+github.com/topfreegames/khan/handlers/healthcheck.go:11.16,14.3 2 0
+github.com/topfreegames/khan/handlers/helpers.go:8.32,10.2 1 1
