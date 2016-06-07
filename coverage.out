@@ -1,5 +1,0 @@
-mode: count
-github.com/topfreegames/khan/handlers/healthcheck.go:6.35,11.16 4 1
-github.com/topfreegames/khan/handlers/healthcheck.go:16.2,16.64 1 1
-github.com/topfreegames/khan/handlers/healthcheck.go:11.16,14.3 2 0
-github.com/topfreegames/khan/handlers/helpers.go:8.32,10.2 1 1
