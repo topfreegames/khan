@@ -1,6 +1,10 @@
-hash: 291db6797dbf333c89f5b292174ac940196c0c1f0f2cdd8882895758fdd099d9
-updated: 2016-06-07T14:56:18.965496788-03:00
+hash: 0740f47b3ec36e2560d49f20ff5a7cf9a557500d71d352c8c75fcadbc619a265
+updated: 2016-06-08T14:51:38.371409902-03:00
 imports:
+- name: bitbucket.org/liamstask/goose
+  version: 8488cc47d90c8a502b1c41a462a6d9cc8ee0a895
+  subpackages:
+  - cmd/goose
 - name: github.com/BurntSushi/toml
   version: f0aeabca5a127c4078abb8c8d64298b147264b55
 - name: github.com/davecgh/go-spew
@@ -58,7 +62,7 @@ imports:
 - name: github.com/Joker/jade
   version: db4d7e4f68708c5020c392b380e3565df2132840
 - name: github.com/kataras/iris
-  version: 721e9ef66f6ac30ba9c8d1b3b464b7c2181bcb60
+  version: 2da67206c8b7a13868ac8543ee77729c0f025454
   subpackages:
   - iris
   - middleware/logger
@@ -140,13 +144,13 @@ imports:
   - assert
   - require
 - name: github.com/valyala/fasthttp
-  version: efbb037c40c52079e7ba605abb055ad7470a12de
+  version: 8f05edbec9fb5b0c7a4012ee746035a82e3e8bfb
   subpackages:
   - fasthttpadaptor
 - name: github.com/yudai/golcs
   version: d1c525dea8ce39ea9a783d33cf08932305373f2c
 - name: golang.org/x/net
-  version: 154d9f9ea81208afed560f4cf27b4860c8ed1904
+  version: 313cf39d4ac368181bce6960ac9be9e7cee67e68
   subpackages:
   - html
   - html/atom
