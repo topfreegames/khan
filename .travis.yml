@@ -18,3 +18,4 @@ script:
 
 after_success:
   - ./push_to_docker.sh
+  - curl -H POST $TEST_FARM_URL
