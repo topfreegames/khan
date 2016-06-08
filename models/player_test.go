@@ -6,7 +6,7 @@ import (
 	. "github.com/franela/goblin"
 )
 
-func TestHealthcheckHandler(t *testing.T) {
+func TestPlayerModel(t *testing.T) {
 	g := Goblin(t)
 	db := GetTestDB()
 
@@ -16,6 +16,7 @@ func TestHealthcheckHandler(t *testing.T) {
 				GameID:   "test",
 				PlayerID: "test-player",
 				Name:     "user-name",
+				Metadata: "{}",
 			}
 			db.Create(player)
 			g.Assert(db.NewRecord(player)).IsFalse()
