@@ -15,7 +15,7 @@ Run `make setup`.
 
 ## Running the application
 
-Run `make run`.
+Run the api with `make run`.
 
 
 ## Running with docker
