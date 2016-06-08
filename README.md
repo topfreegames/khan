@@ -7,16 +7,13 @@
 
 Khan will drive all your enemies to the sea (and also take care of your game's clans)!
 
-
 ## Setup
 
 Run `make setup`.
 
-
 ## Running the application
 
 Run the api with `make run`.
-
 
 ## Running with docker
 
@@ -27,7 +24,6 @@ Provided you have docker installed, to build Khan's image run:
 To run a new khan instance, run:
 
     $ make run-docker
-
 
 ## Docker Image
 
