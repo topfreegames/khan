@@ -1,5 +1,7 @@
 FROM golang:1.6.2-alpine
 
+MAINTAINER TFG Co <backend@tfgco.com>
+
 EXPOSE 8080
 
 RUN apk update
