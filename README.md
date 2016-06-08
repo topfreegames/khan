@@ -13,6 +13,11 @@ Khan will drive all your enemies to the sea (and also take care of your game's c
 Run `make setup`.
 
 
+## Running the application
+
+Run `make run`.
+
+
 ## Running with docker
 
 Provided you have docker installed, to build Khan's image run:
