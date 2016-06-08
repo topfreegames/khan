@@ -1,8 +1,8 @@
 -- +goose Up
 -- SQL in section 'Up' is executed when this migration is applied
-CREATE TABLE players (
+CREATE TABLE clans (
     id serial PRIMARY KEY,
-    player_id varchar(255) NOT NULL,
+    clan_id varchar(255) NOT NULL,
     game_id varchar(10) NOT NULL,
     name varchar(2000) NOT NULL,
     metadata JSONB NOT NULL DEFAULT '{}'::JSONB,
@@ -10,9 +10,9 @@ CREATE TABLE players (
     updated_at timestamp NULL,
     deleted_at timestamp NULL,
 
-    CONSTRAINT gameid_playerid UNIQUE(game_id, player_id)
+    CONSTRAINT gameid_clanid UNIQUE(game_id, clan_id)
 );
 
 -- +goose Down
 -- SQL section 'Down' is executed when this migration is rolled back
-DROP TABLE players;
+DROP TABLE clans;
