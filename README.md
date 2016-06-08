@@ -7,6 +7,7 @@
 
 Khan will drive all your enemies to the sea (and also take care of your game's clans)!
 
+
 ## Setup
 
 Run `make setup`.
@@ -21,3 +22,8 @@ Provided you have docker installed, to build Khan's image run:
 To run a new khan instance, run:
 
     $ make run-docker
+
+
+## Docker Image
+
+You can get a docker image from our dockerhub page at https://hub.docker.com/r/tfgco/khan/.
