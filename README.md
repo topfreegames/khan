@@ -28,3 +28,17 @@ To run a new khan instance, run:
 ## Docker Image
 
 You can get a docker image from our dockerhub page at https://hub.docker.com/r/tfgco/khan/.
+
+## Tests
+
+Running tests can be done with `make test`, while creating the test database can be accomplished with `make drop-test` and `make db-test`.
+
+## Coverage
+
+Getting coverage data can be achieved with `make coverage`, while reading the actual results can be done with `make coverage-html`.
+
+## Static Analysis
+
+Khan goes through some static analysis tools for go. To run them just use `make static`.
+
+Right now, gocyclo can't process the vendor folder, so we just ignore the exit code for it, while maintaining the output for anything not in the vendor folder.

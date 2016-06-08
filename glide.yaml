@@ -8,3 +8,6 @@ import:
   - iris
 - package: github.com/Joker/jade
 - package: github.com/gavv/httpexpect
+- package: bitbucket.org/liamstask/goose
+  subpackages:
+  - cmd/goose
