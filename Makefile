@@ -34,7 +34,7 @@ run-docker:
 test: drop-test db-test
 	@go test $(PACKAGES)
 
-coverage:
+coverage: drop-test db-test
 	@echo "mode: count" > coverage-all.out
 	@$(foreach pkg,$(PACKAGES),\
 		go test -coverprofile=coverage.out -covermode=count $(pkg);\
