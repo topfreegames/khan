@@ -1,6 +1,7 @@
 package models
 
 import (
+	"fmt"
 	"time"
 
 	"gopkg.in/gorp.v1"
@@ -33,8 +34,9 @@ func (p *Player) PreUpdate(s gorp.SqlExecutor) error {
 //GetPlayerByID returns a player by id
 func GetPlayerByID(id int) (*Player, error) {
 	obj, err := db.Get(Player{}, id)
-	if err != nil {
-		return nil, err
+	fmt.Println(obj, err)
+	if err != nil || obj == nil {
+		return nil, &ModelNotFoundError{"Player", id}
 	}
 	return obj.(*Player), nil
 }
