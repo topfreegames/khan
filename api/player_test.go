@@ -52,5 +52,15 @@ func TestPlayerHandler(t *testing.T) {
 			g.Assert(dbPlayer.Name).Equal(playerName)
 			g.Assert(dbPlayer.Metadata).Equal(metadata)
 		})
+
+		g.It("Should not create player if invalid payload", func() {
+			a := GetDefaultTestApp()
+			res := PostBody(a, "/players", t, "invalid")
+
+			res.Status(http.StatusBadRequest)
+			var result map[string]interface{}
+			json.Unmarshal([]byte(res.Body().Raw()), &result)
+			g.Assert(result["success"]).IsFalse()
+		})
 	})
 }
