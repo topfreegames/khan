@@ -11,3 +11,8 @@ import:
 - package: bitbucket.org/liamstask/goose
   subpackages:
   - cmd/goose
+- package: gopkg.in/gorp.v1
+- package: github.com/bluele/factory-go
+  subpackages:
+  - factory
+- package: github.com/Pallinder/go-randomdata
