@@ -9,7 +9,7 @@
 -- SQL in section 'Up' is executed when this migration is applied
 CREATE TABLE players (
     id serial PRIMARY KEY,
-    player_id varchar(255) NOT NULL,
+    public_id varchar(255) NOT NULL,
     game_id varchar(10) NOT NULL,
     name varchar(2000) NOT NULL,
     metadata JSONB NOT NULL DEFAULT '{}'::JSONB,
@@ -17,7 +17,7 @@ CREATE TABLE players (
     updated_at bigint NULL,
     deleted_at bigint NULL,
 
-    CONSTRAINT gameid_playerid UNIQUE(game_id, player_id)
+    CONSTRAINT gameid_playerid UNIQUE(game_id, public_id)
 );
 
 -- +goose Down

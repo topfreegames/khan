@@ -15,7 +15,7 @@ import (
 //CreatePlayerPayload maps the payload for the Create Player route
 type CreatePlayerPayload struct {
 	GameID   string
-	PlayerID string
+	PublicID string
 	Name     string
 	Metadata string
 }
@@ -31,7 +31,7 @@ func CreatePlayerHandler(app *App) func(c *iris.Context) {
 
 		player, err := models.CreatePlayer(
 			payload.GameID,
-			payload.PlayerID,
+			payload.PublicID,
 			payload.Name,
 			payload.Metadata,
 		)
