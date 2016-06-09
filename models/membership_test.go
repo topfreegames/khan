@@ -23,19 +23,19 @@ var MembershipFactory = factory.NewFactory(
 
 func TestMembershipModel(t *testing.T) {
 	g := Goblin(t)
-	db, err := GetTestDB()
+	testDb, err := GetTestDB()
 	g.Assert(err == nil).IsTrue()
 
 	g.Describe("Membership Model", func() {
 		g.It("Should create a new Membership", func() {
 			player := PlayerFactory.MustCreate().(*Player)
-			err := db.Insert(player)
+			err := testDb.Insert(player)
 			g.Assert(err == nil).IsTrue()
 
 			clan := ClanFactory.MustCreateWithOption(map[string]interface{}{
 				"OwnerID": player.ID,
 			}).(*Clan)
-			err = db.Insert(clan)
+			err = testDb.Insert(clan)
 			g.Assert(err == nil).IsTrue()
 
 			membership := &Membership{
@@ -46,7 +46,7 @@ func TestMembershipModel(t *testing.T) {
 				Approved: false,
 				Denied:   false,
 			}
-			err = db.Insert(membership)
+			err = testDb.Insert(membership)
 			g.Assert(err == nil).IsTrue()
 			g.Assert(membership.ID != 0).IsTrue()
 
@@ -60,25 +60,25 @@ func TestMembershipModel(t *testing.T) {
 
 		g.It("Should update a Membership", func() {
 			player := PlayerFactory.MustCreate().(*Player)
-			err := db.Insert(player)
+			err := testDb.Insert(player)
 			g.Assert(err == nil).IsTrue()
 
 			clan := ClanFactory.MustCreateWithOption(map[string]interface{}{
 				"OwnerID": player.ID,
 			}).(*Clan)
-			err = db.Insert(clan)
+			err = testDb.Insert(clan)
 			g.Assert(err == nil).IsTrue()
 
 			membership := MembershipFactory.MustCreateWithOption(map[string]interface{}{
 				"PlayerID": player.ID,
 				"ClanID":   clan.ID,
 			}).(*Membership)
-			err = db.Insert(membership)
+			err = testDb.Insert(membership)
 			g.Assert(err == nil).IsTrue()
 			dt := membership.UpdatedAt
 
 			membership.Approved = true
-			count, err := db.Update(membership)
+			count, err := testDb.Update(membership)
 			g.Assert(err == nil).IsTrue()
 			g.Assert(int(count)).Equal(1)
 			g.Assert(membership.UpdatedAt > dt).IsTrue()
@@ -86,20 +86,20 @@ func TestMembershipModel(t *testing.T) {
 
 		g.It("Should get existing Membership", func() {
 			player := PlayerFactory.MustCreate().(*Player)
-			err := db.Insert(player)
+			err := testDb.Insert(player)
 			g.Assert(err == nil).IsTrue()
 
 			clan := ClanFactory.MustCreateWithOption(map[string]interface{}{
 				"OwnerID": player.ID,
 			}).(*Clan)
-			err = db.Insert(clan)
+			err = testDb.Insert(clan)
 			g.Assert(err == nil).IsTrue()
 
 			membership := MembershipFactory.MustCreateWithOption(map[string]interface{}{
 				"PlayerID": player.ID,
 				"ClanID":   clan.ID,
 			}).(*Membership)
-			err = db.Insert(membership)
+			err = testDb.Insert(membership)
 			g.Assert(err == nil).IsTrue()
 
 			dbMembership, err := GetMembershipByID(membership.ID)

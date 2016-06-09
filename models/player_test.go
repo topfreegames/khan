@@ -30,7 +30,7 @@ var PlayerFactory = factory.NewFactory(
 
 func TestPlayerModel(t *testing.T) {
 	g := Goblin(t)
-	db, err := GetTestDB()
+	testDb, err := GetTestDB()
 	g.Assert(err == nil).IsTrue()
 
 	g.Describe("Player Model", func() {
@@ -41,7 +41,7 @@ func TestPlayerModel(t *testing.T) {
 				Name:     "user-name",
 				Metadata: "{}",
 			}
-			err := db.Insert(player)
+			err := testDb.Insert(player)
 			g.Assert(err == nil).IsTrue()
 			g.Assert(player.ID != 0).IsTrue()
 
@@ -54,12 +54,12 @@ func TestPlayerModel(t *testing.T) {
 
 		g.It("Should update a new Player", func() {
 			player := PlayerFactory.MustCreate().(*Player)
-			err := db.Insert(player)
+			err := testDb.Insert(player)
 			g.Assert(err == nil).IsTrue()
 			dt := player.UpdatedAt
 
 			player.Metadata = "{ \"x\": 1 }"
-			count, err := db.Update(player)
+			count, err := testDb.Update(player)
 			g.Assert(err == nil).IsTrue()
 			g.Assert(int(count)).Equal(1)
 			g.Assert(player.UpdatedAt > dt).IsTrue()
@@ -67,7 +67,7 @@ func TestPlayerModel(t *testing.T) {
 
 		g.It("Should get existing Player", func() {
 			player := PlayerFactory.MustCreate().(*Player)
-			err := db.Insert(player)
+			err := testDb.Insert(player)
 			g.Assert(err == nil).IsTrue()
 
 			dbPlayer, err := GetPlayerByID(player.ID)

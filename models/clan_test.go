@@ -30,13 +30,13 @@ var ClanFactory = factory.NewFactory(
 
 func TestClanModel(t *testing.T) {
 	g := Goblin(t)
-	db, err := GetTestDB()
+	testDb, err := GetTestDB()
 	g.Assert(err == nil).IsTrue()
 
 	g.Describe("Clan Model", func() {
 		g.It("Should create a new Clan", func() {
 			player := PlayerFactory.MustCreate().(*Player)
-			err := db.Insert(player)
+			err := testDb.Insert(player)
 			g.Assert(err == nil).IsTrue()
 
 			clan := &Clan{
@@ -46,7 +46,7 @@ func TestClanModel(t *testing.T) {
 				Metadata: "{}",
 				OwnerID:  player.ID,
 			}
-			err = db.Insert(clan)
+			err = testDb.Insert(clan)
 			g.Assert(err == nil).IsTrue()
 			g.Assert(clan.ID != 0).IsTrue()
 
@@ -59,18 +59,18 @@ func TestClanModel(t *testing.T) {
 
 		g.It("Should update a Clan", func() {
 			player := PlayerFactory.MustCreate().(*Player)
-			err := db.Insert(player)
+			err := testDb.Insert(player)
 			g.Assert(err == nil).IsTrue()
 
 			clan := ClanFactory.MustCreateWithOption(map[string]interface{}{
 				"OwnerID": player.ID,
 			}).(*Clan)
-			err = db.Insert(clan)
+			err = testDb.Insert(clan)
 			g.Assert(err == nil).IsTrue()
 			dt := clan.UpdatedAt
 
 			clan.Metadata = "{ \"x\": 1 }"
-			count, err := db.Update(clan)
+			count, err := testDb.Update(clan)
 			g.Assert(err == nil).IsTrue()
 			g.Assert(int(count)).Equal(1)
 			g.Assert(clan.UpdatedAt > dt).IsTrue()
@@ -78,13 +78,13 @@ func TestClanModel(t *testing.T) {
 
 		g.It("Should get existing Clan", func() {
 			player := PlayerFactory.MustCreate().(*Player)
-			err := db.Insert(player)
+			err := testDb.Insert(player)
 			g.Assert(err == nil).IsTrue()
 
 			clan := ClanFactory.MustCreateWithOption(map[string]interface{}{
 				"OwnerID": player.ID,
 			}).(*Clan)
-			err = db.Insert(clan)
+			err = testDb.Insert(clan)
 			g.Assert(err == nil).IsTrue()
 
 			dbClan, err := GetClanByID(clan.ID)
