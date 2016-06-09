@@ -1,4 +1,8 @@
-#Copyright © 2016 Top Free Games <backend@tfgco.com>
+# khan
+# https://github.com/topfreegames/khan
+# Licensed under the MIT license:
+# http://www.opensource.org/licenses/mit-license
+# Copyright © 2016 Top Free Games <backend@tfgco.com>
 
 PACKAGES = $(shell glide novendor)
 GODIRS = $(shell go list ./... | grep -v /vendor/ | sed s@github.com/topfreegames/khan@.@g | egrep -v "^[.]$$")
@@ -68,4 +72,3 @@ static:
 	@for pkg in $(GODIRS) ; do \
         ineffassign $$pkg ; \
     done
-

@@ -9,9 +9,14 @@ Khan will drive all your enemies to the sea (and also take care of your game's c
 
 ## Setup
 
+Make sure you have go installed on your machine.
+If you use homebrew you can install it with `brew install go`.
+
 Run `make setup`.
 
 ## Running the application
+
+Create the development database with `make migrate` (first time only).
 
 Run the api with `make run`.
 
