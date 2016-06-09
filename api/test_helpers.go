@@ -54,16 +54,16 @@ func sendBody(app *App, method string, url string, t *testing.T, payload string)
 }
 
 //PostJSON returns a test request against specified URL
-func PostJSON(app *App, url string, t *testing.T, payload map[string]string) *httpexpect.Response {
+func PostJSON(app *App, url string, t *testing.T, payload map[string]interface{}) *httpexpect.Response {
 	return sendJSON(app, "POST", url, t, payload)
 }
 
 //PutJSON returns a test request against specified URL
-func PutJSON(app *App, url string, t *testing.T, payload map[string]string) *httpexpect.Response {
+func PutJSON(app *App, url string, t *testing.T, payload map[string]interface{}) *httpexpect.Response {
 	return sendJSON(app, "PUT", url, t, payload)
 }
 
-func sendJSON(app *App, method string, url string, t *testing.T, payload map[string]string) *httpexpect.Response {
+func sendJSON(app *App, method string, url string, t *testing.T, payload map[string]interface{}) *httpexpect.Response {
 	req := sendRequest(app, method, url, t)
 	return req.WithJSON(payload).Expect()
 }
