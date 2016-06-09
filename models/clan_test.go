@@ -20,7 +20,7 @@ var ClanFactory = factory.NewFactory(
 	&Clan{},
 ).SeqInt("GameID", func(n int) (interface{}, error) {
 	return fmt.Sprintf("game-%d", n), nil
-}).SeqInt("ClanID", func(n int) (interface{}, error) {
+}).SeqInt("PublicID", func(n int) (interface{}, error) {
 	return fmt.Sprintf("clan-%d", n), nil
 }).Attr("Name", func(args factory.Args) (interface{}, error) {
 	return randomdata.FullName(randomdata.RandomGender), nil
@@ -41,7 +41,7 @@ func TestClanModel(t *testing.T) {
 
 			clan := &Clan{
 				GameID:   "test",
-				ClanID:   "test-clan-2",
+				PublicID: "test-clan-2",
 				Name:     "clan-name",
 				Metadata: "{}",
 				OwnerID:  player.ID,
@@ -54,7 +54,7 @@ func TestClanModel(t *testing.T) {
 			g.Assert(err == nil).IsTrue()
 
 			g.Assert(dbClan.GameID).Equal(clan.GameID)
-			g.Assert(dbClan.ClanID).Equal(clan.ClanID)
+			g.Assert(dbClan.PublicID).Equal(clan.PublicID)
 		})
 
 		g.It("Should update a Clan", func() {
