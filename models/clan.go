@@ -17,7 +17,7 @@ import (
 type Clan struct {
 	ID        int    `db:"id"`
 	GameID    string `db:"game_id"`
-	ClanID    string `db:"clan_id"`
+	PublicID  string `db:"public_id"`
 	Name      string `db:"name"`
 	OwnerID   int    `db:"owner_id"`
 	Metadata  string `db:"metadata"`
