@@ -41,8 +41,8 @@ func (c *Clan) PreUpdate(s gorp.SqlExecutor) error {
 //GetClanByID returns a clan by id
 func GetClanByID(id int) (*Clan, error) {
 	obj, err := db.Get(Clan{}, id)
-	if err != nil {
-		return nil, err
+	if err != nil || obj == nil {
+		return nil, &ModelNotFoundError{"Clan", id}
 	}
 	return obj.(*Clan), nil
 }

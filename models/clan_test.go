@@ -56,5 +56,47 @@ func TestClanModel(t *testing.T) {
 			g.Assert(dbClan.GameID).Equal(clan.GameID)
 			g.Assert(dbClan.ClanID).Equal(clan.ClanID)
 		})
+
+		g.It("Should update a Clan", func() {
+			player := PlayerFactory.MustCreate().(*Player)
+			err := db.Insert(player)
+			g.Assert(err == nil).IsTrue()
+
+			clan := ClanFactory.MustCreateWithOption(map[string]interface{}{
+				"OwnerID": player.ID,
+			}).(*Clan)
+			err = db.Insert(clan)
+			g.Assert(err == nil).IsTrue()
+			dt := clan.UpdatedAt
+
+			clan.Metadata = "{ \"x\": 1 }"
+			count, err := db.Update(clan)
+			g.Assert(err == nil).IsTrue()
+			g.Assert(int(count)).Equal(1)
+			g.Assert(clan.UpdatedAt > dt).IsTrue()
+		})
+
+		g.It("Should get existing Clan", func() {
+			player := PlayerFactory.MustCreate().(*Player)
+			err := db.Insert(player)
+			g.Assert(err == nil).IsTrue()
+
+			clan := ClanFactory.MustCreateWithOption(map[string]interface{}{
+				"OwnerID": player.ID,
+			}).(*Clan)
+			err = db.Insert(clan)
+			g.Assert(err == nil).IsTrue()
+
+			dbClan, err := GetClanByID(clan.ID)
+			g.Assert(err == nil).IsTrue()
+			g.Assert(dbClan.ID).Equal(clan.ID)
+		})
+
+		g.It("Should not get non-existing Clan", func() {
+			_, err := GetClanByID(-1)
+			g.Assert(err != nil).IsTrue()
+			g.Assert(err.Error()).Equal("Clan was not found with id: -1")
+		})
+
 	})
 }
