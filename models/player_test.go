@@ -80,5 +80,40 @@ func TestPlayerModel(t *testing.T) {
 			g.Assert(err != nil).IsTrue()
 			g.Assert(err.Error()).Equal("Player was not found with id: -1")
 		})
+
+		g.It("Should get existing Player by Game and Player", func() {
+			player := PlayerFactory.MustCreate().(*Player)
+			err := db.Insert(player)
+			g.Assert(err == nil).IsTrue()
+
+			dbPlayer, err := GetPlayerByPlayerID(player.GameID, player.PlayerID)
+			g.Assert(err == nil).IsTrue()
+			g.Assert(dbPlayer.ID).Equal(player.ID)
+		})
+
+		g.It("Should not get non-existing Player by Game and Player", func() {
+			_, err := GetPlayerByPlayerID("invalid-game", "invalid-player")
+			g.Assert(err != nil).IsTrue()
+			g.Assert(err.Error()).Equal("Player was not found with id: invalid-player")
+		})
+
+		g.It("Should create a new Player with CreatePlayer", func() {
+			player, err := CreatePlayer(
+				"create-1",
+				randomdata.FullName(randomdata.RandomGender),
+				"player-name",
+				"{}",
+			)
+			fmt.Println(err)
+			g.Assert(err == nil).IsTrue()
+			g.Assert(player.ID != 0).IsTrue()
+
+			dbPlayer, err := GetPlayerByID(player.ID)
+			g.Assert(err == nil).IsTrue()
+
+			g.Assert(dbPlayer.GameID).Equal(player.GameID)
+			g.Assert(dbPlayer.PlayerID).Equal(player.PlayerID)
+		})
+
 	})
 }

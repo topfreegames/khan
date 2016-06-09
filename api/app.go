@@ -108,6 +108,7 @@ func (app *App) configureApplication() {
 	iris.Use(recovery.New(os.Stderr))
 
 	a.Get("/healthcheck", HealthCheckHandler(app))
+	SetPlayerHandlersGroup(app)
 }
 
 func (app *App) finalizeApp() {
