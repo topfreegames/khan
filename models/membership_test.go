@@ -9,7 +9,8 @@ import (
 
 func TestMembershipModel(t *testing.T) {
 	g := Goblin(t)
-	db := GetTestDB()
+	db, err := GetTestDB()
+	g.Assert(err == nil).IsTrue()
 
 	g.Describe("Membership Model", func() {
 		g.It("Should create a new Membership", func() {

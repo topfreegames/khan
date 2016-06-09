@@ -23,7 +23,8 @@ var ClanFactory = factory.NewFactory(
 
 func TestClanModel(t *testing.T) {
 	g := Goblin(t)
-	db := GetTestDB()
+	db, err := GetTestDB()
+	g.Assert(err == nil).IsTrue()
 
 	g.Describe("Clan Model", func() {
 		g.It("Should create a new Clan", func() {

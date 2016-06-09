@@ -23,7 +23,8 @@ var PlayerFactory = factory.NewFactory(
 
 func TestPlayerModel(t *testing.T) {
 	g := Goblin(t)
-	db := GetTestDB()
+	db, err := GetTestDB()
+	g.Assert(err == nil).IsTrue()
 
 	g.Describe("Player Model", func() {
 		g.It("Should create a new Player", func() {
