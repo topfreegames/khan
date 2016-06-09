@@ -9,7 +9,6 @@ package api
 
 import (
 	"encoding/json"
-	"fmt"
 
 	"github.com/kataras/iris"
 	"github.com/topfreegames/khan/models"
@@ -37,7 +36,6 @@ func CreatePlayerHandler(app *App) func(c *iris.Context) {
 			payload.Name,
 			payload.Metadata,
 		)
-		fmt.Println(err)
 
 		if err != nil {
 			result, _ := json.Marshal(map[string]interface{}{
@@ -65,5 +63,5 @@ func SetPlayerHandlersGroup(app *App) {
 		c.Next()
 	})
 
-	playerHandlersGroup.Post("/create", CreatePlayerHandler(app))
+	playerHandlersGroup.Post("", CreatePlayerHandler(app))
 }
