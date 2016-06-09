@@ -4,7 +4,6 @@
 [![Coverage Status](https://coveralls.io/repos/github/topfreegames/khan/badge.svg?branch=master)](https://coveralls.io/github/topfreegames/khan?branch=master)
 [![Code Climate](https://codeclimate.com/github/topfreegames/khan/badges/gpa.svg)](https://codeclimate.com/github/topfreegames/khan)
 [![Go Report Card](https://goreportcard.com/badge/github.com/topfreegames/khan)](https://goreportcard.com/report/github.com/topfreegames/khan)
-[![Docker Stars](https://img.shields.io/docker/stars/_/ubuntu.svg?maxAge=2592000)]()
 
 Khan will drive all your enemies to the sea (and also take care of your game's clans)!
 
