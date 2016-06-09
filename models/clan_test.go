@@ -8,25 +8,10 @@
 package models
 
 import (
-	"fmt"
 	"testing"
 
-	"github.com/Pallinder/go-randomdata"
-	"github.com/bluele/factory-go/factory"
 	. "github.com/franela/goblin"
 )
-
-var ClanFactory = factory.NewFactory(
-	&Clan{},
-).SeqInt("GameID", func(n int) (interface{}, error) {
-	return fmt.Sprintf("game-%d", n), nil
-}).SeqInt("PublicID", func(n int) (interface{}, error) {
-	return fmt.Sprintf("clan-%d", n), nil
-}).Attr("Name", func(args factory.Args) (interface{}, error) {
-	return randomdata.FullName(randomdata.RandomGender), nil
-}).Attr("Metadata", func(args factory.Args) (interface{}, error) {
-	return "{}", nil
-})
 
 func TestClanModel(t *testing.T) {
 	g := Goblin(t)

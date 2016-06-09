@@ -46,7 +46,7 @@ func TestPlayerHandler(t *testing.T) {
 			g.Assert(result["success"]).IsTrue()
 
 			dbPlayer, err := models.GetPlayerByPublicID(gameID, publicID)
-			g.Assert(err == nil).IsTrue()
+			AssertNotError(g, err)
 			g.Assert(dbPlayer.GameID).Equal(gameID)
 			g.Assert(dbPlayer.PublicID).Equal(publicID)
 			g.Assert(dbPlayer.Name).Equal(playerName)
@@ -67,7 +67,7 @@ func TestPlayerHandler(t *testing.T) {
 		})
 
 		g.It("Should not create player if invalid data", func() {
-			gameID := "game-id-is-too-large-for-this-field-should-be-less-than-10-chars"
+			gameID := "game-id-is-too-large-for-this-field-should-be-less-than-36-chars"
 			playerID := randomdata.FullName(randomdata.RandomGender)
 			playerName := randomdata.FullName(randomdata.RandomGender)
 			metadata := "{\"x\": 1}"
@@ -85,7 +85,37 @@ func TestPlayerHandler(t *testing.T) {
 			var result map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
-			g.Assert(result["reason"]).Equal("pq: value too long for type character varying(10)")
+			g.Assert(result["reason"]).Equal("pq: value too long for type character varying(36)")
+		})
+	})
+
+	g.Describe("Update Player Handler", func() {
+		g.It("Should update player", func() {
+			a := GetDefaultTestApp()
+			player := models.PlayerFactory.MustCreate().(*models.Player)
+			err := a.Db.Insert(player)
+			AssertNotError(g, err)
+
+			metadata := "{\"y\": 10}"
+			payload := map[string]string{
+				"gameID":   player.GameID,
+				"publicID": player.PublicID,
+				"name":     player.Name,
+				"metadata": metadata,
+			}
+
+			res := PutJSON(a, "/players", t, payload)
+			res.Status(http.StatusOK)
+			var result map[string]interface{}
+			json.Unmarshal([]byte(res.Body().Raw()), &result)
+			g.Assert(result["success"]).IsTrue()
+
+			dbPlayer, err := models.GetPlayerByPublicID(player.GameID, player.PublicID)
+			AssertNotError(g, err)
+			g.Assert(dbPlayer.GameID).Equal(player.GameID)
+			g.Assert(dbPlayer.PublicID).Equal(player.PublicID)
+			g.Assert(dbPlayer.Name).Equal(player.Name)
+			g.Assert(dbPlayer.Metadata).Equal(metadata)
 		})
 	})
 }

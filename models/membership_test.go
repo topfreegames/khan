@@ -8,18 +8,10 @@
 package models
 
 import (
-	"fmt"
 	"testing"
 
-	"github.com/bluele/factory-go/factory"
 	. "github.com/franela/goblin"
 )
-
-var MembershipFactory = factory.NewFactory(
-	&Membership{},
-).SeqInt("GameID", func(n int) (interface{}, error) {
-	return fmt.Sprintf("game-%d", n), nil
-})
 
 func TestMembershipModel(t *testing.T) {
 	g := Goblin(t)

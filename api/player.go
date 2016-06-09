@@ -12,8 +12,7 @@ import (
 	"github.com/topfreegames/khan/models"
 )
 
-//CreatePlayerPayload maps the payload for the Create Player route
-type CreatePlayerPayload struct {
+type playerDataChangePayload struct {
 	GameID   string
 	PublicID string
 	Name     string
@@ -23,7 +22,7 @@ type CreatePlayerPayload struct {
 //CreatePlayerHandler is the handler responsible for creating new players
 func CreatePlayerHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
-		var payload CreatePlayerPayload
+		var payload playerDataChangePayload
 		if err := c.ReadJSON(&payload); err != nil {
 			FailWith(400, err.Error(), c)
 			return
@@ -47,6 +46,31 @@ func CreatePlayerHandler(app *App) func(c *iris.Context) {
 	}
 }
 
+//UpdatePlayerHandler is the handler responsible for updating existing
+func UpdatePlayerHandler(app *App) func(c *iris.Context) {
+	return func(c *iris.Context) {
+		var payload playerDataChangePayload
+		if err := c.ReadJSON(&payload); err != nil {
+			FailWith(400, err.Error(), c)
+			return
+		}
+
+		_, err := models.UpdatePlayer(
+			payload.GameID,
+			payload.PublicID,
+			payload.Name,
+			payload.Metadata,
+		)
+
+		if err != nil {
+			FailWith(500, err.Error(), c)
+			return
+		}
+
+		SucceedWith(map[string]interface{}{}, c)
+	}
+}
+
 //SetPlayerHandlersGroup configures the routes for all player related routes
 func SetPlayerHandlersGroup(app *App) {
 	playerHandlersGroup := app.App.Party("/players", func(c *iris.Context) {
@@ -54,4 +78,5 @@ func SetPlayerHandlersGroup(app *App) {
 	})
 
 	playerHandlersGroup.Post("", CreatePlayerHandler(app))
+	playerHandlersGroup.Put("", UpdatePlayerHandler(app))
 }

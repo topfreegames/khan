@@ -10,9 +10,22 @@ package api
 import (
 	"testing"
 
+	"github.com/franela/goblin"
 	"github.com/gavv/httpexpect"
 	"github.com/gavv/httpexpect/fasthttpexpect"
 )
+
+//AssertError asserts that the specified error is not nil
+func AssertError(g *goblin.G, err error) {
+	g.Assert(err == nil).IsFalse("Expected error to exist, but it was nil")
+}
+
+//AssertNotError asserts that the specified error is nil
+func AssertNotError(g *goblin.G, err error) {
+	if err != nil {
+		g.Assert(err == nil).IsTrue(err.Error())
+	}
+}
 
 //GetDefaultTestApp returns a new Khan API Application bound to 0.0.0.0:8888 for test
 func GetDefaultTestApp() *App {
@@ -53,4 +66,16 @@ func PostJSON(app *App, url string, t *testing.T, payload map[string]string) *ht
 	})
 
 	return e.POST(url).WithJSON(payload).Expect()
+}
+
+//PutJSON returns a test request against specified URL
+func PutJSON(app *App, url string, t *testing.T, payload map[string]string) *httpexpect.Response {
+	handler := app.App.ServeRequest
+
+	e := httpexpect.WithConfig(httpexpect.Config{
+		Reporter: httpexpect.NewAssertReporter(t),
+		Client:   fasthttpexpect.NewBinder(handler),
+	})
+
+	return e.PUT(url).WithJSON(payload).Expect()
 }
