@@ -17,7 +17,7 @@ import (
 type Player struct {
 	ID        int    `db:"id"`
 	GameID    string `db:"game_id"`
-	PlayerID  string `db:"player_id"`
+	PublicID  string `db:"public_id"`
 	Name      string `db:"name"`
 	Metadata  string `db:"metadata"`
 	CreatedAt int64  `db:"created_at"`
@@ -47,21 +47,21 @@ func GetPlayerByID(id int) (*Player, error) {
 	return obj.(*Player), nil
 }
 
-//GetPlayerByPlayerID returns a player by id
-func GetPlayerByPlayerID(gameID string, playerID string) (*Player, error) {
+//GetPlayerByPublicID returns a player by id
+func GetPlayerByPublicID(gameID string, publicID string) (*Player, error) {
 	var player Player
-	err := db.SelectOne(&player, "select * from players where game_id=$1 and player_id=$2", gameID, playerID)
+	err := db.SelectOne(&player, "select * from players where game_id=$1 and public_id=$2", gameID, publicID)
 	if err != nil || &player == nil {
-		return nil, &ModelNotFoundError{"Player", playerID}
+		return nil, &ModelNotFoundError{"Player", publicID}
 	}
 	return &player, nil
 }
 
 //CreatePlayer creates a new player
-func CreatePlayer(gameID string, playerID string, name string, metadata string) (*Player, error) {
+func CreatePlayer(gameID string, publicID string, name string, metadata string) (*Player, error) {
 	player := &Player{
 		GameID:   gameID,
-		PlayerID: playerID,
+		PublicID: publicID,
 		Name:     name,
 		Metadata: metadata,
 	}

@@ -27,14 +27,14 @@ func TestPlayerHandler(t *testing.T) {
 	g.Describe("Create Player Handler", func() {
 		g.It("Should create player", func() {
 			gameID := "api-cr-1"
-			playerID := randomdata.FullName(randomdata.RandomGender)
+			publicID := randomdata.FullName(randomdata.RandomGender)
 			playerName := randomdata.FullName(randomdata.RandomGender)
 			metadata := "{\"x\": 1}"
 
 			a := GetDefaultTestApp()
 			payload := map[string]string{
 				"gameID":   gameID,
-				"playerID": playerID,
+				"publicID": publicID,
 				"name":     playerName,
 				"metadata": metadata,
 			}
@@ -45,10 +45,10 @@ func TestPlayerHandler(t *testing.T) {
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsTrue()
 
-			dbPlayer, err := models.GetPlayerByPlayerID(gameID, playerID)
+			dbPlayer, err := models.GetPlayerByPublicID(gameID, publicID)
 			g.Assert(err == nil).IsTrue()
 			g.Assert(dbPlayer.GameID).Equal(gameID)
-			g.Assert(dbPlayer.PlayerID).Equal(playerID)
+			g.Assert(dbPlayer.PublicID).Equal(publicID)
 			g.Assert(dbPlayer.Name).Equal(playerName)
 			g.Assert(dbPlayer.Metadata).Equal(metadata)
 		})

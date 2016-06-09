@@ -20,7 +20,7 @@ var PlayerFactory = factory.NewFactory(
 	&Player{},
 ).SeqInt("GameID", func(n int) (interface{}, error) {
 	return fmt.Sprintf("game-%d", n), nil
-}).SeqInt("PlayerID", func(n int) (interface{}, error) {
+}).SeqInt("PublicID", func(n int) (interface{}, error) {
 	return fmt.Sprintf("player-%d", n), nil
 }).Attr("Name", func(args factory.Args) (interface{}, error) {
 	return randomdata.FullName(randomdata.RandomGender), nil
@@ -37,7 +37,7 @@ func TestPlayerModel(t *testing.T) {
 		g.It("Should create a new Player", func() {
 			player := &Player{
 				GameID:   "test",
-				PlayerID: "test-player",
+				PublicID: "test-player",
 				Name:     "user-name",
 				Metadata: "{}",
 			}
@@ -49,7 +49,7 @@ func TestPlayerModel(t *testing.T) {
 			g.Assert(err == nil).IsTrue()
 
 			g.Assert(dbPlayer.GameID).Equal(player.GameID)
-			g.Assert(dbPlayer.PlayerID).Equal(player.PlayerID)
+			g.Assert(dbPlayer.PublicID).Equal(player.PublicID)
 		})
 
 		g.It("Should update a new Player", func() {
@@ -86,13 +86,13 @@ func TestPlayerModel(t *testing.T) {
 			err := db.Insert(player)
 			g.Assert(err == nil).IsTrue()
 
-			dbPlayer, err := GetPlayerByPlayerID(player.GameID, player.PlayerID)
+			dbPlayer, err := GetPlayerByPublicID(player.GameID, player.PublicID)
 			g.Assert(err == nil).IsTrue()
 			g.Assert(dbPlayer.ID).Equal(player.ID)
 		})
 
 		g.It("Should not get non-existing Player by Game and Player", func() {
-			_, err := GetPlayerByPlayerID("invalid-game", "invalid-player")
+			_, err := GetPlayerByPublicID("invalid-game", "invalid-player")
 			g.Assert(err != nil).IsTrue()
 			g.Assert(err.Error()).Equal("Player was not found with id: invalid-player")
 		})
@@ -112,7 +112,7 @@ func TestPlayerModel(t *testing.T) {
 			g.Assert(err == nil).IsTrue()
 
 			g.Assert(dbPlayer.GameID).Equal(player.GameID)
-			g.Assert(dbPlayer.PlayerID).Equal(player.PlayerID)
+			g.Assert(dbPlayer.PublicID).Equal(player.PublicID)
 		})
 
 	})
