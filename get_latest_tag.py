@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # khan
 # https://github.com/topfreegames/khan
 # Licensed under the MIT license:
