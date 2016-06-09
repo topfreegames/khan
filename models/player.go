@@ -47,7 +47,7 @@ func GetPlayerByID(id int) (*Player, error) {
 	return obj.(*Player), nil
 }
 
-//GetPlayerByPublicID returns a player by id
+//GetPlayerByPublicID returns a player by their public id
 func GetPlayerByPublicID(gameID string, publicID string) (*Player, error) {
 	var player Player
 	err := db.SelectOne(&player, "select * from players where game_id=$1 and public_id=$2", gameID, publicID)
@@ -70,7 +70,6 @@ func CreatePlayer(gameID string, publicID string, name string, metadata string) 
 		return nil, err
 	}
 	return player, nil
-
 }
 
 //UpdatePlayer updates an existing player

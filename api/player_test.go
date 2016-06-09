@@ -32,7 +32,7 @@ func TestPlayerHandler(t *testing.T) {
 			metadata := "{\"x\": 1}"
 
 			a := GetDefaultTestApp()
-			payload := map[string]string{
+			payload := map[string]interface{}{
 				"gameID":   gameID,
 				"publicID": publicID,
 				"name":     playerName,
@@ -73,7 +73,7 @@ func TestPlayerHandler(t *testing.T) {
 			metadata := "{\"x\": 1}"
 
 			a := GetDefaultTestApp()
-			payload := map[string]string{
+			payload := map[string]interface{}{
 				"gameID":   gameID,
 				"playerID": playerID,
 				"name":     playerName,
@@ -97,7 +97,7 @@ func TestPlayerHandler(t *testing.T) {
 			AssertNotError(g, err)
 
 			metadata := "{\"y\": 10}"
-			payload := map[string]string{
+			payload := map[string]interface{}{
 				"gameID":   player.GameID,
 				"publicID": player.PublicID,
 				"name":     player.Name,

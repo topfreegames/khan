@@ -23,6 +23,7 @@ type Clan struct {
 	Metadata  string `db:"metadata"`
 	CreatedAt int64  `db:"created_at"`
 	UpdatedAt int64  `db:"updated_at"`
+	DeletedAt int64  `db:"deleted_at"`
 }
 
 //PreInsert populates fields before inserting a new clan
@@ -45,4 +46,30 @@ func GetClanByID(id int) (*Clan, error) {
 		return nil, &ModelNotFoundError{"Clan", id}
 	}
 	return obj.(*Clan), nil
+}
+
+//GetClanByPublicID returns a clan by its public id
+func GetClanByPublicID(gameID string, publicID string) (*Clan, error) {
+	var clan Clan
+	err := db.SelectOne(&clan, "select * from clans where game_id=$1 and public_id=$2", gameID, publicID)
+	if err != nil || &clan == nil {
+		return nil, &ModelNotFoundError{"Clan", publicID}
+	}
+	return &clan, nil
+}
+
+//CreateClan creates a new clan
+func CreateClan(gameID string, publicID string, name string, ownerID int, metadata string) (*Clan, error) {
+	clan := &Clan{
+		GameID:   gameID,
+		PublicID: publicID,
+		Name:     name,
+		OwnerID:  ownerID,
+		Metadata: metadata,
+	}
+	err := db.Insert(clan)
+	if err != nil {
+		return nil, err
+	}
+	return clan, nil
 }
