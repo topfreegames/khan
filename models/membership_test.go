@@ -8,10 +8,18 @@
 package models
 
 import (
+	"fmt"
 	"testing"
 
+	"github.com/bluele/factory-go/factory"
 	. "github.com/franela/goblin"
 )
+
+var MembershipFactory = factory.NewFactory(
+	&Membership{},
+).SeqInt("GameID", func(n int) (interface{}, error) {
+	return fmt.Sprintf("game-%d", n), nil
+})
 
 func TestMembershipModel(t *testing.T) {
 	g := Goblin(t)
@@ -48,6 +56,61 @@ func TestMembershipModel(t *testing.T) {
 			g.Assert(dbMembership.GameID).Equal(membership.GameID)
 			g.Assert(dbMembership.PlayerID).Equal(membership.PlayerID)
 			g.Assert(dbMembership.ClanID).Equal(membership.ClanID)
+		})
+
+		g.It("Should update a Membership", func() {
+			player := PlayerFactory.MustCreate().(*Player)
+			err := db.Insert(player)
+			g.Assert(err == nil).IsTrue()
+
+			clan := ClanFactory.MustCreateWithOption(map[string]interface{}{
+				"OwnerID": player.ID,
+			}).(*Clan)
+			err = db.Insert(clan)
+			g.Assert(err == nil).IsTrue()
+
+			membership := MembershipFactory.MustCreateWithOption(map[string]interface{}{
+				"PlayerID": player.ID,
+				"ClanID":   clan.ID,
+			}).(*Membership)
+			err = db.Insert(membership)
+			g.Assert(err == nil).IsTrue()
+			dt := membership.UpdatedAt
+
+			membership.Approved = true
+			count, err := db.Update(membership)
+			g.Assert(err == nil).IsTrue()
+			g.Assert(int(count)).Equal(1)
+			g.Assert(membership.UpdatedAt > dt).IsTrue()
+		})
+
+		g.It("Should get existing Membership", func() {
+			player := PlayerFactory.MustCreate().(*Player)
+			err := db.Insert(player)
+			g.Assert(err == nil).IsTrue()
+
+			clan := ClanFactory.MustCreateWithOption(map[string]interface{}{
+				"OwnerID": player.ID,
+			}).(*Clan)
+			err = db.Insert(clan)
+			g.Assert(err == nil).IsTrue()
+
+			membership := MembershipFactory.MustCreateWithOption(map[string]interface{}{
+				"PlayerID": player.ID,
+				"ClanID":   clan.ID,
+			}).(*Membership)
+			err = db.Insert(membership)
+			g.Assert(err == nil).IsTrue()
+
+			dbMembership, err := GetMembershipByID(membership.ID)
+			g.Assert(err == nil).IsTrue()
+			g.Assert(dbMembership.ID).Equal(membership.ID)
+		})
+
+		g.It("Should not get non-existing Membership", func() {
+			_, err := GetMembershipByID(-1)
+			g.Assert(err != nil).IsTrue()
+			g.Assert(err.Error()).Equal("Membership was not found with id: -1")
 		})
 	})
 }
