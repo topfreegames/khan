@@ -8,7 +8,6 @@
 package models
 
 import (
-	"fmt"
 	"testing"
 
 	. "github.com/franela/goblin"
@@ -25,7 +24,9 @@ func TestMembershipModel(t *testing.T) {
 			err := db.Insert(player)
 			g.Assert(err == nil).IsTrue()
 
-			clan := ClanFactory.MustCreate().(*Clan)
+			clan := ClanFactory.MustCreateWithOption(map[string]interface{}{
+				"OwnerID": player.ID,
+			}).(*Clan)
 			err = db.Insert(clan)
 			g.Assert(err == nil).IsTrue()
 
@@ -38,7 +39,6 @@ func TestMembershipModel(t *testing.T) {
 				Denied:   false,
 			}
 			err = db.Insert(membership)
-			fmt.Println(err)
 			g.Assert(err == nil).IsTrue()
 			g.Assert(membership.ID != 0).IsTrue()
 
