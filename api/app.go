@@ -5,12 +5,14 @@ import (
 	"os"
 	"strings"
 
-	"github.com/jinzhu/gorm"
+	"gopkg.in/gorp.v1"
+
 	_ "github.com/jinzhu/gorm/dialects/postgres" //This is required to use postgres with gorm
 	"github.com/kataras/iris"
 	"github.com/kataras/iris/middleware/logger"
 	"github.com/kataras/iris/middleware/recovery"
 	"github.com/spf13/viper"
+	"github.com/topfreegames/khan/models"
 )
 
 //App is a struct that represents a Khan API Application
@@ -20,7 +22,7 @@ type App struct {
 	Host       string
 	ConfigPath string
 	App        *iris.Iris
-	Db         *gorm.DB
+	Db         *gorp.DbMap
 	Config     *viper.Viper
 }
 
@@ -77,20 +79,14 @@ func (app *App) connectDatabase() {
 	port := app.Config.GetInt("postgres.port")
 	sslMode := app.Config.GetString("postgres.sslMode")
 
-	connStr :=
-		fmt.Sprintf("host=%s user=%s port=%d sslmode=%s dbname=%s", host, user, port, sslMode, dbName)
+	db, err := models.GetDB(host, user, port, sslMode, dbName, password)
 
-	if password != "" {
-		connStr += fmt.Sprintf(" password=%s", password)
-	}
-
-	db, err := gorm.Open("postgres", connStr)
 	if err != nil {
 		fmt.Printf(
 			"Could not connect to Postgres at %s:%d with user %s and db %s with password %s (%s)\n",
 			host, port, user, dbName, password, err,
 		)
-		os.Exit(1)
+		panic(err)
 	}
 	app.Db = db
 }
@@ -108,7 +104,7 @@ func (app *App) configureApplication() {
 }
 
 func (app *App) finalizeApp() {
-	app.Db.Close()
+	app.Db.Db.Close()
 }
 
 //Start starts listening for web requests at specified host and port
