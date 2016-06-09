@@ -2,6 +2,7 @@ package models
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 
 	_ "github.com/lib/pq" //This is required to use postgres with database/sql
@@ -12,16 +13,26 @@ var db *gorp.DbMap
 
 //GetTestDB returns a connection to the test database
 func GetTestDB() *gorp.DbMap {
+	return GetDB("localhost", "khan_test", 5432, "disable", "khan_test", "")
+}
+
+func GetDB(host string, user string, port int, sslmode string, dbName string, password string) *gorp.DbMap {
 	if db == nil {
-		db = InitDb()
+		db = InitDb(host, user, port, sslmode, dbName, password)
 	}
 
 	return db
 }
 
 //InitDb initializes a connection to the database
-func InitDb() *gorp.DbMap {
-	connStr := "host=localhost user=khan_test port=5432 sslmode=disable dbname=khan_test"
+func InitDb(host string, user string, port int, sslmode string, dbName string, password string) *gorp.DbMap {
+	connStr := fmt.Sprintf(
+		"host=%s user=%s port=%d sslmode=%s dbname=%s",
+		host, user, port, sslmode, dbName,
+	)
+	if password != "" {
+		connStr += fmt.Sprintf(" password=%s", password)
+	}
 	db, err := sql.Open("postgres", connStr)
 	checkErr(err, "sql.Open failed")
 
