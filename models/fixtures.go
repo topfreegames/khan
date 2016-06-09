@@ -31,10 +31,10 @@ var PlayerFactory = factory.NewFactory(
 //ClanFactory is responsible for constructing test clan instances
 var ClanFactory = factory.NewFactory(
 	&Clan{},
-).SeqInt("GameID", func(n int) (interface{}, error) {
-	return fmt.Sprintf("game-%d", n), nil
-}).SeqInt("PublicID", func(n int) (interface{}, error) {
-	return fmt.Sprintf("clan-%d", n), nil
+).Attr("GameID", func(args factory.Args) (interface{}, error) {
+	return uuid.NewV4().String(), nil
+}).Attr("PublicID", func(args factory.Args) (interface{}, error) {
+	return uuid.NewV4().String(), nil
 }).Attr("Name", func(args factory.Args) (interface{}, error) {
 	return randomdata.FullName(randomdata.RandomGender), nil
 }).Attr("Metadata", func(args factory.Args) (interface{}, error) {
