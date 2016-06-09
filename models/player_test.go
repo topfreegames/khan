@@ -1,10 +1,25 @@
 package models
 
 import (
+	"fmt"
 	"testing"
 
+	"github.com/Pallinder/go-randomdata"
+	"github.com/bluele/factory-go/factory"
 	. "github.com/franela/goblin"
 )
+
+var PlayerFactory = factory.NewFactory(
+	&Player{},
+).SeqInt("GameID", func(n int) (interface{}, error) {
+	return fmt.Sprintf("game-%d", n), nil
+}).SeqInt("PlayerID", func(n int) (interface{}, error) {
+	return fmt.Sprintf("player-%d", n), nil
+}).Attr("Name", func(args factory.Args) (interface{}, error) {
+	return randomdata.FullName(randomdata.RandomGender), nil
+}).Attr("Metadata", func(args factory.Args) (interface{}, error) {
+	return "{}", nil
+})
 
 func TestPlayerModel(t *testing.T) {
 	g := Goblin(t)
@@ -18,12 +33,12 @@ func TestPlayerModel(t *testing.T) {
 				Name:     "user-name",
 				Metadata: "{}",
 			}
-			db.Create(player)
-			g.Assert(db.NewRecord(player)).IsFalse()
+			err := db.Insert(player)
+			g.Assert(err == nil).IsTrue()
 			g.Assert(player.ID != 0).IsTrue()
 
-			var dbPlayer Player
-			db.First(&dbPlayer, player.ID)
+			dbPlayer, err := GetPlayerByID(player.ID)
+			g.Assert(err == nil).IsTrue()
 
 			g.Assert(dbPlayer.GameID).Equal(player.GameID)
 			g.Assert(dbPlayer.PlayerID).Equal(player.PlayerID)

@@ -6,9 +6,9 @@ CREATE TABLE players (
     game_id varchar(10) NOT NULL,
     name varchar(2000) NOT NULL,
     metadata JSONB NOT NULL DEFAULT '{}'::JSONB,
-    created_at timestamp NOT NULL,
-    updated_at timestamp NULL,
-    deleted_at timestamp NULL,
+    created_at bigint NOT NULL,
+    updated_at bigint NULL,
+    deleted_at bigint NULL,
 
     CONSTRAINT gameid_playerid UNIQUE(game_id, player_id)
 );
