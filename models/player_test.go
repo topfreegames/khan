@@ -12,25 +12,13 @@ import (
 	"testing"
 
 	"github.com/Pallinder/go-randomdata"
-	"github.com/bluele/factory-go/factory"
 	. "github.com/franela/goblin"
 )
-
-var PlayerFactory = factory.NewFactory(
-	&Player{},
-).SeqInt("GameID", func(n int) (interface{}, error) {
-	return fmt.Sprintf("game-%d", n), nil
-}).SeqInt("PublicID", func(n int) (interface{}, error) {
-	return fmt.Sprintf("player-%d", n), nil
-}).Attr("Name", func(args factory.Args) (interface{}, error) {
-	return randomdata.FullName(randomdata.RandomGender), nil
-}).Attr("Metadata", func(args factory.Args) (interface{}, error) {
-	return "{}", nil
-})
 
 func TestPlayerModel(t *testing.T) {
 	g := Goblin(t)
 	testDb, err := GetTestDB()
+
 	g.Assert(err == nil).IsTrue()
 
 	g.Describe("Player Model", func() {
@@ -55,6 +43,7 @@ func TestPlayerModel(t *testing.T) {
 		g.It("Should update a new Player", func() {
 			player := PlayerFactory.MustCreate().(*Player)
 			err := testDb.Insert(player)
+			fmt.Println(err)
 			g.Assert(err == nil).IsTrue()
 			dt := player.UpdatedAt
 
@@ -113,6 +102,39 @@ func TestPlayerModel(t *testing.T) {
 
 			g.Assert(dbPlayer.GameID).Equal(player.GameID)
 			g.Assert(dbPlayer.PublicID).Equal(player.PublicID)
+		})
+
+		g.It("Should update a Player with UpdatePlayer", func() {
+			player := PlayerFactory.MustCreate().(*Player)
+			err := testDb.Insert(player)
+			g.Assert(err == nil).IsTrue()
+
+			metadata := "{\"x\": 1}"
+			updPlayer, err := UpdatePlayer(
+				player.GameID,
+				player.PublicID,
+				player.Name,
+				metadata,
+			)
+
+			g.Assert(err == nil).IsTrue()
+			g.Assert(updPlayer.ID).Equal(player.ID)
+
+			dbPlayer, err := GetPlayerByPublicID(player.GameID, player.PublicID)
+			g.Assert(err == nil).IsTrue()
+
+			g.Assert(dbPlayer.Metadata).Equal(metadata)
+		})
+
+		g.It("Should not update a Player with Invalid Data with UpdatePlayer", func() {
+			_, err := UpdatePlayer(
+				"-1",
+				"qwe",
+				"some player name",
+				"{}",
+			)
+
+			g.Assert(err == nil).IsFalse()
 		})
 
 	})

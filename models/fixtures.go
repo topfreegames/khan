@@ -12,15 +12,16 @@ import (
 
 	"github.com/Pallinder/go-randomdata"
 	"github.com/bluele/factory-go/factory"
+	"github.com/satori/go.uuid"
 )
 
 //PlayerFactory is responsible for constructing test player instances
 var PlayerFactory = factory.NewFactory(
 	&Player{},
-).SeqInt("GameID", func(n int) (interface{}, error) {
-	return fmt.Sprintf("game-%d", n), nil
-}).SeqInt("PublicID", func(n int) (interface{}, error) {
-	return fmt.Sprintf("player-%d", n), nil
+).Attr("GameID", func(args factory.Args) (interface{}, error) {
+	return uuid.NewV4().String(), nil
+}).Attr("PublicID", func(args factory.Args) (interface{}, error) {
+	return uuid.NewV4().String(), nil
 }).Attr("Name", func(args factory.Args) (interface{}, error) {
 	return randomdata.FullName(randomdata.RandomGender), nil
 }).Attr("Metadata", func(args factory.Args) (interface{}, error) {

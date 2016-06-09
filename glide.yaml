@@ -16,3 +16,4 @@ import:
   subpackages:
   - factory
 - package: github.com/Pallinder/go-randomdata
+- package: github.com/satori/go.uuid

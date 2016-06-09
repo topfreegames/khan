@@ -1,5 +1,5 @@
-hash: 589411ba76692088a005e81fec3076376123b9be6371a84a49c0ce2c62d963de
-updated: 2016-06-09T13:31:05.040878875-03:00
+hash: 70880259758025813f5f6898e2c2624312c5a0f1c7a82c18b175141b763dfae9
+updated: 2016-06-09T18:48:55.669141749-03:00
 imports:
 - name: bitbucket.org/liamstask/goose
   version: 8488cc47d90c8a502b1c41a462a6d9cc8ee0a895
@@ -37,7 +37,7 @@ imports:
   subpackages:
   - formatter
 - name: github.com/gavv/httpexpect
-  version: 468c7adba41fa6ee650c335c2bc9060433f0f5d1
+  version: 36d7a37794d84c993ddd9084636d43e1699c2ae4
   subpackages:
   - fasthttpexpect
 - name: github.com/hashicorp/hcl
@@ -61,8 +61,6 @@ imports:
   version: bf0e23607840019d62e32e87e9af48e881d74b1e
   subpackages:
   - dialects/postgres
-- name: github.com/jinzhu/inflection
-  version: 3272df6c21d04180007eb3349844c89a3856bc25
 - name: github.com/Joker/jade
   version: db4d7e4f68708c5020c392b380e3565df2132840
 - name: github.com/kataras/iris
@@ -128,6 +126,8 @@ imports:
   - difflib
 - name: github.com/russross/blackfriday
   version: 1d6b8e9301e720b08a8938b8c25c018285885438
+- name: github.com/satori/go.uuid
+  version: 879c5887cd475cd7864858769793b2ceb0d44feb
 - name: github.com/sergi/go-diff
   version: 97b2266dfe4bd4ea1b81a463322f04f8b724801e
   subpackages:

@@ -10,7 +10,7 @@
 CREATE TABLE players (
     id serial PRIMARY KEY,
     public_id varchar(255) NOT NULL,
-    game_id varchar(10) NOT NULL,
+    game_id varchar(36) NOT NULL,
     name varchar(2000) NOT NULL,
     metadata JSONB NOT NULL DEFAULT '{}'::JSONB,
     created_at bigint NOT NULL,
