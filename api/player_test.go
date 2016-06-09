@@ -38,7 +38,7 @@ func TestPlayerHandler(t *testing.T) {
 				"name":     playerName,
 				"metadata": metadata,
 			}
-			res := PostJSON(a, "/players/create", t, payload)
+			res := PostJSON(a, "/players", t, payload)
 
 			res.Status(http.StatusOK)
 			var result map[string]interface{}
