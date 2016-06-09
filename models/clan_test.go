@@ -97,6 +97,5 @@ func TestClanModel(t *testing.T) {
 			g.Assert(err != nil).IsTrue()
 			g.Assert(err.Error()).Equal("Clan was not found with id: -1")
 		})
-
 	})
 }
