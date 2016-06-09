@@ -30,3 +30,15 @@ func Get(app *App, url string, t *testing.T) *httpexpect.Response {
 
 	return e.GET(url).Expect()
 }
+
+//PostJSON returns a test request against specified URL
+func PostJSON(app *App, url string, t *testing.T, payload map[string]string) *httpexpect.Response {
+	handler := app.App.ServeRequest
+
+	e := httpexpect.WithConfig(httpexpect.Config{
+		Reporter: httpexpect.NewAssertReporter(t),
+		Client:   fasthttpexpect.NewBinder(handler),
+	})
+
+	return e.POST(url).WithJSON(payload).Expect()
+}
