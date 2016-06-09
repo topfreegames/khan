@@ -8,8 +8,6 @@
 package api
 
 import (
-	"encoding/json"
-
 	"github.com/kataras/iris"
 	"github.com/topfreegames/khan/models"
 )
@@ -27,7 +25,8 @@ func CreatePlayerHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
 		var payload CreatePlayerPayload
 		if err := c.ReadJSON(&payload); err != nil {
-			panic(err.Error())
+			FailWith(400, err.Error(), c)
+			return
 		}
 
 		player, err := models.CreatePlayer(
@@ -38,22 +37,13 @@ func CreatePlayerHandler(app *App) func(c *iris.Context) {
 		)
 
 		if err != nil {
-			result, _ := json.Marshal(map[string]interface{}{
-				"success": false,
-				"reason":  err.Error(),
-			})
-			c.SetStatusCode(500)
-			c.Write(string(result))
+			FailWith(500, err.Error(), c)
 			return
 		}
 
-		result, _ := json.Marshal(map[string]interface{}{
-			"success": true,
-			"id":      player.ID,
-		})
-
-		c.SetStatusCode(200)
-		c.Write(string(result))
+		SucceedWith(map[string]interface{}{
+			"id": player.ID,
+		}, c)
 	}
 }
 
