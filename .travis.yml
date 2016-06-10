@@ -14,7 +14,8 @@ install:
   - make drop-test
 
 script:
-  - $HOME/gopath/bin/goveralls -service=travis-ci
+  - make coverage
+  - $HOME/gopath/bin/goveralls -coverprofile coverage-all.out -service=travis-ci
 
 after_success:
   - ./push_to_docker.sh
