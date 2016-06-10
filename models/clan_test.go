@@ -180,7 +180,7 @@ func TestClanModel(t *testing.T) {
 
 			_, err = CreateClan(
 				testDb,
-				"game-id-is-too-large-for-this-field-should-be-less-than-36-chars",
+				player.GameID,
 				randomdata.FullName(randomdata.RandomGender),
 				"clan-name",
 				player.PublicID,
