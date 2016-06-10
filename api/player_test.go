@@ -140,7 +140,7 @@ func TestPlayerHandler(t *testing.T) {
 
 			metadata := ""
 
-			payload := map[string]string{
+			payload := map[string]interface{}{
 				"gameID":   player.GameID,
 				"publicID": player.PublicID,
 				"name":     player.Name,
