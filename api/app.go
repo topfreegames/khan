@@ -9,7 +9,6 @@ package api
 
 import (
 	"fmt"
-	"os"
 	"strings"
 
 	"gopkg.in/gorp.v1"
@@ -17,7 +16,6 @@ import (
 	_ "github.com/jinzhu/gorm/dialects/postgres" //This is required to use postgres with gorm
 	"github.com/kataras/iris"
 	"github.com/kataras/iris/middleware/logger"
-	"github.com/kataras/iris/middleware/recovery"
 	"github.com/spf13/viper"
 	"github.com/topfreegames/khan/models"
 )
@@ -29,7 +27,7 @@ type App struct {
 	Host       string
 	ConfigPath string
 	App        *iris.Iris
-	Db         *gorp.DbMap
+	Db         models.DB
 	Config     *viper.Viper
 }
 
@@ -99,9 +97,10 @@ func (app *App) configureApplication() {
 	a := app.App
 
 	if app.Debug {
-		iris.Use(logger.New(iris.Logger()))
+		a.Use(logger.New(iris.Logger()))
 	}
-	iris.Use(recovery.New(os.Stderr))
+	//a.Use(recovery.New(os.Stderr))
+	a.Use(&TransactionMiddleware{App: app})
 
 	a.Get("/healthcheck", HealthCheckHandler(app))
 	SetPlayerHandlersGroup(app)
@@ -109,7 +108,7 @@ func (app *App) configureApplication() {
 }
 
 func (app *App) finalizeApp() {
-	app.Db.Db.Close()
+	app.Db.(*gorp.DbMap).Db.Close()
 }
 
 //Start starts listening for web requests at specified host and port

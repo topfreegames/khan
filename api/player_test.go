@@ -9,6 +9,7 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"testing"
 
@@ -45,7 +46,7 @@ func TestPlayerHandler(t *testing.T) {
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsTrue()
 
-			dbPlayer, err := models.GetPlayerByPublicID(gameID, publicID)
+			dbPlayer, err := models.GetPlayerByPublicID(a.Db, gameID, publicID)
 			AssertNotError(g, err)
 			g.Assert(dbPlayer.GameID).Equal(gameID)
 			g.Assert(dbPlayer.PublicID).Equal(publicID)
@@ -110,7 +111,7 @@ func TestPlayerHandler(t *testing.T) {
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsTrue()
 
-			dbPlayer, err := models.GetPlayerByPublicID(player.GameID, player.PublicID)
+			dbPlayer, err := models.GetPlayerByPublicID(a.Db, player.GameID, player.PublicID)
 			AssertNotError(g, err)
 			g.Assert(dbPlayer.GameID).Equal(player.GameID)
 			g.Assert(dbPlayer.PublicID).Equal(player.PublicID)
@@ -146,6 +147,7 @@ func TestPlayerHandler(t *testing.T) {
 				"name":     player.Name,
 				"metadata": metadata,
 			}
+			fmt.Println(payload)
 			res := PutJSON(a, "/players", t, payload)
 
 			res.Status(http.StatusInternalServerError)

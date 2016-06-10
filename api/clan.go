@@ -30,7 +30,10 @@ func CreateClanHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
+		db := models.GetCtxDB(c)
+
 		clan, err := models.CreateClan(
+			db,
 			payload.GameID,
 			payload.PublicID,
 			payload.Name,
@@ -58,7 +61,10 @@ func UpdateClanHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
+		db := models.GetCtxDB(c)
+
 		_, err := models.UpdateClan(
+			db,
 			payload.GameID,
 			payload.PublicID,
 			payload.Name,

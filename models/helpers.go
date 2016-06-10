@@ -12,33 +12,49 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/kataras/iris"
 	_ "github.com/lib/pq" //This is required to use postgres with database/sql
 	"gopkg.in/gorp.v1"
 )
 
-var db *gorp.DbMap
+//DB is the contract for all the operations we use from either a connection or transaction
+//This is required for automatic transactions
+type DB interface {
+	Get(interface{}, ...interface{}) (interface{}, error)
+	SelectOne(interface{}, string, ...interface{}) error
+	SelectInt(string, ...interface{}) (int64, error)
+	Insert(...interface{}) error
+	Update(...interface{}) (int64, error)
+}
+
+var _db DB
 
 //GetTestDB returns a connection to the test database
-func GetTestDB() (*gorp.DbMap, error) {
+func GetTestDB() (DB, error) {
 	return GetDB("localhost", "khan_test", 5432, "disable", "khan_test", "")
 }
 
 //GetDB returns a DbMap connection to the database specified in the arguments
-func GetDB(host string, user string, port int, sslmode string, dbName string, password string) (*gorp.DbMap, error) {
-	if db == nil {
+func GetDB(host string, user string, port int, sslmode string, dbName string, password string) (DB, error) {
+	if _db == nil {
 		var err error
-		db, err = InitDb(host, user, port, sslmode, dbName, password)
+		_db, err = InitDb(host, user, port, sslmode, dbName, password)
 		if err != nil {
-			db = nil
+			_db = nil
 			return nil, err
 		}
 	}
 
-	return db, nil
+	return _db, nil
+}
+
+//GetCtxDB returns the proper database connection depending on the request context
+func GetCtxDB(ctx *iris.Context) DB {
+	return ctx.Get("db").(DB)
 }
 
 //InitDb initializes a connection to the database
-func InitDb(host string, user string, port int, sslmode string, dbName string, password string) (*gorp.DbMap, error) {
+func InitDb(host string, user string, port int, sslmode string, dbName string, password string) (DB, error) {
 	connStr := fmt.Sprintf(
 		"host=%s user=%s port=%d sslmode=%s dbname=%s",
 		host, user, port, sslmode, dbName,
