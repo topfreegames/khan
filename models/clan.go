@@ -83,3 +83,27 @@ func CreateClan(gameID string, publicID string, name string, ownerID int, metada
 	}
 	return clan, nil
 }
+
+//UpdateClan updates an existing clan
+func UpdateClan(gameID string, publicID string, name string, metadata string, ownerPublicID string) (*Clan, error) {
+	clan, err := GetClanByPublicIDAndOwnerPublicID(gameID, publicID, ownerPublicID)
+
+	if err != nil {
+		return nil, err
+	}
+
+	clan.Name = name
+	clan.Metadata = metadata
+
+	count, err := db.Update(clan)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if count != 1 {
+		return nil, &ModelNotFoundError{"Clan", publicID}
+	}
+
+	return clan, nil
+}

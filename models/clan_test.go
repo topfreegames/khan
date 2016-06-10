@@ -201,5 +201,86 @@ func TestClanModel(t *testing.T) {
 			g.Assert(err != nil).IsTrue()
 			g.Assert(err.Error()).Equal("pq: insert or update on table \"clans\" violates foreign key constraint \"clans_owner_id_fkey\"")
 		})
+
+		g.It("Should update a Clan with UpdateClan", func() {
+			player := PlayerFactory.MustCreate().(*Player)
+			err := testDb.Insert(player)
+			g.Assert(err == nil).IsTrue()
+
+			clan := ClanFactory.MustCreateWithOption(map[string]interface{}{
+				"OwnerID": player.ID,
+			}).(*Clan)
+			err = testDb.Insert(clan)
+			g.Assert(err == nil).IsTrue()
+
+			metadata := "{\"x\": 1}"
+			updClan, err := UpdateClan(
+				clan.GameID,
+				clan.PublicID,
+				clan.Name,
+				metadata,
+				player.PublicID,
+			)
+
+			g.Assert(err == nil).IsTrue()
+			g.Assert(updClan.ID).Equal(clan.ID)
+
+			dbClan, err := GetClanByPublicID(clan.GameID, clan.PublicID)
+			g.Assert(err == nil).IsTrue()
+
+			g.Assert(dbClan.Metadata).Equal(metadata)
+		})
+
+		g.It("Should not update a Clan if player is not the clan owner with UpdateClan", func() {
+			player := PlayerFactory.MustCreate().(*Player)
+			err := testDb.Insert(player)
+			g.Assert(err == nil).IsTrue()
+
+			owner := PlayerFactory.MustCreate().(*Player)
+			err = testDb.Insert(owner)
+			g.Assert(err == nil).IsTrue()
+
+			clan := ClanFactory.MustCreateWithOption(map[string]interface{}{
+				"OwnerID": owner.ID,
+			}).(*Clan)
+			err = testDb.Insert(clan)
+			g.Assert(err == nil).IsTrue()
+
+			metadata := "{\"x\": 1}"
+			_, err = UpdateClan(
+				clan.GameID,
+				clan.PublicID,
+				clan.Name,
+				metadata,
+				player.PublicID,
+			)
+
+			g.Assert(err == nil).IsFalse()
+			g.Assert(err.Error()).Equal(fmt.Sprintf("Clan was not found with id: %s", clan.PublicID))
+		})
+
+		g.It("Should not update a Clan with Invalid Data with UpdateClan", func() {
+			player := PlayerFactory.MustCreate().(*Player)
+			err := testDb.Insert(player)
+			g.Assert(err == nil).IsTrue()
+
+			clan := ClanFactory.MustCreateWithOption(map[string]interface{}{
+				"OwnerID": player.ID,
+			}).(*Clan)
+			err = testDb.Insert(clan)
+			g.Assert(err == nil).IsTrue()
+
+			metadata := "it will not work because i am not a json"
+			_, err = UpdateClan(
+				clan.GameID,
+				clan.PublicID,
+				clan.Name,
+				metadata,
+				player.PublicID,
+			)
+
+			g.Assert(err == nil).IsFalse()
+			g.Assert(err.Error()).Equal("pq: invalid input syntax for type json")
+		})
 	})
 }
