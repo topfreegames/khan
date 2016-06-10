@@ -19,6 +19,7 @@ setup:
 setup-ci:
 	@sudo add-apt-repository -y ppa:masterminds/glide && sudo apt-get update
 	@sudo apt-get install -y glide
+	@go get bitbucket.org/liamstask/goose/cmd/goose
 	@go get github.com/mattn/goveralls
 	@glide install
 
