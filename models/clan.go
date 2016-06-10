@@ -69,15 +69,21 @@ func GetClanByPublicIDAndOwnerPublicID(gameID string, publicID string, ownerPubl
 }
 
 //CreateClan creates a new clan
-func CreateClan(gameID string, publicID string, name string, ownerID int, metadata string) (*Clan, error) {
+func CreateClan(gameID string, publicID string, name string, ownerPublicID string, metadata string) (*Clan, error) {
+	player, err := GetPlayerByPublicID(gameID, ownerPublicID)
+	if err != nil {
+		return nil, err
+	}
+
 	clan := &Clan{
 		GameID:   gameID,
 		PublicID: publicID,
 		Name:     name,
-		OwnerID:  ownerID,
+		OwnerID:  player.ID,
 		Metadata: metadata,
 	}
-	err := db.Insert(clan)
+
+	err = db.Insert(clan)
 	if err != nil {
 		return nil, err
 	}
@@ -85,7 +91,7 @@ func CreateClan(gameID string, publicID string, name string, ownerID int, metada
 }
 
 //UpdateClan updates an existing clan
-func UpdateClan(gameID string, publicID string, name string, metadata string, ownerPublicID string) (*Clan, error) {
+func UpdateClan(gameID string, publicID string, name string, ownerPublicID string, metadata string) (*Clan, error) {
 	clan, err := GetClanByPublicIDAndOwnerPublicID(gameID, publicID, ownerPublicID)
 
 	if err != nil {
@@ -95,14 +101,10 @@ func UpdateClan(gameID string, publicID string, name string, metadata string, ow
 	clan.Name = name
 	clan.Metadata = metadata
 
-	count, err := db.Update(clan)
+	_, err = db.Update(clan)
 
 	if err != nil {
 		return nil, err
-	}
-
-	if count != 1 {
-		return nil, &ModelNotFoundError{"Clan", publicID}
 	}
 
 	return clan, nil

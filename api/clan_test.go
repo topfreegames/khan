@@ -9,6 +9,7 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"testing"
 
@@ -32,19 +33,19 @@ func TestClanHandler(t *testing.T) {
 			err := testDb.Insert(player)
 			g.Assert(err == nil).IsTrue()
 
-			gameID := "api-cr-1"
+			gameID := player.GameID
 			publicID := randomdata.FullName(randomdata.RandomGender)
 			clanName := randomdata.FullName(randomdata.RandomGender)
-			ownerID := player.ID
+			ownerPublicID := player.PublicID
 			metadata := "{\"x\": 1}"
 
 			a := GetDefaultTestApp()
 			payload := map[string]interface{}{
-				"gameID":   gameID,
-				"publicID": publicID,
-				"name":     clanName,
-				"ownerID":  ownerID,
-				"metadata": metadata,
+				"gameID":        gameID,
+				"publicID":      publicID,
+				"name":          clanName,
+				"ownerPublicID": ownerPublicID,
+				"metadata":      metadata,
 			}
 			res := PostJSON(a, "/clans", t, payload)
 
@@ -58,7 +59,7 @@ func TestClanHandler(t *testing.T) {
 			g.Assert(dbClan.GameID).Equal(gameID)
 			g.Assert(dbClan.PublicID).Equal(publicID)
 			g.Assert(dbClan.Name).Equal(clanName)
-			g.Assert(dbClan.OwnerID).Equal(ownerID)
+			g.Assert(dbClan.OwnerID).Equal(player.ID)
 			g.Assert(dbClan.Metadata).Equal(metadata)
 		})
 
@@ -76,21 +77,86 @@ func TestClanHandler(t *testing.T) {
 		})
 
 		g.It("Should not create clan if owner does not exist", func() {
-			gameID := "api-cr-1"
+			gameID := randomdata.FullName(randomdata.RandomGender)
 			publicID := randomdata.FullName(randomdata.RandomGender)
 			clanName := randomdata.FullName(randomdata.RandomGender)
-			ownerID := 1
+			ownerPublicID := randomdata.FullName(randomdata.RandomGender)
 			metadata := "{\"x\": 1}"
 
 			a := GetDefaultTestApp()
 			payload := map[string]interface{}{
-				"gameID":   gameID,
-				"publicID": publicID,
-				"name":     clanName,
-				"ownerID":  ownerID,
-				"metadata": metadata,
+				"gameID":        gameID,
+				"publicID":      publicID,
+				"name":          clanName,
+				"ownerPublicID": ownerPublicID,
+				"metadata":      metadata,
 			}
 			res := PostJSON(a, "/clans", t, payload)
+
+			res.Status(http.StatusInternalServerError)
+			var result map[string]interface{}
+			json.Unmarshal([]byte(res.Body().Raw()), &result)
+			g.Assert(result["success"]).IsFalse()
+			g.Assert(result["reason"]).Equal(fmt.Sprintf("Player was not found with id: %s", ownerPublicID))
+		})
+
+		g.It("Should not create clan if invalid data", func() {
+			player := models.PlayerFactory.MustCreate().(*models.Player)
+			err := testDb.Insert(player)
+			g.Assert(err == nil).IsTrue()
+
+			gameID := player.GameID
+			publicID := randomdata.FullName(randomdata.RandomGender)
+			clanName := randomdata.FullName(randomdata.RandomGender)
+			ownerPublicID := player.PublicID
+			metadata := "it-will-fail-beacause-metada-is-not-a-json"
+
+			a := GetDefaultTestApp()
+			payload := map[string]interface{}{
+				"gameID":        gameID,
+				"PublicID":      publicID,
+				"name":          clanName,
+				"ownerPublicID": ownerPublicID,
+				"metadata":      metadata,
+			}
+			res := PostJSON(a, "/clans", t, payload)
+
+			res.Status(http.StatusInternalServerError)
+			var result map[string]interface{}
+			json.Unmarshal([]byte(res.Body().Raw()), &result)
+			g.Assert(result["success"]).IsFalse()
+			g.Assert(result["reason"]).Equal("pq: invalid input syntax for type json")
+		})
+	})
+
+	g.Describe("Update Clan Handler", func() {
+		g.It("Should update clan", func() {
+			player := models.PlayerFactory.MustCreate().(*models.Player)
+			err := testDb.Insert(player)
+			g.Assert(err == nil).IsTrue()
+
+			clan := models.ClanFactory.MustCreateWithOption(map[string]interface{}{
+				"GameID":  player.GameID,
+				"OwnerID": player.ID,
+			}).(*models.Clan)
+			err = testDb.Insert(clan)
+			g.Assert(err == nil).IsTrue()
+
+			gameID := clan.GameID
+			publicID := clan.PublicID
+			clanName := randomdata.FullName(randomdata.RandomGender)
+			ownerPublicID := player.PublicID
+			metadata := "{\"new\": \"metadata\"}"
+
+			a := GetDefaultTestApp()
+			payload := map[string]interface{}{
+				"gameID":        gameID,
+				"publicID":      publicID,
+				"name":          clanName,
+				"ownerPublicID": ownerPublicID,
+				"metadata":      metadata,
+			}
+			res := PutJSON(a, "/clans", t, payload)
 
 			res.Status(http.StatusOK)
 			var result map[string]interface{}
@@ -102,36 +168,91 @@ func TestClanHandler(t *testing.T) {
 			g.Assert(dbClan.GameID).Equal(gameID)
 			g.Assert(dbClan.PublicID).Equal(publicID)
 			g.Assert(dbClan.Name).Equal(clanName)
-			g.Assert(dbClan.OwnerID).Equal(ownerID)
+			g.Assert(dbClan.OwnerID).Equal(player.ID)
 			g.Assert(dbClan.Metadata).Equal(metadata)
 		})
 
-		g.It("Should not create clan if invalid data", func() {
+		g.It("Should not update clan if invalid payload", func() {
+			a := GetDefaultTestApp()
+			res := PutBody(a, "/clans", t, "invalid")
+
+			res.Status(http.StatusBadRequest)
+			var result map[string]interface{}
+			json.Unmarshal([]byte(res.Body().Raw()), &result)
+			g.Assert(result["success"]).IsFalse()
+			g.Assert(result["reason"]).Equal(
+				"\n[IRIS]  Error: While trying to read [JSON invalid character 'i' looking for beginning of value] from the request body. Trace %!!(MISSING)s(MISSING)",
+			)
+		})
+
+		g.It("Should not update clan if player is not the owner", func() {
 			player := models.PlayerFactory.MustCreate().(*models.Player)
 			err := testDb.Insert(player)
 			g.Assert(err == nil).IsTrue()
 
-			gameID := "game-id-is-too-large-for-this-field-should-be-less-than-36-chars"
-			clanID := randomdata.FullName(randomdata.RandomGender)
+			clan := models.ClanFactory.MustCreateWithOption(map[string]interface{}{
+				"GameID":  player.GameID,
+				"OwnerID": player.ID,
+			}).(*models.Clan)
+			err = testDb.Insert(clan)
+			g.Assert(err == nil).IsTrue()
+
+			gameID := clan.GameID
+			publicID := clan.PublicID
 			clanName := randomdata.FullName(randomdata.RandomGender)
-			ownerID := player.ID
+			ownerPublicID := randomdata.FullName(randomdata.RandomGender)
 			metadata := "{\"x\": 1}"
 
 			a := GetDefaultTestApp()
 			payload := map[string]interface{}{
-				"gameID":   gameID,
-				"clanID":   clanID,
-				"name":     clanName,
-				"ownerID":  ownerID,
-				"metadata": metadata,
+				"gameID":        gameID,
+				"publicID":      publicID,
+				"name":          clanName,
+				"ownerPublicID": ownerPublicID,
+				"metadata":      metadata,
 			}
-			res := PostJSON(a, "/clans", t, payload)
+			res := PutJSON(a, "/clans", t, payload)
 
 			res.Status(http.StatusInternalServerError)
 			var result map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
-			g.Assert(result["reason"]).Equal("pq: value too long for type character varying(36)")
+			g.Assert(result["reason"]).Equal(fmt.Sprintf("Clan was not found with id: %s", clan.PublicID))
+		})
+
+		g.It("Should not update clan if invalid data", func() {
+			player := models.PlayerFactory.MustCreate().(*models.Player)
+			err := testDb.Insert(player)
+			g.Assert(err == nil).IsTrue()
+
+			clan := models.ClanFactory.MustCreateWithOption(map[string]interface{}{
+				"GameID":  player.GameID,
+				"OwnerID": player.ID,
+			}).(*models.Clan)
+			err = testDb.Insert(clan)
+			g.Assert(err == nil).IsTrue()
+
+			gameID := clan.GameID
+			publicID := clan.PublicID
+			clanName := randomdata.FullName(randomdata.RandomGender)
+			ownerPublicID := player.PublicID
+			metadata := "it-will-fail-beacause-metada-is-not-a-json"
+
+			a := GetDefaultTestApp()
+			payload := map[string]interface{}{
+				"gameID":        gameID,
+				"publicID":      publicID,
+				"name":          clanName,
+				"ownerPublicID": ownerPublicID,
+				"metadata":      metadata,
+			}
+			res := PutJSON(a, "/clans", t, payload)
+
+			res.Status(http.StatusInternalServerError)
+			var result map[string]interface{}
+			json.Unmarshal([]byte(res.Body().Raw()), &result)
+			g.Assert(result["success"]).IsFalse()
+			g.Assert(result["reason"]).Equal("pq: invalid input syntax for type json")
 		})
 	})
 }

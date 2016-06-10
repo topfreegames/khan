@@ -12,19 +12,19 @@ import (
 	"github.com/topfreegames/khan/models"
 )
 
-//CreateClanPayload maps the payload for the Create Clan route
-type CreateClanPayload struct {
-	GameID   string
-	PublicID string
-	Name     string
-	OwnerID  int
-	Metadata string
+//clanPayload maps the payload for the Create Clan route
+type clanPayload struct {
+	GameID        string
+	PublicID      string
+	Name          string
+	OwnerPublicID string
+	Metadata      string
 }
 
 //CreateClanHandler is the handler responsible for creating new clans
 func CreateClanHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
-		var payload CreateClanPayload
+		var payload clanPayload
 		if err := c.ReadJSON(&payload); err != nil {
 			FailWith(400, err.Error(), c)
 			return
@@ -34,7 +34,7 @@ func CreateClanHandler(app *App) func(c *iris.Context) {
 			payload.GameID,
 			payload.PublicID,
 			payload.Name,
-			payload.OwnerID,
+			payload.OwnerPublicID,
 			payload.Metadata,
 		)
 
@@ -49,6 +49,32 @@ func CreateClanHandler(app *App) func(c *iris.Context) {
 	}
 }
 
+//UpdateClanHandler is the handler responsible for updating existing clans
+func UpdateClanHandler(app *App) func(c *iris.Context) {
+	return func(c *iris.Context) {
+		var payload clanPayload
+		if err := c.ReadJSON(&payload); err != nil {
+			FailWith(400, err.Error(), c)
+			return
+		}
+
+		_, err := models.UpdateClan(
+			payload.GameID,
+			payload.PublicID,
+			payload.Name,
+			payload.OwnerPublicID,
+			payload.Metadata,
+		)
+
+		if err != nil {
+			FailWith(500, err.Error(), c)
+			return
+		}
+
+		SucceedWith(map[string]interface{}{}, c)
+	}
+}
+
 //SetClanHandlersGroup configures the routes for all clan related routes
 func SetClanHandlersGroup(app *App) {
 	clanHandlersGroup := app.App.Party("/clans", func(c *iris.Context) {
@@ -56,4 +82,5 @@ func SetClanHandlersGroup(app *App) {
 	})
 
 	clanHandlersGroup.Post("", CreateClanHandler(app))
+	clanHandlersGroup.Put("", UpdateClanHandler(app))
 }
