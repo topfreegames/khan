@@ -6,7 +6,6 @@ go:
 sudo: required
 
 services:
-  - postgresql
   - docker
 
 addons:
