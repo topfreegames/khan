@@ -31,12 +31,13 @@ func TestMembershipModel(t *testing.T) {
 			g.Assert(err == nil).IsTrue()
 
 			membership := &Membership{
-				GameID:   "test",
-				ClanID:   clan.ID,
-				PlayerID: player.ID,
-				Level:    1,
-				Approved: false,
-				Denied:   false,
+				GameID:      "test",
+				ClanID:      clan.ID,
+				PlayerID:    player.ID,
+				RequestorID: player.ID,
+				Level:       1,
+				Approved:    false,
+				Denied:      false,
 			}
 			err = testDb.Insert(membership)
 			g.Assert(err == nil).IsTrue()
@@ -62,8 +63,9 @@ func TestMembershipModel(t *testing.T) {
 			g.Assert(err == nil).IsTrue()
 
 			membership := MembershipFactory.MustCreateWithOption(map[string]interface{}{
-				"PlayerID": player.ID,
-				"ClanID":   clan.ID,
+				"PlayerID":    player.ID,
+				"ClanID":      clan.ID,
+				"RequestorID": clan.OwnerID,
 			}).(*Membership)
 			err = testDb.Insert(membership)
 			g.Assert(err == nil).IsTrue()
@@ -88,8 +90,9 @@ func TestMembershipModel(t *testing.T) {
 			g.Assert(err == nil).IsTrue()
 
 			membership := MembershipFactory.MustCreateWithOption(map[string]interface{}{
-				"PlayerID": player.ID,
-				"ClanID":   clan.ID,
+				"PlayerID":    player.ID,
+				"ClanID":      clan.ID,
+				"RequestorID": player.ID,
 			}).(*Membership)
 			err = testDb.Insert(membership)
 			g.Assert(err == nil).IsTrue()
