@@ -56,6 +56,7 @@ drop:
 	@echo "Database created successfully!"
 
 db-test migrate-test:
+	@psql -d postgres -c "SHOW SERVER_VERSION"
 	@goose -env test up
 
 drop-test:
