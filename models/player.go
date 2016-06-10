@@ -44,13 +44,19 @@ func GetPlayerByID(id int) (*Player, error) {
 	if err != nil || obj == nil {
 		return nil, &ModelNotFoundError{"Player", id}
 	}
-	return obj.(*Player), nil
+
+	player := obj.(*Player)
+	if player.DeletedAt > 0 {
+		return nil, &ModelNotFoundError{"Player", id}
+	}
+
+	return player, nil
 }
 
 //GetPlayerByPublicID returns a player by their public id
 func GetPlayerByPublicID(gameID string, publicID string) (*Player, error) {
 	var player Player
-	err := db.SelectOne(&player, "select * from players where game_id=$1 and public_id=$2", gameID, publicID)
+	err := db.SelectOne(&player, "SELECT * FROM players WHERE game_id=$1 AND public_id=$2 AND deleted_at=0", gameID, publicID)
 	if err != nil || &player == nil {
 		return nil, &ModelNotFoundError{"Player", publicID}
 	}
@@ -83,6 +89,28 @@ func UpdatePlayer(gameID string, publicID string, name string, metadata string) 
 	player.Name = name
 	player.Metadata = metadata
 
+	count, err := db.Update(player)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if count != 1 {
+		return nil, &ModelNotFoundError{"Player", publicID}
+	}
+
+	return player, nil
+}
+
+//DeletePlayer soft deletes a player.
+func DeletePlayer(gameID string, publicID string) (*Player, error) {
+	player, err := GetPlayerByPublicID(gameID, publicID)
+
+	if err != nil {
+		return nil, err
+	}
+
+	player.DeletedAt = time.Now().UnixNano()
 	count, err := db.Update(player)
 
 	if err != nil {
