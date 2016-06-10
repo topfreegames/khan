@@ -24,6 +24,15 @@ Run the api with `make run`.
 
 You can run it easily in one of the cloud providers using our [docker images](https://hub.docker.com/r/tfgco/khan/).
 
+The following environment variables are available to you:
+
+* KHAN_POSTGRES_HOST
+* KHAN_POSTGRES_PORT
+* KHAN_POSTGRES_DBNAME
+* KHAN_POSTGRES_USER
+* KHAN_POSTGRES_PASSWORD
+* KHAN_POSTGRES_SSLMODE
+
 ## Running with docker
 
 Provided you have docker installed, to build Khan's image run:
