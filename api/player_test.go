@@ -117,5 +117,19 @@ func TestPlayerHandler(t *testing.T) {
 			g.Assert(dbPlayer.Name).Equal(player.Name)
 			g.Assert(dbPlayer.Metadata).Equal(metadata)
 		})
+
+		//g.It("Should not update player if invalid payload", func() {
+		//a := GetDefaultTestApp()
+		//res := PutBody(a, "/players", t, "invalid")
+
+		//res.Status(http.StatusBadRequest)
+		//var result map[string]interface{}
+		//json.Unmarshal([]byte(res.Body().Raw()), &result)
+		//g.Assert(result["success"]).IsFalse()
+		//g.Assert(result["reason"]).Equal(
+		//"\n[IRIS]  Error: While trying to read [JSON invalid character 'i' looking for beginning of value] from the request body. Trace %!!(MISSING)s(MISSING)",
+		//)
+		//})
+
 	})
 }

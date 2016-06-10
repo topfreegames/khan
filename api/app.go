@@ -33,11 +33,6 @@ type App struct {
 	Config     *viper.Viper
 }
 
-//GetDefaultApp returns a new Khan API Application bound to 0.0.0.0:8888
-func GetDefaultApp() *App {
-	return GetApp("0.0.0.0", 8888, "./config/local.yaml", true)
-}
-
 //GetApp returns a new Khan API Application
 func GetApp(host string, port int, configPath string, debug bool) *App {
 	app := &App{
@@ -45,6 +40,7 @@ func GetApp(host string, port int, configPath string, debug bool) *App {
 		Port:       port,
 		ConfigPath: configPath,
 		Config:     viper.New(),
+		Debug:      debug,
 	}
 	app.Configure()
 	return app

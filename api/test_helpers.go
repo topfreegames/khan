@@ -34,42 +34,41 @@ func GetDefaultTestApp() *App {
 
 //Get returns a test request against specified URL
 func Get(app *App, url string, t *testing.T) *httpexpect.Response {
-	handler := app.App.ServeRequest
-
-	e := httpexpect.WithConfig(httpexpect.Config{
-		Reporter: httpexpect.NewAssertReporter(t),
-		Client:   fasthttpexpect.NewBinder(handler),
-	})
-
-	return e.GET(url).Expect()
+	req := sendRequest(app, "GET", url, t)
+	return req.Expect()
 }
 
 //PostBody returns a test request against specified URL
 func PostBody(app *App, url string, t *testing.T, payload string) *httpexpect.Response {
-	handler := app.App.ServeRequest
+	return sendBody(app, "POST", url, t, payload)
+}
 
-	e := httpexpect.WithConfig(httpexpect.Config{
-		Reporter: httpexpect.NewAssertReporter(t),
-		Client:   fasthttpexpect.NewBinder(handler),
-	})
+//PutBody returns a test request against specified URL
+func PutBody(app *App, url string, t *testing.T, payload string) *httpexpect.Response {
+	return sendBody(app, "PUT", url, t, payload)
+}
 
-	return e.POST(url).WithBytes([]byte(payload)).Expect()
+func sendBody(app *App, method string, url string, t *testing.T, payload string) *httpexpect.Response {
+	req := sendRequest(app, method, url, t)
+	return req.WithBytes([]byte(payload)).Expect()
 }
 
 //PostJSON returns a test request against specified URL
 func PostJSON(app *App, url string, t *testing.T, payload map[string]string) *httpexpect.Response {
-	handler := app.App.ServeRequest
-
-	e := httpexpect.WithConfig(httpexpect.Config{
-		Reporter: httpexpect.NewAssertReporter(t),
-		Client:   fasthttpexpect.NewBinder(handler),
-	})
-
-	return e.POST(url).WithJSON(payload).Expect()
+	return sendJSON(app, "POST", url, t, payload)
 }
 
 //PutJSON returns a test request against specified URL
 func PutJSON(app *App, url string, t *testing.T, payload map[string]string) *httpexpect.Response {
+	return sendJSON(app, "PUT", url, t, payload)
+}
+
+func sendJSON(app *App, method string, url string, t *testing.T, payload map[string]string) *httpexpect.Response {
+	req := sendRequest(app, method, url, t)
+	return req.WithJSON(payload).Expect()
+}
+
+func sendRequest(app *App, method string, url string, t *testing.T) *httpexpect.Request {
 	handler := app.App.ServeRequest
 
 	e := httpexpect.WithConfig(httpexpect.Config{
@@ -77,5 +76,5 @@ func PutJSON(app *App, url string, t *testing.T, payload map[string]string) *htt
 		Client:   fasthttpexpect.NewBinder(handler),
 	})
 
-	return e.PUT(url).WithJSON(payload).Expect()
+	return e.Request(method, url)
 }
