@@ -30,12 +30,6 @@ environment variables to override configuration keys.`,
 			debug,
 		)
 
-		//app.AddHandlers(api.URL{
-		//Method:  "GET",
-		//Path:    "/healthcheck",
-		//Handler: handlers.HealthcheckHandler,
-		//})
-
 		app.Start()
 	},
 }
@@ -43,14 +37,6 @@ environment variables to override configuration keys.`,
 func init() {
 	RootCmd.AddCommand(startCmd)
 
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// startCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
 	startCmd.Flags().StringVarP(&host, "bind", "b", "0.0.0.0", "Host to bind khan to")
 	startCmd.Flags().IntVarP(&port, "port", "p", 8888, "Port to bind khan to")
 	startCmd.Flags().BoolVarP(&debug, "debug", "d", false, "Debug mode")
