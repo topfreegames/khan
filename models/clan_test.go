@@ -155,10 +155,10 @@ func TestClanModel(t *testing.T) {
 			g.Assert(err == nil).IsTrue()
 
 			clan, err := CreateClan(
-				"create-1",
+				player.GameID,
 				randomdata.FullName(randomdata.RandomGender),
 				"clan-name",
-				player.ID,
+				player.PublicID,
 				"{}",
 			)
 
@@ -178,28 +178,29 @@ func TestClanModel(t *testing.T) {
 			g.Assert(err == nil).IsTrue()
 
 			_, err = CreateClan(
-				"game-id-is-too-large-for-this-field-should-be-less-than-36-chars",
+				player.GameID,
 				randomdata.FullName(randomdata.RandomGender),
 				"clan-name",
-				player.ID,
-				"{}",
+				player.PublicID,
+				"it-will-fail-because-metadata-is-not-a-json",
 			)
 
 			g.Assert(err != nil).IsTrue()
-			g.Assert(err.Error()).Equal("pq: value too long for type character varying(36)")
+			g.Assert(err.Error()).Equal("pq: invalid input syntax for type json")
 		})
 
 		g.It("Should not create a new Clan with CreateClan if unexistent player", func() {
+			playerPublicID := randomdata.FullName(randomdata.RandomGender)
 			_, err := CreateClan(
 				"create-1",
 				randomdata.FullName(randomdata.RandomGender),
 				"clan-name",
-				1000,
+				playerPublicID,
 				"{}",
 			)
 
 			g.Assert(err != nil).IsTrue()
-			g.Assert(err.Error()).Equal("pq: insert or update on table \"clans\" violates foreign key constraint \"clans_owner_id_fkey\"")
+			g.Assert(err.Error()).Equal(fmt.Sprintf("Player was not found with id: %s", playerPublicID))
 		})
 
 		g.It("Should update a Clan with UpdateClan", func() {
@@ -218,8 +219,8 @@ func TestClanModel(t *testing.T) {
 				clan.GameID,
 				clan.PublicID,
 				clan.Name,
-				metadata,
 				player.PublicID,
+				metadata,
 			)
 
 			g.Assert(err == nil).IsTrue()
@@ -251,8 +252,8 @@ func TestClanModel(t *testing.T) {
 				clan.GameID,
 				clan.PublicID,
 				clan.Name,
-				metadata,
 				player.PublicID,
+				metadata,
 			)
 
 			g.Assert(err == nil).IsFalse()
@@ -275,8 +276,8 @@ func TestClanModel(t *testing.T) {
 				clan.GameID,
 				clan.PublicID,
 				clan.Name,
-				metadata,
 				player.PublicID,
+				metadata,
 			)
 
 			g.Assert(err == nil).IsFalse()
