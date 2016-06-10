@@ -15,15 +15,16 @@ import (
 
 //Membership relates a player to a clan
 type Membership struct {
-	ID        int    `db:"id"`
-	GameID    string `db:"game_id"`
-	Level     int    `db:"membership_level"`
-	Approved  bool   `db:"approved"`
-	Denied    bool   `db:"denied"`
-	PlayerID  int    `db:"player_id"`
-	ClanID    int    `db:"clan_id"`
-	CreatedAt int64  `db:"created_at"`
-	UpdatedAt int64  `db:"updated_at"`
+	ID          int    `db:"id"`
+	GameID      string `db:"game_id"`
+	Level       int    `db:"membership_level"`
+	Approved    bool   `db:"approved"`
+	Denied      bool   `db:"denied"`
+	PlayerID    int    `db:"player_id"`
+	ClanID      int    `db:"clan_id"`
+	RequestorID int    `db:"requestor_id"`
+	CreatedAt   int64  `db:"created_at"`
+	UpdatedAt   int64  `db:"updated_at"`
 }
 
 //PreInsert populates fields before inserting a new clan

@@ -15,6 +15,7 @@ CREATE TABLE memberships (
     membership_level integer NOT NULL,
     approved boolean NOT NULL DEFAULT false,
     denied boolean NOT NULL DEFAULT false,
+    requestor_id integer NOT NULL REFERENCES players (id),
     created_at bigint NOT NULL,
     updated_at bigint NULL,
     deleted_at bigint NULL,
