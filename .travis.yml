@@ -6,8 +6,11 @@ go:
 sudo: required
 
 services:
-  - postgresql: "9.4"
+  - postgresql
   - docker
+
+addons:
+  - postgresql: "9.4"
 
 install:
   - make setup-ci
