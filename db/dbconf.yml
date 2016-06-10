@@ -1,9 +1,19 @@
 development:
     driver: postgres
     open: user=khan dbname=khan sslmode=disable
+
 test:
     driver: postgres
     open: user=khan_test dbname=khan_test sslmode=disable
+
 ci:
     driver: postgres
     open: user=khan_test dbname=khan_test sslmode=disable
+
+nopassword:
+    driver: postgres
+    open: user=$KHAN_POSTGRES_USER dbname=$KHAN_POSTGRES_DBNAME sslmode=$KHAN_POSTGRES_SSLMODE port=$KHAN_POSTGRES_PORT
+
+withpassword:
+    driver: postgres
+    open: user=$KHAN_POSTGRES_USER dbname=$KHAN_POSTGRES_DBNAME sslmode=$KHAN_POSTGRES_SSLMODE port=$KHAN_POSTGRES_PORT password=$KHAN_POSTGRES_PASSWORD
