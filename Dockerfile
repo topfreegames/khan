@@ -5,7 +5,7 @@ MAINTAINER TFG Co <backend@tfgco.com>
 EXPOSE 8080
 
 RUN apk update
-RUN apk add git make
+RUN apk add git make g++
 
 RUN go get -u github.com/Masterminds/glide/...
 RUN go get -u bitbucket.org/liamstask/goose/cmd/goose
