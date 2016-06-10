@@ -84,12 +84,13 @@ func UpdatePlayer(gameID string, publicID string, name string, metadata string) 
 	player.Metadata = metadata
 
 	count, err := db.Update(player)
-	if count != 1 {
-		return nil, &ModelNotFoundError{"Player", publicID}
-	}
 
 	if err != nil {
 		return nil, err
+	}
+
+	if count != 1 {
+		return nil, &ModelNotFoundError{"Player", publicID}
 	}
 
 	return player, nil

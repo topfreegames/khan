@@ -54,7 +54,6 @@ func UpdatePlayerHandler(app *App) func(c *iris.Context) {
 			FailWith(400, err.Error(), c)
 			return
 		}
-
 		_, err := models.UpdatePlayer(
 			payload.GameID,
 			payload.PublicID,
