@@ -20,6 +20,10 @@ Create the development database with `make migrate` (first time only).
 
 Run the api with `make run`.
 
+## Hosting the Application
+
+You can run it easily in one of the cloud providers using our [docker images](https://hub.docker.com/r/tfgco/khan/).
+
 ## Running with docker
 
 Provided you have docker installed, to build Khan's image run:
