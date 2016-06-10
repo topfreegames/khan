@@ -58,6 +58,16 @@ func GetClanByPublicID(gameID string, publicID string) (*Clan, error) {
 	return &clan, nil
 }
 
+//GetClanByPublicIDAndOwnerPublicID returns a clan by its public id and the owner public id
+func GetClanByPublicIDAndOwnerPublicID(gameID string, publicID string, ownerPublicID string) (*Clan, error) {
+	var clan Clan
+	err := db.SelectOne(&clan, "SELECT clans.* FROM clans, players WHERE clans.game_id=$1 AND clans.public_id=$2 AND clans.owner_id=players.id AND players.public_id=$3", gameID, publicID, ownerPublicID)
+	if err != nil || &clan == nil {
+		return nil, &ModelNotFoundError{"Clan", publicID}
+	}
+	return &clan, nil
+}
+
 //CreateClan creates a new clan
 func CreateClan(gameID string, publicID string, name string, ownerID int, metadata string) (*Clan, error) {
 	clan := &Clan{
