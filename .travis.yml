@@ -6,12 +6,11 @@ go:
 sudo: required
 
 services:
-  - postgresql
+  - postgresql: "9.4"
   - docker
 
 install:
   - make setup-ci
-  - make drop-test
 
 script:
   - make coverage
