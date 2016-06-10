@@ -10,6 +10,7 @@ package models
 import (
 	"testing"
 
+	"github.com/Pallinder/go-randomdata"
 	. "github.com/franela/goblin"
 )
 
@@ -81,6 +82,81 @@ func TestClanModel(t *testing.T) {
 			_, err := GetClanByID(-1)
 			g.Assert(err != nil).IsTrue()
 			g.Assert(err.Error()).Equal("Clan was not found with id: -1")
+		})
+
+		g.It("Should get an existing Clan by Game and PublicID", func() {
+			player := PlayerFactory.MustCreate().(*Player)
+			err := db.Insert(player)
+			g.Assert(err == nil).IsTrue()
+
+			clan := ClanFactory.MustCreateWithOption(map[string]interface{}{
+				"OwnerID": player.ID,
+			}).(*Clan)
+			err = testDb.Insert(clan)
+			g.Assert(err == nil).IsTrue()
+
+			dbClan, err := GetClanByPublicID(clan.GameID, clan.PublicID)
+			g.Assert(err == nil).IsTrue()
+			g.Assert(dbClan.ID).Equal(clan.ID)
+		})
+
+		g.It("Should not get a non-existing Clan by Game and PublicID", func() {
+			_, err := GetClanByPublicID("invalid-game", "invalid-clan")
+			g.Assert(err != nil).IsTrue()
+			g.Assert(err.Error()).Equal("Clan was not found with id: invalid-clan")
+		})
+
+		g.It("Should create a new Clan with CreateClan", func() {
+			player := PlayerFactory.MustCreate().(*Player)
+			err := db.Insert(player)
+			g.Assert(err == nil).IsTrue()
+
+			clan, err := CreateClan(
+				"create-1",
+				randomdata.FullName(randomdata.RandomGender),
+				"clan-name",
+				player.ID,
+				"{}",
+			)
+
+			g.Assert(err == nil).IsTrue()
+			g.Assert(clan.ID != 0).IsTrue()
+
+			dbClan, err := GetClanByID(clan.ID)
+			g.Assert(err == nil).IsTrue()
+
+			g.Assert(dbClan.GameID).Equal(clan.GameID)
+			g.Assert(dbClan.PublicID).Equal(clan.PublicID)
+		})
+
+		g.It("Should not create a new Clan with CreateClan if invalid data", func() {
+			player := PlayerFactory.MustCreate().(*Player)
+			err := db.Insert(player)
+			g.Assert(err == nil).IsTrue()
+
+			_, err = CreateClan(
+				"game-id-is-too-large-for-this-field-should-be-less-than-36-chars",
+				randomdata.FullName(randomdata.RandomGender),
+				"clan-name",
+				player.ID,
+				"{}",
+			)
+
+			g.Assert(err != nil).IsTrue()
+			g.Assert(err.Error()).Equal("pq: value too long for type character varying(36)")
+		})
+
+		g.It("Should not create a new Clan with CreateClan if unexistent player", func() {
+			_, err := CreateClan(
+				"create-1",
+				randomdata.FullName(randomdata.RandomGender),
+				"clan-name",
+				1000,
+				"{}",
+			)
+
+			g.Assert(err != nil).IsTrue()
+			g.Assert(err.Error()).Equal("pq: insert or update on table \"clans\" violates foreign key constraint \"clans_owner_id_fkey\"")
 		})
 	})
 }

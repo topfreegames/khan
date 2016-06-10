@@ -8,7 +8,6 @@
 package models
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/Pallinder/go-randomdata"
@@ -43,7 +42,6 @@ func TestPlayerModel(t *testing.T) {
 		g.It("Should update a new Player", func() {
 			player := PlayerFactory.MustCreate().(*Player)
 			err := testDb.Insert(player)
-			fmt.Println(err)
 			g.Assert(err == nil).IsTrue()
 			dt := player.UpdatedAt
 
@@ -93,7 +91,6 @@ func TestPlayerModel(t *testing.T) {
 				"player-name",
 				"{}",
 			)
-			fmt.Println(err)
 			g.Assert(err == nil).IsTrue()
 			g.Assert(player.ID != 0).IsTrue()
 

@@ -16,7 +16,7 @@ CREATE TABLE clans (
     created_at bigint NOT NULL,
     updated_at bigint NULL,
     deleted_at bigint NULL,
-    owner_id integer NOT NULL,
+    owner_id integer NOT NULL REFERENCES players (id), 
 
     CONSTRAINT gameid_clanid UNIQUE(game_id, public_id)
 );

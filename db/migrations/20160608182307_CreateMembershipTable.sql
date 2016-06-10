@@ -10,8 +10,8 @@
 CREATE TABLE memberships (
     id serial PRIMARY KEY,
     game_id varchar(10) NOT NULL,
-    clan_id integer NOT NULL,
-    player_id integer NOT NULL,
+    clan_id integer NOT NULL REFERENCES clans (id),
+    player_id integer NOT NULL REFERENCES players (id),
     membership_level integer NOT NULL,
     approved boolean NOT NULL DEFAULT false,
     denied boolean NOT NULL DEFAULT false,
