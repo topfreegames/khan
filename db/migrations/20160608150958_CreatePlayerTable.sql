@@ -15,7 +15,6 @@ CREATE TABLE players (
     metadata JSONB NOT NULL DEFAULT '{}'::JSONB,
     created_at bigint NOT NULL,
     updated_at bigint NULL,
-    deleted_at bigint NULL,
 
     CONSTRAINT gameid_playerid UNIQUE(game_id, public_id)
 );

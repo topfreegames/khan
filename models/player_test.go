@@ -8,9 +8,7 @@
 package models
 
 import (
-	"fmt"
 	"testing"
-	"time"
 
 	"github.com/Pallinder/go-randomdata"
 	. "github.com/franela/goblin"
@@ -73,18 +71,6 @@ func TestPlayerModel(t *testing.T) {
 				g.Assert(err != nil).IsTrue()
 				g.Assert(err.Error()).Equal("Player was not found with id: -1")
 			})
-
-			g.It("Should not get deleted Player", func() {
-				player := PlayerFactory.MustCreate().(*Player)
-				player.DeletedAt = time.Now().UnixNano()
-				err := testDb.Insert(player)
-				g.Assert(err == nil).IsTrue()
-
-				dbPlayer, err := GetPlayerByID(player.ID)
-				g.Assert(dbPlayer == nil).IsTrue()
-				g.Assert(err != nil).IsTrue()
-				g.Assert(err.Error()).Equal(fmt.Sprintf("Player was not found with id: %d", player.ID))
-			})
 		})
 
 		g.Describe("Get Player By Public ID", func() {
@@ -102,18 +88,6 @@ func TestPlayerModel(t *testing.T) {
 				_, err := GetPlayerByPublicID("invalid-game", "invalid-player")
 				g.Assert(err != nil).IsTrue()
 				g.Assert(err.Error()).Equal("Player was not found with id: invalid-player")
-			})
-
-			g.It("Should not get deleted Player by Game and Player", func() {
-				player := PlayerFactory.MustCreate().(*Player)
-				player.DeletedAt = time.Now().UnixNano()
-				err := db.Insert(player)
-				g.Assert(err == nil).IsTrue()
-
-				dbPlayer, err := GetPlayerByPublicID(player.GameID, player.PublicID)
-				g.Assert(dbPlayer == nil).IsTrue()
-				g.Assert(err != nil).IsTrue()
-				g.Assert(err.Error()).Equal(fmt.Sprintf("Player was not found with id: %s", player.PublicID))
 			})
 		})
 
@@ -159,25 +133,6 @@ func TestPlayerModel(t *testing.T) {
 				g.Assert(dbPlayer.Metadata).Equal(metadata)
 			})
 
-			g.It("Should not update a deleted player", func() {
-				player := PlayerFactory.MustCreate().(*Player)
-				player.DeletedAt = time.Now().UnixNano()
-				err := testDb.Insert(player)
-				g.Assert(err == nil).IsTrue()
-
-				metadata := "{\"x\": 1}"
-				updPlayer, err := UpdatePlayer(
-					player.GameID,
-					player.PublicID,
-					player.Name,
-					metadata,
-				)
-
-				g.Assert(updPlayer == nil).IsTrue()
-				g.Assert(err != nil).IsTrue()
-				g.Assert(err.Error()).Equal(fmt.Sprintf("Player was not found with id: %s", player.PublicID))
-			})
-
 			g.It("Should not update a Player with Invalid Data with UpdatePlayer", func() {
 				_, err := UpdatePlayer(
 					"-1",
@@ -187,23 +142,6 @@ func TestPlayerModel(t *testing.T) {
 				)
 
 				g.Assert(err == nil).IsFalse()
-			})
-		})
-
-		g.Describe("Delete Player", func() {
-			g.It("Should delete a Player with DeletePlayer", func() {
-				player := PlayerFactory.MustCreate().(*Player)
-				err := testDb.Insert(player)
-				g.Assert(err == nil).IsTrue()
-
-				deleted, err := DeletePlayer(
-					"-1",
-					"-1",
-				)
-
-				g.Assert(deleted == nil).IsTrue()
-				g.Assert(err != nil).IsTrue()
-				g.Assert(err.Error()).Equal("Player was not found with id: -1")
 			})
 		})
 	})
