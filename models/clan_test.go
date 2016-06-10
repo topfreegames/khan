@@ -8,6 +8,7 @@
 package models
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/Pallinder/go-randomdata"
@@ -104,6 +105,48 @@ func TestClanModel(t *testing.T) {
 			_, err := GetClanByPublicID("invalid-game", "invalid-clan")
 			g.Assert(err != nil).IsTrue()
 			g.Assert(err.Error()).Equal("Clan was not found with id: invalid-clan")
+		})
+
+		g.It("Should get an existing Clan by Game, PublicID and OwnerPublicID", func() {
+			player := PlayerFactory.MustCreate().(*Player)
+			err := db.Insert(player)
+			g.Assert(err == nil).IsTrue()
+
+			clan := ClanFactory.MustCreateWithOption(map[string]interface{}{
+				"OwnerID": player.ID,
+			}).(*Clan)
+			err = testDb.Insert(clan)
+			g.Assert(err == nil).IsTrue()
+
+			dbClan, err := GetClanByPublicIDAndOwnerPublicID(clan.GameID, clan.PublicID, player.PublicID)
+			g.Assert(err == nil).IsTrue()
+			g.Assert(dbClan.ID).Equal(clan.ID)
+			g.Assert(dbClan.GameID).Equal(clan.GameID)
+			g.Assert(dbClan.PublicID).Equal(clan.PublicID)
+			g.Assert(dbClan.Name).Equal(clan.Name)
+			g.Assert(dbClan.OwnerID).Equal(clan.OwnerID)
+		})
+
+		g.It("Should not get a non-existing Clan by Game, PublicID and OwnerPublicID", func() {
+			_, err := GetClanByPublicIDAndOwnerPublicID("invalid-game", "invalid-clan", "invalid-owner-public-id")
+			g.Assert(err != nil).IsTrue()
+			g.Assert(err.Error()).Equal("Clan was not found with id: invalid-clan")
+		})
+
+		g.It("Should not get a existing Clan by Game, PublicID and OwnerPublicID if not Clan owner", func() {
+			player := PlayerFactory.MustCreate().(*Player)
+			err := db.Insert(player)
+			g.Assert(err == nil).IsTrue()
+
+			clan := ClanFactory.MustCreateWithOption(map[string]interface{}{
+				"OwnerID": player.ID,
+			}).(*Clan)
+			err = testDb.Insert(clan)
+			g.Assert(err == nil).IsTrue()
+
+			_, err = GetClanByPublicIDAndOwnerPublicID(clan.GameID, clan.PublicID, "invalid-owner-public-id")
+			g.Assert(err != nil).IsTrue()
+			g.Assert(err.Error()).Equal(fmt.Sprintf("Clan was not found with id: %s", clan.PublicID))
 		})
 
 		g.It("Should create a new Clan with CreateClan", func() {
