@@ -68,14 +68,14 @@ func TestPlayerHandler(t *testing.T) {
 
 		g.It("Should not create player if invalid data", func() {
 			gameID := "game-id-is-too-large-for-this-field-should-be-less-than-36-chars"
-			playerID := randomdata.FullName(randomdata.RandomGender)
+			publicID := randomdata.FullName(randomdata.RandomGender)
 			playerName := randomdata.FullName(randomdata.RandomGender)
 			metadata := "{\"x\": 1}"
 
 			a := GetDefaultTestApp()
 			payload := map[string]interface{}{
 				"gameID":   gameID,
-				"playerID": playerID,
+				"publicID": publicID,
 				"name":     playerName,
 				"metadata": metadata,
 			}
@@ -118,18 +118,41 @@ func TestPlayerHandler(t *testing.T) {
 			g.Assert(dbPlayer.Metadata).Equal(metadata)
 		})
 
-		//g.It("Should not update player if invalid payload", func() {
-		//a := GetDefaultTestApp()
-		//res := PutBody(a, "/players", t, "invalid")
+		g.It("Should not update player if invalid payload", func() {
+			a := GetDefaultTestApp()
+			res := PutBody(a, "/players", t, "invalid")
 
-		//res.Status(http.StatusBadRequest)
-		//var result map[string]interface{}
-		//json.Unmarshal([]byte(res.Body().Raw()), &result)
-		//g.Assert(result["success"]).IsFalse()
-		//g.Assert(result["reason"]).Equal(
-		//"\n[IRIS]  Error: While trying to read [JSON invalid character 'i' looking for beginning of value] from the request body. Trace %!!(MISSING)s(MISSING)",
-		//)
-		//})
+			res.Status(http.StatusBadRequest)
+			var result map[string]interface{}
+			json.Unmarshal([]byte(res.Body().Raw()), &result)
+			g.Assert(result["success"]).IsFalse()
+			g.Assert(result["reason"]).Equal(
+				"\n[IRIS]  Error: While trying to read [JSON invalid character 'i' looking for beginning of value] from the request body. Trace %!!(MISSING)s(MISSING)",
+			)
+		})
 
+		g.It("Should not update player if invalid data", func() {
+			a := GetDefaultTestApp()
+
+			player := models.PlayerFactory.MustCreate().(*models.Player)
+			err := a.Db.Insert(player)
+			AssertNotError(g, err)
+
+			metadata := ""
+
+			payload := map[string]string{
+				"gameID":   player.GameID,
+				"publicID": player.PublicID,
+				"name":     player.Name,
+				"metadata": metadata,
+			}
+			res := PutJSON(a, "/players", t, payload)
+
+			res.Status(http.StatusInternalServerError)
+			var result map[string]interface{}
+			json.Unmarshal([]byte(res.Body().Raw()), &result)
+			g.Assert(result["success"]).IsFalse()
+			g.Assert(result["reason"]).Equal("pq: invalid input syntax for type json")
+		})
 	})
 }
