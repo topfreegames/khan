@@ -42,7 +42,7 @@ func TestMembershipModel(t *testing.T) {
 			g.Assert(err == nil).IsTrue()
 			g.Assert(membership.ID != 0).IsTrue()
 
-			dbMembership, err := GetMembershipByID(membership.ID)
+			dbMembership, err := GetMembershipByID(testDb, membership.ID)
 			g.Assert(err == nil).IsTrue()
 
 			g.Assert(dbMembership.GameID).Equal(membership.GameID)
@@ -94,13 +94,13 @@ func TestMembershipModel(t *testing.T) {
 			err = testDb.Insert(membership)
 			g.Assert(err == nil).IsTrue()
 
-			dbMembership, err := GetMembershipByID(membership.ID)
+			dbMembership, err := GetMembershipByID(testDb, membership.ID)
 			g.Assert(err == nil).IsTrue()
 			g.Assert(dbMembership.ID).Equal(membership.ID)
 		})
 
 		g.It("Should not get non-existing Membership", func() {
-			_, err := GetMembershipByID(-1)
+			_, err := GetMembershipByID(testDb, -1)
 			g.Assert(err != nil).IsTrue()
 			g.Assert(err.Error()).Equal("Membership was not found with id: -1")
 		})

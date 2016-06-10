@@ -40,7 +40,7 @@ func (c *Clan) PreUpdate(s gorp.SqlExecutor) error {
 }
 
 //GetClanByID returns a clan by id
-func GetClanByID(id int) (*Clan, error) {
+func GetClanByID(db DB, id int) (*Clan, error) {
 	obj, err := db.Get(Clan{}, id)
 	if err != nil || obj == nil {
 		return nil, &ModelNotFoundError{"Clan", id}
@@ -49,7 +49,7 @@ func GetClanByID(id int) (*Clan, error) {
 }
 
 //GetClanByPublicID returns a clan by its public id
-func GetClanByPublicID(gameID string, publicID string) (*Clan, error) {
+func GetClanByPublicID(db DB, gameID string, publicID string) (*Clan, error) {
 	var clan Clan
 	err := db.SelectOne(&clan, "select * from clans where game_id=$1 and public_id=$2", gameID, publicID)
 	if err != nil || &clan == nil {
@@ -59,7 +59,7 @@ func GetClanByPublicID(gameID string, publicID string) (*Clan, error) {
 }
 
 //GetClanByPublicIDAndOwnerPublicID returns a clan by its public id and the owner public id
-func GetClanByPublicIDAndOwnerPublicID(gameID string, publicID string, ownerPublicID string) (*Clan, error) {
+func GetClanByPublicIDAndOwnerPublicID(db DB, gameID string, publicID string, ownerPublicID string) (*Clan, error) {
 	var clan Clan
 	err := db.SelectOne(&clan, "SELECT clans.* FROM clans, players WHERE clans.game_id=$1 AND clans.public_id=$2 AND clans.owner_id=players.id AND players.public_id=$3", gameID, publicID, ownerPublicID)
 	if err != nil || &clan == nil {
@@ -69,8 +69,8 @@ func GetClanByPublicIDAndOwnerPublicID(gameID string, publicID string, ownerPubl
 }
 
 //CreateClan creates a new clan
-func CreateClan(gameID string, publicID string, name string, ownerPublicID string, metadata string) (*Clan, error) {
-	player, err := GetPlayerByPublicID(gameID, ownerPublicID)
+func CreateClan(db DB, gameID string, publicID string, name string, ownerPublicID string, metadata string) (*Clan, error) {
+	player, err := GetPlayerByPublicID(db, gameID, ownerPublicID)
 	if err != nil {
 		return nil, err
 	}
@@ -91,8 +91,8 @@ func CreateClan(gameID string, publicID string, name string, ownerPublicID strin
 }
 
 //UpdateClan updates an existing clan
-func UpdateClan(gameID string, publicID string, name string, ownerPublicID string, metadata string) (*Clan, error) {
-	clan, err := GetClanByPublicIDAndOwnerPublicID(gameID, publicID, ownerPublicID)
+func UpdateClan(db DB, gameID string, publicID string, name string, ownerPublicID string, metadata string) (*Clan, error) {
+	clan, err := GetClanByPublicIDAndOwnerPublicID(db, gameID, publicID, ownerPublicID)
 
 	if err != nil {
 		return nil, err

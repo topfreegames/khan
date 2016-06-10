@@ -54,7 +54,7 @@ func TestClanHandler(t *testing.T) {
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsTrue()
 
-			dbClan, err := models.GetClanByPublicID(gameID, publicID)
+			dbClan, err := models.GetClanByPublicID(a.Db, gameID, publicID)
 			g.Assert(err == nil).IsTrue()
 			g.Assert(dbClan.GameID).Equal(gameID)
 			g.Assert(dbClan.PublicID).Equal(publicID)
@@ -163,7 +163,7 @@ func TestClanHandler(t *testing.T) {
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsTrue()
 
-			dbClan, err := models.GetClanByPublicID(gameID, publicID)
+			dbClan, err := models.GetClanByPublicID(a.Db, gameID, publicID)
 			g.Assert(err == nil).IsTrue()
 			g.Assert(dbClan.GameID).Equal(gameID)
 			g.Assert(dbClan.PublicID).Equal(publicID)

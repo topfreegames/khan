@@ -28,7 +28,10 @@ func CreatePlayerHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
+		db := models.GetCtxDB(c)
+
 		player, err := models.CreatePlayer(
+			db,
 			payload.GameID,
 			payload.PublicID,
 			payload.Name,
@@ -54,7 +57,11 @@ func UpdatePlayerHandler(app *App) func(c *iris.Context) {
 			FailWith(400, err.Error(), c)
 			return
 		}
+
+		db := models.GetCtxDB(c)
+
 		_, err := models.UpdatePlayer(
+			db,
 			payload.GameID,
 			payload.PublicID,
 			payload.Name,

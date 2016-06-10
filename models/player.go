@@ -38,7 +38,7 @@ func (p *Player) PreUpdate(s gorp.SqlExecutor) error {
 }
 
 //GetPlayerByID returns a player by id
-func GetPlayerByID(id int) (*Player, error) {
+func GetPlayerByID(db DB, id int) (*Player, error) {
 	obj, err := db.Get(Player{}, id)
 	if err != nil || obj == nil {
 		return nil, &ModelNotFoundError{"Player", id}
@@ -49,7 +49,7 @@ func GetPlayerByID(id int) (*Player, error) {
 }
 
 //GetPlayerByPublicID returns a player by their public id
-func GetPlayerByPublicID(gameID string, publicID string) (*Player, error) {
+func GetPlayerByPublicID(db DB, gameID string, publicID string) (*Player, error) {
 	var player Player
 	err := db.SelectOne(&player, "SELECT * FROM players WHERE game_id=$1 AND public_id=$2", gameID, publicID)
 	if err != nil || &player == nil {
@@ -59,7 +59,7 @@ func GetPlayerByPublicID(gameID string, publicID string) (*Player, error) {
 }
 
 //CreatePlayer creates a new player
-func CreatePlayer(gameID string, publicID string, name string, metadata string) (*Player, error) {
+func CreatePlayer(db DB, gameID string, publicID string, name string, metadata string) (*Player, error) {
 	player := &Player{
 		GameID:   gameID,
 		PublicID: publicID,
@@ -74,8 +74,8 @@ func CreatePlayer(gameID string, publicID string, name string, metadata string) 
 }
 
 //UpdatePlayer updates an existing player
-func UpdatePlayer(gameID string, publicID string, name string, metadata string) (*Player, error) {
-	player, err := GetPlayerByPublicID(gameID, publicID)
+func UpdatePlayer(db DB, gameID string, publicID string, name string, metadata string) (*Player, error) {
+	player, err := GetPlayerByPublicID(db, gameID, publicID)
 
 	if err != nil {
 		return nil, err
@@ -84,14 +84,10 @@ func UpdatePlayer(gameID string, publicID string, name string, metadata string) 
 	player.Name = name
 	player.Metadata = metadata
 
-	count, err := db.Update(player)
+	_, err = db.Update(player)
 
 	if err != nil {
 		return nil, err
-	}
-
-	if count != 1 {
-		return nil, &ModelNotFoundError{"Player", publicID}
 	}
 
 	return player, nil

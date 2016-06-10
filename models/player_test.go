@@ -34,7 +34,7 @@ func TestPlayerModel(t *testing.T) {
 				g.Assert(err == nil).IsTrue()
 				g.Assert(player.ID != 0).IsTrue()
 
-				dbPlayer, err := GetPlayerByID(player.ID)
+				dbPlayer, err := GetPlayerByID(testDb, player.ID)
 				g.Assert(err == nil).IsTrue()
 
 				g.Assert(dbPlayer.GameID).Equal(player.GameID)
@@ -61,13 +61,13 @@ func TestPlayerModel(t *testing.T) {
 				err := testDb.Insert(player)
 				g.Assert(err == nil).IsTrue()
 
-				dbPlayer, err := GetPlayerByID(player.ID)
+				dbPlayer, err := GetPlayerByID(testDb, player.ID)
 				g.Assert(err == nil).IsTrue()
 				g.Assert(dbPlayer.ID).Equal(player.ID)
 			})
 
 			g.It("Should not get non-existing Player", func() {
-				_, err := GetPlayerByID(-1)
+				_, err := GetPlayerByID(testDb, -1)
 				g.Assert(err != nil).IsTrue()
 				g.Assert(err.Error()).Equal("Player was not found with id: -1")
 			})
@@ -76,16 +76,16 @@ func TestPlayerModel(t *testing.T) {
 		g.Describe("Get Player By Public ID", func() {
 			g.It("Should get existing Player by Game and Player", func() {
 				player := PlayerFactory.MustCreate().(*Player)
-				err := db.Insert(player)
+				err := testDb.Insert(player)
 				g.Assert(err == nil).IsTrue()
 
-				dbPlayer, err := GetPlayerByPublicID(player.GameID, player.PublicID)
+				dbPlayer, err := GetPlayerByPublicID(testDb, player.GameID, player.PublicID)
 				g.Assert(err == nil).IsTrue()
 				g.Assert(dbPlayer.ID).Equal(player.ID)
 			})
 
 			g.It("Should not get non-existing Player by Game and Player", func() {
-				_, err := GetPlayerByPublicID("invalid-game", "invalid-player")
+				_, err := GetPlayerByPublicID(testDb, "invalid-game", "invalid-player")
 				g.Assert(err != nil).IsTrue()
 				g.Assert(err.Error()).Equal("Player was not found with id: invalid-player")
 			})
@@ -94,6 +94,7 @@ func TestPlayerModel(t *testing.T) {
 		g.Describe("Create Player", func() {
 			g.It("Should create a new Player with CreatePlayer", func() {
 				player, err := CreatePlayer(
+					testDb,
 					"create-1",
 					randomdata.FullName(randomdata.RandomGender),
 					"player-name",
@@ -102,7 +103,7 @@ func TestPlayerModel(t *testing.T) {
 				g.Assert(err == nil).IsTrue()
 				g.Assert(player.ID != 0).IsTrue()
 
-				dbPlayer, err := GetPlayerByID(player.ID)
+				dbPlayer, err := GetPlayerByID(testDb, player.ID)
 				g.Assert(err == nil).IsTrue()
 
 				g.Assert(dbPlayer.GameID).Equal(player.GameID)
@@ -118,6 +119,7 @@ func TestPlayerModel(t *testing.T) {
 
 				metadata := "{\"x\": 1}"
 				updPlayer, err := UpdatePlayer(
+					testDb,
 					player.GameID,
 					player.PublicID,
 					player.Name,
@@ -127,7 +129,7 @@ func TestPlayerModel(t *testing.T) {
 				g.Assert(err == nil).IsTrue()
 				g.Assert(updPlayer.ID).Equal(player.ID)
 
-				dbPlayer, err := GetPlayerByPublicID(player.GameID, player.PublicID)
+				dbPlayer, err := GetPlayerByPublicID(testDb, player.GameID, player.PublicID)
 				g.Assert(err == nil).IsTrue()
 
 				g.Assert(dbPlayer.Metadata).Equal(metadata)
@@ -135,6 +137,7 @@ func TestPlayerModel(t *testing.T) {
 
 			g.It("Should not update a Player with Invalid Data with UpdatePlayer", func() {
 				_, err := UpdatePlayer(
+					testDb,
 					"-1",
 					"qwe",
 					"some player name",

@@ -40,7 +40,7 @@ func (m *Membership) PreUpdate(s gorp.SqlExecutor) error {
 }
 
 //GetMembershipByID returns a membership by id
-func GetMembershipByID(id int) (*Membership, error) {
+func GetMembershipByID(db DB, id int) (*Membership, error) {
 	obj, err := db.Get(Membership{}, id)
 	if err != nil || obj == nil {
 		return nil, &ModelNotFoundError{"Membership", id}

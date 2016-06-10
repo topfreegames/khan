@@ -37,7 +37,7 @@ func TestClanModel(t *testing.T) {
 			g.Assert(err == nil).IsTrue()
 			g.Assert(clan.ID != 0).IsTrue()
 
-			dbClan, err := GetClanByID(clan.ID)
+			dbClan, err := GetClanByID(testDb, clan.ID)
 			g.Assert(err == nil).IsTrue()
 
 			g.Assert(dbClan.GameID).Equal(clan.GameID)
@@ -74,20 +74,20 @@ func TestClanModel(t *testing.T) {
 			err = testDb.Insert(clan)
 			g.Assert(err == nil).IsTrue()
 
-			dbClan, err := GetClanByID(clan.ID)
+			dbClan, err := GetClanByID(testDb, clan.ID)
 			g.Assert(err == nil).IsTrue()
 			g.Assert(dbClan.ID).Equal(clan.ID)
 		})
 
 		g.It("Should not get non-existing Clan", func() {
-			_, err := GetClanByID(-1)
+			_, err := GetClanByID(testDb, -1)
 			g.Assert(err != nil).IsTrue()
 			g.Assert(err.Error()).Equal("Clan was not found with id: -1")
 		})
 
 		g.It("Should get an existing Clan by Game and PublicID", func() {
 			player := PlayerFactory.MustCreate().(*Player)
-			err := db.Insert(player)
+			err := testDb.Insert(player)
 			g.Assert(err == nil).IsTrue()
 
 			clan := ClanFactory.MustCreateWithOption(map[string]interface{}{
@@ -96,20 +96,20 @@ func TestClanModel(t *testing.T) {
 			err = testDb.Insert(clan)
 			g.Assert(err == nil).IsTrue()
 
-			dbClan, err := GetClanByPublicID(clan.GameID, clan.PublicID)
+			dbClan, err := GetClanByPublicID(testDb, clan.GameID, clan.PublicID)
 			g.Assert(err == nil).IsTrue()
 			g.Assert(dbClan.ID).Equal(clan.ID)
 		})
 
 		g.It("Should not get a non-existing Clan by Game and PublicID", func() {
-			_, err := GetClanByPublicID("invalid-game", "invalid-clan")
+			_, err := GetClanByPublicID(testDb, "invalid-game", "invalid-clan")
 			g.Assert(err != nil).IsTrue()
 			g.Assert(err.Error()).Equal("Clan was not found with id: invalid-clan")
 		})
 
 		g.It("Should get an existing Clan by Game, PublicID and OwnerPublicID", func() {
 			player := PlayerFactory.MustCreate().(*Player)
-			err := db.Insert(player)
+			err := testDb.Insert(player)
 			g.Assert(err == nil).IsTrue()
 
 			clan := ClanFactory.MustCreateWithOption(map[string]interface{}{
@@ -118,7 +118,7 @@ func TestClanModel(t *testing.T) {
 			err = testDb.Insert(clan)
 			g.Assert(err == nil).IsTrue()
 
-			dbClan, err := GetClanByPublicIDAndOwnerPublicID(clan.GameID, clan.PublicID, player.PublicID)
+			dbClan, err := GetClanByPublicIDAndOwnerPublicID(testDb, clan.GameID, clan.PublicID, player.PublicID)
 			g.Assert(err == nil).IsTrue()
 			g.Assert(dbClan.ID).Equal(clan.ID)
 			g.Assert(dbClan.GameID).Equal(clan.GameID)
@@ -128,14 +128,14 @@ func TestClanModel(t *testing.T) {
 		})
 
 		g.It("Should not get a non-existing Clan by Game, PublicID and OwnerPublicID", func() {
-			_, err := GetClanByPublicIDAndOwnerPublicID("invalid-game", "invalid-clan", "invalid-owner-public-id")
+			_, err := GetClanByPublicIDAndOwnerPublicID(testDb, "invalid-game", "invalid-clan", "invalid-owner-public-id")
 			g.Assert(err != nil).IsTrue()
 			g.Assert(err.Error()).Equal("Clan was not found with id: invalid-clan")
 		})
 
 		g.It("Should not get a existing Clan by Game, PublicID and OwnerPublicID if not Clan owner", func() {
 			player := PlayerFactory.MustCreate().(*Player)
-			err := db.Insert(player)
+			err := testDb.Insert(player)
 			g.Assert(err == nil).IsTrue()
 
 			clan := ClanFactory.MustCreateWithOption(map[string]interface{}{
@@ -144,20 +144,21 @@ func TestClanModel(t *testing.T) {
 			err = testDb.Insert(clan)
 			g.Assert(err == nil).IsTrue()
 
-			_, err = GetClanByPublicIDAndOwnerPublicID(clan.GameID, clan.PublicID, "invalid-owner-public-id")
+			_, err = GetClanByPublicIDAndOwnerPublicID(testDb, clan.GameID, clan.PublicID, "invalid-owner-public-id")
 			g.Assert(err != nil).IsTrue()
 			g.Assert(err.Error()).Equal(fmt.Sprintf("Clan was not found with id: %s", clan.PublicID))
 		})
 
 		g.It("Should create a new Clan with CreateClan", func() {
 			player := PlayerFactory.MustCreate().(*Player)
-			err := db.Insert(player)
+			err := testDb.Insert(player)
 			g.Assert(err == nil).IsTrue()
 
 			clan, err := CreateClan(
+				testDb,
 				player.GameID,
+				"create-1",
 				randomdata.FullName(randomdata.RandomGender),
-				"clan-name",
 				player.PublicID,
 				"{}",
 			)
@@ -165,7 +166,7 @@ func TestClanModel(t *testing.T) {
 			g.Assert(err == nil).IsTrue()
 			g.Assert(clan.ID != 0).IsTrue()
 
-			dbClan, err := GetClanByID(clan.ID)
+			dbClan, err := GetClanByID(testDb, clan.ID)
 			g.Assert(err == nil).IsTrue()
 
 			g.Assert(dbClan.GameID).Equal(clan.GameID)
@@ -174,11 +175,12 @@ func TestClanModel(t *testing.T) {
 
 		g.It("Should not create a new Clan with CreateClan if invalid data", func() {
 			player := PlayerFactory.MustCreate().(*Player)
-			err := db.Insert(player)
+			err := testDb.Insert(player)
 			g.Assert(err == nil).IsTrue()
 
 			_, err = CreateClan(
-				player.GameID,
+				testDb,
+				"game-id-is-too-large-for-this-field-should-be-less-than-36-chars",
 				randomdata.FullName(randomdata.RandomGender),
 				"clan-name",
 				player.PublicID,
@@ -192,6 +194,7 @@ func TestClanModel(t *testing.T) {
 		g.It("Should not create a new Clan with CreateClan if unexistent player", func() {
 			playerPublicID := randomdata.FullName(randomdata.RandomGender)
 			_, err := CreateClan(
+				testDb,
 				"create-1",
 				randomdata.FullName(randomdata.RandomGender),
 				"clan-name",
@@ -216,6 +219,7 @@ func TestClanModel(t *testing.T) {
 
 			metadata := "{\"x\": 1}"
 			updClan, err := UpdateClan(
+				testDb,
 				clan.GameID,
 				clan.PublicID,
 				clan.Name,
@@ -226,7 +230,7 @@ func TestClanModel(t *testing.T) {
 			g.Assert(err == nil).IsTrue()
 			g.Assert(updClan.ID).Equal(clan.ID)
 
-			dbClan, err := GetClanByPublicID(clan.GameID, clan.PublicID)
+			dbClan, err := GetClanByPublicID(testDb, clan.GameID, clan.PublicID)
 			g.Assert(err == nil).IsTrue()
 
 			g.Assert(dbClan.Metadata).Equal(metadata)
@@ -249,6 +253,7 @@ func TestClanModel(t *testing.T) {
 
 			metadata := "{\"x\": 1}"
 			_, err = UpdateClan(
+				testDb,
 				clan.GameID,
 				clan.PublicID,
 				clan.Name,
@@ -273,6 +278,7 @@ func TestClanModel(t *testing.T) {
 
 			metadata := "it will not work because i am not a json"
 			_, err = UpdateClan(
+				testDb,
 				clan.GameID,
 				clan.PublicID,
 				clan.Name,
