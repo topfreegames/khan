@@ -284,7 +284,10 @@ func TestClanHandler(t *testing.T) {
 			g.Assert(result["success"]).IsTrue()
 			for index, clanObj := range result["clans"].([]interface{}) {
 				clan := clanObj.(map[string]interface{})
-				g.Assert(clan["Name"]).Equal(expectedClans[index].Name)
+				g.Assert(clan["name"]).Equal(expectedClans[index].Name)
+				g.Assert(clan["metadata"]).Equal(expectedClans[index].Metadata)
+				g.Assert(clan["publicID"]).Equal(expectedClans[index].PublicID)
+				g.Assert(clan["ID"]).Equal(nil)
 			}
 		})
 
@@ -298,6 +301,35 @@ func TestClanHandler(t *testing.T) {
 
 			g.Assert(result["success"]).IsTrue()
 			g.Assert(len(result["clans"].([]interface{}))).Equal(0)
+		})
+	})
+	g.Describe("Retrieve Clan Handler", func() {
+		g.It("Should get details for clan", func() {
+			player := models.PlayerFactory.MustCreate().(*models.Player)
+			err = testDb.Insert(player)
+			g.Assert(err == nil).IsTrue()
+
+			clan := models.ClanFactory.MustCreateWithOption(map[string]interface{}{
+				"GameID":   player.GameID,
+				"OwnerID":  player.ID,
+				"Metadata": "{\"x\": 1}",
+			}).(*models.Clan)
+			err = testDb.Insert(clan)
+			g.Assert(err == nil).IsTrue()
+
+			a := GetDefaultTestApp()
+			res := Get(a, GetClanRoute(player.GameID, fmt.Sprintf("/clans/%s", clan.PublicID)), t)
+
+			res.Status(http.StatusOK)
+			var result map[string]interface{}
+			json.Unmarshal([]byte(res.Body().Raw()), &result)
+
+			g.Assert(result["success"]).IsTrue()
+
+			httpClan := result["details"].(map[string]interface{})
+			g.Assert(httpClan["name"]).Equal(clan.Name)
+			g.Assert(httpClan["metadata"]).Equal(clan.Metadata)
+			g.Assert(httpClan["publicID"]).Equal(nil)
 		})
 	})
 }

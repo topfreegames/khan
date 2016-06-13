@@ -85,11 +85,24 @@ func UpdateClanHandler(app *App) func(c *iris.Context) {
 	}
 }
 
+func serializeClan(clan *models.Clan, includePublicID bool) map[string]interface{} {
+	serial := map[string]interface{}{
+		"name":     clan.Name,
+		"metadata": clan.Metadata,
+	}
+
+	if includePublicID {
+		serial["publicID"] = clan.PublicID
+	}
+
+	return serial
+}
+
 //ListClansHandler is the handler responsible for returning a list of all clans
 func ListClansHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
 		db := GetCtxDB(c)
-		gameID := c.Get("gameID").(string)
+		gameID := c.GetString("gameID")
 
 		clans, err := models.GetAllClans(
 			db,
@@ -101,8 +114,37 @@ func ListClansHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
+		serializedClans := make([]map[string]interface{}, len(clans))
+		for i, clan := range clans {
+			serializedClans[i] = serializeClan(&clan, true)
+		}
+
 		SucceedWith(map[string]interface{}{
-			"clans": clans,
+			"clans": serializedClans,
+		}, c)
+	}
+}
+
+//RetrieveClanHandler is the handler responsible for returning details for a given clan
+func RetrieveClanHandler(app *App) func(c *iris.Context) {
+	return func(c *iris.Context) {
+		db := GetCtxDB(c)
+		gameID := c.GetString("gameID")
+		publicID := c.Param("publicID")
+
+		clan, err := models.GetClanByPublicID(
+			db,
+			gameID,
+			publicID,
+		)
+
+		if err != nil {
+			FailWith(500, err.Error(), c)
+			return
+		}
+
+		SucceedWith(map[string]interface{}{
+			"details": serializeClan(clan, false),
 		}, c)
 	}
 }
@@ -119,6 +161,7 @@ func SetClanHandlersGroup(app *App) {
 	})
 
 	clanHandlersGroup.Get("", ListClansHandler(app))
+	clanHandlersGroup.Get("/:publicID", RetrieveClanHandler(app))
 	clanHandlersGroup.Post("", CreateClanHandler(app))
 	clanHandlersGroup.Put("/:publicID", UpdateClanHandler(app))
 }
