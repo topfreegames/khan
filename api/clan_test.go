@@ -47,7 +47,7 @@ func TestClanHandler(t *testing.T) {
 				"ownerPublicID": ownerPublicID,
 				"metadata":      metadata,
 			}
-			res := PostJSON(a, GetClanRoute(gameID, "/clans"), t, payload)
+			res := PostJSON(a, GetGameRoute(gameID, "/clans"), t, payload)
 
 			res.Status(http.StatusOK)
 			var result map[string]interface{}
@@ -66,7 +66,7 @@ func TestClanHandler(t *testing.T) {
 		g.It("Should not create clan if invalid payload", func() {
 			a := GetDefaultTestApp()
 			gameID := "gameID"
-			res := PostBody(a, GetClanRoute(gameID, "/clans"), t, "invalid")
+			res := PostBody(a, GetGameRoute(gameID, "/clans"), t, "invalid")
 
 			res.Status(http.StatusBadRequest)
 			var result map[string]interface{}
@@ -91,7 +91,7 @@ func TestClanHandler(t *testing.T) {
 				"ownerPublicID": ownerPublicID,
 				"metadata":      metadata,
 			}
-			res := PostJSON(a, GetClanRoute(gameID, "/clans"), t, payload)
+			res := PostJSON(a, GetGameRoute(gameID, "/clans"), t, payload)
 
 			res.Status(http.StatusInternalServerError)
 			var result map[string]interface{}
@@ -118,7 +118,7 @@ func TestClanHandler(t *testing.T) {
 				"ownerPublicID": ownerPublicID,
 				"metadata":      metadata,
 			}
-			res := PostJSON(a, GetClanRoute(gameID, "/clans"), t, payload)
+			res := PostJSON(a, GetGameRoute(gameID, "/clans"), t, payload)
 
 			res.Status(http.StatusInternalServerError)
 			var result map[string]interface{}
@@ -153,7 +153,7 @@ func TestClanHandler(t *testing.T) {
 				"ownerPublicID": ownerPublicID,
 				"metadata":      metadata,
 			}
-			route := GetClanRoute(gameID, fmt.Sprintf("/clans/%s", publicID))
+			route := GetGameRoute(gameID, fmt.Sprintf("/clans/%s", publicID))
 			res := PutJSON(a, route, t, payload)
 
 			res.Status(http.StatusOK)
@@ -173,7 +173,7 @@ func TestClanHandler(t *testing.T) {
 		g.It("Should not update clan if invalid payload", func() {
 			a := GetDefaultTestApp()
 
-			route := GetClanRoute("game-id", fmt.Sprintf("/clans/%s", "random-id"))
+			route := GetGameRoute("game-id", fmt.Sprintf("/clans/%s", "random-id"))
 			res := PutBody(a, route, t, "invalid")
 
 			res.Status(http.StatusBadRequest)
@@ -209,7 +209,7 @@ func TestClanHandler(t *testing.T) {
 				"ownerPublicID": ownerPublicID,
 				"metadata":      metadata,
 			}
-			route := GetClanRoute(gameID, fmt.Sprintf("/clans/%s", publicID))
+			route := GetGameRoute(gameID, fmt.Sprintf("/clans/%s", publicID))
 			res := PutJSON(a, route, t, payload)
 
 			res.Status(http.StatusInternalServerError)
@@ -245,7 +245,7 @@ func TestClanHandler(t *testing.T) {
 				"ownerPublicID": ownerPublicID,
 				"metadata":      metadata,
 			}
-			route := GetClanRoute(gameID, fmt.Sprintf("/clans/%s", publicID))
+			route := GetGameRoute(gameID, fmt.Sprintf("/clans/%s", publicID))
 			res := PutJSON(a, route, t, payload)
 
 			res.Status(http.StatusInternalServerError)
@@ -275,7 +275,7 @@ func TestClanHandler(t *testing.T) {
 			sort.Sort(models.ClanByName(expectedClans))
 
 			a := GetDefaultTestApp()
-			res := Get(a, GetClanRoute(player.GameID, "/clans"), t)
+			res := Get(a, GetGameRoute(player.GameID, "/clans"), t)
 
 			res.Status(http.StatusOK)
 			var result map[string]interface{}
@@ -293,7 +293,7 @@ func TestClanHandler(t *testing.T) {
 
 		g.It("Should return empty list if invalid game query", func() {
 			a := GetDefaultTestApp()
-			res := Get(a, GetClanRoute("invalid-query-game-id", "/clans"), t)
+			res := Get(a, GetGameRoute("invalid-query-game-id", "/clans"), t)
 
 			res.Status(http.StatusOK)
 			var result map[string]interface{}
@@ -318,7 +318,7 @@ func TestClanHandler(t *testing.T) {
 			g.Assert(err == nil).IsTrue()
 
 			a := GetDefaultTestApp()
-			res := Get(a, GetClanRoute(player.GameID, fmt.Sprintf("/clans/%s", clan.PublicID)), t)
+			res := Get(a, GetGameRoute(player.GameID, fmt.Sprintf("/clans/%s", clan.PublicID)), t)
 
 			res.Status(http.StatusOK)
 			var result map[string]interface{}

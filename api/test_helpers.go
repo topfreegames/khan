@@ -80,7 +80,7 @@ func sendRequest(app *App, method string, url string, t *testing.T) *httpexpect.
 	return e.Request(method, url)
 }
 
-//GetClanRoute returns a clan route for the given game id.
-func GetClanRoute(gameID string, route string) string {
+//GetGameRoute returns a clan route for the given game id.
+func GetGameRoute(gameID string, route string) string {
 	return fmt.Sprintf("/games/%s/%s", gameID, route)
 }
