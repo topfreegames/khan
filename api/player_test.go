@@ -39,7 +39,7 @@ func TestPlayerHandler(t *testing.T) {
 				"name":     playerName,
 				"metadata": metadata,
 			}
-			res := PostJSON(a, "/players", t, payload)
+			res := PostJSON(a, GetGameRoute(gameID, "/players"), t, payload)
 
 			res.Status(http.StatusOK)
 			var result map[string]interface{}
@@ -56,7 +56,8 @@ func TestPlayerHandler(t *testing.T) {
 
 		g.It("Should not create player if invalid payload", func() {
 			a := GetDefaultTestApp()
-			res := PostBody(a, "/players", t, "invalid")
+			route := GetGameRoute("game-id", "/players")
+			res := PostBody(a, route, t, "invalid")
 
 			res.Status(http.StatusBadRequest)
 			var result map[string]interface{}
@@ -80,7 +81,7 @@ func TestPlayerHandler(t *testing.T) {
 				"name":     playerName,
 				"metadata": metadata,
 			}
-			res := PostJSON(a, "/players", t, payload)
+			res := PostJSON(a, GetGameRoute(gameID, "/players"), t, payload)
 
 			res.Status(http.StatusInternalServerError)
 			var result map[string]interface{}
@@ -105,7 +106,8 @@ func TestPlayerHandler(t *testing.T) {
 				"metadata": metadata,
 			}
 
-			res := PutJSON(a, "/players", t, payload)
+			route := GetGameRoute(player.GameID, fmt.Sprintf("/players/%s", player.PublicID))
+			res := PutJSON(a, route, t, payload)
 			res.Status(http.StatusOK)
 			var result map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
@@ -121,7 +123,8 @@ func TestPlayerHandler(t *testing.T) {
 
 		g.It("Should not update player if invalid payload", func() {
 			a := GetDefaultTestApp()
-			res := PutBody(a, "/players", t, "invalid")
+			route := GetGameRoute("game-id", "/players/fake")
+			res := PutBody(a, route, t, "invalid")
 
 			res.Status(http.StatusBadRequest)
 			var result map[string]interface{}
@@ -147,8 +150,8 @@ func TestPlayerHandler(t *testing.T) {
 				"name":     player.Name,
 				"metadata": metadata,
 			}
-			fmt.Println(payload)
-			res := PutJSON(a, "/players", t, payload)
+			route := GetGameRoute("game-id", fmt.Sprintf("/players/%s", player.PublicID))
+			res := PutJSON(a, route, t, payload)
 
 			res.Status(http.StatusInternalServerError)
 			var result map[string]interface{}
