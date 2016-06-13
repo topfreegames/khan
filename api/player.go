@@ -28,7 +28,7 @@ func CreatePlayerHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
-		db := models.GetCtxDB(c)
+		db := GetCtxDB(c)
 
 		player, err := models.CreatePlayer(
 			db,
@@ -58,7 +58,7 @@ func UpdatePlayerHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
-		db := models.GetCtxDB(c)
+		db := GetCtxDB(c)
 
 		_, err := models.UpdatePlayer(
 			db,

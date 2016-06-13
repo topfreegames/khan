@@ -11,13 +11,12 @@ import (
 	"fmt"
 
 	"github.com/kataras/iris"
-	"github.com/topfreegames/khan/models"
 )
 
 //HealthCheckHandler is the handler responsible for validating that the app is still up
 func HealthCheckHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
-		db := models.GetCtxDB(c)
+		db := GetCtxDB(c)
 		workingString := app.Config.GetString("healthcheck.workingText")
 		num, err := db.SelectInt("select 1")
 		if num != 1 || err != nil {

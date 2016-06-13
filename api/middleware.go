@@ -9,6 +9,7 @@ package api
 
 import (
 	"github.com/kataras/iris"
+	"github.com/topfreegames/khan/models"
 	"gopkg.in/gorp.v1"
 )
 
@@ -30,7 +31,13 @@ func (m *TransactionMiddleware) Serve(c *iris.Context) {
 			tx.Rollback()
 			return
 		}
+
 		tx.Commit()
 		c.Set("db", m.App.Db)
 	}
+}
+
+//GetCtxDB returns the proper database connection depending on the request context
+func GetCtxDB(ctx *iris.Context) models.DB {
+	return ctx.Get("db").(models.DB)
 }
