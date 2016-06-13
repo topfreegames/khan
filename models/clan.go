@@ -58,7 +58,7 @@ func GetClanByID(db DB, id int) (*Clan, error) {
 //GetClanByPublicID returns a clan by its public id
 func GetClanByPublicID(db DB, gameID string, publicID string) (*Clan, error) {
 	var clan Clan
-	err := db.SelectOne(&clan, "select * from clans where game_id=$1 and public_id=$2", gameID, publicID)
+	err := db.SelectOne(&clan, "SELECT * FROM clans WHERE game_id=$1 AND public_id=$2", gameID, publicID)
 	if err != nil || &clan == nil {
 		return nil, &ModelNotFoundError{"Clan", publicID}
 	}

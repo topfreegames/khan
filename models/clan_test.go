@@ -110,7 +110,7 @@ func TestClanModel(t *testing.T) {
 			})
 
 			g.It("Should not get non-existing Clan", func() {
-				_, err := GetClanByID(testDb, -1)
+				_, err = GetClanByID(testDb, -1)
 				g.Assert(err != nil).IsTrue()
 				g.Assert(err.Error()).Equal("Clan was not found with id: -1")
 			})
@@ -134,7 +134,7 @@ func TestClanModel(t *testing.T) {
 			})
 
 			g.It("Should not get a non-existing Clan by Game and PublicID", func() {
-				_, err := GetClanByPublicID(testDb, "invalid-game", "invalid-clan")
+				_, err = GetClanByPublicID(testDb, "invalid-game", "invalid-clan")
 				g.Assert(err != nil).IsTrue()
 				g.Assert(err.Error()).Equal("Clan was not found with id: invalid-clan")
 			})
@@ -162,7 +162,7 @@ func TestClanModel(t *testing.T) {
 			})
 
 			g.It("Should not get a non-existing Clan by Game, PublicID and OwnerPublicID", func() {
-				_, err := GetClanByPublicIDAndOwnerPublicID(testDb, "invalid-game", "invalid-clan", "invalid-owner-public-id")
+				_, err = GetClanByPublicIDAndOwnerPublicID(testDb, "invalid-game", "invalid-clan", "invalid-owner-public-id")
 				g.Assert(err != nil).IsTrue()
 				g.Assert(err.Error()).Equal("Clan was not found with id: invalid-clan")
 			})
@@ -229,7 +229,7 @@ func TestClanModel(t *testing.T) {
 
 			g.It("Should not create a new Clan with CreateClan if unexistent player", func() {
 				playerPublicID := randomdata.FullName(randomdata.RandomGender)
-				_, err := CreateClan(
+				_, err = CreateClan(
 					testDb,
 					"create-1",
 					randomdata.FullName(randomdata.RandomGender),
