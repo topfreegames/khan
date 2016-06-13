@@ -14,7 +14,6 @@ import (
 
 //clanPayload maps the payload for the Create Clan route
 type clanPayload struct {
-	GameID        string
 	PublicID      string
 	Name          string
 	OwnerPublicID string
@@ -24,6 +23,8 @@ type clanPayload struct {
 //CreateClanHandler is the handler responsible for creating new clans
 func CreateClanHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
+		gameID := c.Get("gameID").(string)
+
 		var payload clanPayload
 		if err := c.ReadJSON(&payload); err != nil {
 			FailWith(400, err.Error(), c)
@@ -34,7 +35,7 @@ func CreateClanHandler(app *App) func(c *iris.Context) {
 
 		clan, err := models.CreateClan(
 			db,
-			payload.GameID,
+			gameID,
 			payload.PublicID,
 			payload.Name,
 			payload.OwnerPublicID,
@@ -55,6 +56,9 @@ func CreateClanHandler(app *App) func(c *iris.Context) {
 //UpdateClanHandler is the handler responsible for updating existing clans
 func UpdateClanHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
+		gameID := c.Get("gameID").(string)
+		publicID := c.Param("publicID")
+
 		var payload clanPayload
 		if err := c.ReadJSON(&payload); err != nil {
 			FailWith(400, err.Error(), c)
@@ -65,8 +69,8 @@ func UpdateClanHandler(app *App) func(c *iris.Context) {
 
 		_, err := models.UpdateClan(
 			db,
-			payload.GameID,
-			payload.PublicID,
+			gameID,
+			publicID,
 			payload.Name,
 			payload.OwnerPublicID,
 			payload.Metadata,
@@ -116,5 +120,5 @@ func SetClanHandlersGroup(app *App) {
 
 	clanHandlersGroup.Get("", ListClansHandler(app))
 	clanHandlersGroup.Post("", CreateClanHandler(app))
-	clanHandlersGroup.Put("", UpdateClanHandler(app))
+	clanHandlersGroup.Put("/:publicID", UpdateClanHandler(app))
 }
