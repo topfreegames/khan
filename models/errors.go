@@ -27,3 +27,13 @@ type EmptyGameIDError struct {
 func (e *EmptyGameIDError) Error() string {
 	return fmt.Sprintf("Game ID is required to retrieve %s!", e.Type)
 }
+
+//PlayerCannotCreateMembershipError identifies that a given player is not allowed to create a membership
+type PlayerCannotCreateMembershipError struct {
+	PlayerID interface{}
+	ClanID   interface{}
+}
+
+func (e *PlayerCannotCreateMembershipError) Error() string {
+	return fmt.Sprintf("Player %v cannot create membership for clan %v", e.PlayerID, e.ClanID)
+}
