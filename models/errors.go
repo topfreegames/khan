@@ -18,3 +18,12 @@ type ModelNotFoundError struct {
 func (e *ModelNotFoundError) Error() string {
 	return fmt.Sprintf("%s was not found with id: %v", e.Type, e.ID)
 }
+
+//EmptyGameIDError identifies that a request was made for a model without the proper game id
+type EmptyGameIDError struct {
+	Type string
+}
+
+func (e *EmptyGameIDError) Error() string {
+	return fmt.Sprintf("Game ID is required to retrieve %s!", e.Type)
+}

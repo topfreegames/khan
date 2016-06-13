@@ -11,6 +11,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"sort"
 	"testing"
 
 	"github.com/Pallinder/go-randomdata"
@@ -47,7 +48,7 @@ func TestClanHandler(t *testing.T) {
 				"ownerPublicID": ownerPublicID,
 				"metadata":      metadata,
 			}
-			res := PostJSON(a, "/clans", t, payload)
+			res := PostJSON(a, GetClanRoute(gameID, "/clans"), t, payload)
 
 			res.Status(http.StatusOK)
 			var result map[string]interface{}
@@ -65,7 +66,8 @@ func TestClanHandler(t *testing.T) {
 
 		g.It("Should not create clan if invalid payload", func() {
 			a := GetDefaultTestApp()
-			res := PostBody(a, "/clans", t, "invalid")
+			gameID := "gameID"
+			res := PostBody(a, GetClanRoute(gameID, "/clans"), t, "invalid")
 
 			res.Status(http.StatusBadRequest)
 			var result map[string]interface{}
@@ -91,7 +93,7 @@ func TestClanHandler(t *testing.T) {
 				"ownerPublicID": ownerPublicID,
 				"metadata":      metadata,
 			}
-			res := PostJSON(a, "/clans", t, payload)
+			res := PostJSON(a, GetClanRoute(gameID, "/clans"), t, payload)
 
 			res.Status(http.StatusInternalServerError)
 			var result map[string]interface{}
@@ -119,7 +121,7 @@ func TestClanHandler(t *testing.T) {
 				"ownerPublicID": ownerPublicID,
 				"metadata":      metadata,
 			}
-			res := PostJSON(a, "/clans", t, payload)
+			res := PostJSON(a, GetClanRoute(gameID, "/clans"), t, payload)
 
 			res.Status(http.StatusInternalServerError)
 			var result map[string]interface{}
@@ -156,7 +158,7 @@ func TestClanHandler(t *testing.T) {
 				"ownerPublicID": ownerPublicID,
 				"metadata":      metadata,
 			}
-			res := PutJSON(a, "/clans", t, payload)
+			res := PutJSON(a, GetClanRoute(gameID, "/clans"), t, payload)
 
 			res.Status(http.StatusOK)
 			var result map[string]interface{}
@@ -174,7 +176,7 @@ func TestClanHandler(t *testing.T) {
 
 		g.It("Should not update clan if invalid payload", func() {
 			a := GetDefaultTestApp()
-			res := PutBody(a, "/clans", t, "invalid")
+			res := PutBody(a, GetClanRoute("game-id", "/clans"), t, "invalid")
 
 			res.Status(http.StatusBadRequest)
 			var result map[string]interface{}
@@ -211,7 +213,7 @@ func TestClanHandler(t *testing.T) {
 				"ownerPublicID": ownerPublicID,
 				"metadata":      metadata,
 			}
-			res := PutJSON(a, "/clans", t, payload)
+			res := PutJSON(a, GetClanRoute(gameID, "/clans"), t, payload)
 
 			res.Status(http.StatusInternalServerError)
 			var result map[string]interface{}
@@ -246,13 +248,58 @@ func TestClanHandler(t *testing.T) {
 				"ownerPublicID": ownerPublicID,
 				"metadata":      metadata,
 			}
-			res := PutJSON(a, "/clans", t, payload)
+			res := PutJSON(a, GetClanRoute(gameID, "/clans"), t, payload)
 
 			res.Status(http.StatusInternalServerError)
 			var result map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
 			g.Assert(result["reason"]).Equal("pq: invalid input syntax for type json")
+		})
+	})
+
+	g.Describe("List All Clans Handler", func() {
+		g.It("Should get all clans", func() {
+			player := models.PlayerFactory.MustCreate().(*models.Player)
+			err = testDb.Insert(player)
+			g.Assert(err == nil).IsTrue()
+
+			expectedClans := []*models.Clan{}
+			for i := 0; i < 10; i++ {
+				clan := models.ClanFactory.MustCreateWithOption(map[string]interface{}{
+					"GameID":  player.GameID,
+					"OwnerID": player.ID,
+				}).(*models.Clan)
+				err = testDb.Insert(clan)
+				g.Assert(err == nil).IsTrue()
+				expectedClans = append(expectedClans, clan)
+			}
+			sort.Sort(models.ClanByName(expectedClans))
+
+			a := GetDefaultTestApp()
+			res := Get(a, GetClanRoute(player.GameID, "/clans"), t)
+
+			res.Status(http.StatusOK)
+			var result map[string]interface{}
+			json.Unmarshal([]byte(res.Body().Raw()), &result)
+
+			g.Assert(result["success"]).IsTrue()
+			for index, clanObj := range result["clans"].([]interface{}) {
+				clan := clanObj.(map[string]interface{})
+				g.Assert(clan["Name"]).Equal(expectedClans[index].Name)
+			}
+		})
+
+		g.It("Should return empty list if invalid game query", func() {
+			a := GetDefaultTestApp()
+			res := Get(a, GetClanRoute("invalid-query-game-id", "/clans"), t)
+
+			res.Status(http.StatusOK)
+			var result map[string]interface{}
+			json.Unmarshal([]byte(res.Body().Raw()), &result)
+
+			g.Assert(result["success"]).IsTrue()
+			g.Assert(len(result["clans"].([]interface{}))).Equal(0)
 		})
 	})
 }

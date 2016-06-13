@@ -13,6 +13,13 @@ import (
 	"gopkg.in/gorp.v1"
 )
 
+//ClanByName allows sorting clans by name
+type ClanByName []*Clan
+
+func (a ClanByName) Len() int           { return len(a) }
+func (a ClanByName) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a ClanByName) Less(i, j int) bool { return a[i].Name < a[j].Name }
+
 //Clan identifies uniquely one clan in a given game
 type Clan struct {
 	ID        int    `db:"id"`
@@ -108,4 +115,19 @@ func UpdateClan(db DB, gameID string, publicID string, name string, ownerPublicI
 	}
 
 	return clan, nil
+}
+
+//GetAllClans returns a list of all clans in a given game
+func GetAllClans(db DB, gameID string) ([]Clan, error) {
+	if gameID == "" {
+		return nil, &EmptyGameIDError{"Clan"}
+	}
+
+	var clans []Clan
+	_, err := db.Select(&clans, "select * from clans where game_id=$1 order by name", gameID)
+	if err != nil {
+		return nil, err
+	}
+
+	return clans, nil
 }

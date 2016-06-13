@@ -30,7 +30,7 @@ func CreateClanHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
-		db := models.GetCtxDB(c)
+		db := GetCtxDB(c)
 
 		clan, err := models.CreateClan(
 			db,
@@ -61,7 +61,7 @@ func UpdateClanHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
-		db := models.GetCtxDB(c)
+		db := GetCtxDB(c)
 
 		_, err := models.UpdateClan(
 			db,
@@ -81,12 +81,40 @@ func UpdateClanHandler(app *App) func(c *iris.Context) {
 	}
 }
 
+//ListClansHandler is the handler responsible for returning a list of all clans
+func ListClansHandler(app *App) func(c *iris.Context) {
+	return func(c *iris.Context) {
+		db := GetCtxDB(c)
+		gameID := c.Get("gameID").(string)
+
+		clans, err := models.GetAllClans(
+			db,
+			gameID,
+		)
+
+		if err != nil {
+			FailWith(500, err.Error(), c)
+			return
+		}
+
+		SucceedWith(map[string]interface{}{
+			"clans": clans,
+		}, c)
+	}
+}
+
 //SetClanHandlersGroup configures the routes for all clan related routes
 func SetClanHandlersGroup(app *App) {
-	clanHandlersGroup := app.App.Party("/clans", func(c *iris.Context) {
+	gameParty := app.App.Party("/games/:gameID", func(c *iris.Context) {
+		gameID := c.Param("gameID")
+		c.Set("gameID", gameID)
+		c.Next()
+	})
+	clanHandlersGroup := gameParty.Party("/clans", func(c *iris.Context) {
 		c.Next()
 	})
 
+	clanHandlersGroup.Get("", ListClansHandler(app))
 	clanHandlersGroup.Post("", CreateClanHandler(app))
 	clanHandlersGroup.Put("", UpdateClanHandler(app))
 }

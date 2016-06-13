@@ -10,9 +10,7 @@ package models
 import (
 	"database/sql"
 	"fmt"
-	"log"
 
-	"github.com/kataras/iris"
 	_ "github.com/lib/pq" //This is required to use postgres with database/sql
 	"gopkg.in/gorp.v1"
 )
@@ -21,10 +19,12 @@ import (
 //This is required for automatic transactions
 type DB interface {
 	Get(interface{}, ...interface{}) (interface{}, error)
+	Select(interface{}, string, ...interface{}) ([]interface{}, error)
 	SelectOne(interface{}, string, ...interface{}) error
 	SelectInt(string, ...interface{}) (int64, error)
 	Insert(...interface{}) error
 	Update(...interface{}) (int64, error)
+	Delete(...interface{}) (int64, error)
 }
 
 var _db DB
@@ -32,6 +32,12 @@ var _db DB
 //GetTestDB returns a connection to the test database
 func GetTestDB() (DB, error) {
 	return GetDB("localhost", "khan_test", 5432, "disable", "khan_test", "")
+}
+
+//GetFaultyTestDB returns an ill-configured test database
+func GetFaultyTestDB() DB {
+	faultyDb, _ := InitDb("localhost", "khan_tet", 5432, "disable", "khan_test", "")
+	return faultyDb
 }
 
 //GetDB returns a DbMap connection to the database specified in the arguments
@@ -46,11 +52,6 @@ func GetDB(host string, user string, port int, sslmode string, dbName string, pa
 	}
 
 	return _db, nil
-}
-
-//GetCtxDB returns the proper database connection depending on the request context
-func GetCtxDB(ctx *iris.Context) DB {
-	return ctx.Get("db").(DB)
 }
 
 //InitDb initializes a connection to the database
@@ -74,10 +75,4 @@ func InitDb(host string, user string, port int, sslmode string, dbName string, p
 	dbmap.AddTableWithName(Membership{}, "memberships").SetKeys(true, "ID")
 
 	return dbmap, nil
-}
-
-func checkErr(err error, msg string) {
-	if err != nil {
-		log.Fatalln(msg, err)
-	}
 }
