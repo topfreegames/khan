@@ -23,18 +23,13 @@ type inviteForMembershipPayload struct {
 	RequestorPublicID string
 }
 
-type approveOrDenyMembershipApplicationPayload struct {
+type basePayloadWithRequestorAndPlayerPublicIDs struct {
 	PlayerPublicID    string
 	RequestorPublicID string
 }
 
 type approveOrDenyMembershipInvitationPayload struct {
 	PlayerPublicID string
-}
-
-type promoteOrDemoteMemberPayload struct {
-	PlayerPublicID    string
-	RequestorPublicID string
 }
 
 //ApplyForMembershipHandler is the handler responsible for applying for new memberships
@@ -109,7 +104,7 @@ func ApproveOrDenyMembershipApplicationHandler(app *App) func(c *iris.Context) {
 		gameID := c.Get("gameID").(string)
 		clanPublicID := c.Get("clanPublicID").(string)
 
-		var payload approveOrDenyMembershipApplicationPayload
+		var payload basePayloadWithRequestorAndPlayerPublicIDs
 		if err := c.ReadJSON(&payload); err != nil {
 			FailWith(400, err.Error(), c)
 			return
@@ -167,13 +162,44 @@ func ApproveOrDenyMembershipInvitationHandler(app *App) func(c *iris.Context) {
 	}
 }
 
-//PromoteOrDemoteMemberHandler is the handler responsible for promoting or demoting a member
-func PromoteOrDemoteMemberHandler(app *App, action string) func(c *iris.Context) {
+//DeleteMembershipHandler is the handler responsible for deleting a member
+func DeleteMembershipHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
 		gameID := c.Get("gameID").(string)
 		clanPublicID := c.Get("clanPublicID").(string)
 
-		var payload promoteOrDemoteMemberPayload
+		var payload basePayloadWithRequestorAndPlayerPublicIDs
+		if err := c.ReadJSON(&payload); err != nil {
+			FailWith(400, err.Error(), c)
+			return
+		}
+
+		db := GetCtxDB(c)
+
+		err := models.DeleteMembership(
+			db,
+			gameID,
+			payload.PlayerPublicID,
+			clanPublicID,
+			payload.RequestorPublicID,
+		)
+
+		if err != nil {
+			FailWith(500, err.Error(), c)
+			return
+		}
+
+		SucceedWith(map[string]interface{}{}, c)
+	}
+}
+
+//PromoteOrDemoteMembershipHandler is the handler responsible for promoting or demoting a member
+func PromoteOrDemoteMembershipHandler(app *App, action string) func(c *iris.Context) {
+	return func(c *iris.Context) {
+		gameID := c.Get("gameID").(string)
+		clanPublicID := c.Get("clanPublicID").(string)
+
+		var payload basePayloadWithRequestorAndPlayerPublicIDs
 		if err := c.ReadJSON(&payload); err != nil {
 			FailWith(400, err.Error(), c)
 			return
@@ -221,6 +247,7 @@ func SetMembershipHandlersGroup(app *App) {
 	membershipHandlersGroup.Post("/application/:action", ApproveOrDenyMembershipApplicationHandler(app))
 	membershipHandlersGroup.Post("/invitation", InviteForMembershipHandler(app))
 	membershipHandlersGroup.Post("/invitation/:action", ApproveOrDenyMembershipInvitationHandler(app))
-	membershipHandlersGroup.Post("/promote", PromoteOrDemoteMemberHandler(app, "promote"))
-	membershipHandlersGroup.Post("/demote", PromoteOrDemoteMemberHandler(app, "demote"))
+	membershipHandlersGroup.Post("/delete", DeleteMembershipHandler(app))
+	membershipHandlersGroup.Post("/promote", PromoteOrDemoteMembershipHandler(app, "promote"))
+	membershipHandlersGroup.Post("/demote", PromoteOrDemoteMembershipHandler(app, "demote"))
 }
