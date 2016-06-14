@@ -136,12 +136,12 @@ func GetAllClans(db DB, gameID string) ([]Clan, error) {
 func GetClanDetails(db DB, gameID, publicID string) (map[string]interface{}, error) {
 	query := `
 	SELECT
-			c.game_id GameID,
-			c.public_id ClanPublicID, c.name ClanName, c.metadata ClanMetadata,
-			m.membership_level MembershipLevel, m.approved MembershipApproved, m.denied MembershipDenied,
-			m.created_at MembershipCreatedAt, m.updated_at MembershipUpdatedAt,
-			p.public_id PlayerPublicID, p.name PlayerName, p.metadata PlayerMetadata,
-			r.public_id RequestorPublicID, r.name RequestorName
+		c.game_id GameID,
+		c.public_id ClanPublicID, c.name ClanName, c.metadata ClanMetadata,
+		m.membership_level MembershipLevel, m.approved MembershipApproved, m.denied MembershipDenied,
+		m.created_at MembershipCreatedAt, m.updated_at MembershipUpdatedAt,
+		p.public_id PlayerPublicID, p.name PlayerName, p.metadata PlayerMetadata,
+		r.public_id RequestorPublicID, r.name RequestorName
 	FROM clans c
 		LEFT OUTER JOIN memberships m ON m.clan_id=c.id
 		LEFT OUTER JOIN players r ON m.requestor_id=r.id
