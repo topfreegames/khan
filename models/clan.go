@@ -164,7 +164,7 @@ func GetClanDetails(db DB, gameID, publicID string) (map[string]interface{}, err
 	result["metadata"] = details[0].ClanMetadata
 
 	if details[0].PlayerPublicID.Valid {
-		// We found players! return array of members
+		// First row player public id is not null, meaning we found players!
 
 		result["members"] = make([]map[string]interface{}, len(details))
 		memberList := result["members"].([]map[string]interface{})
