@@ -50,10 +50,10 @@ func GetMembershipByID(db DB, id int) (*Membership, error) {
 	return obj.(*Membership), nil
 }
 
-//GetMembershipByPlayerPublicID returns a membership for the player with the given publicID
-func GetMembershipByPlayerPublicID(db DB, gameID string, playerPublicID string) (*Membership, error) {
+//GetMembershipByClanAndPlayerPublicID returns a membership for the clan and the player with the given publicIDs
+func GetMembershipByClanAndPlayerPublicID(db DB, gameID string, clanPublicID string, playerPublicID string) (*Membership, error) {
 	var membership Membership
-	err := db.SelectOne(&membership, "SELECT memberships.* FROM memberships, players WHERE memberships.game_id=$1 AND memberships.player_id=players.id AND players.public_id=$2", gameID, playerPublicID)
+	err := db.SelectOne(&membership, "SELECT memberships.* FROM memberships, clans, players WHERE memberships.game_id=$1 AND memberships.clan_id=clans.id AND memberships.player_id=players.id AND clans.public_id=$2 AND players.public_id=$3", gameID, clanPublicID, playerPublicID)
 	if err != nil || &membership == nil {
 		return nil, &ModelNotFoundError{"Membership", playerPublicID}
 	}
@@ -77,7 +77,7 @@ func CreateMembership(db DB, gameID string, level int, playerPublicID string, cl
 		return createMembershipHelper(db, gameID, level, player.ID, clan.ID, player.ID)
 	}
 
-	reqMembership, _ := GetMembershipByPlayerPublicID(db, gameID, requestorPublicID)
+	reqMembership, _ := GetMembershipByClanAndPlayerPublicID(db, gameID, clanPublicID, requestorPublicID)
 	if reqMembership == nil {
 		clan, clanErr := GetClanByPublicIDAndOwnerPublicID(db, gameID, clanPublicID, requestorPublicID)
 		if clanErr != nil {
