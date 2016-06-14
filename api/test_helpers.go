@@ -87,6 +87,5 @@ func GetGameRoute(gameID, route string) string {
 
 //CreateMembershipRoute returns a create membership route for the given game and clan id.
 func CreateMembershipRoute(gameID, clanPublicID, route string) string {
-	fmt.Println(fmt.Sprintf("/games/%s/clans/%s/memberships/%s", gameID, clanPublicID, route))
 	return fmt.Sprintf("/games/%s/clans/%s/memberships/%s", gameID, clanPublicID, route)
 }
