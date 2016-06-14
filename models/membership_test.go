@@ -110,7 +110,7 @@ func TestMembershipModel(t *testing.T) {
 			g.Assert(err.Error()).Equal("Membership was not found with id: -1")
 		})
 
-		g.It("Should get an approved Membership by the player public ID", func() {
+		g.It("Should get an existing Membership by the player public ID", func() {
 			player := PlayerFactory.MustCreate().(*Player)
 			err := testDb.Insert(player)
 			g.Assert(err == nil).IsTrue()
@@ -127,43 +127,14 @@ func TestMembershipModel(t *testing.T) {
 				"PlayerID":    player.ID,
 				"ClanID":      clan.ID,
 				"RequestorID": player.ID,
-				"Approved":    true,
 			}).(*Membership)
 			err = testDb.Insert(membership)
 			g.Assert(err == nil).IsTrue()
 
-			dbMembership, err := GetApprovedMembershipByPlayerPublicID(testDb, player.GameID, player.PublicID)
+			dbMembership, err := GetMembershipByPlayerPublicID(testDb, player.GameID, player.PublicID)
 			g.Assert(err == nil).IsTrue()
 			g.Assert(dbMembership.ID).Equal(membership.ID)
 			g.Assert(dbMembership.PlayerID).Equal(player.ID)
-			g.Assert(dbMembership.Approved).Equal(true)
-		})
-
-		g.It("Should not get an unapproved Membership by the player public ID", func() {
-			player := PlayerFactory.MustCreate().(*Player)
-			err := testDb.Insert(player)
-			g.Assert(err == nil).IsTrue()
-
-			clan := ClanFactory.MustCreateWithOption(map[string]interface{}{
-				"GameID":  player.GameID,
-				"OwnerID": player.ID,
-			}).(*Clan)
-			err = testDb.Insert(clan)
-			g.Assert(err == nil).IsTrue()
-
-			membership := MembershipFactory.MustCreateWithOption(map[string]interface{}{
-				"GameID":      player.GameID,
-				"PlayerID":    player.ID,
-				"ClanID":      clan.ID,
-				"RequestorID": player.ID,
-				"Approved":    false,
-			}).(*Membership)
-			err = testDb.Insert(membership)
-			g.Assert(err == nil).IsTrue()
-
-			dbMembership, err := GetApprovedMembershipByPlayerPublicID(testDb, player.GameID, player.PublicID)
-			g.Assert(err != nil).IsTrue()
-			g.Assert(dbMembership == nil).IsTrue()
 		})
 
 		g.It("Should not get non-existing Membership by the player public ID", func() {
@@ -178,7 +149,7 @@ func TestMembershipModel(t *testing.T) {
 			err = testDb.Insert(clan)
 			g.Assert(err == nil).IsTrue()
 
-			dbMembership, err := GetApprovedMembershipByPlayerPublicID(testDb, player.GameID, player.PublicID)
+			dbMembership, err := GetMembershipByPlayerPublicID(testDb, player.GameID, player.PublicID)
 			g.Assert(err != nil).IsTrue()
 			g.Assert(dbMembership == nil).IsTrue()
 		})
