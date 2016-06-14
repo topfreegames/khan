@@ -51,7 +51,7 @@ func ApplyForMembershipHandler(app *App) func(c *iris.Context) {
 
 		db := GetCtxDB(c)
 
-		membership, err := models.CreateMembership(
+		_, err := models.CreateMembership(
 			db,
 			gameID,
 			payload.Level,
@@ -65,9 +65,7 @@ func ApplyForMembershipHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
-		SucceedWith(map[string]interface{}{
-			"id": membership.ID,
-		}, c)
+		SucceedWith(map[string]interface{}{}, c)
 	}
 }
 
@@ -85,7 +83,7 @@ func InviteForMembershipHandler(app *App) func(c *iris.Context) {
 
 		db := GetCtxDB(c)
 
-		membership, err := models.CreateMembership(
+		_, err := models.CreateMembership(
 			db,
 			gameID,
 			payload.Level,
@@ -99,9 +97,8 @@ func InviteForMembershipHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
-		SucceedWith(map[string]interface{}{
-			"id": membership.ID,
-		}, c)
+		SucceedWith(map[string]interface{}{}, c)
+
 	}
 }
 
@@ -120,7 +117,7 @@ func ApproveOrDenyMembershipApplicationHandler(app *App) func(c *iris.Context) {
 
 		db := GetCtxDB(c)
 
-		membership, err := models.ApproveOrDenyMembershipApplication(
+		_, err := models.ApproveOrDenyMembershipApplication(
 			db,
 			gameID,
 			payload.PlayerPublicID,
@@ -134,9 +131,7 @@ func ApproveOrDenyMembershipApplicationHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
-		SucceedWith(map[string]interface{}{
-			"id": membership.ID,
-		}, c)
+		SucceedWith(map[string]interface{}{}, c)
 	}
 }
 
@@ -155,7 +150,7 @@ func ApproveOrDenyMembershipInvitationHandler(app *App) func(c *iris.Context) {
 
 		db := GetCtxDB(c)
 
-		membership, err := models.ApproveOrDenyMembershipInvitation(
+		_, err := models.ApproveOrDenyMembershipInvitation(
 			db,
 			gameID,
 			payload.PlayerPublicID,
@@ -168,9 +163,7 @@ func ApproveOrDenyMembershipInvitationHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
-		SucceedWith(map[string]interface{}{
-			"id": membership.ID,
-		}, c)
+		SucceedWith(map[string]interface{}{}, c)
 	}
 }
 
@@ -203,7 +196,7 @@ func PromoteOrDemoteMemberHandler(app *App, action string) func(c *iris.Context)
 		}
 
 		SucceedWith(map[string]interface{}{
-			"id": membership.ID,
+			"level": membership.Level,
 		}, c)
 	}
 }
