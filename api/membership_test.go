@@ -55,7 +55,7 @@ func TestMembershipHandler(t *testing.T) {
 				"level":          level,
 				"playerPublicID": player.PublicID,
 			}
-			res := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "apply"), t, payload)
+			res := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "application"), t, payload)
 
 			res.Status(http.StatusOK)
 			var result map[string]interface{}
@@ -78,7 +78,7 @@ func TestMembershipHandler(t *testing.T) {
 			gameID := "gameID"
 			clanPublicID := randomdata.FullName(randomdata.RandomGender)
 
-			res := PostBody(a, CreateMembershipRoute(gameID, clanPublicID, "apply"), t, "invalid")
+			res := PostBody(a, CreateMembershipRoute(gameID, clanPublicID, "application"), t, "invalid")
 
 			res.Status(http.StatusBadRequest)
 			var result map[string]interface{}
@@ -113,7 +113,7 @@ func TestMembershipHandler(t *testing.T) {
 				"playerPublicID": playerPublicID,
 			}
 
-			res := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "apply"), t, payload)
+			res := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "application"), t, payload)
 
 			res.Status(http.StatusInternalServerError)
 			var result map[string]interface{}
@@ -149,7 +149,7 @@ func TestMembershipHandler(t *testing.T) {
 				"playerPublicID": player.PublicID,
 			}
 
-			res := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "apply"), t, payload)
+			res := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "application"), t, payload)
 
 			res.Status(http.StatusBadRequest)
 			var result map[string]interface{}
@@ -188,7 +188,7 @@ func TestMembershipHandler(t *testing.T) {
 				"playerPublicID":    player.PublicID,
 				"requestorPublicID": owner.PublicID,
 			}
-			res := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "invite"), t, payload)
+			res := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "invitation"), t, payload)
 
 			res.Status(http.StatusOK)
 			var result map[string]interface{}
@@ -252,7 +252,7 @@ func TestMembershipHandler(t *testing.T) {
 				"playerPublicID":    player.PublicID,
 				"requestorPublicID": requestor.PublicID,
 			}
-			res := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "invite"), t, payload)
+			res := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "invitation"), t, payload)
 
 			res.Status(http.StatusOK)
 			var result map[string]interface{}
@@ -276,7 +276,7 @@ func TestMembershipHandler(t *testing.T) {
 			gameID := "gameID"
 			clanPublicID := randomdata.FullName(randomdata.RandomGender)
 
-			res := PostBody(a, CreateMembershipRoute(gameID, clanPublicID, "invite"), t, "invalid")
+			res := PostBody(a, CreateMembershipRoute(gameID, clanPublicID, "invitation"), t, "invalid")
 
 			res.Status(http.StatusBadRequest)
 			var result map[string]interface{}
@@ -312,7 +312,7 @@ func TestMembershipHandler(t *testing.T) {
 				"requestorPublicID": owner.PublicID,
 			}
 
-			res := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "invite"), t, payload)
+			res := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "invitation"), t, payload)
 
 			res.Status(http.StatusInternalServerError)
 			var result map[string]interface{}
@@ -349,7 +349,7 @@ func TestMembershipHandler(t *testing.T) {
 				"requestorPublicID": owner.PublicID,
 			}
 
-			res := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "invite"), t, payload)
+			res := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "invitation"), t, payload)
 
 			res.Status(http.StatusBadRequest)
 			var result map[string]interface{}
@@ -397,7 +397,7 @@ func TestMembershipHandler(t *testing.T) {
 			payload := map[string]interface{}{
 				"playerPublicID": player.PublicID,
 			}
-			res := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "invite/approve"), t, payload)
+			res := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "invitation/approve"), t, payload)
 
 			res.Status(http.StatusOK)
 			var result map[string]interface{}
@@ -453,7 +453,7 @@ func TestMembershipHandler(t *testing.T) {
 			payload := map[string]interface{}{
 				"playerPublicID": player.PublicID,
 			}
-			res := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "invite/deny"), t, payload)
+			res := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "invitation/deny"), t, payload)
 
 			res.Status(http.StatusOK)
 			var result map[string]interface{}
@@ -477,7 +477,7 @@ func TestMembershipHandler(t *testing.T) {
 			gameID := "gameID"
 			clanPublicID := randomdata.FullName(randomdata.RandomGender)
 
-			res := PostBody(a, CreateMembershipRoute(gameID, clanPublicID, "invite/approve"), t, "invalid")
+			res := PostBody(a, CreateMembershipRoute(gameID, clanPublicID, "invitation/approve"), t, "invalid")
 
 			res.Status(http.StatusBadRequest)
 			var result map[string]interface{}
@@ -510,7 +510,7 @@ func TestMembershipHandler(t *testing.T) {
 				"playerPublicID": playerPublicID,
 			}
 
-			res := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "invite/approve"), t, payload)
+			res := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "invitation/approve"), t, payload)
 
 			res.Status(http.StatusInternalServerError)
 			var result map[string]interface{}
@@ -559,7 +559,7 @@ func TestMembershipHandler(t *testing.T) {
 				"playerPublicID":    player.PublicID,
 				"requestorPublicID": owner.PublicID,
 			}
-			res := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "apply/approve"), t, payload)
+			res := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "application/approve"), t, payload)
 
 			res.Status(http.StatusOK)
 			var result map[string]interface{}
@@ -616,7 +616,7 @@ func TestMembershipHandler(t *testing.T) {
 				"playerPublicID":    player.PublicID,
 				"requestorPublicID": owner.PublicID,
 			}
-			res := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "apply/deny"), t, payload)
+			res := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "application/deny"), t, payload)
 
 			res.Status(http.StatusOK)
 			var result map[string]interface{}
@@ -640,7 +640,7 @@ func TestMembershipHandler(t *testing.T) {
 			gameID := "gameID"
 			clanPublicID := randomdata.FullName(randomdata.RandomGender)
 
-			res := PostBody(a, CreateMembershipRoute(gameID, clanPublicID, "apply/approve"), t, "invalid")
+			res := PostBody(a, CreateMembershipRoute(gameID, clanPublicID, "application/approve"), t, "invalid")
 
 			res.Status(http.StatusBadRequest)
 			var result map[string]interface{}
@@ -674,7 +674,7 @@ func TestMembershipHandler(t *testing.T) {
 				"requestorPublicID": owner.PublicID,
 			}
 
-			res := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "apply/approve"), t, payload)
+			res := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "application/approve"), t, payload)
 
 			res.Status(http.StatusInternalServerError)
 			var result map[string]interface{}
