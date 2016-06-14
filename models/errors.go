@@ -50,15 +50,15 @@ func (e *PlayerCannotApproveOrDenyMembershipError) Error() string {
 	return fmt.Sprintf("Player %v cannot %s membership for player %v and clan %v", e.RequestorID, e.Action, e.PlayerID, e.ClanID)
 }
 
-//PlayerCannotPromoteOrDemoteMemberError identifies that a given player is not allowed to promote/demote another member
-type PlayerCannotPromoteOrDemoteMemberError struct {
+//PlayerCannotPerformMembershipActionError identifies that a given player is not allowed to promote/demote another member
+type PlayerCannotPerformMembershipActionError struct {
 	Action      string
 	PlayerID    interface{}
 	ClanID      interface{}
 	RequestorID interface{}
 }
 
-func (e *PlayerCannotPromoteOrDemoteMemberError) Error() string {
+func (e *PlayerCannotPerformMembershipActionError) Error() string {
 	return fmt.Sprintf("Player %v cannot %s member %s in clan %v", e.RequestorID, e.Action, e.PlayerID, e.ClanID)
 }
 
