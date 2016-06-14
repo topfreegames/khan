@@ -105,6 +105,7 @@ func (app *App) configureApplication() {
 	a.Get("/healthcheck", HealthCheckHandler(app))
 	SetPlayerHandlersGroup(app)
 	SetClanHandlersGroup(app)
+	SetMembershipHandlersGroup(app)
 }
 
 func (app *App) finalizeApp() {

@@ -50,10 +50,10 @@ func GetMembershipByID(db DB, id int) (*Membership, error) {
 	return obj.(*Membership), nil
 }
 
-//GetApprovedMembershipByPlayerPublicID returns a membership for the player with the given publicID
-func GetApprovedMembershipByPlayerPublicID(db DB, gameID string, playerPublicID string) (*Membership, error) {
+//GetMembershipByPlayerPublicID returns a membership for the player with the given publicID
+func GetMembershipByPlayerPublicID(db DB, gameID string, playerPublicID string) (*Membership, error) {
 	var membership Membership
-	err := db.SelectOne(&membership, "SELECT memberships.* FROM memberships, players WHERE memberships.game_id=$1 AND memberships.approved=true AND memberships.player_id=players.id AND players.public_id=$2", gameID, playerPublicID)
+	err := db.SelectOne(&membership, "SELECT memberships.* FROM memberships, players WHERE memberships.game_id=$1 AND memberships.player_id=players.id AND players.public_id=$2", gameID, playerPublicID)
 	if err != nil || &membership == nil {
 		return nil, &ModelNotFoundError{"Membership", playerPublicID}
 	}
@@ -77,15 +77,15 @@ func CreateMembership(db DB, gameID string, level int, playerPublicID string, cl
 		return createMembershipHelper(db, gameID, level, player.ID, clan.ID, player.ID)
 	}
 
-	requestorMembership, _ := GetApprovedMembershipByPlayerPublicID(db, gameID, requestorPublicID)
-	if requestorMembership == nil {
+	reqMembership, _ := GetMembershipByPlayerPublicID(db, gameID, requestorPublicID)
+	if reqMembership == nil {
 		clan, clanErr := GetClanByPublicIDAndOwnerPublicID(db, gameID, clanPublicID, requestorPublicID)
 		if clanErr != nil {
 			return nil, &PlayerCannotCreateMembershipError{requestorPublicID, clanPublicID}
 		}
 		return createMembershipHelper(db, gameID, level, player.ID, clan.ID, clan.OwnerID)
-	} else if requestorMembership.Level >= minLevelToCreateMembership {
-		return createMembershipHelper(db, gameID, level, player.ID, requestorMembership.ClanID, requestorMembership.PlayerID)
+	} else if reqMembership.Level >= minLevelToCreateMembership && reqMembership.Approved == true {
+		return createMembershipHelper(db, gameID, level, player.ID, reqMembership.ClanID, reqMembership.PlayerID)
 	} else {
 		return nil, &PlayerCannotCreateMembershipError{requestorPublicID, clanPublicID}
 	}
