@@ -138,7 +138,7 @@ func CreateMembership(db DB, gameID string, level int, playerPublicID, clanPubli
 			return nil, &PlayerCannotCreateMembershipError{requestorPublicID, clanPublicID}
 		}
 		return createMembershipHelper(db, gameID, level, player.ID, clan.ID, clan.OwnerID)
-	} else if reqMembership.Level >= minLevelToCreateMembership && reqMembership.Approved == true {
+	} else if isValidMember(reqMembership) && reqMembership.Level >= minLevelToCreateMembership {
 		return createMembershipHelper(db, gameID, level, player.ID, reqMembership.ClanID, reqMembership.PlayerID)
 	} else {
 		return nil, &PlayerCannotCreateMembershipError{requestorPublicID, clanPublicID}
@@ -160,8 +160,7 @@ func PromoteOrDemoteMember(db DB, gameID, playerPublicID, clanPublicID, requesto
 	if err != nil {
 		return nil, err
 	}
-	// TODO: Add getValidMember method (i.e. approved && !denied)
-	if !membership.Approved || membership.Denied {
+	if !isValidMember(membership) {
 		return nil, &CannotPromoteOrDemoteInvalidMemberError{action}
 	}
 
@@ -172,10 +171,14 @@ func PromoteOrDemoteMember(db DB, gameID, playerPublicID, clanPublicID, requesto
 			return nil, &PlayerCannotPromoteOrDemoteMemberError{action, playerPublicID, clanPublicID, requestorPublicID}
 		}
 		return promoteOrDemoteMemberHelper(db, membership, action)
-	} else if reqMembership.Approved == true && reqMembership.Level > membership.Level+levelOffset {
+	} else if isValidMember(reqMembership) && reqMembership.Level > membership.Level+levelOffset {
 		return promoteOrDemoteMemberHelper(db, membership, action)
 	}
 	return nil, &PlayerCannotPromoteOrDemoteMemberError{action, playerPublicID, clanPublicID, requestorPublicID}
+}
+
+func isValidMember(membership *Membership) bool {
+	return membership.Approved && !membership.Denied
 }
 
 func approveOrDenyMembershipHelper(db DB, membership *Membership, action string) (*Membership, error) {
