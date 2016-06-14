@@ -38,18 +38,6 @@ func (e *PlayerCannotCreateMembershipError) Error() string {
 	return fmt.Sprintf("Player %v cannot create membership for clan %v", e.PlayerID, e.ClanID)
 }
 
-//PlayerCannotApproveOrDenyMembershipError identifies that a given player is not allowed to accept/refuse a membership
-type PlayerCannotApproveOrDenyMembershipError struct {
-	Action      string
-	PlayerID    interface{}
-	ClanID      interface{}
-	RequestorID interface{}
-}
-
-func (e *PlayerCannotApproveOrDenyMembershipError) Error() string {
-	return fmt.Sprintf("Player %v cannot %s membership for player %v and clan %v", e.RequestorID, e.Action, e.PlayerID, e.ClanID)
-}
-
 //PlayerCannotPerformMembershipActionError identifies that a given player is not allowed to promote/demote another member
 type PlayerCannotPerformMembershipActionError struct {
 	Action      string
@@ -59,7 +47,7 @@ type PlayerCannotPerformMembershipActionError struct {
 }
 
 func (e *PlayerCannotPerformMembershipActionError) Error() string {
-	return fmt.Sprintf("Player %v cannot %s member %s in clan %v", e.RequestorID, e.Action, e.PlayerID, e.ClanID)
+	return fmt.Sprintf("Player %v cannot %s membership for player %s and clan %v", e.RequestorID, e.Action, e.PlayerID, e.ClanID)
 }
 
 //CannotApproveOrDenyMembershipAlreadyProcessedError identifies that a membership that is already processed cannot be approved or denied

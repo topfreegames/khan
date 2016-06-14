@@ -12,7 +12,6 @@ import (
 	"fmt"
 	"net/http"
 	"testing"
-	"time"
 
 	"github.com/Pallinder/go-randomdata"
 	. "github.com/franela/goblin"
@@ -888,12 +887,9 @@ func TestMembershipHandler(t *testing.T) {
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsTrue()
 
-			dbMembership, err := models.GetMembershipByClanAndPlayerPublicID(a.Db, gameID, clanPublicID, player.PublicID)
-			g.Assert(err == nil).IsTrue()
-			g.Assert(dbMembership.DeletedAt > time.Now().UnixNano()-50000000).IsTrue()
-			g.Assert(dbMembership.DeletedBy).Equal(owner.ID)
-			g.Assert(dbMembership.Approved).Equal(false)
-			g.Assert(dbMembership.Denied).Equal(false)
+			_, err = models.GetMembershipByClanAndPlayerPublicID(a.Db, gameID, clanPublicID, player.PublicID)
+			g.Assert(err != nil).IsTrue()
+			g.Assert(err.Error()).Equal(fmt.Sprintf("Membership was not found with id: %s", player.PublicID))
 		})
 
 		g.It("Should not delete member if invalid payload", func() {
