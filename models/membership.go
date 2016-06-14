@@ -145,6 +145,39 @@ func CreateMembership(db DB, gameID string, level int, playerPublicID, clanPubli
 	}
 }
 
+//PromoteOrDemoteMember increments or decrements Membership.Level by one
+func PromoteOrDemoteMember(db DB, gameID, playerPublicID, clanPublicID, requestorPublicID, action string) (*Membership, error) {
+	levelOffset := 0
+	if action == "promote" {
+		levelOffset = 1
+	}
+
+	if playerPublicID == requestorPublicID {
+		return nil, &PlayerCannotPromoteOrDemoteMemberError{action, playerPublicID, clanPublicID, requestorPublicID}
+	}
+
+	membership, err := GetMembershipByClanAndPlayerPublicID(db, gameID, clanPublicID, playerPublicID)
+	if err != nil {
+		return nil, err
+	}
+	// TODO: Add getValidMember method (i.e. approved && !denied)
+	if !membership.Approved || membership.Denied {
+		return nil, &CannotPromoteOrDemoteInvalidMemberError{action}
+	}
+
+	reqMembership, _ := GetMembershipByClanAndPlayerPublicID(db, gameID, clanPublicID, requestorPublicID)
+	if reqMembership == nil {
+		_, clanErr := GetClanByPublicIDAndOwnerPublicID(db, gameID, clanPublicID, requestorPublicID)
+		if clanErr != nil {
+			return nil, &PlayerCannotPromoteOrDemoteMemberError{action, playerPublicID, clanPublicID, requestorPublicID}
+		}
+		return promoteOrDemoteMemberHelper(db, membership, action)
+	} else if reqMembership.Approved == true && reqMembership.Level > membership.Level+levelOffset {
+		return promoteOrDemoteMemberHelper(db, membership, action)
+	}
+	return nil, &PlayerCannotPromoteOrDemoteMemberError{action, playerPublicID, clanPublicID, requestorPublicID}
+}
+
 func approveOrDenyMembershipHelper(db DB, membership *Membership, action string) (*Membership, error) {
 	if action == "approve" {
 		membership.Approved = true
@@ -172,6 +205,23 @@ func createMembershipHelper(db DB, gameID string, level, playerID, clanID, reque
 	}
 
 	err := db.Insert(membership)
+	if err != nil {
+		return nil, err
+	}
+	return membership, nil
+}
+
+func promoteOrDemoteMemberHelper(db DB, membership *Membership, action string) (*Membership, error) {
+	// TODO: make it safer by using something like SET column = column + X
+
+	if action == "promote" {
+		membership.Level++
+	} else if action == "demote" {
+		membership.Level--
+	} else {
+		return nil, &InvalidMembershipActionError{action}
+	}
+	_, err := db.Update(membership)
 	if err != nil {
 		return nil, err
 	}
