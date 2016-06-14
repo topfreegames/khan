@@ -56,7 +56,7 @@ func GetClanByID(db DB, id int) (*Clan, error) {
 }
 
 //GetClanByPublicID returns a clan by its public id
-func GetClanByPublicID(db DB, gameID string, publicID string) (*Clan, error) {
+func GetClanByPublicID(db DB, gameID, publicID string) (*Clan, error) {
 	var clan Clan
 	err := db.SelectOne(&clan, "SELECT * FROM clans WHERE game_id=$1 AND public_id=$2", gameID, publicID)
 	if err != nil || &clan == nil {
@@ -66,7 +66,7 @@ func GetClanByPublicID(db DB, gameID string, publicID string) (*Clan, error) {
 }
 
 //GetClanByPublicIDAndOwnerPublicID returns a clan by its public id and the owner public id
-func GetClanByPublicIDAndOwnerPublicID(db DB, gameID string, publicID string, ownerPublicID string) (*Clan, error) {
+func GetClanByPublicIDAndOwnerPublicID(db DB, gameID, publicID, ownerPublicID string) (*Clan, error) {
 	var clan Clan
 	err := db.SelectOne(&clan, "SELECT clans.* FROM clans, players WHERE clans.game_id=$1 AND clans.public_id=$2 AND clans.owner_id=players.id AND players.public_id=$3", gameID, publicID, ownerPublicID)
 	if err != nil || &clan == nil {
@@ -76,7 +76,7 @@ func GetClanByPublicIDAndOwnerPublicID(db DB, gameID string, publicID string, ow
 }
 
 //CreateClan creates a new clan
-func CreateClan(db DB, gameID string, publicID string, name string, ownerPublicID string, metadata string) (*Clan, error) {
+func CreateClan(db DB, gameID, publicID, name, ownerPublicID, metadata string) (*Clan, error) {
 	player, err := GetPlayerByPublicID(db, gameID, ownerPublicID)
 	if err != nil {
 		return nil, err
@@ -98,7 +98,7 @@ func CreateClan(db DB, gameID string, publicID string, name string, ownerPublicI
 }
 
 //UpdateClan updates an existing clan
-func UpdateClan(db DB, gameID string, publicID string, name string, ownerPublicID string, metadata string) (*Clan, error) {
+func UpdateClan(db DB, gameID, publicID, name, ownerPublicID, metadata string) (*Clan, error) {
 	clan, err := GetClanByPublicIDAndOwnerPublicID(db, gameID, publicID, ownerPublicID)
 
 	if err != nil {
@@ -130,4 +130,52 @@ func GetAllClans(db DB, gameID string) ([]Clan, error) {
 	}
 
 	return clans, nil
+}
+
+//GetClanDetails returns all details for a given clan by its game id and public id
+func GetClanDetails(db DB, gameID, publicID string) (map[string]interface{}, error) {
+	query := `
+	SELECT
+			c.game_id GameID,
+			c.public_id ClanPublicID, c.name ClanName, c.metadata ClanMetadata,
+			m.membership_level MembershipLevel, m.approved MembershipApproved, m.denied MembershipDenied,
+			m.created_at MembershipCreatedAt, m.updated_at MembershipUpdatedAt,
+			p.public_id PlayerPublicID, p.name PlayerName, p.metadata PlayerMetadata,
+			r.public_id RequestorPublicID, r.name RequestorName
+	FROM clans c
+		LEFT OUTER JOIN memberships m ON m.clan_id=c.id
+		LEFT OUTER JOIN players r ON m.requestor_id=r.id
+		LEFT OUTER JOIN players p ON m.player_id=p.id
+		WHERE
+		c.game_id=$1 and c.public_id=$2
+	`
+	var details []clanDetailsDAO
+	_, err := db.Select(&details, query, gameID, publicID)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(details) == 0 {
+		return nil, &ModelNotFoundError{"Clan", publicID}
+	}
+
+	result := make(map[string]interface{})
+	result["name"] = details[0].ClanName
+	result["metadata"] = details[0].ClanMetadata
+
+	if details[0].PlayerPublicID.Valid {
+		// We found players! return array of members
+
+		result["members"] = make([]map[string]interface{}, len(details))
+		memberList := result["members"].([]map[string]interface{})
+
+		for index, member := range details {
+			memberList[index] = member.Serialize()
+		}
+	} else {
+		//Otherwise return empty array of object
+		result["members"] = []map[string]interface{}{}
+	}
+
+	return result, nil
 }

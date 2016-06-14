@@ -76,3 +76,36 @@ func InitDb(host string, user string, port int, sslmode string, dbName string, p
 
 	return dbmap, nil
 }
+
+//Returns value or 0
+func nullOrInt(value sql.NullInt64) int64 {
+	if value.Valid {
+		v, err := value.Value()
+		if err == nil {
+			return v.(int64)
+		}
+	}
+	return 0
+}
+
+//Returns value or ""
+func nullOrString(value sql.NullString) string {
+	if value.Valid {
+		v, err := value.Value()
+		if err == nil {
+			return v.(string)
+		}
+	}
+	return ""
+}
+
+//Returns value or false
+func nullOrBool(value sql.NullBool) bool {
+	if value.Valid {
+		v, err := value.Value()
+		if err == nil {
+			return v.(bool)
+		}
+	}
+	return false
+}
