@@ -23,6 +23,11 @@ type inviteForMembershipPayload struct {
 	RequestorPublicID string
 }
 
+type approveOrDenyMembershipApplicationPayload struct {
+	PlayerPublicID    string
+	RequestorPublicID string
+}
+
 type approveOrDenyMembershipInvitationPayload struct {
 	PlayerPublicID string
 }
@@ -95,6 +100,41 @@ func InviteForMembershipHandler(app *App) func(c *iris.Context) {
 	}
 }
 
+//ApproveOrDenyMembershipApplicationHandler is the handler responsible for approving or denying a membership invitation
+func ApproveOrDenyMembershipApplicationHandler(app *App) func(c *iris.Context) {
+	return func(c *iris.Context) {
+		action := c.Param("action")
+		gameID := c.Get("gameID").(string)
+		clanPublicID := c.Get("clanPublicID").(string)
+
+		var payload approveOrDenyMembershipApplicationPayload
+		if err := c.ReadJSON(&payload); err != nil {
+			FailWith(400, err.Error(), c)
+			return
+		}
+
+		db := GetCtxDB(c)
+
+		membership, err := models.ApproveOrDenyMembershipApplication(
+			db,
+			gameID,
+			payload.PlayerPublicID,
+			clanPublicID,
+			payload.RequestorPublicID,
+			action,
+		)
+
+		if err != nil {
+			FailWith(500, err.Error(), c)
+			return
+		}
+
+		SucceedWith(map[string]interface{}{
+			"id": membership.ID,
+		}, c)
+	}
+}
+
 //ApproveOrDenyMembershipInvitationHandler is the handler responsible for approving or denying a membership invitation
 func ApproveOrDenyMembershipInvitationHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
@@ -146,6 +186,7 @@ func SetMembershipHandlersGroup(app *App) {
 	})
 
 	membershipHandlersGroup.Post("/apply", ApplyForMembershipHandler(app))
+	membershipHandlersGroup.Post("/apply/:action", ApproveOrDenyMembershipApplicationHandler(app))
 	membershipHandlersGroup.Post("/invite", InviteForMembershipHandler(app))
 	membershipHandlersGroup.Post("/invite/:action", ApproveOrDenyMembershipInvitationHandler(app))
 }
