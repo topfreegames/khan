@@ -232,16 +232,17 @@ func TestMembershipHandler(t *testing.T) {
 			err = testDb.Insert(requestor)
 			g.Assert(err == nil).IsTrue()
 
-			requestorMembership := &models.Membership{
-				GameID:      player.GameID,
-				ClanID:      clan.ID,
-				PlayerID:    requestor.ID,
-				RequestorID: owner.ID,
-				Level:       5,
-				Approved:    true,
-				Denied:      false,
-			}
+			requestorMembership := models.MembershipFactory.MustCreateWithOption(map[string]interface{}{
+				"GameID":      player.GameID,
+				"ClanID":      clan.ID,
+				"PlayerID":    requestor.ID,
+				"RequestorID": owner.ID,
+				"Level":       5,
+				"Approved":    true,
+				"Denied":      false,
+			}).(*models.Membership)
 			err = testDb.Insert(requestorMembership)
+			g.Assert(err == nil).IsTrue()
 
 			gameID := player.GameID
 			clanPublicID := clan.PublicID

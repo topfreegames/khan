@@ -268,16 +268,17 @@ func TestMembershipModel(t *testing.T) {
 				err = testDb.Insert(clan)
 				g.Assert(err == nil).IsTrue()
 
-				requestorMembership := &Membership{
-					GameID:      player.GameID,
-					ClanID:      clan.ID,
-					PlayerID:    requestor.ID,
-					RequestorID: owner.ID,
-					Level:       5,
-					Approved:    true,
-					Denied:      false,
-				}
+				requestorMembership := MembershipFactory.MustCreateWithOption(map[string]interface{}{
+					"GameID":      player.GameID,
+					"ClanID":      clan.ID,
+					"PlayerID":    requestor.ID,
+					"RequestorID": owner.ID,
+					"Level":       5,
+					"Approved":    true,
+					"Denied":      false,
+				}).(*Membership)
 				err = testDb.Insert(requestorMembership)
+				g.Assert(err == nil).IsTrue()
 
 				membership, err := CreateMembership(
 					testDb,
@@ -405,16 +406,17 @@ func TestMembershipModel(t *testing.T) {
 			err = testDb.Insert(clan)
 			g.Assert(err == nil).IsTrue()
 
-			requestorMembership := &Membership{
-				GameID:      player.GameID,
-				ClanID:      clan.ID,
-				PlayerID:    requestor.ID,
-				RequestorID: owner.ID,
-				Level:       0,
-				Approved:    true,
-				Denied:      false,
-			}
+			requestorMembership := MembershipFactory.MustCreateWithOption(map[string]interface{}{
+				"GameID":      player.GameID,
+				"ClanID":      clan.ID,
+				"PlayerID":    requestor.ID,
+				"RequestorID": owner.ID,
+				"Level":       0,
+				"Approved":    true,
+				"Denied":      false,
+			}).(*Membership)
 			err = testDb.Insert(requestorMembership)
+			g.Assert(err == nil).IsTrue()
 
 			_, err = CreateMembership(
 				testDb,
