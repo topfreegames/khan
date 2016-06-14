@@ -6,6 +6,7 @@
 
 PACKAGES = $(shell glide novendor)
 GODIRS = $(shell go list ./... | grep -v /vendor/ | sed s@github.com/topfreegames/khan@.@g | egrep -v "^[.]$$")
+PMD = "pmd-bin-5.3.3"
 
 setup:
 	@brew install glide
@@ -73,4 +74,11 @@ static:
 	@#ineffassign
 	@for pkg in $(GODIRS) ; do \
         ineffassign $$pkg ; \
+    done
+	@${MAKE} pmd
+
+pmd:
+	@bash pmd.sh
+	@for pkg in $(GODIRS) ; do \
+		/tmp/pmd-bin-5.4.2/bin/run.sh cpd --minimum-tokens 30 --files $$pkg --language go ; \
     done
