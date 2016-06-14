@@ -132,7 +132,7 @@ func RetrieveClanHandler(app *App) func(c *iris.Context) {
 		gameID := c.GetString("gameID")
 		publicID := c.Param("publicID")
 
-		clan, err := models.GetClanByPublicID(
+		clan, err := models.GetClanDetails(
 			db,
 			gameID,
 			publicID,
@@ -143,9 +143,7 @@ func RetrieveClanHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
-		SucceedWith(map[string]interface{}{
-			"details": serializeClan(clan, false),
-		}, c)
+		SucceedWith(clan, c)
 	}
 }
 

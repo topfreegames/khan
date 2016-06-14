@@ -326,10 +326,27 @@ func TestClanHandler(t *testing.T) {
 
 			g.Assert(result["success"]).IsTrue()
 
-			httpClan := result["details"].(map[string]interface{})
-			g.Assert(httpClan["name"]).Equal(clan.Name)
-			g.Assert(httpClan["metadata"]).Equal(clan.Metadata)
-			g.Assert(httpClan["publicID"]).Equal(nil)
+			g.Assert(result["name"]).Equal(clan.Name)
+			g.Assert(result["metadata"]).Equal(clan.Metadata)
+			g.Assert(result["publicID"]).Equal(nil)
+		})
+
+		g.It("Should get clan members", func() {
+			clan, _, _, _, err := models.GetClanWithMemberships(
+				testDb, 10, "clan-details-api", "clan-details-api-clan",
+			)
+			g.Assert(err == nil).IsTrue()
+
+			a := GetDefaultTestApp()
+			res := Get(a, GetGameRoute(clan.GameID, fmt.Sprintf("/clans/%s", clan.PublicID)), t)
+
+			res.Status(http.StatusOK)
+			var result map[string]interface{}
+			json.Unmarshal([]byte(res.Body().Raw()), &result)
+
+			g.Assert(result["success"]).IsTrue()
+
+			g.Assert(result["members"] == nil).IsFalse()
 		})
 	})
 }

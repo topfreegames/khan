@@ -363,5 +363,48 @@ func TestClanModel(t *testing.T) {
 				g.Assert(err.Error()).Equal("pq: role \"khan_tet\" does not exist")
 			})
 		})
+
+		g.Describe("Get Clan Details", func() {
+			g.It("Should get clan members", func() {
+				clan, _, players, _, err := GetClanWithMemberships(
+					testDb, 10, "clan-details", "clan-details-clan",
+				)
+				g.Assert(err == nil).IsTrue()
+
+				clanData, err := GetClanDetails(testDb, clan.GameID, clan.PublicID)
+				g.Assert(err == nil).IsTrue()
+				g.Assert(clanData["name"]).Equal(clan.Name)
+				g.Assert(clanData["metadata"]).Equal(clan.Metadata)
+				members := clanData["members"].([]map[string]interface{})
+				g.Assert(len(members)).Equal(10)
+
+				for i := 0; i < 10; i++ {
+					g.Assert(members[i]["playerName"]).Equal(players[i].Name)
+				}
+			})
+
+			g.It("Should get clan details even if no members", func() {
+				clan, _, _, _, err := GetClanWithMemberships(
+					testDb, 0, "clan-details-2", "clan-details-2-clan",
+				)
+				g.Assert(err == nil).IsTrue()
+
+				clanData, err := GetClanDetails(testDb, clan.GameID, clan.PublicID)
+				g.Assert(err == nil).IsTrue()
+				g.Assert(clanData["name"]).Equal(clan.Name)
+				g.Assert(clanData["metadata"]).Equal(clan.Metadata)
+				members := clanData["members"].([]map[string]interface{})
+				g.Assert(len(members)).Equal(0)
+			})
+
+			g.It("Should fail if clan does not exist", func() {
+				clanData, err := GetClanDetails(testDb, "fake-game-id", "fake-public-id")
+				g.Assert(clanData == nil).IsTrue()
+				g.Assert(err != nil).IsTrue()
+				g.Assert(err.Error()).Equal("Clan was not found with id: fake-public-id")
+			})
+
+		})
+
 	})
 }
