@@ -154,12 +154,6 @@ func TestMembershipModel(t *testing.T) {
 			g.Assert(dbMembership == nil).IsTrue()
 		})
 
-		g.It("Should not get non-existing Membership", func() {
-			_, err = GetMembershipByID(testDb, -1)
-			g.Assert(err != nil).IsTrue()
-			g.Assert(err.Error()).Equal("Membership was not found with id: -1")
-		})
-
 		g.Describe("Should create a new Membership with CreateMembership", func() {
 			g.It("If requestor is the player", func() {
 				player := PlayerFactory.MustCreate().(*Player)
@@ -475,8 +469,9 @@ func TestMembershipModel(t *testing.T) {
 			})
 		})
 
-		g.Describe("Should accept a Membership invitation with AcceptOrDenyMembershipInvitation if", func() {
+		g.Describe("Should approve a Membership invitation with AcceptOrDenyMembershipInvitation if", func() {
 			g.It("Player is not the membership requestor", func() {
+				action := "approve"
 				player := PlayerFactory.MustCreate().(*Player)
 				err := testDb.Insert(player)
 				g.Assert(err == nil).IsTrue()
@@ -511,7 +506,7 @@ func TestMembershipModel(t *testing.T) {
 					player.GameID,
 					player.PublicID,
 					clan.PublicID,
-					"approve",
+					action,
 				)
 
 				g.Assert(err == nil).IsTrue()
@@ -534,6 +529,8 @@ func TestMembershipModel(t *testing.T) {
 
 	g.Describe("Should not accept a Membership invitation with AcceptOrDenyMembershipInvitation if", func() {
 		g.It("Player is the membership requestor", func() {
+			action := "approve"
+
 			player := PlayerFactory.MustCreate().(*Player)
 			err := testDb.Insert(player)
 			g.Assert(err == nil).IsTrue()
@@ -568,14 +565,16 @@ func TestMembershipModel(t *testing.T) {
 				player.GameID,
 				player.PublicID,
 				clan.PublicID,
-				"approve",
+				action,
 			)
 
 			g.Assert(err != nil).IsTrue()
-			g.Assert(err.Error()).Equal(fmt.Sprintf("Player %s cannot %s membership for player %s and clan %s", player.PublicID, "approve", player.PublicID, clan.PublicID))
+			g.Assert(err.Error()).Equal(fmt.Sprintf("Player %s cannot %s membership for player %s and clan %s", player.PublicID, action, player.PublicID, clan.PublicID))
 		})
 
 		g.It("Membership does not exist", func() {
+			action := "approve"
+
 			player := PlayerFactory.MustCreate().(*Player)
 			err := testDb.Insert(player)
 			g.Assert(err == nil).IsTrue()
@@ -598,7 +597,7 @@ func TestMembershipModel(t *testing.T) {
 				player.GameID,
 				player.PublicID,
 				clan.PublicID,
-				"approve",
+				action,
 			)
 
 			g.Assert(err != nil).IsTrue()
@@ -606,6 +605,8 @@ func TestMembershipModel(t *testing.T) {
 		})
 
 		g.It("Membership is already approved", func() {
+			action := "approve"
+
 			player := PlayerFactory.MustCreate().(*Player)
 			err := testDb.Insert(player)
 			g.Assert(err == nil).IsTrue()
@@ -640,14 +641,16 @@ func TestMembershipModel(t *testing.T) {
 				player.GameID,
 				player.PublicID,
 				clan.PublicID,
-				"approve",
+				action,
 			)
 
 			g.Assert(err != nil).IsTrue()
-			g.Assert(err.Error()).Equal("Cannot approve membership that was already approved or denied")
+			g.Assert(err.Error()).Equal(fmt.Sprintf("Cannot %s membership that was already approved or denied", action))
 		})
 
 		g.It("Membership is already denied", func() {
+			action := "approve"
+
 			player := PlayerFactory.MustCreate().(*Player)
 			err := testDb.Insert(player)
 			g.Assert(err == nil).IsTrue()
@@ -682,16 +685,18 @@ func TestMembershipModel(t *testing.T) {
 				player.GameID,
 				player.PublicID,
 				clan.PublicID,
-				"approve",
+				action,
 			)
 
 			g.Assert(err != nil).IsTrue()
-			g.Assert(err.Error()).Equal("Cannot approve membership that was already approved or denied")
+			g.Assert(err.Error()).Equal(fmt.Sprintf("Cannot %s membership that was already approved or denied", action))
 		})
 	})
 
 	g.Describe("Should deny a Membership invitation with AcceptOrDenyMembershipInvitation if", func() {
 		g.It("Player is not the membership requestor", func() {
+			action := "deny"
+
 			player := PlayerFactory.MustCreate().(*Player)
 			err := testDb.Insert(player)
 			g.Assert(err == nil).IsTrue()
@@ -726,7 +731,7 @@ func TestMembershipModel(t *testing.T) {
 				player.GameID,
 				player.PublicID,
 				clan.PublicID,
-				"deny",
+				action,
 			)
 
 			g.Assert(err == nil).IsTrue()
@@ -743,164 +748,6 @@ func TestMembershipModel(t *testing.T) {
 			g.Assert(dbMembership.Level).Equal(playerMembership.Level)
 			g.Assert(dbMembership.Approved).Equal(false)
 			g.Assert(dbMembership.Denied).Equal(true)
-		})
-	})
-
-	g.Describe("Should not deny a Membership invitation with AcceptOrDenyMembershipInvitation if", func() {
-		g.It("Player is the membership requestor", func() {
-			player := PlayerFactory.MustCreate().(*Player)
-			err := testDb.Insert(player)
-			g.Assert(err == nil).IsTrue()
-
-			owner := PlayerFactory.MustCreateWithOption(map[string]interface{}{
-				"GameID": player.GameID,
-			}).(*Player)
-			err = testDb.Insert(owner)
-			g.Assert(err == nil).IsTrue()
-
-			clan := ClanFactory.MustCreateWithOption(map[string]interface{}{
-				"GameID":  owner.GameID,
-				"OwnerID": owner.ID,
-			}).(*Clan)
-			err = testDb.Insert(clan)
-			g.Assert(err == nil).IsTrue()
-
-			playerMembership := MembershipFactory.MustCreateWithOption(map[string]interface{}{
-				"GameID":      player.GameID,
-				"ClanID":      clan.ID,
-				"PlayerID":    player.ID,
-				"RequestorID": player.ID,
-				"Level":       0,
-				"Approved":    false,
-				"Denied":      false,
-			}).(*Membership)
-			err = testDb.Insert(playerMembership)
-			g.Assert(err == nil).IsTrue()
-
-			_, err = ApproveOrDenyMembershipInvitation(
-				testDb,
-				player.GameID,
-				player.PublicID,
-				clan.PublicID,
-				"deny",
-			)
-
-			g.Assert(err != nil).IsTrue()
-			g.Assert(err.Error()).Equal(fmt.Sprintf("Player %s cannot %s membership for player %s and clan %s", player.PublicID, "deny", player.PublicID, clan.PublicID))
-		})
-
-		g.It("Membership does not exist", func() {
-			player := PlayerFactory.MustCreate().(*Player)
-			err := testDb.Insert(player)
-			g.Assert(err == nil).IsTrue()
-
-			owner := PlayerFactory.MustCreateWithOption(map[string]interface{}{
-				"GameID": player.GameID,
-			}).(*Player)
-			err = testDb.Insert(owner)
-			g.Assert(err == nil).IsTrue()
-
-			clan := ClanFactory.MustCreateWithOption(map[string]interface{}{
-				"GameID":  owner.GameID,
-				"OwnerID": owner.ID,
-			}).(*Clan)
-			err = testDb.Insert(clan)
-			g.Assert(err == nil).IsTrue()
-
-			_, err = ApproveOrDenyMembershipInvitation(
-				testDb,
-				player.GameID,
-				player.PublicID,
-				clan.PublicID,
-				"deny",
-			)
-
-			g.Assert(err != nil).IsTrue()
-			g.Assert(err.Error()).Equal(fmt.Sprintf("Membership was not found with id: %s", player.PublicID))
-		})
-
-		g.It("Membership is already approved", func() {
-			player := PlayerFactory.MustCreate().(*Player)
-			err := testDb.Insert(player)
-			g.Assert(err == nil).IsTrue()
-
-			owner := PlayerFactory.MustCreateWithOption(map[string]interface{}{
-				"GameID": player.GameID,
-			}).(*Player)
-			err = testDb.Insert(owner)
-			g.Assert(err == nil).IsTrue()
-
-			clan := ClanFactory.MustCreateWithOption(map[string]interface{}{
-				"GameID":  owner.GameID,
-				"OwnerID": owner.ID,
-			}).(*Clan)
-			err = testDb.Insert(clan)
-			g.Assert(err == nil).IsTrue()
-
-			playerMembership := MembershipFactory.MustCreateWithOption(map[string]interface{}{
-				"GameID":      player.GameID,
-				"ClanID":      clan.ID,
-				"PlayerID":    player.ID,
-				"RequestorID": owner.ID,
-				"Level":       0,
-				"Approved":    true,
-				"Denied":      false,
-			}).(*Membership)
-			err = testDb.Insert(playerMembership)
-			g.Assert(err == nil).IsTrue()
-
-			_, err = ApproveOrDenyMembershipInvitation(
-				testDb,
-				player.GameID,
-				player.PublicID,
-				clan.PublicID,
-				"deny",
-			)
-
-			g.Assert(err != nil).IsTrue()
-			g.Assert(err.Error()).Equal("Cannot deny membership that was already approved or denied")
-		})
-
-		g.It("Membership is already denied", func() {
-			player := PlayerFactory.MustCreate().(*Player)
-			err := testDb.Insert(player)
-			g.Assert(err == nil).IsTrue()
-
-			owner := PlayerFactory.MustCreateWithOption(map[string]interface{}{
-				"GameID": player.GameID,
-			}).(*Player)
-			err = testDb.Insert(owner)
-			g.Assert(err == nil).IsTrue()
-
-			clan := ClanFactory.MustCreateWithOption(map[string]interface{}{
-				"GameID":  owner.GameID,
-				"OwnerID": owner.ID,
-			}).(*Clan)
-			err = testDb.Insert(clan)
-			g.Assert(err == nil).IsTrue()
-
-			playerMembership := MembershipFactory.MustCreateWithOption(map[string]interface{}{
-				"GameID":      player.GameID,
-				"ClanID":      clan.ID,
-				"PlayerID":    player.ID,
-				"RequestorID": owner.ID,
-				"Level":       0,
-				"Approved":    false,
-				"Denied":      true,
-			}).(*Membership)
-			err = testDb.Insert(playerMembership)
-			g.Assert(err == nil).IsTrue()
-
-			_, err = ApproveOrDenyMembershipInvitation(
-				testDb,
-				player.GameID,
-				player.PublicID,
-				clan.PublicID,
-				"deny",
-			)
-
-			g.Assert(err != nil).IsTrue()
-			g.Assert(err.Error()).Equal("Cannot deny membership that was already approved or denied")
 		})
 	})
 
@@ -940,6 +787,636 @@ func TestMembershipModel(t *testing.T) {
 				player.GameID,
 				player.PublicID,
 				clan.PublicID,
+				"invalid-acion",
+			)
+
+			g.Assert(err != nil).IsTrue()
+			g.Assert(err.Error()).Equal("invalid-acion a membership is not a valid action.")
+		})
+
+		g.Describe("Should approve a Membership application with ApproveOrDenyMembershipApplication if", func() {
+			g.It("Owner", func() {
+				action := "approve"
+
+				player := PlayerFactory.MustCreate().(*Player)
+				err := testDb.Insert(player)
+				g.Assert(err == nil).IsTrue()
+
+				owner := PlayerFactory.MustCreateWithOption(map[string]interface{}{
+					"GameID": player.GameID,
+				}).(*Player)
+				err = testDb.Insert(owner)
+				g.Assert(err == nil).IsTrue()
+
+				clan := ClanFactory.MustCreateWithOption(map[string]interface{}{
+					"GameID":  owner.GameID,
+					"OwnerID": owner.ID,
+				}).(*Clan)
+				err = testDb.Insert(clan)
+				g.Assert(err == nil).IsTrue()
+
+				playerMembership := MembershipFactory.MustCreateWithOption(map[string]interface{}{
+					"GameID":      player.GameID,
+					"ClanID":      clan.ID,
+					"PlayerID":    player.ID,
+					"RequestorID": player.ID,
+					"Level":       0,
+					"Approved":    false,
+					"Denied":      false,
+				}).(*Membership)
+				err = testDb.Insert(playerMembership)
+				g.Assert(err == nil).IsTrue()
+
+				updatedMembership, err := ApproveOrDenyMembershipApplication(
+					testDb,
+					player.GameID,
+					player.PublicID,
+					clan.PublicID,
+					owner.PublicID,
+					action,
+				)
+
+				g.Assert(err == nil).IsTrue()
+				g.Assert(updatedMembership.ID).Equal(playerMembership.ID)
+				g.Assert(updatedMembership.Approved).Equal(true)
+				g.Assert(updatedMembership.Denied).Equal(false)
+
+				dbMembership, err := GetMembershipByID(testDb, updatedMembership.ID)
+				g.Assert(err == nil).IsTrue()
+
+				g.Assert(dbMembership.GameID).Equal(playerMembership.GameID)
+				g.Assert(dbMembership.PlayerID).Equal(playerMembership.PlayerID)
+				g.Assert(dbMembership.RequestorID).Equal(playerMembership.RequestorID)
+				g.Assert(dbMembership.Level).Equal(playerMembership.Level)
+				g.Assert(dbMembership.Approved).Equal(true)
+				g.Assert(dbMembership.Denied).Equal(false)
+			})
+
+			g.It("Requestor is member of the clan with level > minLevel", func() {
+				action := "approve"
+
+				player := PlayerFactory.MustCreate().(*Player)
+				err := testDb.Insert(player)
+				g.Assert(err == nil).IsTrue()
+
+				owner := PlayerFactory.MustCreateWithOption(map[string]interface{}{
+					"GameID": player.GameID,
+				}).(*Player)
+				err = testDb.Insert(owner)
+				g.Assert(err == nil).IsTrue()
+
+				clan := ClanFactory.MustCreateWithOption(map[string]interface{}{
+					"GameID":  owner.GameID,
+					"OwnerID": owner.ID,
+				}).(*Clan)
+				err = testDb.Insert(clan)
+				g.Assert(err == nil).IsTrue()
+
+				requestor := PlayerFactory.MustCreateWithOption(map[string]interface{}{
+					"GameID": player.GameID,
+				}).(*Player)
+				err = testDb.Insert(requestor)
+				g.Assert(err == nil).IsTrue()
+
+				requestorMembership := MembershipFactory.MustCreateWithOption(map[string]interface{}{
+					"GameID":      player.GameID,
+					"ClanID":      clan.ID,
+					"PlayerID":    requestor.ID,
+					"RequestorID": requestor.ID,
+					"Level":       5,
+					"Approved":    true,
+					"Denied":      false,
+				}).(*Membership)
+				err = testDb.Insert(requestorMembership)
+				g.Assert(err == nil).IsTrue()
+
+				playerMembership := MembershipFactory.MustCreateWithOption(map[string]interface{}{
+					"GameID":      player.GameID,
+					"ClanID":      clan.ID,
+					"PlayerID":    player.ID,
+					"RequestorID": player.ID,
+					"Level":       0,
+					"Approved":    false,
+					"Denied":      false,
+				}).(*Membership)
+				err = testDb.Insert(playerMembership)
+				g.Assert(err == nil).IsTrue()
+
+				updatedMembership, err := ApproveOrDenyMembershipApplication(
+					testDb,
+					player.GameID,
+					player.PublicID,
+					clan.PublicID,
+					requestor.PublicID,
+					action,
+				)
+
+				g.Assert(err == nil).IsTrue()
+				g.Assert(updatedMembership.ID).Equal(playerMembership.ID)
+				g.Assert(updatedMembership.Approved).Equal(true)
+				g.Assert(updatedMembership.Denied).Equal(false)
+
+				dbMembership, err := GetMembershipByID(testDb, updatedMembership.ID)
+				g.Assert(err == nil).IsTrue()
+
+				g.Assert(dbMembership.GameID).Equal(playerMembership.GameID)
+				g.Assert(dbMembership.PlayerID).Equal(playerMembership.PlayerID)
+				g.Assert(dbMembership.RequestorID).Equal(playerMembership.RequestorID)
+				g.Assert(dbMembership.Level).Equal(playerMembership.Level)
+				g.Assert(dbMembership.Approved).Equal(true)
+				g.Assert(dbMembership.Denied).Equal(false)
+			})
+		})
+	})
+
+	g.Describe("Should not accept a Membership application with ApproveOrDenyMembershipApplication if", func() {
+		g.It("Requestor is member of the clan with level < minLevel", func() {
+			action := "approve"
+
+			player := PlayerFactory.MustCreate().(*Player)
+			err := testDb.Insert(player)
+			g.Assert(err == nil).IsTrue()
+
+			owner := PlayerFactory.MustCreateWithOption(map[string]interface{}{
+				"GameID": player.GameID,
+			}).(*Player)
+			err = testDb.Insert(owner)
+			g.Assert(err == nil).IsTrue()
+
+			clan := ClanFactory.MustCreateWithOption(map[string]interface{}{
+				"GameID":  owner.GameID,
+				"OwnerID": owner.ID,
+			}).(*Clan)
+			err = testDb.Insert(clan)
+			g.Assert(err == nil).IsTrue()
+
+			requestor := PlayerFactory.MustCreateWithOption(map[string]interface{}{
+				"GameID": player.GameID,
+			}).(*Player)
+			err = testDb.Insert(requestor)
+			g.Assert(err == nil).IsTrue()
+
+			requestorMembership := MembershipFactory.MustCreateWithOption(map[string]interface{}{
+				"GameID":      player.GameID,
+				"ClanID":      clan.ID,
+				"PlayerID":    requestor.ID,
+				"RequestorID": requestor.ID,
+				"Level":       0,
+				"Approved":    true,
+				"Denied":      false,
+			}).(*Membership)
+			err = testDb.Insert(requestorMembership)
+			g.Assert(err == nil).IsTrue()
+
+			playerMembership := MembershipFactory.MustCreateWithOption(map[string]interface{}{
+				"GameID":      player.GameID,
+				"ClanID":      clan.ID,
+				"PlayerID":    player.ID,
+				"RequestorID": player.ID,
+				"Level":       0,
+				"Approved":    false,
+				"Denied":      false,
+			}).(*Membership)
+			err = testDb.Insert(playerMembership)
+			g.Assert(err == nil).IsTrue()
+
+			_, err = ApproveOrDenyMembershipApplication(
+				testDb,
+				player.GameID,
+				player.PublicID,
+				clan.PublicID,
+				requestor.PublicID,
+				action,
+			)
+
+			g.Assert(err != nil).IsTrue()
+			g.Assert(err.Error()).Equal(fmt.Sprintf("Player %s cannot %s membership for player %s and clan %s", requestor.PublicID, action, player.PublicID, clan.PublicID))
+		})
+
+		g.It("Requestor is not approved member of the clan", func() {
+			action := "approve"
+
+			player := PlayerFactory.MustCreate().(*Player)
+			err := testDb.Insert(player)
+			g.Assert(err == nil).IsTrue()
+
+			owner := PlayerFactory.MustCreateWithOption(map[string]interface{}{
+				"GameID": player.GameID,
+			}).(*Player)
+			err = testDb.Insert(owner)
+			g.Assert(err == nil).IsTrue()
+
+			clan := ClanFactory.MustCreateWithOption(map[string]interface{}{
+				"GameID":  owner.GameID,
+				"OwnerID": owner.ID,
+			}).(*Clan)
+			err = testDb.Insert(clan)
+			g.Assert(err == nil).IsTrue()
+
+			requestor := PlayerFactory.MustCreateWithOption(map[string]interface{}{
+				"GameID": player.GameID,
+			}).(*Player)
+			err = testDb.Insert(requestor)
+			g.Assert(err == nil).IsTrue()
+
+			requestorMembership := MembershipFactory.MustCreateWithOption(map[string]interface{}{
+				"GameID":      player.GameID,
+				"ClanID":      clan.ID,
+				"PlayerID":    requestor.ID,
+				"RequestorID": requestor.ID,
+				"Level":       5,
+				"Approved":    false,
+				"Denied":      false,
+			}).(*Membership)
+			err = testDb.Insert(requestorMembership)
+			g.Assert(err == nil).IsTrue()
+
+			playerMembership := MembershipFactory.MustCreateWithOption(map[string]interface{}{
+				"GameID":      player.GameID,
+				"ClanID":      clan.ID,
+				"PlayerID":    player.ID,
+				"RequestorID": player.ID,
+				"Level":       0,
+				"Approved":    false,
+				"Denied":      false,
+			}).(*Membership)
+			err = testDb.Insert(playerMembership)
+			g.Assert(err == nil).IsTrue()
+
+			_, err = ApproveOrDenyMembershipApplication(
+				testDb,
+				player.GameID,
+				player.PublicID,
+				clan.PublicID,
+				requestor.PublicID,
+				action,
+			)
+
+			g.Assert(err != nil).IsTrue()
+			g.Assert(err.Error()).Equal(fmt.Sprintf("Player %s cannot %s membership for player %s and clan %s", requestor.PublicID, action, player.PublicID, clan.PublicID))
+		})
+
+		g.It("Requestor is not member of the clan", func() {
+			action := "approve"
+
+			player := PlayerFactory.MustCreate().(*Player)
+			err := testDb.Insert(player)
+			g.Assert(err == nil).IsTrue()
+
+			owner := PlayerFactory.MustCreateWithOption(map[string]interface{}{
+				"GameID": player.GameID,
+			}).(*Player)
+			err = testDb.Insert(owner)
+			g.Assert(err == nil).IsTrue()
+
+			clan := ClanFactory.MustCreateWithOption(map[string]interface{}{
+				"GameID":  owner.GameID,
+				"OwnerID": owner.ID,
+			}).(*Clan)
+			err = testDb.Insert(clan)
+			g.Assert(err == nil).IsTrue()
+
+			requestor := PlayerFactory.MustCreateWithOption(map[string]interface{}{
+				"GameID": player.GameID,
+			}).(*Player)
+			err = testDb.Insert(requestor)
+			g.Assert(err == nil).IsTrue()
+
+			playerMembership := MembershipFactory.MustCreateWithOption(map[string]interface{}{
+				"GameID":      player.GameID,
+				"ClanID":      clan.ID,
+				"PlayerID":    player.ID,
+				"RequestorID": player.ID,
+				"Level":       0,
+				"Approved":    false,
+				"Denied":      false,
+			}).(*Membership)
+			err = testDb.Insert(playerMembership)
+			g.Assert(err == nil).IsTrue()
+
+			_, err = ApproveOrDenyMembershipApplication(
+				testDb,
+				player.GameID,
+				player.PublicID,
+				clan.PublicID,
+				requestor.PublicID,
+				action,
+			)
+
+			g.Assert(err != nil).IsTrue()
+			g.Assert(err.Error()).Equal(fmt.Sprintf("Player %s cannot %s membership for player %s and clan %s", requestor.PublicID, action, player.PublicID, clan.PublicID))
+		})
+
+		g.It("Requestor is the player of the membership", func() {
+			action := "approve"
+
+			player := PlayerFactory.MustCreate().(*Player)
+			err := testDb.Insert(player)
+			g.Assert(err == nil).IsTrue()
+
+			owner := PlayerFactory.MustCreateWithOption(map[string]interface{}{
+				"GameID": player.GameID,
+			}).(*Player)
+			err = testDb.Insert(owner)
+			g.Assert(err == nil).IsTrue()
+
+			clan := ClanFactory.MustCreateWithOption(map[string]interface{}{
+				"GameID":  owner.GameID,
+				"OwnerID": owner.ID,
+			}).(*Clan)
+			err = testDb.Insert(clan)
+			g.Assert(err == nil).IsTrue()
+
+			playerMembership := MembershipFactory.MustCreateWithOption(map[string]interface{}{
+				"GameID":      player.GameID,
+				"ClanID":      clan.ID,
+				"PlayerID":    player.ID,
+				"RequestorID": owner.ID,
+				"Level":       0,
+				"Approved":    false,
+				"Denied":      false,
+			}).(*Membership)
+			err = testDb.Insert(playerMembership)
+			g.Assert(err == nil).IsTrue()
+
+			_, err = ApproveOrDenyMembershipApplication(
+				testDb,
+				player.GameID,
+				player.PublicID,
+				clan.PublicID,
+				player.PublicID,
+				action,
+			)
+
+			g.Assert(err != nil).IsTrue()
+			g.Assert(err.Error()).Equal(fmt.Sprintf("Player %s cannot %s membership for player %s and clan %s", player.PublicID, action, player.PublicID, clan.PublicID))
+		})
+
+		g.It("Player was not the membership requestor", func() {
+			action := "approve"
+
+			player := PlayerFactory.MustCreate().(*Player)
+			err := testDb.Insert(player)
+			g.Assert(err == nil).IsTrue()
+
+			owner := PlayerFactory.MustCreateWithOption(map[string]interface{}{
+				"GameID": player.GameID,
+			}).(*Player)
+			err = testDb.Insert(owner)
+			g.Assert(err == nil).IsTrue()
+
+			clan := ClanFactory.MustCreateWithOption(map[string]interface{}{
+				"GameID":  owner.GameID,
+				"OwnerID": owner.ID,
+			}).(*Clan)
+			err = testDb.Insert(clan)
+			g.Assert(err == nil).IsTrue()
+
+			playerMembership := MembershipFactory.MustCreateWithOption(map[string]interface{}{
+				"GameID":      player.GameID,
+				"ClanID":      clan.ID,
+				"PlayerID":    player.ID,
+				"RequestorID": owner.ID,
+				"Level":       0,
+				"Approved":    false,
+				"Denied":      false,
+			}).(*Membership)
+			err = testDb.Insert(playerMembership)
+			g.Assert(err == nil).IsTrue()
+
+			_, err = ApproveOrDenyMembershipApplication(
+				testDb,
+				player.GameID,
+				player.PublicID,
+				clan.PublicID,
+				owner.PublicID,
+				action,
+			)
+
+			g.Assert(err != nil).IsTrue()
+			g.Assert(err.Error()).Equal(fmt.Sprintf("Player %s cannot %s membership for player %s and clan %s", owner.PublicID, action, player.PublicID, clan.PublicID))
+		})
+
+		g.It("Membership does not exist", func() {
+			action := "approve"
+
+			player := PlayerFactory.MustCreate().(*Player)
+			err := testDb.Insert(player)
+			g.Assert(err == nil).IsTrue()
+
+			owner := PlayerFactory.MustCreateWithOption(map[string]interface{}{
+				"GameID": player.GameID,
+			}).(*Player)
+			err = testDb.Insert(owner)
+			g.Assert(err == nil).IsTrue()
+
+			clan := ClanFactory.MustCreateWithOption(map[string]interface{}{
+				"GameID":  owner.GameID,
+				"OwnerID": owner.ID,
+			}).(*Clan)
+			err = testDb.Insert(clan)
+			g.Assert(err == nil).IsTrue()
+
+			_, err = ApproveOrDenyMembershipApplication(
+				testDb,
+				player.GameID,
+				player.PublicID,
+				clan.PublicID,
+				owner.PublicID,
+				action,
+			)
+
+			g.Assert(err != nil).IsTrue()
+			g.Assert(err.Error()).Equal(fmt.Sprintf("Membership was not found with id: %s", player.PublicID))
+		})
+
+		g.It("Membership is already approved", func() {
+			action := "approve"
+
+			player := PlayerFactory.MustCreate().(*Player)
+			err := testDb.Insert(player)
+			g.Assert(err == nil).IsTrue()
+
+			owner := PlayerFactory.MustCreateWithOption(map[string]interface{}{
+				"GameID": player.GameID,
+			}).(*Player)
+			err = testDb.Insert(owner)
+			g.Assert(err == nil).IsTrue()
+
+			clan := ClanFactory.MustCreateWithOption(map[string]interface{}{
+				"GameID":  owner.GameID,
+				"OwnerID": owner.ID,
+			}).(*Clan)
+			err = testDb.Insert(clan)
+			g.Assert(err == nil).IsTrue()
+
+			playerMembership := MembershipFactory.MustCreateWithOption(map[string]interface{}{
+				"GameID":      player.GameID,
+				"ClanID":      clan.ID,
+				"PlayerID":    player.ID,
+				"RequestorID": player.ID,
+				"Level":       0,
+				"Approved":    true,
+				"Denied":      false,
+			}).(*Membership)
+			err = testDb.Insert(playerMembership)
+			g.Assert(err == nil).IsTrue()
+
+			_, err = ApproveOrDenyMembershipApplication(
+				testDb,
+				player.GameID,
+				player.PublicID,
+				clan.PublicID,
+				owner.PublicID,
+				action,
+			)
+
+			g.Assert(err != nil).IsTrue()
+			g.Assert(err.Error()).Equal(fmt.Sprintf("Cannot %s membership that was already approved or denied", action))
+		})
+
+		g.It("Membership is already denied", func() {
+			action := "approve"
+
+			player := PlayerFactory.MustCreate().(*Player)
+			err := testDb.Insert(player)
+			g.Assert(err == nil).IsTrue()
+
+			owner := PlayerFactory.MustCreateWithOption(map[string]interface{}{
+				"GameID": player.GameID,
+			}).(*Player)
+			err = testDb.Insert(owner)
+			g.Assert(err == nil).IsTrue()
+
+			clan := ClanFactory.MustCreateWithOption(map[string]interface{}{
+				"GameID":  owner.GameID,
+				"OwnerID": owner.ID,
+			}).(*Clan)
+			err = testDb.Insert(clan)
+			g.Assert(err == nil).IsTrue()
+
+			playerMembership := MembershipFactory.MustCreateWithOption(map[string]interface{}{
+				"GameID":      player.GameID,
+				"ClanID":      clan.ID,
+				"PlayerID":    player.ID,
+				"RequestorID": player.ID,
+				"Level":       0,
+				"Approved":    true,
+				"Denied":      false,
+			}).(*Membership)
+			err = testDb.Insert(playerMembership)
+			g.Assert(err == nil).IsTrue()
+
+			_, err = ApproveOrDenyMembershipApplication(
+				testDb,
+				player.GameID,
+				player.PublicID,
+				clan.PublicID,
+				owner.PublicID,
+				action,
+			)
+
+			g.Assert(err != nil).IsTrue()
+			g.Assert(err.Error()).Equal(fmt.Sprintf("Cannot %s membership that was already approved or denied", action))
+		})
+	})
+
+	g.Describe("Should deny a Membership application with ApproveOrDenyMembershipApplication if", func() {
+		g.It("Owner", func() {
+			action := "deny"
+
+			player := PlayerFactory.MustCreate().(*Player)
+			err := testDb.Insert(player)
+			g.Assert(err == nil).IsTrue()
+
+			owner := PlayerFactory.MustCreateWithOption(map[string]interface{}{
+				"GameID": player.GameID,
+			}).(*Player)
+			err = testDb.Insert(owner)
+			g.Assert(err == nil).IsTrue()
+
+			clan := ClanFactory.MustCreateWithOption(map[string]interface{}{
+				"GameID":  owner.GameID,
+				"OwnerID": owner.ID,
+			}).(*Clan)
+			err = testDb.Insert(clan)
+			g.Assert(err == nil).IsTrue()
+
+			playerMembership := MembershipFactory.MustCreateWithOption(map[string]interface{}{
+				"GameID":      player.GameID,
+				"ClanID":      clan.ID,
+				"PlayerID":    player.ID,
+				"RequestorID": player.ID,
+				"Level":       0,
+				"Approved":    false,
+				"Denied":      false,
+			}).(*Membership)
+			err = testDb.Insert(playerMembership)
+			g.Assert(err == nil).IsTrue()
+
+			updatedMembership, err := ApproveOrDenyMembershipApplication(
+				testDb,
+				player.GameID,
+				player.PublicID,
+				clan.PublicID,
+				owner.PublicID,
+				action,
+			)
+
+			g.Assert(err == nil).IsTrue()
+			g.Assert(updatedMembership.ID).Equal(playerMembership.ID)
+			g.Assert(updatedMembership.Approved).Equal(false)
+			g.Assert(updatedMembership.Denied).Equal(true)
+
+			dbMembership, err := GetMembershipByID(testDb, updatedMembership.ID)
+			g.Assert(err == nil).IsTrue()
+
+			g.Assert(dbMembership.GameID).Equal(playerMembership.GameID)
+			g.Assert(dbMembership.PlayerID).Equal(playerMembership.PlayerID)
+			g.Assert(dbMembership.RequestorID).Equal(playerMembership.RequestorID)
+			g.Assert(dbMembership.Level).Equal(playerMembership.Level)
+			g.Assert(dbMembership.Approved).Equal(false)
+			g.Assert(dbMembership.Denied).Equal(true)
+		})
+	})
+
+	g.Describe("Should not AcceptOrDenyMembershipInvitation if", func() {
+		g.It("Invalid action", func() {
+			player := PlayerFactory.MustCreate().(*Player)
+			err := testDb.Insert(player)
+			g.Assert(err == nil).IsTrue()
+
+			owner := PlayerFactory.MustCreateWithOption(map[string]interface{}{
+				"GameID": player.GameID,
+			}).(*Player)
+			err = testDb.Insert(owner)
+			g.Assert(err == nil).IsTrue()
+
+			clan := ClanFactory.MustCreateWithOption(map[string]interface{}{
+				"GameID":  owner.GameID,
+				"OwnerID": owner.ID,
+			}).(*Clan)
+			err = testDb.Insert(clan)
+			g.Assert(err == nil).IsTrue()
+
+			playerMembership := MembershipFactory.MustCreateWithOption(map[string]interface{}{
+				"GameID":      player.GameID,
+				"ClanID":      clan.ID,
+				"PlayerID":    player.ID,
+				"RequestorID": player.ID,
+				"Level":       0,
+				"Approved":    false,
+				"Denied":      false,
+			}).(*Membership)
+			err = testDb.Insert(playerMembership)
+			g.Assert(err == nil).IsTrue()
+
+			_, err = ApproveOrDenyMembershipApplication(
+				testDb,
+				player.GameID,
+				player.PublicID,
+				clan.PublicID,
+				owner.PublicID,
 				"invalid-acion",
 			)
 

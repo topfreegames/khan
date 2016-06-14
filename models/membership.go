@@ -79,8 +79,43 @@ func ApproveOrDenyMembershipInvitation(db DB, gameID, playerPublicID, clanPublic
 	return nil, &PlayerCannotApproveOrDenyMembershipError{action, playerPublicID, clanPublicID, playerPublicID}
 }
 
+//ApproveOrDenyMembershipApplication sets Membership.Approved to true or Membership.Denied to true
+func ApproveOrDenyMembershipApplication(db DB, gameID, playerPublicID, clanPublicID, requestorPublicID, action string) (*Membership, error) {
+	minLevelToApproveOrDenyMembership := 1 // TODO: get this from some config
+
+	if playerPublicID == requestorPublicID {
+		return nil, &PlayerCannotApproveOrDenyMembershipError{action, playerPublicID, clanPublicID, requestorPublicID}
+	}
+
+	membership, err := GetMembershipByClanAndPlayerPublicID(db, gameID, clanPublicID, playerPublicID)
+	if err != nil {
+		return nil, err
+	}
+
+	if membership.PlayerID != membership.RequestorID {
+		return nil, &PlayerCannotApproveOrDenyMembershipError{action, playerPublicID, clanPublicID, requestorPublicID}
+	}
+
+	if membership.Approved || membership.Denied {
+		return nil, &CannotApproveOrDenyMembershipAlreadyProcessedError{action}
+	}
+
+	reqMembership, _ := GetMembershipByClanAndPlayerPublicID(db, gameID, clanPublicID, requestorPublicID)
+	if reqMembership == nil {
+		_, clanErr := GetClanByPublicIDAndOwnerPublicID(db, gameID, clanPublicID, requestorPublicID)
+		if clanErr != nil {
+			return nil, &PlayerCannotApproveOrDenyMembershipError{action, playerPublicID, clanPublicID, requestorPublicID}
+		}
+		return approveOrDenyMembershipHelper(db, membership, action)
+	} else if reqMembership.Level >= minLevelToApproveOrDenyMembership && reqMembership.Approved == true {
+		return approveOrDenyMembershipHelper(db, membership, action)
+	} else {
+		return nil, &PlayerCannotApproveOrDenyMembershipError{action, playerPublicID, clanPublicID, requestorPublicID}
+	}
+}
+
 //CreateMembership creates a new membership
-func CreateMembership(db DB, gameID string, level int, playerPublicID string, clanPublicID string, requestorPublicID string) (*Membership, error) {
+func CreateMembership(db DB, gameID string, level int, playerPublicID, clanPublicID, requestorPublicID string) (*Membership, error) {
 	minLevelToCreateMembership := 1 // TODO: get this from some config
 
 	player, err := GetPlayerByPublicID(db, gameID, playerPublicID)
@@ -125,7 +160,7 @@ func approveOrDenyMembershipHelper(db DB, membership *Membership, action string)
 	return membership, nil
 }
 
-func createMembershipHelper(db DB, gameID string, level int, playerID int, clanID int, requestorID int) (*Membership, error) {
+func createMembershipHelper(db DB, gameID string, level, playerID, clanID, requestorID int) (*Membership, error) {
 	membership := &Membership{
 		GameID:      gameID,
 		ClanID:      clanID,
