@@ -722,6 +722,7 @@ func TestMembershipHandler(t *testing.T) {
 			var result map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsTrue()
+			g.Assert(int(result["level"].(float64))).Equal(playerMembership.Level + 1)
 
 			dbMembership, err := models.GetMembershipByClanAndPlayerPublicID(a.Db, gameID, clanPublicID, player.PublicID)
 			g.Assert(err == nil).IsTrue()
@@ -778,6 +779,7 @@ func TestMembershipHandler(t *testing.T) {
 			var result map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsTrue()
+			g.Assert(int(result["level"].(float64))).Equal(playerMembership.Level - 1)
 
 			dbMembership, err := models.GetMembershipByClanAndPlayerPublicID(a.Db, gameID, clanPublicID, player.PublicID)
 			g.Assert(err == nil).IsTrue()
