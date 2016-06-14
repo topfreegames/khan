@@ -185,8 +185,8 @@ func SetMembershipHandlersGroup(app *App) {
 		c.Next()
 	})
 
-	membershipHandlersGroup.Post("/apply", ApplyForMembershipHandler(app))
-	membershipHandlersGroup.Post("/apply/:action", ApproveOrDenyMembershipApplicationHandler(app))
-	membershipHandlersGroup.Post("/invite", InviteForMembershipHandler(app))
-	membershipHandlersGroup.Post("/invite/:action", ApproveOrDenyMembershipInvitationHandler(app))
+	membershipHandlersGroup.Post("/application", ApplyForMembershipHandler(app))
+	membershipHandlersGroup.Post("/application/:action", ApproveOrDenyMembershipApplicationHandler(app))
+	membershipHandlersGroup.Post("/invitation", InviteForMembershipHandler(app))
+	membershipHandlersGroup.Post("/invitation/:action", ApproveOrDenyMembershipInvitationHandler(app))
 }
