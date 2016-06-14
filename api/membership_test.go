@@ -63,7 +63,7 @@ func TestMembershipHandler(t *testing.T) {
 			fmt.Println(&result)
 			g.Assert(result["success"]).IsTrue()
 
-			dbMembership, err := models.GetMembershipByPlayerPublicID(a.Db, gameID, player.PublicID)
+			dbMembership, err := models.GetMembershipByClanAndPlayerPublicID(a.Db, gameID, clanPublicID, player.PublicID)
 			g.Assert(err == nil).IsTrue()
 			g.Assert(dbMembership.GameID).Equal(gameID)
 			g.Assert(dbMembership.PlayerID).Equal(player.ID)
@@ -197,7 +197,7 @@ func TestMembershipHandler(t *testing.T) {
 			fmt.Println(&result)
 			g.Assert(result["success"]).IsTrue()
 
-			dbMembership, err := models.GetMembershipByPlayerPublicID(a.Db, gameID, player.PublicID)
+			dbMembership, err := models.GetMembershipByClanAndPlayerPublicID(a.Db, gameID, clanPublicID, player.PublicID)
 			g.Assert(err == nil).IsTrue()
 			g.Assert(dbMembership.GameID).Equal(gameID)
 			g.Assert(dbMembership.PlayerID).Equal(player.ID)
@@ -261,7 +261,7 @@ func TestMembershipHandler(t *testing.T) {
 			fmt.Println(&result)
 			g.Assert(result["success"]).IsTrue()
 
-			dbMembership, err := models.GetMembershipByPlayerPublicID(a.Db, gameID, player.PublicID)
+			dbMembership, err := models.GetMembershipByClanAndPlayerPublicID(a.Db, gameID, clanPublicID, player.PublicID)
 			g.Assert(err == nil).IsTrue()
 			g.Assert(dbMembership.GameID).Equal(gameID)
 			g.Assert(dbMembership.PlayerID).Equal(player.ID)
