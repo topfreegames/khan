@@ -61,6 +61,16 @@ func GetMembershipByClanAndPlayerPublicID(db DB, gameID string, clanPublicID str
 	return &membership, nil
 }
 
+//GetDeletedMembershipByClanAndPlayerPublicID returns a deleted membership for the clan and the player with the given publicIDs
+func GetDeletedMembershipByClanAndPlayerPublicID(db DB, gameID string, clanPublicID string, playerPublicID string) (*Membership, error) {
+	var membership Membership
+	err := db.SelectOne(&membership, "SELECT memberships.* FROM memberships, clans, players WHERE memberships.deleted_at!=0 AND memberships.game_id=$1 AND memberships.clan_id=clans.id AND memberships.player_id=players.id AND clans.public_id=$2 AND players.public_id=$3", gameID, clanPublicID, playerPublicID)
+	if err != nil || &membership == nil {
+		return nil, &ModelNotFoundError{"Membership", playerPublicID}
+	}
+	return &membership, nil
+}
+
 //ApproveOrDenyMembershipInvitation sets Membership.Approved to true or Membership.Denied to true
 func ApproveOrDenyMembershipInvitation(db DB, gameID, playerPublicID, clanPublicID, action string) (*Membership, error) {
 	membership, err := GetMembershipByClanAndPlayerPublicID(db, gameID, clanPublicID, playerPublicID)
@@ -118,10 +128,19 @@ func ApproveOrDenyMembershipApplication(db DB, gameID, playerPublicID, clanPubli
 //CreateMembership creates a new membership
 func CreateMembership(db DB, gameID string, level int, playerPublicID, clanPublicID, requestorPublicID string) (*Membership, error) {
 	minLevelToCreateMembership := 1 // TODO: get this from some config
+	previousMembership := false
+	var playerID int
 
-	player, err := GetPlayerByPublicID(db, gameID, playerPublicID)
-	if err != nil {
-		return nil, err
+	membership, _ := GetDeletedMembershipByClanAndPlayerPublicID(db, gameID, clanPublicID, playerPublicID)
+	if membership != nil {
+		previousMembership = true
+		playerID = membership.PlayerID
+	} else {
+		player, err := GetPlayerByPublicID(db, gameID, playerPublicID)
+		if err != nil {
+			return nil, err
+		}
+		playerID = player.ID
 	}
 
 	if requestorPublicID == playerPublicID {
@@ -129,7 +148,10 @@ func CreateMembership(db DB, gameID string, level int, playerPublicID, clanPubli
 		if clanErr != nil {
 			return nil, clanErr
 		}
-		return createMembershipHelper(db, gameID, level, player.ID, clan.ID, player.ID)
+		if previousMembership {
+			return recreateDeletedMembershipHelper(db, membership, level, membership.PlayerID)
+		}
+		return createMembershipHelper(db, gameID, level, playerID, clan.ID, playerID)
 	}
 
 	reqMembership, _ := GetMembershipByClanAndPlayerPublicID(db, gameID, clanPublicID, requestorPublicID)
@@ -138,9 +160,15 @@ func CreateMembership(db DB, gameID string, level int, playerPublicID, clanPubli
 		if clanErr != nil {
 			return nil, &PlayerCannotCreateMembershipError{requestorPublicID, clanPublicID}
 		}
-		return createMembershipHelper(db, gameID, level, player.ID, clan.ID, clan.OwnerID)
+		if previousMembership {
+			return recreateDeletedMembershipHelper(db, membership, level, clan.OwnerID)
+		}
+		return createMembershipHelper(db, gameID, level, playerID, clan.ID, clan.OwnerID)
 	} else if isValidMember(reqMembership) && reqMembership.Level >= minLevelToCreateMembership {
-		return createMembershipHelper(db, gameID, level, player.ID, reqMembership.ClanID, reqMembership.PlayerID)
+		if previousMembership {
+			return recreateDeletedMembershipHelper(db, membership, level, reqMembership.PlayerID)
+		}
+		return createMembershipHelper(db, gameID, level, playerID, reqMembership.ClanID, reqMembership.PlayerID)
 	} else {
 		return nil, &PlayerCannotCreateMembershipError{requestorPublicID, clanPublicID}
 	}
@@ -240,6 +268,19 @@ func createMembershipHelper(db DB, gameID string, level, playerID, clanID, reque
 	}
 
 	err := db.Insert(membership)
+	if err != nil {
+		return nil, err
+	}
+	return membership, nil
+}
+
+func recreateDeletedMembershipHelper(db DB, membership *Membership, level, requestorID int) (*Membership, error) {
+	membership.RequestorID = requestorID
+	membership.Level = level
+	membership.Approved = false
+	membership.Denied = false
+
+	_, err := db.Update(membership)
 	if err != nil {
 		return nil, err
 	}
