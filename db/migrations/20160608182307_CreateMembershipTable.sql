@@ -18,6 +18,7 @@ CREATE TABLE memberships (
     requestor_id integer NOT NULL REFERENCES players (id),
     created_at bigint NOT NULL,
     updated_at bigint NULL,
+    deleted_by integer NULL,
     deleted_at bigint NULL,
 
     CONSTRAINT playerid_clanid UNIQUE(player_id, clan_id)

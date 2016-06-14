@@ -25,6 +25,7 @@ type Membership struct {
 	RequestorID int    `db:"requestor_id"`
 	CreatedAt   int64  `db:"created_at"`
 	UpdatedAt   int64  `db:"updated_at"`
+	DeletedBy   int    `db:"deleted_by"`
 	DeletedAt   int64  `db:"deleted_at"`
 }
 
@@ -159,7 +160,7 @@ func PromoteOrDemoteMember(db DB, gameID, playerPublicID, clanPublicID, requesto
 	}
 
 	if playerPublicID == requestorPublicID {
-		return nil, &PlayerCannotPromoteOrDemoteMemberError{action, playerPublicID, clanPublicID, requestorPublicID}
+		return nil, &PlayerCannotPerformMembershipActionError{action, playerPublicID, clanPublicID, requestorPublicID}
 	}
 
 	membership, err := GetMembershipByClanAndPlayerPublicID(db, gameID, clanPublicID, playerPublicID)
@@ -177,13 +178,35 @@ func PromoteOrDemoteMember(db DB, gameID, playerPublicID, clanPublicID, requesto
 	if reqMembership == nil {
 		_, clanErr := GetClanByPublicIDAndOwnerPublicID(db, gameID, clanPublicID, requestorPublicID)
 		if clanErr != nil {
-			return nil, &PlayerCannotPromoteOrDemoteMemberError{action, playerPublicID, clanPublicID, requestorPublicID}
+			return nil, &PlayerCannotPerformMembershipActionError{action, playerPublicID, clanPublicID, requestorPublicID}
 		}
 		return promoteOrDemoteMemberHelper(db, membership, action)
 	} else if isValidMember(reqMembership) && reqMembership.Level > membership.Level+levelOffset {
 		return promoteOrDemoteMemberHelper(db, membership, action)
 	}
-	return nil, &PlayerCannotPromoteOrDemoteMemberError{action, playerPublicID, clanPublicID, requestorPublicID}
+	return nil, &PlayerCannotPerformMembershipActionError{action, playerPublicID, clanPublicID, requestorPublicID}
+}
+
+//DeleteMembership soft deletes a membership
+func DeleteMembership(db DB, gameID, playerPublicID, clanPublicID, requestorPublicID string) error {
+	membership, err := GetMembershipByClanAndPlayerPublicID(db, gameID, clanPublicID, playerPublicID)
+	if err != nil {
+		return err
+	}
+	if playerPublicID == requestorPublicID {
+		return deleteMembershipHelper(db, membership, membership.PlayerID)
+	}
+	reqMembership, _ := GetMembershipByClanAndPlayerPublicID(db, gameID, clanPublicID, requestorPublicID)
+	if reqMembership == nil {
+		clan, clanErr := GetClanByPublicIDAndOwnerPublicID(db, gameID, clanPublicID, requestorPublicID)
+		if clanErr != nil {
+			return &PlayerCannotPerformMembershipActionError{"delete", playerPublicID, clanPublicID, requestorPublicID}
+		}
+		return deleteMembershipHelper(db, membership, clan.OwnerID)
+	} else if isValidMember(reqMembership) && reqMembership.Level > membership.Level {
+		return deleteMembershipHelper(db, membership, reqMembership.PlayerID)
+	}
+	return &PlayerCannotPerformMembershipActionError{"delete", playerPublicID, clanPublicID, requestorPublicID}
 }
 
 func isValidMember(membership *Membership) bool {
@@ -238,4 +261,13 @@ func promoteOrDemoteMemberHelper(db DB, membership *Membership, action string) (
 		return nil, err
 	}
 	return membership, nil
+}
+
+func deleteMembershipHelper(db DB, membership *Membership, deletedBy int) error {
+	membership.DeletedAt = time.Now().UnixNano()
+	membership.DeletedBy = deletedBy
+	membership.Approved = false
+	membership.Denied = false
+	_, err := db.Update(membership)
+	return err
 }
