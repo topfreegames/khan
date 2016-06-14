@@ -60,7 +60,6 @@ func TestMembershipHandler(t *testing.T) {
 			res.Status(http.StatusOK)
 			var result map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
-			fmt.Println(&result)
 			g.Assert(result["success"]).IsTrue()
 
 			dbMembership, err := models.GetMembershipByClanAndPlayerPublicID(a.Db, gameID, clanPublicID, player.PublicID)
@@ -193,7 +192,6 @@ func TestMembershipHandler(t *testing.T) {
 			res.Status(http.StatusOK)
 			var result map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
-			fmt.Println(&result)
 			g.Assert(result["success"]).IsTrue()
 
 			dbMembership, err := models.GetMembershipByClanAndPlayerPublicID(a.Db, gameID, clanPublicID, player.PublicID)
@@ -257,7 +255,6 @@ func TestMembershipHandler(t *testing.T) {
 			res.Status(http.StatusOK)
 			var result map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
-			fmt.Println(&result)
 			g.Assert(result["success"]).IsTrue()
 
 			dbMembership, err := models.GetMembershipByClanAndPlayerPublicID(a.Db, gameID, clanPublicID, player.PublicID)
@@ -402,7 +399,6 @@ func TestMembershipHandler(t *testing.T) {
 			res.Status(http.StatusOK)
 			var result map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
-			fmt.Println(&result)
 			g.Assert(result["success"]).IsTrue()
 
 			dbMembership, err := models.GetMembershipByClanAndPlayerPublicID(a.Db, gameID, clanPublicID, player.PublicID)
@@ -458,7 +454,6 @@ func TestMembershipHandler(t *testing.T) {
 			res.Status(http.StatusOK)
 			var result map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
-			fmt.Println(&result)
 			g.Assert(result["success"]).IsTrue()
 
 			dbMembership, err := models.GetMembershipByClanAndPlayerPublicID(a.Db, gameID, clanPublicID, player.PublicID)
@@ -564,7 +559,6 @@ func TestMembershipHandler(t *testing.T) {
 			res.Status(http.StatusOK)
 			var result map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
-			fmt.Println(&result)
 			g.Assert(result["success"]).IsTrue()
 
 			dbMembership, err := models.GetMembershipByClanAndPlayerPublicID(a.Db, gameID, clanPublicID, player.PublicID)
@@ -621,7 +615,6 @@ func TestMembershipHandler(t *testing.T) {
 			res.Status(http.StatusOK)
 			var result map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
-			fmt.Println(&result)
 			g.Assert(result["success"]).IsTrue()
 
 			dbMembership, err := models.GetMembershipByClanAndPlayerPublicID(a.Db, gameID, clanPublicID, player.PublicID)
