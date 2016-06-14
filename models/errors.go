@@ -80,6 +80,16 @@ func (e *CannotPromoteOrDemoteInvalidMemberError) Error() string {
 	return fmt.Sprintf("Cannot %s membership that is denied or not yet approved", e.Action)
 }
 
+//CannotPromoteOrDemoteMemberLevelError identifies that a given member is already max level and cannot be promoted
+type CannotPromoteOrDemoteMemberLevelError struct {
+	Action string
+	Level  int
+}
+
+func (e *CannotPromoteOrDemoteMemberLevelError) Error() string {
+	return fmt.Sprintf("Cannot %s member that is already level %d", e.Action, e.Level)
+}
+
 //InvalidMembershipActionError identifies that a given action is not valid
 type InvalidMembershipActionError struct {
 	Action string

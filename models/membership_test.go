@@ -1876,10 +1876,105 @@ func TestMembershipModel(t *testing.T) {
 				g.Assert(err != nil).IsTrue()
 				g.Assert(err.Error()).Equal(fmt.Sprintf("Player %s cannot %s member %s in clan %s", requestor.PublicID, action, player.PublicID, clan.PublicID))
 			})
+
+			g.It("Player is already max level", func() {
+				action := "promote"
+				player := PlayerFactory.MustCreate().(*Player)
+				err := testDb.Insert(player)
+				g.Assert(err == nil).IsTrue()
+
+				owner := PlayerFactory.MustCreateWithOption(map[string]interface{}{
+					"GameID": player.GameID,
+				}).(*Player)
+				err = testDb.Insert(owner)
+				g.Assert(err == nil).IsTrue()
+
+				clan := ClanFactory.MustCreateWithOption(map[string]interface{}{
+					"GameID":  owner.GameID,
+					"OwnerID": owner.ID,
+				}).(*Clan)
+				err = testDb.Insert(clan)
+				g.Assert(err == nil).IsTrue()
+
+				playerMembership := MembershipFactory.MustCreateWithOption(map[string]interface{}{
+					"GameID":      player.GameID,
+					"ClanID":      clan.ID,
+					"PlayerID":    player.ID,
+					"RequestorID": owner.ID,
+					"Level":       1000000,
+					"Approved":    true,
+					"Denied":      false,
+				}).(*Membership)
+				err = testDb.Insert(playerMembership)
+				g.Assert(err == nil).IsTrue()
+
+				_, err = PromoteOrDemoteMember(
+					testDb,
+					player.GameID,
+					player.PublicID,
+					clan.PublicID,
+					owner.PublicID,
+					action,
+				)
+
+				g.Assert(err != nil).IsTrue()
+				g.Assert(err.Error()).Equal(fmt.Sprintf("Cannot %s member that is already level %d", action, playerMembership.Level))
+			})
 		})
 
 		g.Describe("Should demote a member with PromoteOrDemoteMember", func() {
 			g.It("If requestor is the owner", func() {
+				action := "demote"
+				player := PlayerFactory.MustCreate().(*Player)
+				err := testDb.Insert(player)
+				g.Assert(err == nil).IsTrue()
+
+				owner := PlayerFactory.MustCreateWithOption(map[string]interface{}{
+					"GameID": player.GameID,
+				}).(*Player)
+				err = testDb.Insert(owner)
+				g.Assert(err == nil).IsTrue()
+
+				clan := ClanFactory.MustCreateWithOption(map[string]interface{}{
+					"GameID":  owner.GameID,
+					"OwnerID": owner.ID,
+				}).(*Clan)
+				err = testDb.Insert(clan)
+				g.Assert(err == nil).IsTrue()
+
+				playerMembership := MembershipFactory.MustCreateWithOption(map[string]interface{}{
+					"GameID":      player.GameID,
+					"ClanID":      clan.ID,
+					"PlayerID":    player.ID,
+					"RequestorID": owner.ID,
+					"Level":       1,
+					"Approved":    true,
+					"Denied":      false,
+				}).(*Membership)
+				err = testDb.Insert(playerMembership)
+				g.Assert(err == nil).IsTrue()
+
+				updatedMembership, err := PromoteOrDemoteMember(
+					testDb,
+					player.GameID,
+					player.PublicID,
+					clan.PublicID,
+					owner.PublicID,
+					action,
+				)
+
+				g.Assert(err == nil).IsTrue()
+				g.Assert(updatedMembership.ID).Equal(playerMembership.ID)
+				g.Assert(updatedMembership.Level).Equal(playerMembership.Level - 1)
+
+				dbMembership, err := GetMembershipByID(testDb, updatedMembership.ID)
+				g.Assert(err == nil).IsTrue()
+				g.Assert(dbMembership.Level).Equal(playerMembership.Level - 1)
+			})
+		})
+
+		g.Describe("Should not demote a member with PromoteOrDemoteMember if", func() {
+			g.It("Player is already min level", func() {
 				action := "demote"
 				player := PlayerFactory.MustCreate().(*Player)
 				err := testDb.Insert(player)
@@ -1910,7 +2005,7 @@ func TestMembershipModel(t *testing.T) {
 				err = testDb.Insert(playerMembership)
 				g.Assert(err == nil).IsTrue()
 
-				updatedMembership, err := PromoteOrDemoteMember(
+				_, err = PromoteOrDemoteMember(
 					testDb,
 					player.GameID,
 					player.PublicID,
@@ -1919,13 +2014,8 @@ func TestMembershipModel(t *testing.T) {
 					action,
 				)
 
-				g.Assert(err == nil).IsTrue()
-				g.Assert(updatedMembership.ID).Equal(playerMembership.ID)
-				g.Assert(updatedMembership.Level).Equal(playerMembership.Level - 1)
-
-				dbMembership, err := GetMembershipByID(testDb, updatedMembership.ID)
-				g.Assert(err == nil).IsTrue()
-				g.Assert(dbMembership.Level).Equal(playerMembership.Level - 1)
+				g.Assert(err != nil).IsTrue()
+				g.Assert(err.Error()).Equal(fmt.Sprintf("Cannot %s member that is already level %d", action, playerMembership.Level))
 			})
 		})
 
