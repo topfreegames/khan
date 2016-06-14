@@ -12,17 +12,19 @@ import (
 	"github.com/topfreegames/khan/models"
 )
 
-//applyForMembershipPayload maps the payload for the Apply For Membership route
 type applyForMembershipPayload struct {
 	Level          int
 	PlayerPublicID string
 }
 
-//inviteForMembershipPayload maps the payload for the Invite For Membership route
 type inviteForMembershipPayload struct {
 	Level             int
 	PlayerPublicID    string
 	RequestorPublicID string
+}
+
+type approveOrDenyMembershipInvitationPayload struct {
+	PlayerPublicID string
 }
 
 //ApplyForMembershipHandler is the handler responsible for applying for new memberships
@@ -93,6 +95,40 @@ func InviteForMembershipHandler(app *App) func(c *iris.Context) {
 	}
 }
 
+//ApproveOrDenyMembershipInvitationHandler is the handler responsible for approving or denying a membership invitation
+func ApproveOrDenyMembershipInvitationHandler(app *App) func(c *iris.Context) {
+	return func(c *iris.Context) {
+		action := c.Param("action")
+		gameID := c.Get("gameID").(string)
+		clanPublicID := c.Get("clanPublicID").(string)
+
+		var payload approveOrDenyMembershipInvitationPayload
+		if err := c.ReadJSON(&payload); err != nil {
+			FailWith(400, err.Error(), c)
+			return
+		}
+
+		db := GetCtxDB(c)
+
+		membership, err := models.ApproveOrDenyMembershipInvitation(
+			db,
+			gameID,
+			payload.PlayerPublicID,
+			clanPublicID,
+			action,
+		)
+
+		if err != nil {
+			FailWith(500, err.Error(), c)
+			return
+		}
+
+		SucceedWith(map[string]interface{}{
+			"id": membership.ID,
+		}, c)
+	}
+}
+
 //SetMembershipHandlersGroup configures the routes for all membership related routes
 func SetMembershipHandlersGroup(app *App) {
 	gameParty := app.App.Party("/games/:gameID", func(c *iris.Context) {
@@ -111,4 +147,5 @@ func SetMembershipHandlersGroup(app *App) {
 
 	membershipHandlersGroup.Post("/apply", ApplyForMembershipHandler(app))
 	membershipHandlersGroup.Post("/invite", InviteForMembershipHandler(app))
+	membershipHandlersGroup.Post("/invite/:action", ApproveOrDenyMembershipInvitationHandler(app))
 }
