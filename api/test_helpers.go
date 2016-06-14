@@ -64,12 +64,12 @@ func PutJSON(app *App, url string, t *testing.T, payload map[string]interface{})
 	return sendJSON(app, "PUT", url, t, payload)
 }
 
-func sendJSON(app *App, method string, url string, t *testing.T, payload map[string]interface{}) *httpexpect.Response {
+func sendJSON(app *App, method, url string, t *testing.T, payload map[string]interface{}) *httpexpect.Response {
 	req := sendRequest(app, method, url, t)
 	return req.WithJSON(payload).Expect()
 }
 
-func sendRequest(app *App, method string, url string, t *testing.T) *httpexpect.Request {
+func sendRequest(app *App, method, url string, t *testing.T) *httpexpect.Request {
 	handler := app.App.ServeRequest
 
 	e := httpexpect.WithConfig(httpexpect.Config{
@@ -81,12 +81,12 @@ func sendRequest(app *App, method string, url string, t *testing.T) *httpexpect.
 }
 
 //GetGameRoute returns a clan route for the given game id.
-func GetGameRoute(gameID string, route string) string {
+func GetGameRoute(gameID, route string) string {
 	return fmt.Sprintf("/games/%s/%s", gameID, route)
 }
 
-//CreateMembershipRoute returns a clan route for the given game id.
-func CreateMembershipRoute(gameID string, clanPublicID string, route string) string {
-	fmt.Println(fmt.Sprintf("/games/%s/clans/%s/%s", gameID, clanPublicID, route))
-	return fmt.Sprintf("/games/%s/clans/%s/%s", gameID, clanPublicID, route)
+//CreateMembershipRoute returns a create membership route for the given game and clan id.
+func CreateMembershipRoute(gameID, clanPublicID, route string) string {
+	fmt.Println(fmt.Sprintf("/games/%s/clans/%s/memberships/%s", gameID, clanPublicID, route))
+	return fmt.Sprintf("/games/%s/clans/%s/memberships/%s", gameID, clanPublicID, route)
 }
