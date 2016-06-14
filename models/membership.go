@@ -147,8 +147,14 @@ func CreateMembership(db DB, gameID string, level int, playerPublicID, clanPubli
 
 //PromoteOrDemoteMember increments or decrements Membership.Level by one
 func PromoteOrDemoteMember(db DB, gameID, playerPublicID, clanPublicID, requestorPublicID, action string) (*Membership, error) {
+	demote := action == "demote"
+	promote := action == "promote"
+
+	minLevel := 0       // TODO: get this from some config
+	maxLevel := 1000000 // TODO: get this from some config
+
 	levelOffset := 0
-	if action == "promote" {
+	if promote {
 		levelOffset = 1
 	}
 
@@ -162,6 +168,9 @@ func PromoteOrDemoteMember(db DB, gameID, playerPublicID, clanPublicID, requesto
 	}
 	if !isValidMember(membership) {
 		return nil, &CannotPromoteOrDemoteInvalidMemberError{action}
+	}
+	if promote && membership.Level >= maxLevel || demote && membership.Level <= minLevel {
+		return nil, &CannotPromoteOrDemoteMemberLevelError{action, membership.Level}
 	}
 
 	reqMembership, _ := GetMembershipByClanAndPlayerPublicID(db, gameID, clanPublicID, requestorPublicID)
