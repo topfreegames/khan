@@ -71,6 +71,16 @@ func GetDeletedMembershipByClanAndPlayerPublicID(db DB, gameID string, clanPubli
 	return &membership, nil
 }
 
+//GetOldestMemberWithHighestLevel returns the member with highest level that has the oldest creation date
+func GetOldestMemberWithHighestLevel(db DB, gameID, clanPublicID string) (*Membership, error) {
+	var membership Membership
+	err := db.SelectOne(&membership, "SELECT memberships.* FROM memberships, clans WHERE memberships.deleted_at=0 AND memberships.game_id=$1 AND memberships.clan_id=clans.id AND clans.public_id=$2 ORDER BY memberships.membership_level DESC, memberships.created_at ASC LIMIT 1", gameID, clanPublicID)
+	if err != nil || &membership == nil {
+		return nil, &ClanHasNoMembersError{clanPublicID}
+	}
+	return &membership, nil
+}
+
 //ApproveOrDenyMembershipInvitation sets Membership.Approved to true or Membership.Denied to true
 func ApproveOrDenyMembershipInvitation(db DB, gameID, playerPublicID, clanPublicID, action string) (*Membership, error) {
 	membership, err := GetMembershipByClanAndPlayerPublicID(db, gameID, clanPublicID, playerPublicID)

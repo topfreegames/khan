@@ -165,6 +165,52 @@ func TestMembershipModel(t *testing.T) {
 			g.Assert(dbMembership == nil).IsTrue()
 		})
 
+		g.Describe("GetOldestMemberWithHighestLevel", func() {
+			g.It("Should get the member with the highest level", func() {
+				clan, _, players, memberships, err := GetClanWithMemberships(testDb, 2, "", "")
+				g.Assert(err == nil).IsTrue()
+
+				memberships[0].Level++
+				_, err = testDb.Update(memberships[0])
+
+				dbMembership, err := GetOldestMemberWithHighestLevel(testDb, clan.GameID, clan.PublicID)
+				g.Assert(err == nil).IsTrue()
+				g.Assert(dbMembership.ID).Equal(memberships[0].ID)
+				g.Assert(dbMembership.PlayerID).Equal(players[0].ID)
+			})
+
+			g.It("Should get the oldest member", func() {
+				clan, _, players, memberships, err := GetClanWithMemberships(testDb, 2, "", "")
+				g.Assert(err == nil).IsTrue()
+
+				memberships[0].CreatedAt -= 100000
+				_, err = testDb.Update(memberships[0])
+
+				dbMembership, err := GetOldestMemberWithHighestLevel(testDb, clan.GameID, clan.PublicID)
+				g.Assert(err == nil).IsTrue()
+				g.Assert(dbMembership.ID).Equal(memberships[0].ID)
+				g.Assert(dbMembership.PlayerID).Equal(players[0].ID)
+				g.Assert(dbMembership.CreatedAt < memberships[1].CreatedAt).IsTrue()
+			})
+
+			g.It("Should return an error if clan has no members", func() {
+				clan, _, _, _, err := GetClanWithMemberships(testDb, 0, "", "")
+				g.Assert(err == nil).IsTrue()
+
+				dbMembership, err := GetOldestMemberWithHighestLevel(testDb, clan.GameID, clan.PublicID)
+				g.Assert(err != nil).IsTrue()
+				g.Assert(err.Error()).Equal(fmt.Sprintf("Clan %v has no members", clan.PublicID))
+				g.Assert(dbMembership == nil).IsTrue()
+			})
+
+			g.It("Should return an error if clan does not exist", func() {
+				dbMembership, err := GetOldestMemberWithHighestLevel(testDb, "abc", "def")
+				g.Assert(err != nil).IsTrue()
+				g.Assert(err.Error()).Equal("Clan def has no members")
+				g.Assert(dbMembership == nil).IsTrue()
+			})
+		})
+
 		g.Describe("Should create a new Membership with CreateMembership", func() {
 			g.It("If requestor is the player", func() {
 				clan, _, _, _, err := GetClanWithMemberships(testDb, 1, "", "")
