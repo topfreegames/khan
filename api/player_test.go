@@ -11,6 +11,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 	"testing"
 
 	"github.com/Pallinder/go-randomdata"
@@ -60,9 +61,7 @@ func TestPlayerHandler(t *testing.T) {
 			var result map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
-			g.Assert(result["reason"]).Equal(
-				"\n[IRIS]  Error: While trying to read [JSON invalid character 'i' looking for beginning of value] from the request body. Trace %!!(MISSING)s(MISSING)",
-			)
+			g.Assert(strings.Contains(result["reason"].(string), "While trying to read JSON")).IsTrue()
 		})
 
 		g.It("Should not create player if invalid data", func() {
@@ -122,9 +121,7 @@ func TestPlayerHandler(t *testing.T) {
 			var result map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
-			g.Assert(result["reason"]).Equal(
-				"\n[IRIS]  Error: While trying to read [JSON invalid character 'i' looking for beginning of value] from the request body. Trace %!!(MISSING)s(MISSING)",
-			)
+			g.Assert(strings.Contains(result["reason"].(string), "While trying to read JSON")).IsTrue()
 		})
 
 		g.It("Should not update player if invalid data", func() {

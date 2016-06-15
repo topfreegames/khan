@@ -26,7 +26,7 @@ type App struct {
 	Port       int
 	Host       string
 	ConfigPath string
-	App        *iris.Iris
+	App        *iris.Framework
 	Db         models.DB
 	Config     *viper.Viper
 }
@@ -97,7 +97,7 @@ func (app *App) configureApplication() {
 	a := app.App
 
 	if app.Debug {
-		a.Use(logger.New(iris.Logger()))
+		a.Use(logger.New(iris.Logger))
 	}
 	//a.Use(recovery.New(os.Stderr))
 	a.Use(&TransactionMiddleware{App: app})
