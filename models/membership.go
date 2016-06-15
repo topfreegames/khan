@@ -52,7 +52,7 @@ func GetMembershipByID(db DB, id int) (*Membership, error) {
 }
 
 //GetMembershipByClanAndPlayerPublicID returns a membership for the clan and the player with the given publicIDs
-func GetMembershipByClanAndPlayerPublicID(db DB, gameID string, clanPublicID string, playerPublicID string) (*Membership, error) {
+func GetMembershipByClanAndPlayerPublicID(db DB, gameID, clanPublicID, playerPublicID string) (*Membership, error) {
 	var membership Membership
 	err := db.SelectOne(&membership, "SELECT memberships.* FROM memberships, clans, players WHERE memberships.deleted_at=0 AND memberships.game_id=$1 AND memberships.clan_id=clans.id AND memberships.player_id=players.id AND clans.public_id=$2 AND players.public_id=$3", gameID, clanPublicID, playerPublicID)
 	if err != nil || &membership == nil {
@@ -62,7 +62,7 @@ func GetMembershipByClanAndPlayerPublicID(db DB, gameID string, clanPublicID str
 }
 
 //GetDeletedMembershipByClanAndPlayerPublicID returns a deleted membership for the clan and the player with the given publicIDs
-func GetDeletedMembershipByClanAndPlayerPublicID(db DB, gameID string, clanPublicID string, playerPublicID string) (*Membership, error) {
+func GetDeletedMembershipByClanAndPlayerPublicID(db DB, gameID, clanPublicID, playerPublicID string) (*Membership, error) {
 	var membership Membership
 	err := db.SelectOne(&membership, "SELECT memberships.* FROM memberships, clans, players WHERE memberships.deleted_at!=0 AND memberships.game_id=$1 AND memberships.clan_id=clans.id AND memberships.player_id=players.id AND clans.public_id=$2 AND players.public_id=$3", gameID, clanPublicID, playerPublicID)
 	if err != nil || &membership == nil {
