@@ -35,8 +35,8 @@ type approveOrDenyMembershipInvitationPayload struct {
 //ApplyForMembershipHandler is the handler responsible for applying for new memberships
 func ApplyForMembershipHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
-		gameID := c.Get("gameID").(string)
-		clanPublicID := c.Get("clanPublicID").(string)
+		gameID := c.Param("gameID")
+		clanPublicID := c.Param("clanPublicID")
 
 		var payload applyForMembershipPayload
 		if err := c.ReadJSON(&payload); err != nil {
@@ -67,8 +67,8 @@ func ApplyForMembershipHandler(app *App) func(c *iris.Context) {
 //InviteForMembershipHandler is the handler responsible for creating new memberships
 func InviteForMembershipHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
-		gameID := c.Get("gameID").(string)
-		clanPublicID := c.Get("clanPublicID").(string)
+		gameID := c.Param("gameID")
+		clanPublicID := c.Param("clanPublicID")
 
 		var payload inviteForMembershipPayload
 		if err := c.ReadJSON(&payload); err != nil {
@@ -101,8 +101,8 @@ func InviteForMembershipHandler(app *App) func(c *iris.Context) {
 func ApproveOrDenyMembershipApplicationHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
 		action := c.Param("action")
-		gameID := c.Get("gameID").(string)
-		clanPublicID := c.Get("clanPublicID").(string)
+		gameID := c.Param("gameID")
+		clanPublicID := c.Param("clanPublicID")
 
 		var payload basePayloadWithRequestorAndPlayerPublicIDs
 		if err := c.ReadJSON(&payload); err != nil {
@@ -134,8 +134,8 @@ func ApproveOrDenyMembershipApplicationHandler(app *App) func(c *iris.Context) {
 func ApproveOrDenyMembershipInvitationHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
 		action := c.Param("action")
-		gameID := c.Get("gameID").(string)
-		clanPublicID := c.Get("clanPublicID").(string)
+		gameID := c.Param("gameID")
+		clanPublicID := c.Param("clanPublicID")
 
 		var payload approveOrDenyMembershipInvitationPayload
 		if err := c.ReadJSON(&payload); err != nil {
@@ -165,8 +165,8 @@ func ApproveOrDenyMembershipInvitationHandler(app *App) func(c *iris.Context) {
 //DeleteMembershipHandler is the handler responsible for deleting a member
 func DeleteMembershipHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
-		gameID := c.Get("gameID").(string)
-		clanPublicID := c.Get("clanPublicID").(string)
+		gameID := c.Param("gameID")
+		clanPublicID := c.Param("clanPublicID")
 
 		var payload basePayloadWithRequestorAndPlayerPublicIDs
 		if err := c.ReadJSON(&payload); err != nil {
@@ -196,8 +196,8 @@ func DeleteMembershipHandler(app *App) func(c *iris.Context) {
 //PromoteOrDemoteMembershipHandler is the handler responsible for promoting or demoting a member
 func PromoteOrDemoteMembershipHandler(app *App, action string) func(c *iris.Context) {
 	return func(c *iris.Context) {
-		gameID := c.Get("gameID").(string)
-		clanPublicID := c.Get("clanPublicID").(string)
+		gameID := c.Param("gameID")
+		clanPublicID := c.Param("clanPublicID")
 
 		var payload basePayloadWithRequestorAndPlayerPublicIDs
 		if err := c.ReadJSON(&payload); err != nil {
@@ -225,29 +225,4 @@ func PromoteOrDemoteMembershipHandler(app *App, action string) func(c *iris.Cont
 			"level": membership.Level,
 		}, c)
 	}
-}
-
-//SetMembershipHandlersGroup configures the routes for all membership related routes
-func SetMembershipHandlersGroup(app *App) {
-	gameParty := app.App.Party("/games/:gameID", func(c *iris.Context) {
-		gameID := c.Param("gameID")
-		c.Set("gameID", gameID)
-		c.Next()
-	})
-	clanParty := gameParty.Party("/clans/:clanPublicID", func(c *iris.Context) {
-		clanPublicID := c.Param("clanPublicID")
-		c.Set("clanPublicID", clanPublicID)
-		c.Next()
-	})
-	membershipHandlersGroup := clanParty.Party("/memberships", func(c *iris.Context) {
-		c.Next()
-	})
-
-	membershipHandlersGroup.Post("/application", ApplyForMembershipHandler(app))
-	membershipHandlersGroup.Post("/application/:action", ApproveOrDenyMembershipApplicationHandler(app))
-	membershipHandlersGroup.Post("/invitation", InviteForMembershipHandler(app))
-	membershipHandlersGroup.Post("/invitation/:action", ApproveOrDenyMembershipInvitationHandler(app))
-	membershipHandlersGroup.Post("/delete", DeleteMembershipHandler(app))
-	membershipHandlersGroup.Post("/promote", PromoteOrDemoteMembershipHandler(app, "promote"))
-	membershipHandlersGroup.Post("/demote", PromoteOrDemoteMembershipHandler(app, "demote"))
 }

@@ -103,16 +103,21 @@ func (app *App) configureApplication() {
 	a.Use(&TransactionMiddleware{App: app})
 
 	a.Get("/healthcheck", HealthCheckHandler(app))
-
-	gameParty := app.App.Party("/games/:gameID", func(c *iris.Context) {
-		gameID := c.Param("gameID")
-		c.Set("gameID", gameID)
-		c.Next()
-	})
-
-	SetPlayerHandlersGroup(app, gameParty)
-	SetClanHandlersGroup(app, gameParty)
-	SetMembershipHandlersGroup(app)
+	a.Post("/games/:gameID/players", CreatePlayerHandler(app))
+	a.Put("/games/:gameID/players/:publicID", UpdatePlayerHandler(app))
+	a.Get("/games/:gameID/clans", ListClansHandler(app))
+	a.Get("/games/:gameID/clans/clan/:publicID", RetrieveClanHandler(app))
+	a.Post("/games/:gameID/clans", CreateClanHandler(app))
+	a.Get("/games/:gameID/clans/search", SearchClansHandler(app))
+	a.Put("/games/:gameID/clans/clan/:publicID", UpdateClanHandler(app))
+	a.Post("/games/:gameID/clans/:publicID/leave", LeaveClanHandler(app))
+	a.Post("/games/:gameID/clans/:clanPublicID/memberships/application", ApplyForMembershipHandler(app))
+	a.Post("/games/:gameID/clans/:clanPublicID/memberships/application/:action", ApproveOrDenyMembershipApplicationHandler(app))
+	a.Post("/games/:gameID/clans/:clanPublicID/memberships/invitation", InviteForMembershipHandler(app))
+	a.Post("/games/:gameID/clans/:clanPublicID/memberships/invitation/:action", ApproveOrDenyMembershipInvitationHandler(app))
+	a.Post("/games/:gameID/clans/:clanPublicID/memberships/delete", DeleteMembershipHandler(app))
+	a.Post("/games/:gameID/clans/:clanPublicID/memberships/promote", PromoteOrDemoteMembershipHandler(app, "promote"))
+	a.Post("/games/:gameID/clans/:clanPublicID/memberships/demote", PromoteOrDemoteMembershipHandler(app, "demote"))
 }
 
 func (app *App) finalizeApp() {
