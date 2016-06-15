@@ -85,6 +85,15 @@ func UpdateClanHandler(app *App) func(c *iris.Context) {
 	}
 }
 
+func serializeClans(clans []models.Clan, includePublicID bool) []map[string]interface{} {
+	serializedClans := make([]map[string]interface{}, len(clans))
+	for i, clan := range clans {
+		serializedClans[i] = serializeClan(&clan, includePublicID)
+	}
+
+	return serializedClans
+}
+
 func serializeClan(clan *models.Clan, includePublicID bool) map[string]interface{} {
 	serial := map[string]interface{}{
 		"name":     clan.Name,
@@ -114,11 +123,37 @@ func ListClansHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
-		serializedClans := make([]map[string]interface{}, len(clans))
-		for i, clan := range clans {
-			serializedClans[i] = serializeClan(&clan, true)
+		serializedClans := serializeClans(clans, true)
+		SucceedWith(map[string]interface{}{
+			"clans": serializedClans,
+		}, c)
+	}
+}
+
+//SearchClansHandler is the handler responsible for searching for clans
+func SearchClansHandler(app *App) func(c *iris.Context) {
+	return func(c *iris.Context) {
+		db := GetCtxDB(c)
+		gameID := c.GetString("gameID")
+		term := c.URLParam("term")
+
+		if term == "" {
+			FailWith(400, (&models.EmptySearchTermError{}).Error(), c)
+			return
 		}
 
+		clans, err := models.SearchClan(
+			db,
+			gameID,
+			term,
+		)
+
+		if err != nil {
+			FailWith(500, err.Error(), c)
+			return
+		}
+
+		serializedClans := serializeClans(clans, true)
 		SucceedWith(map[string]interface{}{
 			"clans": serializedClans,
 		}, c)
@@ -148,18 +183,14 @@ func RetrieveClanHandler(app *App) func(c *iris.Context) {
 }
 
 //SetClanHandlersGroup configures the routes for all clan related routes
-func SetClanHandlersGroup(app *App) {
-	gameParty := app.App.Party("/games/:gameID", func(c *iris.Context) {
-		gameID := c.Param("gameID")
-		c.Set("gameID", gameID)
-		c.Next()
-	})
+func SetClanHandlersGroup(app *App, gameParty iris.IParty) {
 	clanHandlersGroup := gameParty.Party("/clans", func(c *iris.Context) {
 		c.Next()
 	})
 
 	clanHandlersGroup.Get("", ListClansHandler(app))
-	clanHandlersGroup.Get("/:publicID", RetrieveClanHandler(app))
 	clanHandlersGroup.Post("", CreateClanHandler(app))
-	clanHandlersGroup.Put("/:publicID", UpdateClanHandler(app))
+	clanHandlersGroup.Get("/search", SearchClansHandler(app))
+	clanHandlersGroup.Get("/clan/:publicID", RetrieveClanHandler(app))
+	clanHandlersGroup.Put("/clan/:publicID", UpdateClanHandler(app))
 }

@@ -103,8 +103,15 @@ func (app *App) configureApplication() {
 	a.Use(&TransactionMiddleware{App: app})
 
 	a.Get("/healthcheck", HealthCheckHandler(app))
-	SetPlayerHandlersGroup(app)
-	SetClanHandlersGroup(app)
+
+	gameParty := app.App.Party("/games/:gameID", func(c *iris.Context) {
+		gameID := c.Param("gameID")
+		c.Set("gameID", gameID)
+		c.Next()
+	})
+
+	SetPlayerHandlersGroup(app, gameParty)
+	SetClanHandlersGroup(app, gameParty)
 	SetMembershipHandlersGroup(app)
 }
 
