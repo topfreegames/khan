@@ -367,7 +367,6 @@ func TestClanModel(t *testing.T) {
 				g.Assert(err == nil).IsTrue()
 
 				clans, err := SearchClan(testDb, player.GameID, "SEARCH")
-				fmt.Println(err)
 				g.Assert(err == nil).IsTrue()
 
 				g.Assert(len(clans)).Equal(10)
