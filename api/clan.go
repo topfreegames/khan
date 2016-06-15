@@ -62,7 +62,7 @@ func CreateClanHandler(app *App) func(c *iris.Context) {
 func UpdateClanHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
 		gameID := c.Param("gameID")
-		publicID := c.Param("publicID")
+		publicID := c.Param("clanPublicID")
 
 		var payload clanPayload
 		if err := c.ReadJSON(&payload); err != nil {
@@ -103,7 +103,7 @@ func serializeClans(clans []models.Clan, includePublicID bool) []map[string]inte
 func LeaveClanHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
 		gameID := c.Param("gameID")
-		publicID := c.Param("publicID")
+		publicID := c.Param("clanPublicID")
 
 		var payload leaveClanPayload
 		if err := c.ReadJSON(&payload); err != nil {
@@ -200,7 +200,7 @@ func RetrieveClanHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
 		db := GetCtxDB(c)
 		gameID := c.Param("gameID")
-		publicID := c.Param("publicID")
+		publicID := c.Param("clanPublicID")
 
 		clan, err := models.GetClanDetails(
 			db,
