@@ -99,6 +99,38 @@ func CreateClan(db DB, gameID, publicID, name, ownerPublicID, metadata string) (
 	return clan, nil
 }
 
+//LeaveClan allows the clan owner to leave the clan and transfer the clan ownership to the next player in line
+func LeaveClan(db DB, gameID, publicID, ownerPublicID string) error {
+	clan, err := GetClanByPublicIDAndOwnerPublicID(db, gameID, publicID, ownerPublicID)
+	if err != nil {
+		return err
+	}
+
+	newOwnerMembership, err := GetOldestMemberWithHighestLevel(db, gameID, publicID)
+	if err != nil {
+		// Clan has no members, delete it
+		_, err = db.Delete(clan)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	oldOwnerID := clan.OwnerID
+	clan.OwnerID = newOwnerMembership.PlayerID
+	_, err = db.Update(clan)
+	if err != nil {
+		return err
+	}
+
+	err = deleteMembershipHelper(db, newOwnerMembership, oldOwnerID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 //UpdateClan updates an existing clan
 func UpdateClan(db DB, gameID, publicID, name, ownerPublicID, metadata string) (*Clan, error) {
 	clan, err := GetClanByPublicIDAndOwnerPublicID(db, gameID, publicID, ownerPublicID)
