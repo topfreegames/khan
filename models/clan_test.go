@@ -371,6 +371,19 @@ func TestClanModel(t *testing.T) {
 
 				g.Assert(len(clans)).Equal(10)
 			})
+
+			g.It("Should return empty list if search term is not found", func() {
+				player, _, err := GetTestClans(
+					testDb, "", "clan-search-clan-2", 10,
+				)
+				g.Assert(err == nil).IsTrue()
+
+				clans, err := SearchClan(testDb, player.GameID, "qwfjur")
+				g.Assert(err == nil).IsTrue()
+
+				g.Assert(len(clans)).Equal(0)
+			})
+
 		})
 	})
 }
