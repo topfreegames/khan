@@ -8,6 +8,8 @@
 package models
 
 import (
+	"fmt"
+	"strings"
 	"time"
 
 	"gopkg.in/gorp.v1"
@@ -178,4 +180,23 @@ func GetClanDetails(db DB, gameID, publicID string) (map[string]interface{}, err
 	}
 
 	return result, nil
+}
+
+//SearchClan returns a list of clans for a given term (by name or publicID)
+func SearchClan(db DB, gameID, term string) ([]Clan, error) {
+	query := `
+	SELECT * FROM clans WHERE game_id=$1 AND (
+		(lower(name) like $2) OR
+		(lower(public_id) like $2)
+	)`
+
+	termStmt := fmt.Sprintf("%%%s%%", strings.ToLower(term))
+
+	var clans []Clan
+	_, err := db.Select(&clans, query, gameID, termStmt)
+	if err != nil {
+		return nil, err
+	}
+
+	return clans, nil
 }

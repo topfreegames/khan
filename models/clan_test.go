@@ -26,27 +26,13 @@ func TestClanModel(t *testing.T) {
 	g.Describe("Clan Model", func() {
 		g.Describe("Basic Operations", func() {
 			g.It("Should sort clans by name", func() {
-				player := PlayerFactory.MustCreate().(*Player)
-				err := testDb.Insert(player)
+				_, clans, err := GetTestClans(testDb, "test", "test-sort-clan", 10)
 				g.Assert(err == nil).IsTrue()
-
-				var clans []*Clan
-
-				for i := 9; i >= 0; i-- {
-					clan := &Clan{
-						GameID:   "test",
-						PublicID: fmt.Sprintf("test-clan-%d", i),
-						Name:     fmt.Sprintf("test-clan-%d", i),
-						Metadata: "{}",
-						OwnerID:  player.ID,
-					}
-					clans = append(clans, clan)
-				}
 
 				sort.Sort(ClanByName(clans))
 
 				for i := 0; i < 10; i++ {
-					g.Assert(clans[i].Name).Equal(fmt.Sprintf("test-clan-%d", i))
+					g.Assert(clans[i].Name).Equal(fmt.Sprintf("test-sort-clan-%d", i))
 				}
 			})
 
@@ -74,15 +60,10 @@ func TestClanModel(t *testing.T) {
 			})
 
 			g.It("Should update a Clan", func() {
-				player := PlayerFactory.MustCreate().(*Player)
-				err := testDb.Insert(player)
+				_, clans, err := GetTestClans(testDb, "", "", 1)
 				g.Assert(err == nil).IsTrue()
+				clan := clans[0]
 
-				clan := ClanFactory.MustCreateWithOption(map[string]interface{}{
-					"OwnerID": player.ID,
-				}).(*Clan)
-				err = testDb.Insert(clan)
-				g.Assert(err == nil).IsTrue()
 				dt := clan.UpdatedAt
 
 				clan.Metadata = "{ \"x\": 1 }"
@@ -95,15 +76,9 @@ func TestClanModel(t *testing.T) {
 
 		g.Describe("Get By Id", func() {
 			g.It("Should get existing Clan", func() {
-				player := PlayerFactory.MustCreate().(*Player)
-				err := testDb.Insert(player)
+				_, clans, err := GetTestClans(testDb, "", "", 1)
 				g.Assert(err == nil).IsTrue()
-
-				clan := ClanFactory.MustCreateWithOption(map[string]interface{}{
-					"OwnerID": player.ID,
-				}).(*Clan)
-				err = testDb.Insert(clan)
-				g.Assert(err == nil).IsTrue()
+				clan := clans[0]
 
 				dbClan, err := GetClanByID(testDb, clan.ID)
 				g.Assert(err == nil).IsTrue()
@@ -119,15 +94,9 @@ func TestClanModel(t *testing.T) {
 
 		g.Describe("Get By Public Id", func() {
 			g.It("Should get an existing Clan by Game and PublicID", func() {
-				player := PlayerFactory.MustCreate().(*Player)
-				err := testDb.Insert(player)
+				_, clans, err := GetTestClans(testDb, "", "", 1)
 				g.Assert(err == nil).IsTrue()
-
-				clan := ClanFactory.MustCreateWithOption(map[string]interface{}{
-					"OwnerID": player.ID,
-				}).(*Clan)
-				err = testDb.Insert(clan)
-				g.Assert(err == nil).IsTrue()
+				clan := clans[0]
 
 				dbClan, err := GetClanByPublicID(testDb, clan.GameID, clan.PublicID)
 				g.Assert(err == nil).IsTrue()
@@ -143,15 +112,9 @@ func TestClanModel(t *testing.T) {
 
 		g.Describe("Get By Public Id and OwnerPublicID", func() {
 			g.It("Should get an existing Clan by Game, PublicID and OwnerPublicID", func() {
-				player := PlayerFactory.MustCreate().(*Player)
-				err := testDb.Insert(player)
+				player, clans, err := GetTestClans(testDb, "", "", 1)
 				g.Assert(err == nil).IsTrue()
-
-				clan := ClanFactory.MustCreateWithOption(map[string]interface{}{
-					"OwnerID": player.ID,
-				}).(*Clan)
-				err = testDb.Insert(clan)
-				g.Assert(err == nil).IsTrue()
+				clan := clans[0]
 
 				dbClan, err := GetClanByPublicIDAndOwnerPublicID(testDb, clan.GameID, clan.PublicID, player.PublicID)
 				g.Assert(err == nil).IsTrue()
@@ -169,15 +132,9 @@ func TestClanModel(t *testing.T) {
 			})
 
 			g.It("Should not get a existing Clan by Game, PublicID and OwnerPublicID if not Clan owner", func() {
-				player := PlayerFactory.MustCreate().(*Player)
-				err := testDb.Insert(player)
+				_, clans, err := GetTestClans(testDb, "", "", 1)
 				g.Assert(err == nil).IsTrue()
-
-				clan := ClanFactory.MustCreateWithOption(map[string]interface{}{
-					"OwnerID": player.ID,
-				}).(*Clan)
-				err = testDb.Insert(clan)
-				g.Assert(err == nil).IsTrue()
+				clan := clans[0]
 
 				_, err = GetClanByPublicIDAndOwnerPublicID(testDb, clan.GameID, clan.PublicID, "invalid-owner-public-id")
 				g.Assert(err != nil).IsTrue()
@@ -246,15 +203,9 @@ func TestClanModel(t *testing.T) {
 
 		g.Describe("Update Clan", func() {
 			g.It("Should update a Clan with UpdateClan", func() {
-				player := PlayerFactory.MustCreate().(*Player)
-				err := testDb.Insert(player)
+				player, clans, err := GetTestClans(testDb, "", "", 1)
 				g.Assert(err == nil).IsTrue()
-
-				clan := ClanFactory.MustCreateWithOption(map[string]interface{}{
-					"OwnerID": player.ID,
-				}).(*Clan)
-				err = testDb.Insert(clan)
-				g.Assert(err == nil).IsTrue()
+				clan := clans[0]
 
 				metadata := "{\"x\": 1}"
 				updClan, err := UpdateClan(
@@ -276,18 +227,12 @@ func TestClanModel(t *testing.T) {
 			})
 
 			g.It("Should not update a Clan if player is not the clan owner with UpdateClan", func() {
+				_, clans, err := GetTestClans(testDb, "", "", 1)
+				g.Assert(err == nil).IsTrue()
+				clan := clans[0]
+
 				player := PlayerFactory.MustCreate().(*Player)
-				err := testDb.Insert(player)
-				g.Assert(err == nil).IsTrue()
-
-				owner := PlayerFactory.MustCreate().(*Player)
-				err = testDb.Insert(owner)
-				g.Assert(err == nil).IsTrue()
-
-				clan := ClanFactory.MustCreateWithOption(map[string]interface{}{
-					"OwnerID": owner.ID,
-				}).(*Clan)
-				err = testDb.Insert(clan)
+				err = testDb.Insert(player)
 				g.Assert(err == nil).IsTrue()
 
 				metadata := "{\"x\": 1}"
@@ -305,15 +250,9 @@ func TestClanModel(t *testing.T) {
 			})
 
 			g.It("Should not update a Clan with Invalid Data with UpdateClan", func() {
-				player := PlayerFactory.MustCreate().(*Player)
-				err := testDb.Insert(player)
+				player, clans, err := GetTestClans(testDb, "", "", 1)
 				g.Assert(err == nil).IsTrue()
-
-				clan := ClanFactory.MustCreateWithOption(map[string]interface{}{
-					"OwnerID": player.ID,
-				}).(*Clan)
-				err = testDb.Insert(clan)
-				g.Assert(err == nil).IsTrue()
+				clan := clans[0]
 
 				metadata := "it will not work because i am not a json"
 				_, err = UpdateClan(
@@ -332,18 +271,8 @@ func TestClanModel(t *testing.T) {
 
 		g.Describe("Get List of Clans", func() {
 			g.It("Should get all clans", func() {
-				player := PlayerFactory.MustCreate().(*Player)
-				err = testDb.Insert(player)
+				player, _, err := GetTestClans(testDb, "", "", 10)
 				g.Assert(err == nil).IsTrue()
-
-				for i := 0; i < 10; i++ {
-					clan := ClanFactory.MustCreateWithOption(map[string]interface{}{
-						"GameID":  player.GameID,
-						"OwnerID": player.ID,
-					}).(*Clan)
-					err = testDb.Insert(clan)
-					g.Assert(err == nil).IsTrue()
-				}
 
 				clans, err := GetAllClans(testDb, player.GameID)
 				g.Assert(err == nil).IsTrue()
@@ -430,5 +359,19 @@ func TestClanModel(t *testing.T) {
 
 		})
 
+		g.Describe("Clan Search", func() {
+			g.It("Should return clan by search term", func() {
+				player, _, err := GetTestClans(
+					testDb, "", "clan-search-clan", 10,
+				)
+				g.Assert(err == nil).IsTrue()
+
+				clans, err := SearchClan(testDb, player.GameID, "SEARCH")
+				fmt.Println(err)
+				g.Assert(err == nil).IsTrue()
+
+				g.Assert(len(clans)).Equal(10)
+			})
+		})
 	})
 }
