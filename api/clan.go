@@ -20,10 +20,15 @@ type clanPayload struct {
 	Metadata      string
 }
 
+//leaveClanPayload maps the payload for the Leave Clan route
+type leaveClanPayload struct {
+	OwnerPublicID string
+}
+
 //CreateClanHandler is the handler responsible for creating new clans
 func CreateClanHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
-		gameID := c.Get("gameID").(string)
+		gameID := c.Param("gameID")
 
 		var payload clanPayload
 		if err := c.ReadJSON(&payload); err != nil {
@@ -56,7 +61,7 @@ func CreateClanHandler(app *App) func(c *iris.Context) {
 //UpdateClanHandler is the handler responsible for updating existing clans
 func UpdateClanHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
-		gameID := c.Get("gameID").(string)
+		gameID := c.Param("gameID")
 		publicID := c.Param("publicID")
 
 		var payload clanPayload
@@ -94,6 +99,36 @@ func serializeClans(clans []models.Clan, includePublicID bool) []map[string]inte
 	return serializedClans
 }
 
+//LeaveClanHandler is the handler responsible for changing the clan ownership when the owner leaves it
+func LeaveClanHandler(app *App) func(c *iris.Context) {
+	return func(c *iris.Context) {
+		gameID := c.Param("gameID")
+		publicID := c.Param("publicID")
+
+		var payload leaveClanPayload
+		if err := c.ReadJSON(&payload); err != nil {
+			FailWith(400, err.Error(), c)
+			return
+		}
+
+		db := GetCtxDB(c)
+
+		err := models.LeaveClan(
+			db,
+			gameID,
+			publicID,
+			payload.OwnerPublicID,
+		)
+
+		if err != nil {
+			FailWith(500, err.Error(), c)
+			return
+		}
+
+		SucceedWith(map[string]interface{}{}, c)
+	}
+}
+
 func serializeClan(clan *models.Clan, includePublicID bool) map[string]interface{} {
 	serial := map[string]interface{}{
 		"name":     clan.Name,
@@ -111,7 +146,7 @@ func serializeClan(clan *models.Clan, includePublicID bool) map[string]interface
 func ListClansHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
 		db := GetCtxDB(c)
-		gameID := c.GetString("gameID")
+		gameID := c.Param("gameID")
 
 		clans, err := models.GetAllClans(
 			db,
@@ -134,7 +169,7 @@ func ListClansHandler(app *App) func(c *iris.Context) {
 func SearchClansHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
 		db := GetCtxDB(c)
-		gameID := c.GetString("gameID")
+		gameID := c.Param("gameID")
 		term := c.URLParam("term")
 
 		if term == "" {
@@ -164,7 +199,7 @@ func SearchClansHandler(app *App) func(c *iris.Context) {
 func RetrieveClanHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
 		db := GetCtxDB(c)
-		gameID := c.GetString("gameID")
+		gameID := c.Param("gameID")
 		publicID := c.Param("publicID")
 
 		clan, err := models.GetClanDetails(
@@ -180,17 +215,4 @@ func RetrieveClanHandler(app *App) func(c *iris.Context) {
 
 		SucceedWith(clan, c)
 	}
-}
-
-//SetClanHandlersGroup configures the routes for all clan related routes
-func SetClanHandlersGroup(app *App, gameParty iris.IParty) {
-	clanHandlersGroup := gameParty.Party("/clans", func(c *iris.Context) {
-		c.Next()
-	})
-
-	clanHandlersGroup.Get("", ListClansHandler(app))
-	clanHandlersGroup.Post("", CreateClanHandler(app))
-	clanHandlersGroup.Get("/search", SearchClansHandler(app))
-	clanHandlersGroup.Get("/clan/:publicID", RetrieveClanHandler(app))
-	clanHandlersGroup.Put("/clan/:publicID", UpdateClanHandler(app))
 }
