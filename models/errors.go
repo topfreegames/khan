@@ -87,6 +87,15 @@ func (e *InvalidMembershipActionError) Error() string {
 	return fmt.Sprintf("%s a membership is not a valid action.", e.Action)
 }
 
+//ClanHasNoMembersError identifies that a clan has no members
+type ClanHasNoMembersError struct {
+	ClanID interface{}
+}
+
+func (e *ClanHasNoMembersError) Error() string {
+	return fmt.Sprintf("Clan %v has no members", e.ClanID)
+}
+
 //EmptySearchTermError identifies that a search term was not provided
 type EmptySearchTermError struct{}
 
