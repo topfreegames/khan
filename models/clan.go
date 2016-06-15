@@ -184,6 +184,10 @@ func GetClanDetails(db DB, gameID, publicID string) (map[string]interface{}, err
 
 //SearchClan returns a list of clans for a given term (by name or publicID)
 func SearchClan(db DB, gameID, term string) ([]Clan, error) {
+	if term == "" {
+		return nil, &EmptySearchTermError{}
+	}
+
 	query := `
 	SELECT * FROM clans WHERE game_id=$1 AND (
 		(lower(name) like $2) OR

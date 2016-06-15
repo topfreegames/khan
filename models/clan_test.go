@@ -384,6 +384,11 @@ func TestClanModel(t *testing.T) {
 				g.Assert(len(clans)).Equal(0)
 			})
 
+			g.It("Should return invalid response if empty term", func() {
+				_, err := SearchClan(testDb, "some-game-id", "")
+				g.Assert(err != nil).IsTrue()
+				g.Assert(err.Error()).Equal("A search term was not provided to find a clan.")
+			})
 		})
 	})
 }
