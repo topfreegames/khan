@@ -153,7 +153,7 @@ func TestClanHandler(t *testing.T) {
 				"ownerPublicID": ownerPublicID,
 				"metadata":      metadata,
 			}
-			route := GetGameRoute(gameID, fmt.Sprintf("/clans/%s", publicID))
+			route := GetGameRoute(gameID, fmt.Sprintf("/clans/clan/%s", publicID))
 			res := PutJSON(a, route, t, payload)
 
 			res.Status(http.StatusOK)
@@ -173,7 +173,7 @@ func TestClanHandler(t *testing.T) {
 		g.It("Should not update clan if invalid payload", func() {
 			a := GetDefaultTestApp()
 
-			route := GetGameRoute("game-id", fmt.Sprintf("/clans/%s", "random-id"))
+			route := GetGameRoute("game-id", fmt.Sprintf("/clans/clan/%s", "random-id"))
 			res := PutBody(a, route, t, "invalid")
 
 			res.Status(http.StatusBadRequest)
@@ -209,7 +209,7 @@ func TestClanHandler(t *testing.T) {
 				"ownerPublicID": ownerPublicID,
 				"metadata":      metadata,
 			}
-			route := GetGameRoute(gameID, fmt.Sprintf("/clans/%s", publicID))
+			route := GetGameRoute(gameID, fmt.Sprintf("/clans/clan/%s", publicID))
 			res := PutJSON(a, route, t, payload)
 
 			res.Status(http.StatusInternalServerError)
@@ -245,7 +245,7 @@ func TestClanHandler(t *testing.T) {
 				"ownerPublicID": ownerPublicID,
 				"metadata":      metadata,
 			}
-			route := GetGameRoute(gameID, fmt.Sprintf("/clans/%s", publicID))
+			route := GetGameRoute(gameID, fmt.Sprintf("/clans/clan/%s", publicID))
 			res := PutJSON(a, route, t, payload)
 
 			res.Status(http.StatusInternalServerError)
@@ -318,7 +318,7 @@ func TestClanHandler(t *testing.T) {
 			AssertNotError(g, err)
 
 			a := GetDefaultTestApp()
-			res := Get(a, GetGameRoute(player.GameID, fmt.Sprintf("/clans/%s", clan.PublicID)), t)
+			res := Get(a, GetGameRoute(player.GameID, fmt.Sprintf("/clans/clan/%s", clan.PublicID)), t)
 
 			res.Status(http.StatusOK)
 			var result map[string]interface{}
@@ -338,7 +338,7 @@ func TestClanHandler(t *testing.T) {
 			AssertNotError(g, err)
 
 			a := GetDefaultTestApp()
-			res := Get(a, GetGameRoute(clan.GameID, fmt.Sprintf("/clans/%s", clan.PublicID)), t)
+			res := Get(a, GetGameRoute(clan.GameID, fmt.Sprintf("/clans/clan/%s", clan.PublicID)), t)
 
 			res.Status(http.StatusOK)
 			var result map[string]interface{}
@@ -347,6 +347,31 @@ func TestClanHandler(t *testing.T) {
 			g.Assert(result["success"]).IsTrue()
 
 			g.Assert(result["members"] == nil).IsFalse()
+		})
+	})
+	g.Describe("Search Clan Handler", func() {
+		g.It("Should search for a clan", func() {
+			player, expectedClans, err := models.GetTestClans(
+				testDb, "", "clan-apisearch-clan", 10,
+			)
+			g.Assert(err == nil).IsTrue()
+
+			a := GetDefaultTestApp()
+			res := Get(a, GetGameRoute(player.GameID, "clans/search?term=APISEARCH"), t)
+
+			res.Status(http.StatusOK)
+			var result map[string]interface{}
+			json.Unmarshal([]byte(res.Body().Raw()), &result)
+
+			g.Assert(result["success"]).IsTrue()
+
+			clans := result["clans"].([]interface{})
+			g.Assert(len(clans)).Equal(10)
+
+			for index, expectedClan := range expectedClans {
+				clan := clans[index].(map[string]interface{})
+				g.Assert(clan["name"]).Equal(expectedClan.Name)
+			}
 		})
 	})
 }

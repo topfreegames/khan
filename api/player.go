@@ -78,13 +78,7 @@ func UpdatePlayerHandler(app *App) func(c *iris.Context) {
 }
 
 //SetPlayerHandlersGroup configures the routes for all player related routes
-func SetPlayerHandlersGroup(app *App) {
-	gameParty := app.App.Party("/games/:gameID", func(c *iris.Context) {
-		gameID := c.Param("gameID")
-		c.Set("gameID", gameID)
-		c.Next()
-	})
-
+func SetPlayerHandlersGroup(app *App, gameParty iris.IParty) {
 	playerHandlersGroup := gameParty.Party("/players", func(c *iris.Context) {
 		c.Next()
 	})
