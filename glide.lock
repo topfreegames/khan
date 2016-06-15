@@ -1,10 +1,12 @@
 hash: 70880259758025813f5f6898e2c2624312c5a0f1c7a82c18b175141b763dfae9
-updated: 2016-06-09T18:48:55.669141749-03:00
+updated: 2016-06-15T18:42:45.681363285-03:00
 imports:
 - name: bitbucket.org/liamstask/goose
   version: 8488cc47d90c8a502b1c41a462a6d9cc8ee0a895
   subpackages:
   - cmd/goose
+- name: github.com/ajg/form
+  version: e7b99d6ea9c58e7bb6b2c1059b9ba748cdff22b0
 - name: github.com/bluele/factory-go
   version: d6a4ddee8ba43b1d900c1e0d093397811e2b5dd8
   subpackages:
@@ -20,7 +22,7 @@ imports:
   subpackages:
   - parser
 - name: github.com/fatih/color
-  version: 533cd7fd8a85905f67a1753afb4deddc85ea174f
+  version: 87d4004f2ab62d0d255e0a38f1680aa534549fe3
 - name: github.com/flosch/pongo2
   version: 7f5515449ea9bbeb00256d9cbb654c556e7d0146
 - name: github.com/franela/goblin
@@ -37,9 +39,13 @@ imports:
   subpackages:
   - formatter
 - name: github.com/gavv/httpexpect
-  version: 36d7a37794d84c993ddd9084636d43e1699c2ae4
+  version: 45195d7bb8b6ea732b15a9e4e98a92b93c443dc2
   subpackages:
   - fasthttpexpect
+- name: github.com/google/go-querystring
+  version: 9235644dd9e52eeae6fa48efd539fdc351a0af53
+  subpackages:
+  - query
 - name: github.com/hashicorp/hcl
   version: d7400db7143f8e869812e50a53acd6c8d92af3b8
   subpackages:
@@ -55,6 +61,8 @@ imports:
   version: 50d4dbd4eb0e84778abe37cefef140271d96fade
 - name: github.com/inconshreveable/mousetrap
   version: 76626ae9c91c4f2a10f34cad8ce83ea42c93bb75
+- name: github.com/iris-contrib/formBinder
+  version: 672da7dc0b798b54603604e52d031bb0faf3ea2a
 - name: github.com/iris-contrib/websocket
   version: b754661664740b86f44f7bb34ba11e44b6194445
 - name: github.com/jinzhu/gorm
@@ -64,12 +72,10 @@ imports:
 - name: github.com/Joker/jade
   version: db4d7e4f68708c5020c392b380e3565df2132840
 - name: github.com/kataras/iris
-  version: 2da67206c8b7a13868ac8543ee77729c0f025454
+  version: dcded4e4004a1b5ff7602e8733bc71360a6e14b5
   subpackages:
   - iris
   - middleware/logger
-  - middleware/recovery
-  - bindings
   - config
   - context
   - errors
@@ -77,7 +83,6 @@ imports:
   - mail
   - render/rest
   - render/template
-  - server
   - sessions
   - sessions/providers/memory
   - sessions/providers/redis
@@ -111,13 +116,14 @@ imports:
   version: 9056b7a9f2d1f2d96498d6d146acd1f9d5ed3d59
 - name: github.com/mattn/go-isatty
   version: 56b76bdf51f7708750eac80fa38b952bb9f32639
-  repo: https://github.com/mattn/go-isatty
 - name: github.com/microcosm-cc/bluemonday
   version: 4ac6f27528d0a3f2a59e0b0a6f6b3ff0bb89fe20
 - name: github.com/mitchellh/mapstructure
   version: d2dd0262208475919e1a362f675cfc0e7c10e905
+- name: github.com/moul/http2curl
+  version: b1479103caacaa39319f75e7f57fc545287fca0d
 - name: github.com/onsi/gomega
-  version: c73e51675ad2455a4515b6213eb7145eaade4824
+  version: 3e93f011213c200aadafcb19ed56eb718381cfbd
 - name: github.com/Pallinder/go-randomdata
   version: 104cc800bd6434e70cb0c3ad08c4541f4f2eb48b
 - name: github.com/pmezard/go-difflib
@@ -137,22 +143,23 @@ imports:
 - name: github.com/spf13/cast
   version: 27b586b42e29bec072fe7379259cc719e1289da6
 - name: github.com/spf13/cobra
-  version: 1238ba19d24b0b9ceee2094e1cb31947d45c3e86
+  version: bc81c21bd0d8be5ba2d6630a505d79d4467566e7
 - name: github.com/spf13/jwalterweatherman
   version: 33c24e77fb80341fe7130ee7c594256ff08ccc46
 - name: github.com/spf13/pflag
-  version: cb88ea77998c3f024757528e3305022ab50b43be
+  version: 367864438f1b1a3c7db4da06a2f55b144e6784e0
 - name: github.com/spf13/viper
   version: c1ccc378a054ea8d4e38d8c67f6938d4760b53dd
 - name: github.com/stretchr/testify
-  version: 8d64eb7173c7753d6419fd4a9caf057398611364
+  version: d77da356e56a7428ad25149ca77381849a6a5232
   subpackages:
   - assert
   - require
 - name: github.com/valyala/fasthttp
-  version: 8f05edbec9fb5b0c7a4012ee746035a82e3e8bfb
+  version: 83a24c301bb683e450cd0304a3eb69556c48678c
   subpackages:
   - fasthttpadaptor
+  - fasthttputil
 - name: github.com/yudai/golcs
   version: d1c525dea8ce39ea9a783d33cf08932305373f2c
 - name: golang.org/x/net
@@ -161,7 +168,7 @@ imports:
   - html
   - html/atom
 - name: golang.org/x/sys
-  version: 076b546753157f758b316e59bcb51e6807c04057
+  version: 62bee037599929a6e9146f29d10dd5208c43507d
   subpackages:
   - unix
 - name: gopkg.in/gorp.v1

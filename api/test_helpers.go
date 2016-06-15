@@ -70,7 +70,7 @@ func sendJSON(app *App, method, url string, t *testing.T, payload map[string]int
 }
 
 func sendRequest(app *App, method, url string, t *testing.T) *httpexpect.Request {
-	handler := app.App.ServeRequest
+	handler := app.App.NoListen().Handler
 
 	e := httpexpect.WithConfig(httpexpect.Config{
 		Reporter: httpexpect.NewAssertReporter(t),

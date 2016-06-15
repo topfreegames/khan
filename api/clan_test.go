@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"net/http"
 	"sort"
+	"strings"
 	"testing"
 
 	"github.com/Pallinder/go-randomdata"
@@ -72,9 +73,7 @@ func TestClanHandler(t *testing.T) {
 			var result map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
-			g.Assert(result["reason"]).Equal(
-				"\n[IRIS]  Error: While trying to read [JSON invalid character 'i' looking for beginning of value] from the request body. Trace %!!(MISSING)s(MISSING)",
-			)
+			g.Assert(strings.Contains(result["reason"].(string), "While trying to read JSON")).IsTrue()
 		})
 
 		g.It("Should not create clan if owner does not exist", func() {
@@ -162,9 +161,7 @@ func TestClanHandler(t *testing.T) {
 			var result map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
-			g.Assert(result["reason"]).Equal(
-				"\n[IRIS]  Error: While trying to read [JSON invalid character 'i' looking for beginning of value] from the request body. Trace %!!(MISSING)s(MISSING)",
-			)
+			g.Assert(strings.Contains(result["reason"].(string), "While trying to read JSON")).IsTrue()
 		})
 
 		g.It("Should not leave a clan if player is not the owner", func() {
@@ -238,9 +235,7 @@ func TestClanHandler(t *testing.T) {
 			var result map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
-			g.Assert(result["reason"]).Equal(
-				"\n[IRIS]  Error: While trying to read [JSON invalid character 'i' looking for beginning of value] from the request body. Trace %!!(MISSING)s(MISSING)",
-			)
+			g.Assert(strings.Contains(result["reason"].(string), "While trying to read JSON")).IsTrue()
 		})
 
 		g.It("Should not update clan if player is not the owner", func() {

@@ -11,6 +11,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 	"testing"
 
 	"github.com/Pallinder/go-randomdata"
@@ -75,9 +76,7 @@ func TestMembershipHandler(t *testing.T) {
 			var result map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
-			g.Assert(result["reason"]).Equal(
-				"\n[IRIS]  Error: While trying to read [JSON invalid character 'i' looking for beginning of value] from the request body. Trace %!!(MISSING)s(MISSING)",
-			)
+			g.Assert(strings.Contains(result["reason"].(string), "While trying to read JSON")).IsTrue()
 		})
 
 		g.It("Should not create membership application if player does not exist", func() {
@@ -129,7 +128,7 @@ func TestMembershipHandler(t *testing.T) {
 			var result map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
-			g.Assert(result["reason"]).Equal("\n[IRIS]  Error: While trying to read [JSON json: cannot unmarshal string into Go value of type int] from the request body. Trace %!!(MISSING)s(MISSING)")
+			g.Assert(strings.Contains(result["reason"].(string), "While trying to read JSON")).IsTrue()
 		})
 	})
 
@@ -223,9 +222,7 @@ func TestMembershipHandler(t *testing.T) {
 			var result map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
-			g.Assert(result["reason"]).Equal(
-				"\n[IRIS]  Error: While trying to read [JSON invalid character 'i' looking for beginning of value] from the request body. Trace %!!(MISSING)s(MISSING)",
-			)
+			g.Assert(strings.Contains(result["reason"].(string), "While trying to read JSON")).IsTrue()
 		})
 
 		g.It("Should not create membership invitation if player does not exist", func() {
@@ -279,7 +276,7 @@ func TestMembershipHandler(t *testing.T) {
 			var result map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
-			g.Assert(result["reason"]).Equal("\n[IRIS]  Error: While trying to read [JSON json: cannot unmarshal string into Go value of type int] from the request body. Trace %!!(MISSING)s(MISSING)")
+			g.Assert(strings.Contains(result["reason"].(string), "While trying to read JSON")).IsTrue()
 		})
 	})
 
@@ -347,9 +344,7 @@ func TestMembershipHandler(t *testing.T) {
 			var result map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
-			g.Assert(result["reason"]).Equal(
-				"\n[IRIS]  Error: While trying to read [JSON invalid character 'i' looking for beginning of value] from the request body. Trace %!!(MISSING)s(MISSING)",
-			)
+			g.Assert(strings.Contains(result["reason"].(string), "While trying to read JSON")).IsTrue()
 		})
 
 		g.It("Should not approve membership invitation if player does not exist", func() {
@@ -443,9 +438,7 @@ func TestMembershipHandler(t *testing.T) {
 			var result map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
-			g.Assert(result["reason"]).Equal(
-				"\n[IRIS]  Error: While trying to read [JSON invalid character 'i' looking for beginning of value] from the request body. Trace %!!(MISSING)s(MISSING)",
-			)
+			g.Assert(strings.Contains(result["reason"].(string), "While trying to read JSON")).IsTrue()
 		})
 
 		g.It("Should not approve membership application if player does not exist", func() {
@@ -541,9 +534,7 @@ func TestMembershipHandler(t *testing.T) {
 			var result map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
-			g.Assert(result["reason"]).Equal(
-				"\n[IRIS]  Error: While trying to read [JSON invalid character 'i' looking for beginning of value] from the request body. Trace %!!(MISSING)s(MISSING)",
-			)
+			g.Assert(strings.Contains(result["reason"].(string), "While trying to read JSON")).IsTrue()
 		})
 
 		g.It("Should not promote member if player does not exist", func() {
@@ -606,9 +597,7 @@ func TestMembershipHandler(t *testing.T) {
 			var result map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
-			g.Assert(result["reason"]).Equal(
-				"\n[IRIS]  Error: While trying to read [JSON invalid character 'i' looking for beginning of value] from the request body. Trace %!!(MISSING)s(MISSING)",
-			)
+			g.Assert(strings.Contains(result["reason"].(string), "While trying to read JSON")).IsTrue()
 		})
 
 		g.It("Should not delete member if player does not exist", func() {
