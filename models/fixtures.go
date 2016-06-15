@@ -15,31 +15,27 @@ import (
 	"github.com/satori/go.uuid"
 )
 
+func configureFactory(fct *factory.Factory) *factory.Factory {
+	return fct.Attr("GameID", func(args factory.Args) (interface{}, error) {
+		return uuid.NewV4().String(), nil
+	}).Attr("PublicID", func(args factory.Args) (interface{}, error) {
+		return uuid.NewV4().String(), nil
+	}).Attr("Name", func(args factory.Args) (interface{}, error) {
+		return randomdata.FullName(randomdata.RandomGender), nil
+	}).Attr("Metadata", func(args factory.Args) (interface{}, error) {
+		return "{}", nil
+	})
+}
+
 //PlayerFactory is responsible for constructing test player instances
-var PlayerFactory = factory.NewFactory(
+var PlayerFactory = configureFactory(factory.NewFactory(
 	&Player{},
-).Attr("GameID", func(args factory.Args) (interface{}, error) {
-	return uuid.NewV4().String(), nil
-}).Attr("PublicID", func(args factory.Args) (interface{}, error) {
-	return uuid.NewV4().String(), nil
-}).Attr("Name", func(args factory.Args) (interface{}, error) {
-	return randomdata.FullName(randomdata.RandomGender), nil
-}).Attr("Metadata", func(args factory.Args) (interface{}, error) {
-	return "{}", nil
-})
+))
 
 //ClanFactory is responsible for constructing test clan instances
-var ClanFactory = factory.NewFactory(
+var ClanFactory = configureFactory(factory.NewFactory(
 	&Clan{},
-).Attr("GameID", func(args factory.Args) (interface{}, error) {
-	return uuid.NewV4().String(), nil
-}).Attr("PublicID", func(args factory.Args) (interface{}, error) {
-	return uuid.NewV4().String(), nil
-}).Attr("Name", func(args factory.Args) (interface{}, error) {
-	return randomdata.FullName(randomdata.RandomGender), nil
-}).Attr("Metadata", func(args factory.Args) (interface{}, error) {
-	return "{}", nil
-})
+))
 
 //MembershipFactory is responsible for constructing test membership instances
 var MembershipFactory = factory.NewFactory(

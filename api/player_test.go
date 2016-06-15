@@ -27,31 +27,28 @@ func TestPlayerHandler(t *testing.T) {
 
 	g.Describe("Create Player Handler", func() {
 		g.It("Should create player", func() {
-			gameID := "api-cr-1"
-			publicID := randomdata.FullName(randomdata.RandomGender)
-			playerName := randomdata.FullName(randomdata.RandomGender)
-			metadata := "{\"x\": 1}"
-
 			a := GetDefaultTestApp()
 			payload := map[string]interface{}{
-				"gameID":   gameID,
-				"publicID": publicID,
-				"name":     playerName,
-				"metadata": metadata,
+				"gameID":   "api-cr-1",
+				"publicID": randomdata.FullName(randomdata.RandomGender),
+				"name":     randomdata.FullName(randomdata.RandomGender),
+				"metadata": "{\"x\": 1}",
 			}
-			res := PostJSON(a, GetGameRoute(gameID, "/players"), t, payload)
+			res := PostJSON(a, GetGameRoute(payload["gameID"].(string), "/players"), t, payload)
 
 			res.Status(http.StatusOK)
 			var result map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsTrue()
 
-			dbPlayer, err := models.GetPlayerByPublicID(a.Db, gameID, publicID)
+			dbPlayer, err := models.GetPlayerByPublicID(
+				a.Db, payload["gameID"].(string), payload["publicID"].(string),
+			)
 			AssertNotError(g, err)
-			g.Assert(dbPlayer.GameID).Equal(gameID)
-			g.Assert(dbPlayer.PublicID).Equal(publicID)
-			g.Assert(dbPlayer.Name).Equal(playerName)
-			g.Assert(dbPlayer.Metadata).Equal(metadata)
+			g.Assert(dbPlayer.GameID).Equal(payload["gameID"])
+			g.Assert(dbPlayer.PublicID).Equal(payload["publicID"])
+			g.Assert(dbPlayer.Name).Equal(payload["name"])
+			g.Assert(dbPlayer.Metadata).Equal(payload["metadata"])
 		})
 
 		g.It("Should not create player if invalid payload", func() {
@@ -69,19 +66,14 @@ func TestPlayerHandler(t *testing.T) {
 		})
 
 		g.It("Should not create player if invalid data", func() {
-			gameID := "game-id-is-too-large-for-this-field-should-be-less-than-36-chars"
-			publicID := randomdata.FullName(randomdata.RandomGender)
-			playerName := randomdata.FullName(randomdata.RandomGender)
-			metadata := "{\"x\": 1}"
-
 			a := GetDefaultTestApp()
 			payload := map[string]interface{}{
-				"gameID":   gameID,
-				"publicID": publicID,
-				"name":     playerName,
-				"metadata": metadata,
+				"gameID":   "game-id-is-too-large-for-this-field-should-be-less-than-36-chars",
+				"publicID": randomdata.FullName(randomdata.RandomGender),
+				"name":     randomdata.FullName(randomdata.RandomGender),
+				"metadata": "{\"x\": 1}",
 			}
-			res := PostJSON(a, GetGameRoute(gameID, "/players"), t, payload)
+			res := PostJSON(a, GetGameRoute(payload["gameID"].(string), "/players"), t, payload)
 
 			res.Status(http.StatusInternalServerError)
 			var result map[string]interface{}

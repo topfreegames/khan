@@ -80,5 +80,12 @@ static:
 pmd:
 	@bash pmd.sh
 	@for pkg in $(GODIRS) ; do \
+		exclude=$$(find $$pkg -name '*_test.go') && \
+		/tmp/pmd-bin-5.4.2/bin/run.sh cpd --minimum-tokens 30 --files $$pkg --exclude $$exclude --language go ; \
+    done
+
+pmd-full:
+	@bash pmd.sh
+	@for pkg in $(GODIRS) ; do \
 		/tmp/pmd-bin-5.4.2/bin/run.sh cpd --minimum-tokens 30 --files $$pkg --language go ; \
     done
