@@ -103,14 +103,20 @@ func (app *App) configureApplication() {
 	a.Use(&TransactionMiddleware{App: app})
 
 	a.Get("/healthcheck", HealthCheckHandler(app))
+
+	//Player Routes
 	a.Post("/games/:gameID/players", CreatePlayerHandler(app))
 	a.Put("/games/:gameID/players/:publicID", UpdatePlayerHandler(app))
-	a.Get("/games/:gameID/clans", ListClansHandler(app))
+
+	//Clan Routes
 	a.Get("/games/:gameID/clan-search", SearchClansHandler(app))
-	a.Get("/games/:gameID/clans/:clanPublicID", RetrieveClanHandler(app))
+	a.Get("/games/:gameID/clans", ListClansHandler(app))
 	a.Post("/games/:gameID/clans", CreateClanHandler(app))
+	a.Get("/games/:gameID/clans/:clanPublicID", RetrieveClanHandler(app))
 	a.Put("/games/:gameID/clans/:clanPublicID", UpdateClanHandler(app))
 	a.Post("/games/:gameID/clans/:clanPublicID/leave", LeaveClanHandler(app))
+
+	//Membership Routes
 	a.Post("/games/:gameID/clans/:clanPublicID/memberships/application", ApplyForMembershipHandler(app))
 	a.Post("/games/:gameID/clans/:clanPublicID/memberships/application/:action", ApproveOrDenyMembershipApplicationHandler(app))
 	a.Post("/games/:gameID/clans/:clanPublicID/memberships/invitation", InviteForMembershipHandler(app))
