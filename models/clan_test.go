@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"sort"
 	"testing"
+	"time"
 
 	"github.com/Pallinder/go-randomdata"
 	. "github.com/franela/goblin"
@@ -379,6 +380,29 @@ func TestClanModel(t *testing.T) {
 				g.Assert(len(members)).Equal(10)
 
 				for i := 0; i < 10; i++ {
+					g.Assert(members[i]["playerName"]).Equal(players[i].Name)
+				}
+			})
+
+			g.It("Should not get deleted clan members", func() {
+				clan, _, players, memberships, err := GetClanWithMemberships(
+					testDb, 10, "more-clan-details", "more-clan-details-clan",
+				)
+				g.Assert(err == nil).IsTrue()
+
+				memberships[9].DeletedAt = time.Now().UnixNano()
+				memberships[9].DeletedBy = clan.OwnerID
+				_, err = testDb.Update(memberships[9])
+				g.Assert(err == nil).IsTrue()
+
+				clanData, err := GetClanDetails(testDb, clan.GameID, clan.PublicID)
+				g.Assert(err == nil).IsTrue()
+				g.Assert(clanData["name"]).Equal(clan.Name)
+				g.Assert(clanData["metadata"]).Equal(clan.Metadata)
+				members := clanData["members"].([]map[string]interface{})
+				g.Assert(len(members)).Equal(9)
+
+				for i := 0; i < 9; i++ {
 					g.Assert(members[i]["playerName"]).Equal(players[i].Name)
 				}
 			})
