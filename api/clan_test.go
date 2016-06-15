@@ -415,7 +415,7 @@ func TestClanHandler(t *testing.T) {
 			g.Assert(err == nil).IsTrue()
 
 			a := GetDefaultTestApp()
-			res := Get(a, GetGameRoute(player.GameID, "clans/search?term=APISEARCH"), t)
+			res := Get(a, GetGameRoute(player.GameID, "clan-search?term=APISEARCH"), t)
 
 			res.Status(http.StatusOK)
 			var result map[string]interface{}
