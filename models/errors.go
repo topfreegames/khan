@@ -86,3 +86,10 @@ type InvalidMembershipActionError struct {
 func (e *InvalidMembershipActionError) Error() string {
 	return fmt.Sprintf("%s a membership is not a valid action.", e.Action)
 }
+
+//EmptySearchTermError identifies that a search term was not provided
+type EmptySearchTermError struct{}
+
+func (e *EmptySearchTermError) Error() string {
+	return "A search term was not provided to find a clan."
+}
