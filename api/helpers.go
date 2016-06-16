@@ -23,6 +23,14 @@ func FailWith(status int, message string, c *iris.Context) {
 	c.Write(string(result))
 }
 
+//FailWithJSON fails with the specified json
+func FailWithJSON(status int, payload map[string]interface{}, c *iris.Context) {
+	payload["success"] = false
+	result, _ := json.Marshal(payload)
+	c.SetStatusCode(status)
+	c.Write(string(result))
+}
+
 //SucceedWith sends payload to user with status 200
 func SucceedWith(payload map[string]interface{}, c *iris.Context) {
 	payload["success"] = true

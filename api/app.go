@@ -104,6 +104,10 @@ func (app *App) configureApplication() {
 
 	a.Get("/healthcheck", HealthCheckHandler(app))
 
+	//Game Routes
+	a.Post("/games", CreateGameHandler(app))
+	a.Put("/games/:gameID", UpdateGameHandler(app))
+
 	//Player Routes
 	a.Post("/games/:gameID/players", CreatePlayerHandler(app))
 	a.Put("/games/:gameID/players/:publicID", UpdatePlayerHandler(app))

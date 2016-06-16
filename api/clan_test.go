@@ -150,7 +150,6 @@ func TestClanHandler(t *testing.T) {
 				"ownerPublicID": ownerPublicID,
 			}
 			route := GetGameRoute(clan.GameID, fmt.Sprintf("clans/%s/leave", clan.PublicID))
-			fmt.Println(route)
 			res := PostJSON(a, route, t, payload)
 
 			res.Status(http.StatusOK)
@@ -208,7 +207,6 @@ func TestClanHandler(t *testing.T) {
 				"playerPublicID": playerPublicID,
 			}
 			route := GetGameRoute(clan.GameID, fmt.Sprintf("clans/%s/transfer-ownership", clan.PublicID))
-			fmt.Println(route)
 			res := PostJSON(a, route, t, payload)
 
 			res.Status(http.StatusOK)
