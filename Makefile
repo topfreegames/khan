@@ -53,7 +53,7 @@ coverage-html:
 	@go tool cover -html=coverage-all.out
 
 db migrate:
-	@goose -env development up
+	@go run main.go migrate -c ./config/local.yaml
 
 drop:
 	@psql -d postgres -f db/drop.sql > /dev/null
@@ -61,7 +61,7 @@ drop:
 
 db-test migrate-test:
 	@psql -d postgres -c "SHOW SERVER_VERSION"
-	@goose -env test up
+	@go run main.go migrate -c ./config/test.yaml
 
 drop-test:
 	@psql -d postgres -f db/drop-test.sql > /dev/null
