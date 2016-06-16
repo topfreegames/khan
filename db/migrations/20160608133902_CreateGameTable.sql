@@ -17,7 +17,7 @@ CREATE TABLE games (
     min_level_to_create_invitation integer NOT NULL,
     min_level_offset_to_promote_member integer NOT NULL,
     min_level_offset_to_demote_member integer NOT NULL,
-    allow_application boolean NOT NULL,
+    max_members integer NOT NULL,
     metadata JSONB NOT NULL DEFAULT '{}'::JSONB,
     created_at bigint NOT NULL,
     updated_at bigint NULL,
