@@ -33,6 +33,10 @@ func TestMembershipHandler(t *testing.T) {
 			clan, _, _, _, err := models.GetClanWithMemberships(testDb, 0, "", "")
 			g.Assert(err == nil).IsTrue()
 
+			clan.AllowApplication = true
+			_, err = testDb.Update(clan)
+			g.Assert(err == nil).IsTrue()
+
 			player := models.PlayerFactory.MustCreateWithOption(map[string]interface{}{
 				"GameID": clan.GameID,
 			}).(*models.Player)
