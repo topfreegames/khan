@@ -8,7 +8,7 @@ RUN apk update
 RUN apk add git make g++
 
 RUN go get -u github.com/Masterminds/glide/...
-RUN go get -u bitbucket.org/liamstask/goose/cmd/goose
+RUN go get -u github.com/topfreegames/goose/cmd/goose
 
 ADD . /go/src/github.com/topfreegames/khan
 

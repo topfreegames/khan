@@ -8,7 +8,7 @@ import:
   - iris
 - package: github.com/Joker/jade
 - package: github.com/gavv/httpexpect
-- package: bitbucket.org/liamstask/goose
+- package: github.com/topfreegames/goose
   subpackages:
   - cmd/goose
 - package: gopkg.in/gorp.v1

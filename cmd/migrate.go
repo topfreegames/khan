@@ -14,9 +14,9 @@ import (
 
 	"gopkg.in/gorp.v1"
 
-	"bitbucket.org/liamstask/goose/lib/goose"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"github.com/topfreegames/goose/lib/goose"
 	"github.com/topfreegames/khan/models"
 )
 

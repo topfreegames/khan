@@ -1,10 +1,6 @@
-hash: 70880259758025813f5f6898e2c2624312c5a0f1c7a82c18b175141b763dfae9
-updated: 2016-06-15T18:42:45.681363285-03:00
+hash: 8af91584de43a44cd938d8fb768226ac4c794e56a813f8ff337ddecb446375d7
+updated: 2016-06-16T18:24:31.415725957-03:00
 imports:
-- name: bitbucket.org/liamstask/goose
-  version: 8488cc47d90c8a502b1c41a462a6d9cc8ee0a895
-  subpackages:
-  - cmd/goose
 - name: github.com/ajg/form
   version: e7b99d6ea9c58e7bb6b2c1059b9ba748cdff22b0
 - name: github.com/bluele/factory-go
@@ -42,6 +38,8 @@ imports:
   version: 45195d7bb8b6ea732b15a9e4e98a92b93c443dc2
   subpackages:
   - fasthttpexpect
+- name: github.com/go-sql-driver/mysql
+  version: 3654d25ec346ee8ce71a68431025458d52a38ac0
 - name: github.com/google/go-querystring
   version: 9235644dd9e52eeae6fa48efd539fdc351a0af53
   subpackages:
@@ -105,6 +103,10 @@ imports:
   version: 09cded8978dc9e80714c4d85b0322337b0a1e5e0
 - name: github.com/klauspost/crc32
   version: 19b0b332c9e4516a6370a0456e6182c3b5036720
+- name: github.com/kylelemons/go-gypsy
+  version: 42fc2c7ee9b8bd0ff636cd2d7a8c0a49491044c5
+  subpackages:
+  - yaml
 - name: github.com/lib/pq
   version: ee1442bda7bd1b6a84e913bdb421cb1874ec629d
   subpackages:
@@ -155,6 +157,11 @@ imports:
   subpackages:
   - assert
   - require
+- name: github.com/topfreegames/goose
+  version: c7f6dd34057cd7e5253c282993b18dd92da999cd
+  subpackages:
+  - cmd/goose
+  - lib/goose
 - name: github.com/valyala/fasthttp
   version: 83a24c301bb683e450cd0304a3eb69556c48678c
   subpackages:
@@ -162,6 +169,12 @@ imports:
   - fasthttputil
 - name: github.com/yudai/golcs
   version: d1c525dea8ce39ea9a783d33cf08932305373f2c
+- name: github.com/ziutek/mymysql
+  version: e5d54ebfda3f8a15e7b192b65c2aa10cb4fd7e04
+  subpackages:
+  - godrv
+  - mysql
+  - native
 - name: golang.org/x/net
   version: 3f122ce3dbbe488b7e6a8bdb26f41edec852a40b
   subpackages:

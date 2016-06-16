@@ -9,10 +9,10 @@ GODIRS = $(shell go list ./... | grep -v /vendor/ | sed s@github.com/topfreegame
 PMD = "pmd-bin-5.3.3"
 
 setup:
-	@brew install glide
+	@go get -u github.com/Masterminds/glide/...
 	@go get -v github.com/spf13/cobra/cobra
 	@go get github.com/fzipp/gocyclo
-	@go get bitbucket.org/liamstask/goose/cmd/goose
+	@go get github.com/topfreegames/goose/cmd/goose
 	@go get github.com/fzipp/gocyclo
 	@go get github.com/gordonklaus/ineffassign
 	@glide install
@@ -20,13 +20,24 @@ setup:
 setup-ci:
 	@sudo add-apt-repository -y ppa:masterminds/glide && sudo apt-get update
 	@sudo apt-get install -y glide
-	@go get bitbucket.org/liamstask/goose/cmd/goose
+	@go get github.com/topfreegames/goose/cmd/goose
 	@go get github.com/mattn/goveralls
 	@glide install
 
 build:
 	@go build $(PACKAGES)
 	@go build
+
+cross:
+	@mkdir -p ./bin
+	@echo "Building for linux-386..."
+	@env GOOS=linux GOARCH=386 go build -o ./bin/khan-linux-386
+	@echo "Building for linux-amd64..."
+	@env GOOS=linux GOARCH=amd64 go build -o ./bin/khan-linux-amd64
+	@echo "Building for darwin-386..."
+	@env GOOS=darwin GOARCH=386 go build -o ./bin/khan-darwin-386
+	@echo "Building for darwin-amd64..."
+	@env GOOS=darwin GOARCH=amd64 go build -o ./bin/khan-darwin-amd64
 
 install:
 	@go install
