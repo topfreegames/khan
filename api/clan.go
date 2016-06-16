@@ -14,10 +14,12 @@ import (
 
 //clanPayload maps the payload for the Create Clan route
 type clanPayload struct {
-	PublicID      string
-	Name          string
-	OwnerPublicID string
-	Metadata      string
+	PublicID         string
+	Name             string
+	OwnerPublicID    string
+	Metadata         string
+	AllowApplication bool
+	AutoJoin         bool
 }
 
 //leaveClanPayload maps the payload for the Leave Clan route
@@ -51,6 +53,8 @@ func CreateClanHandler(app *App) func(c *iris.Context) {
 			payload.Name,
 			payload.OwnerPublicID,
 			payload.Metadata,
+			payload.AllowApplication,
+			payload.AutoJoin,
 		)
 
 		if err != nil {
@@ -85,6 +89,8 @@ func UpdateClanHandler(app *App) func(c *iris.Context) {
 			payload.Name,
 			payload.OwnerPublicID,
 			payload.Metadata,
+			payload.AllowApplication,
+			payload.AutoJoin,
 		)
 
 		if err != nil {

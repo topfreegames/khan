@@ -13,6 +13,8 @@ CREATE TABLE clans (
     game_id varchar(36) NOT NULL REFERENCES games (public_id),
     name varchar(2000) NOT NULL,
     metadata JSONB NOT NULL DEFAULT '{}'::JSONB,
+    allow_application boolean NOT NULL DEFAULT true,
+    auto_join boolean NOT NULL DEFAULT false,
     created_at bigint NOT NULL,
     updated_at bigint NULL,
     deleted_at bigint NULL,

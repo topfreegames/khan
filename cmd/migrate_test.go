@@ -8,7 +8,6 @@
 package cmd
 
 import (
-	"fmt"
 	"os/exec"
 	"testing"
 
@@ -44,7 +43,6 @@ func TestMigrationCommand(t *testing.T) {
 			ConfigFile = "../config/test.yaml"
 			initConfig()
 			err := runMigrations("../db/migrations", -1)
-			fmt.Println(err)
 			g.Assert(err == nil).IsTrue()
 		})
 	})

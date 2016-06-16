@@ -41,11 +41,13 @@ func TestClanModel(t *testing.T) {
 				g.Assert(err == nil).IsTrue()
 
 				clan := &Clan{
-					GameID:   "test",
-					PublicID: "test-clan-2",
-					Name:     "clan-name",
-					Metadata: "{}",
-					OwnerID:  player.ID,
+					GameID:           "test",
+					PublicID:         "test-clan-2",
+					Name:             "clan-name",
+					Metadata:         "{}",
+					OwnerID:          player.ID,
+					AllowApplication: true,
+					AutoJoin:         false,
 				}
 				err = testDb.Insert(clan)
 				g.Assert(err == nil).IsTrue()
@@ -153,6 +155,8 @@ func TestClanModel(t *testing.T) {
 					randomdata.FullName(randomdata.RandomGender),
 					player.PublicID,
 					"{}",
+					true,
+					false,
 				)
 
 				g.Assert(err == nil).IsTrue()
@@ -176,6 +180,8 @@ func TestClanModel(t *testing.T) {
 					"clan-name",
 					player.PublicID,
 					"it-will-fail-because-metadata-is-not-a-json",
+					true,
+					false,
 				)
 
 				g.Assert(err != nil).IsTrue()
@@ -191,6 +197,8 @@ func TestClanModel(t *testing.T) {
 					"clan-name",
 					playerPublicID,
 					"{}",
+					true,
+					false,
 				)
 
 				g.Assert(err != nil).IsTrue()
@@ -212,6 +220,8 @@ func TestClanModel(t *testing.T) {
 					clan.Name,
 					player.PublicID,
 					metadata,
+					clan.AllowApplication,
+					clan.AutoJoin,
 				)
 
 				g.Assert(err == nil).IsTrue()
@@ -239,6 +249,8 @@ func TestClanModel(t *testing.T) {
 					clan.Name,
 					player.PublicID,
 					metadata,
+					clan.AllowApplication,
+					clan.AutoJoin,
 				)
 
 				g.Assert(err == nil).IsFalse()
@@ -258,6 +270,8 @@ func TestClanModel(t *testing.T) {
 					clan.Name,
 					player.PublicID,
 					metadata,
+					clan.AllowApplication,
+					clan.AutoJoin,
 				)
 
 				g.Assert(err == nil).IsFalse()
