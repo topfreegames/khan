@@ -31,6 +31,10 @@ func getDatabase() (*gorp.DbMap, error) {
 	port := viper.GetInt("postgres.port")
 	sslMode := viper.GetString("postgres.sslMode")
 
+	fmt.Printf(
+		"\nConnecting to %s:%d as %s using sslMode=%s to db %s...\n\n",
+		host, port, user, sslMode, dbName,
+	)
 	db, err := models.GetDB(host, user, port, sslMode, dbName, password)
 	return db.(*gorp.DbMap), err
 }
