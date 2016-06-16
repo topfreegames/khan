@@ -141,6 +141,7 @@ func TestMembershipHandler(t *testing.T) {
 				"GameID": clan.GameID,
 			}).(*models.Player)
 			err = testDb.Insert(player)
+			g.Assert(err == nil).IsTrue()
 
 			gameID := player.GameID
 			clanPublicID := clan.PublicID
@@ -182,6 +183,7 @@ func TestMembershipHandler(t *testing.T) {
 				"GameID": clan.GameID,
 			}).(*models.Player)
 			err = testDb.Insert(player)
+			g.Assert(err == nil).IsTrue()
 
 			gameID := player.GameID
 			clanPublicID := clan.PublicID

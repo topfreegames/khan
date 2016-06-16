@@ -23,14 +23,10 @@ func TestMembershipModel(t *testing.T) {
 
 	g.Describe("Membership Model", func() {
 		g.It("Should create a new Membership", func() {
-			player := PlayerFactory.MustCreate().(*Player)
-			err := testDb.Insert(player)
+			player, err := CreatePlayerFactory(testDb, "")
 			g.Assert(err == nil).IsTrue()
 
-			clan := ClanFactory.MustCreateWithOption(map[string]interface{}{
-				"OwnerID": player.ID,
-			}).(*Clan)
-			err = testDb.Insert(clan)
+			clan, _, _, _, err := GetClanWithMemberships(testDb, 0, "", "")
 			g.Assert(err == nil).IsTrue()
 
 			membership := &Membership{
@@ -55,30 +51,15 @@ func TestMembershipModel(t *testing.T) {
 		})
 
 		g.It("Should update a Membership", func() {
-			player := PlayerFactory.MustCreate().(*Player)
-			err := testDb.Insert(player)
+			_, _, _, memberships, err := GetClanWithMemberships(testDb, 1, "", "")
 			g.Assert(err == nil).IsTrue()
+			dt := memberships[0].UpdatedAt
 
-			clan := ClanFactory.MustCreateWithOption(map[string]interface{}{
-				"OwnerID": player.ID,
-			}).(*Clan)
-			err = testDb.Insert(clan)
-			g.Assert(err == nil).IsTrue()
-
-			membership := MembershipFactory.MustCreateWithOption(map[string]interface{}{
-				"PlayerID":    player.ID,
-				"ClanID":      clan.ID,
-				"RequestorID": clan.OwnerID,
-			}).(*Membership)
-			err = testDb.Insert(membership)
-			g.Assert(err == nil).IsTrue()
-			dt := membership.UpdatedAt
-
-			membership.Approved = true
-			count, err := testDb.Update(membership)
+			memberships[0].Approved = true
+			count, err := testDb.Update(memberships[0])
 			g.Assert(err == nil).IsTrue()
 			g.Assert(int(count)).Equal(1)
-			g.Assert(membership.UpdatedAt > dt).IsTrue()
+			g.Assert(memberships[0].UpdatedAt > dt).IsTrue()
 		})
 
 		g.It("Should get existing Membership", func() {
@@ -108,8 +89,7 @@ func TestMembershipModel(t *testing.T) {
 
 		g.Describe("Should not get Membership by the player public ID", func() {
 			g.It("If non-existing Membership", func() {
-				player := PlayerFactory.MustCreate().(*Player)
-				err := testDb.Insert(player)
+				player, err := CreatePlayerFactory(testDb, "")
 				g.Assert(err == nil).IsTrue()
 
 				clan := ClanFactory.MustCreateWithOption(map[string]interface{}{
@@ -372,8 +352,7 @@ func TestMembershipModel(t *testing.T) {
 			})
 
 			g.It("Unexistent clan", func() {
-				player := PlayerFactory.MustCreate().(*Player)
-				err := testDb.Insert(player)
+				player, err := CreatePlayerFactory(testDb, "")
 				g.Assert(err == nil).IsTrue()
 
 				clanPublicID := randomdata.FullName(randomdata.RandomGender)

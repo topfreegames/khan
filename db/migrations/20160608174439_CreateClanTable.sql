@@ -10,13 +10,13 @@
 CREATE TABLE clans (
     id serial PRIMARY KEY,
     public_id varchar(255) NOT NULL,
-    game_id varchar(36) NOT NULL,
+    game_id varchar(36) NOT NULL REFERENCES games (public_id),
     name varchar(2000) NOT NULL,
     metadata JSONB NOT NULL DEFAULT '{}'::JSONB,
     created_at bigint NOT NULL,
     updated_at bigint NULL,
     deleted_at bigint NULL,
-    owner_id integer NOT NULL REFERENCES players (id), 
+    owner_id integer NOT NULL REFERENCES players (id),
 
     CONSTRAINT gameid_clanid UNIQUE(game_id, public_id)
 );

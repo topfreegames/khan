@@ -24,7 +24,7 @@ func TestGameModel(t *testing.T) {
 		g.Describe("Model Basic Tests", func() {
 			g.It("Should create a new Game", func() {
 				game := &Game{
-					PublicID:                      "test",
+					PublicID:                      "test-test-test-game",
 					Name:                          "user-name",
 					MinMembershipLevel:            0,
 					MaxMembershipLevel:            15,

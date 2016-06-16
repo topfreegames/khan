@@ -39,8 +39,7 @@ func TestClanHandler(t *testing.T) {
 
 	g.Describe("Create Clan Handler", func() {
 		g.It("Should create clan", func() {
-			player := models.PlayerFactory.MustCreate().(*models.Player)
-			err := testDb.Insert(player)
+			player, err := models.CreatePlayerFactory(testDb, "")
 			AssertNotError(g, err)
 
 			gameID := player.GameID
@@ -108,8 +107,7 @@ func TestClanHandler(t *testing.T) {
 		})
 
 		g.It("Should not create clan if invalid data", func() {
-			player := models.PlayerFactory.MustCreate().(*models.Player)
-			err := testDb.Insert(player)
+			player, err := models.CreatePlayerFactory(testDb, "")
 			AssertNotError(g, err)
 
 			gameID := player.GameID
@@ -250,21 +248,13 @@ func TestClanHandler(t *testing.T) {
 
 	g.Describe("Update Clan Handler", func() {
 		g.It("Should update clan", func() {
-			player := models.PlayerFactory.MustCreate().(*models.Player)
-			err := testDb.Insert(player)
-			AssertNotError(g, err)
-
-			clan := models.ClanFactory.MustCreateWithOption(map[string]interface{}{
-				"GameID":  player.GameID,
-				"OwnerID": player.ID,
-			}).(*models.Clan)
-			err = testDb.Insert(clan)
+			clan, owner, _, _, err := models.GetClanWithMemberships(testDb, 0, "", "")
 			AssertNotError(g, err)
 
 			gameID := clan.GameID
 			publicID := clan.PublicID
 			clanName := randomdata.FullName(randomdata.RandomGender)
-			ownerPublicID := player.PublicID
+			ownerPublicID := owner.PublicID
 			metadata := "{\"new\": \"metadata\"}"
 
 			a := GetDefaultTestApp()
@@ -286,7 +276,7 @@ func TestClanHandler(t *testing.T) {
 			g.Assert(dbClan.GameID).Equal(gameID)
 			g.Assert(dbClan.PublicID).Equal(publicID)
 			g.Assert(dbClan.Name).Equal(clanName)
-			g.Assert(dbClan.OwnerID).Equal(player.ID)
+			g.Assert(dbClan.OwnerID).Equal(owner.ID)
 			g.Assert(dbClan.Metadata).Equal(metadata)
 		})
 
@@ -304,15 +294,7 @@ func TestClanHandler(t *testing.T) {
 		})
 
 		g.It("Should not update clan if player is not the owner", func() {
-			player := models.PlayerFactory.MustCreate().(*models.Player)
-			err := testDb.Insert(player)
-			AssertNotError(g, err)
-
-			clan := models.ClanFactory.MustCreateWithOption(map[string]interface{}{
-				"GameID":  player.GameID,
-				"OwnerID": player.ID,
-			}).(*models.Clan)
-			err = testDb.Insert(clan)
+			clan, _, _, _, err := models.GetClanWithMemberships(testDb, 0, "", "")
 			AssertNotError(g, err)
 
 			gameID := clan.GameID
@@ -338,21 +320,13 @@ func TestClanHandler(t *testing.T) {
 		})
 
 		g.It("Should not update clan if invalid data", func() {
-			player := models.PlayerFactory.MustCreate().(*models.Player)
-			err := testDb.Insert(player)
-			AssertNotError(g, err)
-
-			clan := models.ClanFactory.MustCreateWithOption(map[string]interface{}{
-				"GameID":  player.GameID,
-				"OwnerID": player.ID,
-			}).(*models.Clan)
-			err = testDb.Insert(clan)
+			clan, owner, _, _, err := models.GetClanWithMemberships(testDb, 0, "", "")
 			AssertNotError(g, err)
 
 			gameID := clan.GameID
 			publicID := clan.PublicID
 			clanName := randomdata.FullName(randomdata.RandomGender)
-			ownerPublicID := player.PublicID
+			ownerPublicID := owner.PublicID
 			metadata := "it-will-fail-beacause-metada-is-not-a-json"
 
 			a := GetDefaultTestApp()
@@ -411,20 +385,11 @@ func TestClanHandler(t *testing.T) {
 	})
 	g.Describe("Retrieve Clan Handler", func() {
 		g.It("Should get details for clan", func() {
-			player := models.PlayerFactory.MustCreate().(*models.Player)
-			err = testDb.Insert(player)
-			AssertNotError(g, err)
-
-			clan := models.ClanFactory.MustCreateWithOption(map[string]interface{}{
-				"GameID":   player.GameID,
-				"OwnerID":  player.ID,
-				"Metadata": "{\"x\": 1}",
-			}).(*models.Clan)
-			err = testDb.Insert(clan)
+			clan, _, _, _, err := models.GetClanWithMemberships(testDb, 0, "", "")
 			AssertNotError(g, err)
 
 			a := GetDefaultTestApp()
-			res := Get(a, GetGameRoute(player.GameID, fmt.Sprintf("/clans/%s", clan.PublicID)), t)
+			res := Get(a, GetGameRoute(clan.GameID, fmt.Sprintf("/clans/%s", clan.PublicID)), t)
 
 			res.Status(http.StatusOK)
 			var result map[string]interface{}
