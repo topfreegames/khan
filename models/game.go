@@ -15,17 +15,19 @@ import (
 
 //Game identifies uniquely one game
 type Game struct {
-	ID                          int    `db:"id"`
-	PublicID                    string `db:"public_id"`
-	Name                        string `db:"name"`
-	MinMembershipLevel          int    `db:"min_membership_level"`
-	MaxMembershipLevel          int    `db:"max_membership_level"`
-	MinLevelToAcceptApplication int    `db:"min_level_to_accept_application"`
-	MinLevelToCreateInvitation  int    `db:"min_level_to_create_invitation"`
-	AllowApplication            bool   `db:"allow_application"`
-	Metadata                    string `db:"metadata"`
-	CreatedAt                   int64  `db:"created_at"`
-	UpdatedAt                   int64  `db:"updated_at"`
+	ID                            int    `db:"id"`
+	PublicID                      string `db:"public_id"`
+	Name                          string `db:"name"`
+	MinMembershipLevel            int    `db:"min_membership_level"`
+	MaxMembershipLevel            int    `db:"max_membership_level"`
+	MinLevelToAcceptApplication   int    `db:"min_level_to_accept_application"`
+	MinLevelToCreateInvitation    int    `db:"min_level_to_create_invitation"`
+	MinLevelOffsetToPromoteMember int    `db:"min_level_offset_to_promote_member"`
+	MinLevelOffsetToDemoteMember  int    `db:"min_level_offset_to_demote_member"`
+	AllowApplication              bool   `db:"allow_application"`
+	Metadata                      string `db:"metadata"`
+	CreatedAt                     int64  `db:"created_at"`
+	UpdatedAt                     int64  `db:"updated_at"`
 }
 
 //PreInsert populates fields before inserting a new game
@@ -63,16 +65,21 @@ func GetGameByPublicID(db DB, publicID string) (*Game, error) {
 }
 
 //CreateGame creates a new game
-func CreateGame(db DB, publicID, name, metadata string, minMembershipLevel, maxMembershipLevel, minLevelToAcceptApplication, minLevelToCreateInvitation int, allowApplication bool) (*Game, error) {
+func CreateGame(db DB, publicID, name, metadata string,
+	minLevel, maxLevel, minLevelAccept, minLevelCreate, minOffsetPromote, minOffsetDemote int,
+	allowApplication bool,
+) (*Game, error) {
 	game := &Game{
-		PublicID:                    publicID,
-		Name:                        name,
-		MinMembershipLevel:          minMembershipLevel,
-		MaxMembershipLevel:          maxMembershipLevel,
-		MinLevelToAcceptApplication: minLevelToAcceptApplication,
-		MinLevelToCreateInvitation:  minLevelToCreateInvitation,
-		AllowApplication:            allowApplication,
-		Metadata:                    metadata,
+		PublicID:                      publicID,
+		Name:                          name,
+		MinMembershipLevel:            minLevel,
+		MaxMembershipLevel:            maxLevel,
+		MinLevelToAcceptApplication:   minLevelAccept,
+		MinLevelToCreateInvitation:    minLevelCreate,
+		MinLevelOffsetToPromoteMember: minOffsetPromote,
+		MinLevelOffsetToDemoteMember:  minOffsetDemote,
+		AllowApplication:              allowApplication,
+		Metadata:                      metadata,
 	}
 	err := db.Insert(game)
 	if err != nil {
@@ -82,7 +89,10 @@ func CreateGame(db DB, publicID, name, metadata string, minMembershipLevel, maxM
 }
 
 //UpdateGame updates an existing game
-func UpdateGame(db DB, publicID, name, metadata string, minMembershipLevel, maxMembershipLevel, minLevelToAcceptApplication, minLevelToCreateInvitation int, allowApplication bool) (*Game, error) {
+func UpdateGame(db DB, publicID, name, metadata string,
+	minLevel, maxLevel, minLevelAccept, minLevelCreate, minOffsetPromote, minOffsetDemote int,
+	allowApplication bool,
+) (*Game, error) {
 	game, err := GetGameByPublicID(db, publicID)
 
 	if err != nil {
@@ -90,10 +100,12 @@ func UpdateGame(db DB, publicID, name, metadata string, minMembershipLevel, maxM
 	}
 
 	game.Name = name
-	game.MinMembershipLevel = minMembershipLevel
-	game.MaxMembershipLevel = maxMembershipLevel
-	game.MinLevelToAcceptApplication = minLevelToAcceptApplication
-	game.MinLevelToCreateInvitation = minLevelToCreateInvitation
+	game.MinMembershipLevel = minLevel
+	game.MaxMembershipLevel = maxLevel
+	game.MinLevelToAcceptApplication = minLevelAccept
+	game.MinLevelToCreateInvitation = minLevelCreate
+	game.MinLevelOffsetToPromoteMember = minOffsetPromote
+	game.MinLevelOffsetToDemoteMember = minOffsetDemote
 	game.AllowApplication = allowApplication
 	game.Metadata = metadata
 
