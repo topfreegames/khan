@@ -15,6 +15,7 @@ CREATE TABLE games (
     max_membership_level integer NOT NULL,
     min_level_to_accept_application integer NOT NULL,
     min_level_to_create_invitation integer NOT NULL,
+    min_level_to_remove_member integer NOT NULL,
     min_level_offset_to_promote_member integer NOT NULL,
     min_level_offset_to_demote_member integer NOT NULL,
     max_members integer NOT NULL,

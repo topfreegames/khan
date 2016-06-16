@@ -22,6 +22,7 @@ var GameFactory = factory.NewFactory(
 		MaxMembershipLevel:            1000000,
 		MinLevelToAcceptApplication:   1,
 		MinLevelToCreateInvitation:    1,
+		MinLevelToRemoveMember:        1,
 		MinLevelOffsetToPromoteMember: 2,
 		MinLevelOffsetToDemoteMember:  1,
 		MaxMembers:                    100,

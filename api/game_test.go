@@ -37,6 +37,7 @@ func TestGameHandler(t *testing.T) {
 				"maxMembershipLevel":            10,
 				"minLevelToAcceptApplication":   1,
 				"minLevelToCreateInvitation":    1,
+				"minLevelToRemoveMember":        1,
 				"minLevelOffsetToPromoteMember": 1,
 				"minLevelOffsetToDemoteMember":  1,
 				"maxMembers":                    100,
@@ -72,6 +73,7 @@ func TestGameHandler(t *testing.T) {
 				"maxMembershipLevel":            10,
 				"minLevelToAcceptApplication":   1,
 				"minLevelToCreateInvitation":    1,
+				"minLevelToRemoveMember":        1,
 				"minLevelOffsetToPromoteMember": 1,
 				"minLevelOffsetToDemoteMember":  1,
 				"maxMembers":                    100,
@@ -82,10 +84,11 @@ func TestGameHandler(t *testing.T) {
 			var result map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
-			g.Assert(len(result["reason"].([]interface{}))).Equal(3)
+			g.Assert(len(result["reason"].([]interface{}))).Equal(4)
 			g.Assert(result["reason"].([]interface{})[0].(string)).Equal("MaxMembershipLevel should be greater or equal to MinMembershipLevel")
 			g.Assert(result["reason"].([]interface{})[1].(string)).Equal("MinLevelToAcceptApplication should be greater or equal to MinMembershipLevel")
 			g.Assert(result["reason"].([]interface{})[2].(string)).Equal("MinLevelToCreateInvitation should be greater or equal to MinMembershipLevel")
+			g.Assert(result["reason"].([]interface{})[3].(string)).Equal("MinLevelToRemoveMember should be greater or equal to MinMembershipLevel")
 		})
 
 		g.It("Should not create game if invalid payload", func() {
@@ -109,6 +112,7 @@ func TestGameHandler(t *testing.T) {
 				"maxMembershipLevel":            10,
 				"minLevelToAcceptApplication":   1,
 				"minLevelToCreateInvitation":    1,
+				"minLevelToRemoveMember":        1,
 				"minLevelOffsetToPromoteMember": 1,
 				"minLevelOffsetToDemoteMember":  1,
 				"maxMembers":                    100,
@@ -138,6 +142,7 @@ func TestGameHandler(t *testing.T) {
 				"maxMembershipLevel":            game.MaxMembershipLevel,
 				"minLevelToAcceptApplication":   game.MinLevelToAcceptApplication,
 				"minLevelToCreateInvitation":    game.MinLevelToCreateInvitation,
+				"minLevelToRemoveMember":        game.MinLevelToRemoveMember,
 				"minLevelOffsetToPromoteMember": game.MinLevelOffsetToPromoteMember,
 				"minLevelOffsetToDemoteMember":  game.MinLevelOffsetToDemoteMember,
 				"maxMembers":                    100,
@@ -177,8 +182,9 @@ func TestGameHandler(t *testing.T) {
 				"metadata":                      game.Metadata,
 				"minMembershipLevel":            game.MaxMembershipLevel + 1,
 				"maxMembershipLevel":            game.MaxMembershipLevel,
-				"minLevelToAcceptApplication":   game.MinLevelToAcceptApplication,
-				"minLevelToCreateInvitation":    game.MinLevelToCreateInvitation,
+				"minLevelToAcceptApplication":   game.MaxMembershipLevel,
+				"minLevelToCreateInvitation":    game.MaxMembershipLevel,
+				"minLevelToRemoveMember":        game.MaxMembershipLevel,
 				"minLevelOffsetToPromoteMember": game.MinLevelOffsetToPromoteMember,
 				"minLevelOffsetToDemoteMember":  game.MinLevelOffsetToDemoteMember,
 				"maxMembers":                    game.MaxMembers,
@@ -190,10 +196,11 @@ func TestGameHandler(t *testing.T) {
 			var result map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
-			g.Assert(len(result["reason"].([]interface{}))).Equal(3)
+			g.Assert(len(result["reason"].([]interface{}))).Equal(4)
 			g.Assert(result["reason"].([]interface{})[0].(string)).Equal("MaxMembershipLevel should be greater or equal to MinMembershipLevel")
 			g.Assert(result["reason"].([]interface{})[1].(string)).Equal("MinLevelToAcceptApplication should be greater or equal to MinMembershipLevel")
 			g.Assert(result["reason"].([]interface{})[2].(string)).Equal("MinLevelToCreateInvitation should be greater or equal to MinMembershipLevel")
+			g.Assert(result["reason"].([]interface{})[3].(string)).Equal("MinLevelToRemoveMember should be greater or equal to MinMembershipLevel")
 		})
 
 		g.It("Should not update game if invalid payload", func() {
@@ -223,6 +230,7 @@ func TestGameHandler(t *testing.T) {
 				"maxMembershipLevel":            game.MaxMembershipLevel,
 				"minLevelToAcceptApplication":   game.MinLevelToAcceptApplication,
 				"minLevelToCreateInvitation":    game.MinLevelToCreateInvitation,
+				"minLevelToRemoveMember":        game.MinLevelToRemoveMember,
 				"minLevelOffsetToPromoteMember": game.MinLevelOffsetToPromoteMember,
 				"minLevelOffsetToDemoteMember":  game.MinLevelOffsetToDemoteMember,
 				"maxMembers":                    100,

@@ -20,6 +20,7 @@ type gamePayload struct {
 	MaxMembershipLevel            int
 	MinLevelToAcceptApplication   int
 	MinLevelToCreateInvitation    int
+	MinLevelToRemoveMember        int
 	MinLevelOffsetToPromoteMember int
 	MinLevelOffsetToDemoteMember  int
 	MaxMembers                    int
@@ -33,8 +34,11 @@ func validateGamePayload(payload gamePayload) []string {
 	if payload.MinLevelToAcceptApplication < payload.MinMembershipLevel {
 		errors = append(errors, "MinLevelToAcceptApplication should be greater or equal to MinMembershipLevel")
 	}
-	if payload.MinLevelToAcceptApplication < payload.MinMembershipLevel {
+	if payload.MinLevelToCreateInvitation < payload.MinMembershipLevel {
 		errors = append(errors, "MinLevelToCreateInvitation should be greater or equal to MinMembershipLevel")
+	}
+	if payload.MinLevelToRemoveMember < payload.MinMembershipLevel {
+		errors = append(errors, "MinLevelToRemoveMember should be greater or equal to MinMembershipLevel")
 	}
 	return errors
 }
@@ -61,8 +65,9 @@ func CreateGameHandler(app *App) func(c *iris.Context) {
 			payload.Metadata,
 			payload.MinMembershipLevel,
 			payload.MaxMembershipLevel,
-			payload.MinLevelToAcceptApplication,
+			payload.MinLevelToRemoveMember,
 			payload.MinLevelToCreateInvitation,
+			payload.MinLevelToRemoveMember,
 			payload.MinLevelOffsetToPromoteMember,
 			payload.MinLevelOffsetToDemoteMember,
 			payload.MaxMembers,
@@ -105,6 +110,7 @@ func UpdateGameHandler(app *App) func(c *iris.Context) {
 			payload.MaxMembershipLevel,
 			payload.MinLevelToAcceptApplication,
 			payload.MinLevelToCreateInvitation,
+			payload.MinLevelToRemoveMember,
 			payload.MinLevelOffsetToPromoteMember,
 			payload.MinLevelOffsetToDemoteMember,
 			payload.MaxMembers,
