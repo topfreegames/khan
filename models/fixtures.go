@@ -15,18 +15,6 @@ import (
 	"github.com/satori/go.uuid"
 )
 
-func configureFactory(fct *factory.Factory) *factory.Factory {
-	return fct.Attr("GameID", func(args factory.Args) (interface{}, error) {
-		return uuid.NewV4().String(), nil
-	}).Attr("PublicID", func(args factory.Args) (interface{}, error) {
-		return uuid.NewV4().String(), nil
-	}).Attr("Name", func(args factory.Args) (interface{}, error) {
-		return randomdata.FullName(randomdata.RandomGender), nil
-	}).Attr("Metadata", func(args factory.Args) (interface{}, error) {
-		return "{}", nil
-	})
-}
-
 //GameFactory is responsible for constructing test game instances
 var GameFactory = factory.NewFactory(
 	&Game{
@@ -46,6 +34,16 @@ var GameFactory = factory.NewFactory(
 	return "{}", nil
 })
 
+func configureFactory(fct *factory.Factory) *factory.Factory {
+	return fct.Attr("PublicID", func(args factory.Args) (interface{}, error) {
+		return uuid.NewV4().String(), nil
+	}).Attr("Name", func(args factory.Args) (interface{}, error) {
+		return randomdata.FullName(randomdata.RandomGender), nil
+	}).Attr("Metadata", func(args factory.Args) (interface{}, error) {
+		return "{}", nil
+	})
+}
+
 //PlayerFactory is responsible for constructing test player instances
 var PlayerFactory = configureFactory(factory.NewFactory(
 	&Player{},
@@ -55,6 +53,29 @@ var PlayerFactory = configureFactory(factory.NewFactory(
 var ClanFactory = configureFactory(factory.NewFactory(
 	&Clan{},
 ))
+
+//CreatePlayerFactory is responsible for creaing a test player instance with the associated game
+func CreatePlayerFactory(db DB, gameID string) (*Player, error) {
+	if gameID == "" {
+		gameID = uuid.NewV4().String()
+	}
+	game := GameFactory.MustCreateWithOption(map[string]interface{}{
+		"PublicID": gameID,
+	}).(*Game)
+	err := db.Insert(game)
+	if err != nil {
+		return nil, err
+	}
+
+	player := PlayerFactory.MustCreateWithOption(map[string]interface{}{
+		"GameID": gameID,
+	}).(*Player)
+	err = db.Insert(player)
+	if err != nil {
+		return nil, err
+	}
+	return player, nil
+}
 
 //MembershipFactory is responsible for constructing test membership instances
 var MembershipFactory = factory.NewFactory(
@@ -74,10 +95,18 @@ func GetClanWithMemberships(
 		clanPublicID = uuid.NewV4().String()
 	}
 
+	game := GameFactory.MustCreateWithOption(map[string]interface{}{
+		"PublicID": gameID,
+	}).(*Game)
+	err := db.Insert(game)
+	if err != nil {
+		return nil, nil, nil, nil, err
+	}
+
 	owner := PlayerFactory.MustCreateWithOption(map[string]interface{}{
 		"GameID": gameID,
 	}).(*Player)
-	err := db.Insert(owner)
+	err = db.Insert(owner)
 	if err != nil {
 		return nil, nil, nil, nil, err
 	}
@@ -133,10 +162,18 @@ func GetTestClans(db DB, gameID string, publicIDTemplate string, numberOfClans i
 	if gameID == "" {
 		gameID = uuid.NewV4().String()
 	}
+	game := GameFactory.MustCreateWithOption(map[string]interface{}{
+		"PublicID": gameID,
+	}).(*Game)
+	err := db.Insert(game)
+	if err != nil {
+		return nil, nil, err
+	}
+
 	player := PlayerFactory.MustCreateWithOption(map[string]interface{}{
 		"GameID": gameID,
 	}).(*Player)
-	err := db.Insert(player)
+	err = db.Insert(player)
 	if err != nil {
 		return nil, nil, err
 	}

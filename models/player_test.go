@@ -42,8 +42,7 @@ func TestPlayerModel(t *testing.T) {
 			})
 
 			g.It("Should update a new Player", func() {
-				player := PlayerFactory.MustCreate().(*Player)
-				err := testDb.Insert(player)
+				player, err := CreatePlayerFactory(testDb, "")
 				g.Assert(err == nil).IsTrue()
 				dt := player.UpdatedAt
 
@@ -57,8 +56,7 @@ func TestPlayerModel(t *testing.T) {
 
 		g.Describe("Get Player By ID", func() {
 			g.It("Should get existing Player", func() {
-				player := PlayerFactory.MustCreate().(*Player)
-				err := testDb.Insert(player)
+				player, err := CreatePlayerFactory(testDb, "")
 				g.Assert(err == nil).IsTrue()
 
 				dbPlayer, err := GetPlayerByID(testDb, player.ID)
@@ -75,8 +73,7 @@ func TestPlayerModel(t *testing.T) {
 
 		g.Describe("Get Player By Public ID", func() {
 			g.It("Should get existing Player by Game and Player", func() {
-				player := PlayerFactory.MustCreate().(*Player)
-				err := testDb.Insert(player)
+				player, err := CreatePlayerFactory(testDb, "")
 				g.Assert(err == nil).IsTrue()
 
 				dbPlayer, err := GetPlayerByPublicID(testDb, player.GameID, player.PublicID)
@@ -113,8 +110,7 @@ func TestPlayerModel(t *testing.T) {
 
 		g.Describe("Update Player", func() {
 			g.It("Should update a Player with UpdatePlayer", func() {
-				player := PlayerFactory.MustCreate().(*Player)
-				err := testDb.Insert(player)
+				player, err := CreatePlayerFactory(testDb, "")
 				g.Assert(err == nil).IsTrue()
 
 				metadata := "{\"x\": 1}"

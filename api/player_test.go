@@ -29,8 +29,12 @@ func TestPlayerHandler(t *testing.T) {
 	g.Describe("Create Player Handler", func() {
 		g.It("Should create player", func() {
 			a := GetDefaultTestApp()
+			game := models.GameFactory.MustCreate().(*models.Game)
+			err := a.Db.Insert(game)
+			AssertNotError(g, err)
+
 			payload := map[string]interface{}{
-				"gameID":   "api-cr-1",
+				"gameID":   game.PublicID,
 				"publicID": randomdata.FullName(randomdata.RandomGender),
 				"name":     randomdata.FullName(randomdata.RandomGender),
 				"metadata": "{\"x\": 1}",
@@ -85,8 +89,7 @@ func TestPlayerHandler(t *testing.T) {
 	g.Describe("Update Player Handler", func() {
 		g.It("Should update player", func() {
 			a := GetDefaultTestApp()
-			player := models.PlayerFactory.MustCreate().(*models.Player)
-			err := a.Db.Insert(player)
+			player, err := models.CreatePlayerFactory(a.Db, "")
 			AssertNotError(g, err)
 
 			metadata := "{\"y\": 10}"
@@ -126,9 +129,7 @@ func TestPlayerHandler(t *testing.T) {
 
 		g.It("Should not update player if invalid data", func() {
 			a := GetDefaultTestApp()
-
-			player := models.PlayerFactory.MustCreate().(*models.Player)
-			err := a.Db.Insert(player)
+			player, err := models.CreatePlayerFactory(a.Db, "")
 			AssertNotError(g, err)
 
 			metadata := ""

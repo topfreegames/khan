@@ -9,7 +9,7 @@
 -- SQL in section 'Up' is executed when this migration is applied
 CREATE TABLE memberships (
     id serial PRIMARY KEY,
-    game_id varchar(36) NOT NULL,
+    game_id varchar(36) NOT NULL REFERENCES games (public_id),
     clan_id integer NOT NULL REFERENCES clans (id),
     player_id integer NOT NULL REFERENCES players (id),
     membership_level integer NOT NULL,
