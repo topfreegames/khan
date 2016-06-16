@@ -9,9 +9,25 @@ package api
 
 import (
 	"fmt"
+	"io/ioutil"
+	"path"
+	"runtime"
+	"strings"
 
 	"github.com/kataras/iris"
 )
+
+func getVersion() (string, error) {
+	_, filename, _, _ := runtime.Caller(1)
+	versionFile := path.Join(path.Dir(filename), "../version.txt")
+	version, err := ioutil.ReadFile(versionFile)
+
+	if err != nil {
+		return "", err
+	}
+
+	return strings.TrimSpace(string(version)), nil
+}
 
 //HealthCheckHandler is the handler responsible for validating that the app is still up
 func HealthCheckHandler(app *App) func(c *iris.Context) {
@@ -25,7 +41,16 @@ func HealthCheckHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
+		version, err := getVersion()
+		if err != nil {
+			c.Write(fmt.Sprintf("Error getting version: %s", err))
+			c.SetStatusCode(500)
+			return
+		}
+
 		c.SetStatusCode(iris.StatusOK)
+		workingString = strings.TrimSpace(workingString)
 		c.Write(workingString)
+		c.SetHeader("KHAN-VERSION", version)
 	}
 }
