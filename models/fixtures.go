@@ -27,6 +27,23 @@ func configureFactory(fct *factory.Factory) *factory.Factory {
 	})
 }
 
+//GameFactory is responsible for constructing test game instances
+var GameFactory = factory.NewFactory(
+	&Game{
+		MinMembershipLevel:          0,
+		MaxMembershipLevel:          1000000,
+		MinLevelToAcceptApplication: 1,
+		MinLevelToCreateInvitation:  1,
+		AllowApplication:            true,
+	},
+).Attr("PublicID", func(args factory.Args) (interface{}, error) {
+	return randomdata.FullName(randomdata.RandomGender), nil
+}).Attr("Name", func(args factory.Args) (interface{}, error) {
+	return randomdata.FullName(randomdata.RandomGender), nil
+}).Attr("Metadata", func(args factory.Args) (interface{}, error) {
+	return "{}", nil
+})
+
 //PlayerFactory is responsible for constructing test player instances
 var PlayerFactory = configureFactory(factory.NewFactory(
 	&Player{},
