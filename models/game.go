@@ -22,6 +22,7 @@ type Game struct {
 	MaxMembershipLevel            int    `db:"max_membership_level"`
 	MinLevelToAcceptApplication   int    `db:"min_level_to_accept_application"`
 	MinLevelToCreateInvitation    int    `db:"min_level_to_create_invitation"`
+	MinLevelToRemoveMember        int    `db:"min_level_to_remove_member"`
 	MinLevelOffsetToPromoteMember int    `db:"min_level_offset_to_promote_member"`
 	MinLevelOffsetToDemoteMember  int    `db:"min_level_offset_to_demote_member"`
 	MaxMembers                    int    `db:"max_members"`
@@ -66,7 +67,7 @@ func GetGameByPublicID(db DB, publicID string) (*Game, error) {
 
 //CreateGame creates a new game
 func CreateGame(db DB, publicID, name, metadata string,
-	minLevel, maxLevel, minLevelAccept, minLevelCreate, minOffsetPromote, minOffsetDemote, maxMembers int,
+	minLevel, maxLevel, minLevelAccept, minLevelCreate, minLevelRemove, minOffsetPromote, minOffsetDemote, maxMembers int,
 ) (*Game, error) {
 	game := &Game{
 		PublicID:                      publicID,
@@ -75,6 +76,7 @@ func CreateGame(db DB, publicID, name, metadata string,
 		MaxMembershipLevel:            maxLevel,
 		MinLevelToAcceptApplication:   minLevelAccept,
 		MinLevelToCreateInvitation:    minLevelCreate,
+		MinLevelToRemoveMember:        minLevelRemove,
 		MinLevelOffsetToPromoteMember: minOffsetPromote,
 		MinLevelOffsetToDemoteMember:  minOffsetDemote,
 		MaxMembers:                    maxMembers,
@@ -89,7 +91,7 @@ func CreateGame(db DB, publicID, name, metadata string,
 
 //UpdateGame updates an existing game
 func UpdateGame(db DB, publicID, name, metadata string,
-	minLevel, maxLevel, minLevelAccept, minLevelCreate, minOffsetPromote, minOffsetDemote, maxMembers int,
+	minLevel, maxLevel, minLevelAccept, minLevelCreate, minLevelRemove, minOffsetPromote, minOffsetDemote, maxMembers int,
 ) (*Game, error) {
 	game, err := GetGameByPublicID(db, publicID)
 
@@ -102,6 +104,7 @@ func UpdateGame(db DB, publicID, name, metadata string,
 	game.MaxMembershipLevel = maxLevel
 	game.MinLevelToAcceptApplication = minLevelAccept
 	game.MinLevelToCreateInvitation = minLevelCreate
+	game.MinLevelToRemoveMember = minLevelRemove
 	game.MinLevelOffsetToPromoteMember = minOffsetPromote
 	game.MinLevelOffsetToDemoteMember = minOffsetDemote
 	game.MaxMembers = maxMembers
