@@ -24,7 +24,7 @@ var GameFactory = factory.NewFactory(
 		MinLevelToCreateInvitation:    1,
 		MinLevelOffsetToPromoteMember: 2,
 		MinLevelOffsetToDemoteMember:  1,
-		AllowApplication:              true,
+		MaxMembers:                    100,
 	},
 ).Attr("PublicID", func(args factory.Args) (interface{}, error) {
 	return randomdata.FullName(randomdata.RandomGender), nil

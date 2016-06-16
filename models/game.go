@@ -24,7 +24,7 @@ type Game struct {
 	MinLevelToCreateInvitation    int    `db:"min_level_to_create_invitation"`
 	MinLevelOffsetToPromoteMember int    `db:"min_level_offset_to_promote_member"`
 	MinLevelOffsetToDemoteMember  int    `db:"min_level_offset_to_demote_member"`
-	AllowApplication              bool   `db:"allow_application"`
+	MaxMembers                    int    `db:"max_members"`
 	Metadata                      string `db:"metadata"`
 	CreatedAt                     int64  `db:"created_at"`
 	UpdatedAt                     int64  `db:"updated_at"`
@@ -66,8 +66,7 @@ func GetGameByPublicID(db DB, publicID string) (*Game, error) {
 
 //CreateGame creates a new game
 func CreateGame(db DB, publicID, name, metadata string,
-	minLevel, maxLevel, minLevelAccept, minLevelCreate, minOffsetPromote, minOffsetDemote int,
-	allowApplication bool,
+	minLevel, maxLevel, minLevelAccept, minLevelCreate, minOffsetPromote, minOffsetDemote, maxMembers int,
 ) (*Game, error) {
 	game := &Game{
 		PublicID:                      publicID,
@@ -78,7 +77,7 @@ func CreateGame(db DB, publicID, name, metadata string,
 		MinLevelToCreateInvitation:    minLevelCreate,
 		MinLevelOffsetToPromoteMember: minOffsetPromote,
 		MinLevelOffsetToDemoteMember:  minOffsetDemote,
-		AllowApplication:              allowApplication,
+		MaxMembers:                    maxMembers,
 		Metadata:                      metadata,
 	}
 	err := db.Insert(game)
@@ -90,8 +89,7 @@ func CreateGame(db DB, publicID, name, metadata string,
 
 //UpdateGame updates an existing game
 func UpdateGame(db DB, publicID, name, metadata string,
-	minLevel, maxLevel, minLevelAccept, minLevelCreate, minOffsetPromote, minOffsetDemote int,
-	allowApplication bool,
+	minLevel, maxLevel, minLevelAccept, minLevelCreate, minOffsetPromote, minOffsetDemote, maxMembers int,
 ) (*Game, error) {
 	game, err := GetGameByPublicID(db, publicID)
 
@@ -106,7 +104,7 @@ func UpdateGame(db DB, publicID, name, metadata string,
 	game.MinLevelToCreateInvitation = minLevelCreate
 	game.MinLevelOffsetToPromoteMember = minOffsetPromote
 	game.MinLevelOffsetToDemoteMember = minOffsetDemote
-	game.AllowApplication = allowApplication
+	game.MaxMembers = maxMembers
 	game.Metadata = metadata
 
 	_, err = db.Update(game)

@@ -39,7 +39,7 @@ func TestGameHandler(t *testing.T) {
 				"minLevelToCreateInvitation":    1,
 				"minLevelOffsetToPromoteMember": 1,
 				"minLevelOffsetToDemoteMember":  1,
-				"allowApplication":              true,
+				"maxMembers":                    100,
 			}
 			res := PostJSON(a, "/games", t, payload)
 
@@ -59,7 +59,7 @@ func TestGameHandler(t *testing.T) {
 			g.Assert(dbGame.MinLevelToCreateInvitation).Equal(payload["minLevelToCreateInvitation"])
 			g.Assert(dbGame.MinLevelOffsetToPromoteMember).Equal(payload["minLevelOffsetToPromoteMember"])
 			g.Assert(dbGame.MinLevelOffsetToDemoteMember).Equal(payload["minLevelOffsetToDemoteMember"])
-			g.Assert(dbGame.AllowApplication).Equal(payload["allowApplication"])
+			g.Assert(dbGame.MaxMembers).Equal(payload["maxMembers"])
 		})
 
 		g.It("Should not create game if bad payload", func() {
@@ -74,7 +74,7 @@ func TestGameHandler(t *testing.T) {
 				"minLevelToCreateInvitation":    1,
 				"minLevelOffsetToPromoteMember": 1,
 				"minLevelOffsetToDemoteMember":  1,
-				"allowApplication":              true,
+				"maxMembers":                    100,
 			}
 			res := PostJSON(a, "/games", t, payload)
 
@@ -111,7 +111,7 @@ func TestGameHandler(t *testing.T) {
 				"minLevelToCreateInvitation":    1,
 				"minLevelOffsetToPromoteMember": 1,
 				"minLevelOffsetToDemoteMember":  1,
-				"allowApplication":              true,
+				"maxMembers":                    100,
 			}
 			res := PostJSON(a, "/games", t, payload)
 
@@ -140,7 +140,7 @@ func TestGameHandler(t *testing.T) {
 				"minLevelToCreateInvitation":    game.MinLevelToCreateInvitation,
 				"minLevelOffsetToPromoteMember": game.MinLevelOffsetToPromoteMember,
 				"minLevelOffsetToDemoteMember":  game.MinLevelOffsetToDemoteMember,
-				"allowApplication":              true,
+				"maxMembers":                    100,
 				"metadata":                      metadata,
 			}
 
@@ -162,7 +162,7 @@ func TestGameHandler(t *testing.T) {
 			g.Assert(dbGame.MinLevelToCreateInvitation).Equal(game.MinLevelToCreateInvitation)
 			g.Assert(dbGame.MinLevelOffsetToPromoteMember).Equal(game.MinLevelOffsetToPromoteMember)
 			g.Assert(dbGame.MinLevelOffsetToDemoteMember).Equal(game.MinLevelOffsetToDemoteMember)
-			g.Assert(dbGame.AllowApplication).Equal(game.AllowApplication)
+			g.Assert(dbGame.MaxMembers).Equal(game.MaxMembers)
 		})
 
 		g.It("Should not update game if bad payload", func() {
@@ -181,7 +181,7 @@ func TestGameHandler(t *testing.T) {
 				"minLevelToCreateInvitation":    game.MinLevelToCreateInvitation,
 				"minLevelOffsetToPromoteMember": game.MinLevelOffsetToPromoteMember,
 				"minLevelOffsetToDemoteMember":  game.MinLevelOffsetToDemoteMember,
-				"allowApplication":              game.AllowApplication,
+				"maxMembers":                    game.MaxMembers,
 			}
 			route := fmt.Sprintf("/games/%s", game.PublicID)
 			res := PutJSON(a, route, t, payload)
@@ -225,7 +225,7 @@ func TestGameHandler(t *testing.T) {
 				"minLevelToCreateInvitation":    game.MinLevelToCreateInvitation,
 				"minLevelOffsetToPromoteMember": game.MinLevelOffsetToPromoteMember,
 				"minLevelOffsetToDemoteMember":  game.MinLevelOffsetToDemoteMember,
-				"allowApplication":              true,
+				"maxMembers":                    100,
 				"metadata":                      metadata,
 			}
 

@@ -22,7 +22,7 @@ type gamePayload struct {
 	MinLevelToCreateInvitation    int
 	MinLevelOffsetToPromoteMember int
 	MinLevelOffsetToDemoteMember  int
-	AllowApplication              bool
+	MaxMembers                    int
 }
 
 func validateGamePayload(payload gamePayload) []string {
@@ -65,7 +65,7 @@ func CreateGameHandler(app *App) func(c *iris.Context) {
 			payload.MinLevelToCreateInvitation,
 			payload.MinLevelOffsetToPromoteMember,
 			payload.MinLevelOffsetToDemoteMember,
-			payload.AllowApplication,
+			payload.MaxMembers,
 		)
 
 		if err != nil {
@@ -107,7 +107,7 @@ func UpdateGameHandler(app *App) func(c *iris.Context) {
 			payload.MinLevelToCreateInvitation,
 			payload.MinLevelOffsetToPromoteMember,
 			payload.MinLevelOffsetToDemoteMember,
-			payload.AllowApplication,
+			payload.MaxMembers,
 		)
 
 		if err != nil {
