@@ -19,7 +19,7 @@ var debug bool
 // startCmd represents the start command
 var startCmd = &cobra.Command{
 	Use:   "start",
-	Short: "starts khan server",
+	Short: "starts the khan API server",
 	Long: `Starts khan server with the specified arguments. You can use
 environment variables to override configuration keys.`,
 	Run: func(cmd *cobra.Command, args []string) {

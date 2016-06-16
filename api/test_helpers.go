@@ -11,22 +11,9 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/franela/goblin"
 	"github.com/gavv/httpexpect"
 	"github.com/gavv/httpexpect/fasthttpexpect"
 )
-
-//AssertError asserts that the specified error is not nil
-func AssertError(g *goblin.G, err error) {
-	g.Assert(err == nil).IsFalse("Expected error to exist, but it was nil")
-}
-
-//AssertNotError asserts that the specified error is nil
-func AssertNotError(g *goblin.G, err error) {
-	if err != nil {
-		g.Assert(err == nil).IsTrue(err.Error())
-	}
-}
 
 //GetDefaultTestApp returns a new Khan API Application bound to 0.0.0.0:8888 for test
 func GetDefaultTestApp() *App {

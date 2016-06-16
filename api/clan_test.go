@@ -21,6 +21,18 @@ import (
 	"github.com/topfreegames/khan/models"
 )
 
+//AssertError asserts that the specified error is not nil
+func AssertError(g *G, err error) {
+	g.Assert(err == nil).IsFalse("Expected error to exist, but it was nil")
+}
+
+//AssertNotError asserts that the specified error is nil
+func AssertNotError(g *G, err error) {
+	if err != nil {
+		g.Assert(err == nil).IsTrue(err.Error())
+	}
+}
+
 func TestClanHandler(t *testing.T) {
 	g := Goblin(t)
 	testDb, err := models.GetTestDB()
