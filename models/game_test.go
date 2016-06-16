@@ -8,7 +8,6 @@
 package models
 
 import (
-	"fmt"
 	"testing"
 
 	. "github.com/franela/goblin"
@@ -37,7 +36,6 @@ func TestGameModel(t *testing.T) {
 					Metadata:                      "{}",
 				}
 				err := testDb.Insert(game)
-				fmt.Println(err)
 				g.Assert(err == nil).IsTrue()
 				g.Assert(game.ID != 0).IsTrue()
 
@@ -58,7 +56,6 @@ func TestGameModel(t *testing.T) {
 			g.It("Should update a new Game", func() {
 				game := GameFactory.MustCreate().(*Game)
 				err := testDb.Insert(game)
-				fmt.Println(err)
 				g.Assert(err == nil).IsTrue()
 				dt := game.UpdatedAt
 
