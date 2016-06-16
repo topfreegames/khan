@@ -69,6 +69,8 @@ func (app *App) loadConfiguration() {
 
 	if err := app.Config.ReadInConfig(); err == nil {
 		fmt.Println("Using config file:", app.Config.ConfigFileUsed())
+	} else {
+		panic(fmt.Sprintf("Could not load configuration file from: %s", app.ConfigPath))
 	}
 }
 

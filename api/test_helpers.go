@@ -17,7 +17,7 @@ import (
 
 //GetDefaultTestApp returns a new Khan API Application bound to 0.0.0.0:8888 for test
 func GetDefaultTestApp() *App {
-	return GetApp("0.0.0.0", 8888, "./config/test.yaml", true)
+	return GetApp("0.0.0.0", 8888, "../config/test.yaml", true)
 }
 
 //Get returns a test request against specified URL
