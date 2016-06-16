@@ -31,7 +31,9 @@ type Membership struct {
 
 //PreInsert populates fields before inserting a new clan
 func (m *Membership) PreInsert(s gorp.SqlExecutor) error {
-	m.CreatedAt = time.Now().UnixNano()
+	if m.CreatedAt == 0 {
+		m.CreatedAt = time.Now().UnixNano()
+	}
 	m.UpdatedAt = m.CreatedAt
 	return nil
 }

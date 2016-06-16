@@ -320,6 +320,91 @@ func TestClanModel(t *testing.T) {
 			})
 		})
 
+		g.Describe("Transfer Clan Ownership", func() {
+			g.Describe("Should transfer the Clan ownership with TransferClanOwnership if clan owner", func() {
+				g.It("And first clan owner and next owner memberhip exists", func() {
+					clan, owner, players, memberships, err := GetClanWithMemberships(testDb, 1, "", "")
+					g.Assert(err == nil).IsTrue()
+
+					err = TransferClanOwnership(testDb, clan.GameID, clan.PublicID, owner.PublicID, players[0].PublicID)
+					g.Assert(err == nil).IsTrue()
+
+					dbClan, err := GetClanByPublicID(testDb, clan.GameID, clan.PublicID)
+					g.Assert(err == nil).IsTrue()
+					g.Assert(dbClan.OwnerID).Equal(players[0].ID)
+
+					oldOwnerMembership, err := GetMembershipByClanAndPlayerPublicID(testDb, clan.GameID, clan.PublicID, owner.PublicID)
+					g.Assert(err == nil).IsTrue()
+					g.Assert(oldOwnerMembership.CreatedAt).Equal(clan.CreatedAt)
+					g.Assert(oldOwnerMembership.Level).Equal(1000000)
+
+					newOwnerMembership, err := GetMembershipByID(testDb, memberships[0].ID)
+					g.Assert(err == nil).IsTrue()
+					g.Assert(newOwnerMembership.DeletedBy).Equal(owner.ID)
+					g.Assert(newOwnerMembership.DeletedAt > time.Now().UnixNano()-50000000).IsTrue()
+				})
+
+				g.It("And not first clan owner and next owner membership exists", func() {
+					clan, owner, players, memberships, err := GetClanWithMemberships(testDb, 2, "", "")
+					g.Assert(err == nil).IsTrue()
+
+					err = TransferClanOwnership(testDb, clan.GameID, clan.PublicID, owner.PublicID, players[0].PublicID)
+					g.Assert(err == nil).IsTrue()
+
+					err = TransferClanOwnership(testDb, clan.GameID, clan.PublicID, players[0].PublicID, players[1].PublicID)
+					g.Assert(err == nil).IsTrue()
+
+					dbClan, err := GetClanByPublicID(testDb, clan.GameID, clan.PublicID)
+					g.Assert(err == nil).IsTrue()
+					g.Assert(dbClan.OwnerID).Equal(players[1].ID)
+
+					firstOwnerMembership, err := GetMembershipByClanAndPlayerPublicID(testDb, clan.GameID, clan.PublicID, owner.PublicID)
+					g.Assert(err == nil).IsTrue()
+					g.Assert(firstOwnerMembership.CreatedAt).Equal(clan.CreatedAt)
+					g.Assert(firstOwnerMembership.Level).Equal(1000000)
+
+					previousOwnerMembership, err := GetMembershipByID(testDb, memberships[0].ID)
+					g.Assert(err == nil).IsTrue()
+					g.Assert(previousOwnerMembership.CreatedAt).Equal(memberships[0].CreatedAt)
+					g.Assert(previousOwnerMembership.Level).Equal(1000000)
+
+					newOwnerMembership, err := GetMembershipByID(testDb, memberships[1].ID)
+					g.Assert(err == nil).IsTrue()
+					g.Assert(newOwnerMembership.DeletedBy).Equal(players[0].ID)
+					g.Assert(newOwnerMembership.DeletedAt > time.Now().UnixNano()-50000000).IsTrue()
+				})
+			})
+
+			g.Describe("Should not transfer the Clan ownership with TransferClanOwnership if", func() {
+				g.It("Not clan owner", func() {
+					clan, _, players, _, err := GetClanWithMemberships(testDb, 1, "", "")
+					g.Assert(err == nil).IsTrue()
+
+					err = TransferClanOwnership(testDb, clan.GameID, clan.PublicID, players[0].PublicID, players[0].PublicID)
+					g.Assert(err != nil).IsTrue()
+					g.Assert(err.Error()).Equal(fmt.Sprintf("Clan was not found with id: %s", clan.PublicID))
+				})
+
+				g.It("Clan does not exist", func() {
+					clan, owner, players, _, err := GetClanWithMemberships(testDb, 1, "", "")
+					g.Assert(err == nil).IsTrue()
+
+					err = TransferClanOwnership(testDb, clan.GameID, "-1", owner.PublicID, players[0].PublicID)
+					g.Assert(err != nil).IsTrue()
+					g.Assert(err.Error()).Equal("Clan was not found with id: -1")
+				})
+
+				g.It("Membership does not exist", func() {
+					clan, owner, _, _, err := GetClanWithMemberships(testDb, 1, "", "")
+					g.Assert(err == nil).IsTrue()
+
+					err = TransferClanOwnership(testDb, clan.GameID, clan.PublicID, owner.PublicID, "some-random-player")
+					g.Assert(err != nil).IsTrue()
+					g.Assert(err.Error()).Equal("Membership was not found with id: some-random-player")
+				})
+			})
+		})
+
 		g.Describe("Get List of Clans", func() {
 			g.It("Should get all clans", func() {
 				player, _, err := GetTestClans(testDb, "", "", 10)
