@@ -1,0 +1,207 @@
+// khan
+// https://github.com/topfreegames/khan
+//
+// Licensed under the MIT license:
+// http://www.opensource.org/licenses/mit-license
+// Copyright © 2016 Top Free Games <backend@tfgco.com>
+
+package models
+
+import (
+	"fmt"
+	"testing"
+
+	. "github.com/franela/goblin"
+)
+
+func TestGameModel(t *testing.T) {
+	g := Goblin(t)
+	testDb, err := GetTestDB()
+
+	g.Assert(err == nil).IsTrue()
+
+	g.Describe("Game Model", func() {
+
+		g.Describe("Model Basic Tests", func() {
+			g.It("Should create a new Game", func() {
+				game := &Game{
+					PublicID:                    "test",
+					Name:                        "user-name",
+					MinMembershipLevel:          0,
+					MaxMembershipLevel:          15,
+					MinLevelToAcceptApplication: 15,
+					MinLevelToCreateInvitation:  15,
+					AllowApplication:            false,
+					Metadata:                    "{}",
+				}
+				err := testDb.Insert(game)
+				fmt.Println(err)
+				g.Assert(err == nil).IsTrue()
+				g.Assert(game.ID != 0).IsTrue()
+
+				dbGame, err := GetGameByID(testDb, game.ID)
+				g.Assert(err == nil).IsTrue()
+				g.Assert(dbGame.PublicID).Equal(game.PublicID)
+				g.Assert(dbGame.Name).Equal(game.Name)
+				g.Assert(dbGame.MinMembershipLevel).Equal(game.MinMembershipLevel)
+				g.Assert(dbGame.MaxMembershipLevel).Equal(game.MaxMembershipLevel)
+				g.Assert(dbGame.MinLevelToAcceptApplication).Equal(game.MinLevelToAcceptApplication)
+				g.Assert(dbGame.MinLevelToCreateInvitation).Equal(game.MinLevelToCreateInvitation)
+				g.Assert(dbGame.AllowApplication).Equal(game.AllowApplication)
+				g.Assert(dbGame.Metadata).Equal(game.Metadata)
+			})
+
+			g.It("Should update a new Game", func() {
+				game := GameFactory.MustCreate().(*Game)
+				err := testDb.Insert(game)
+				fmt.Println(err)
+				g.Assert(err == nil).IsTrue()
+				dt := game.UpdatedAt
+
+				game.Metadata = "{ \"x\": 1 }"
+				count, err := testDb.Update(game)
+				g.Assert(err == nil).IsTrue()
+				g.Assert(int(count)).Equal(1)
+				g.Assert(game.UpdatedAt > dt).IsTrue()
+			})
+		})
+
+		g.Describe("Get Game By ID", func() {
+			g.It("Should get existing Game", func() {
+				game := GameFactory.MustCreate().(*Game)
+				err := testDb.Insert(game)
+				g.Assert(err == nil).IsTrue()
+
+				dbGame, err := GetGameByID(testDb, game.ID)
+				g.Assert(err == nil).IsTrue()
+				g.Assert(dbGame.ID).Equal(game.ID)
+			})
+
+			g.It("Should not get non-existing Game", func() {
+				_, err := GetGameByID(testDb, -1)
+				g.Assert(err != nil).IsTrue()
+				g.Assert(err.Error()).Equal("Game was not found with id: -1")
+			})
+		})
+
+		g.Describe("Get Game By Public ID", func() {
+			g.It("Should get existing Game by Game and Game", func() {
+				game := GameFactory.MustCreate().(*Game)
+				err := testDb.Insert(game)
+				g.Assert(err == nil).IsTrue()
+
+				dbGame, err := GetGameByPublicID(testDb, game.PublicID)
+				g.Assert(err == nil).IsTrue()
+				g.Assert(dbGame.ID).Equal(game.ID)
+			})
+
+			g.It("Should not get non-existing Game by Game and Game", func() {
+				_, err := GetGameByPublicID(testDb, "invalid-game")
+				g.Assert(err != nil).IsTrue()
+				g.Assert(err.Error()).Equal("Game was not found with id: invalid-game")
+			})
+		})
+
+		g.Describe("Create Game", func() {
+			g.It("Should create a new Game with CreateGame", func() {
+				game, err := CreateGame(
+					testDb,
+					"create-1",
+					"game-name",
+					"{}",
+					5,
+					10,
+					8,
+					7,
+					false,
+				)
+				g.Assert(err == nil).IsTrue()
+				g.Assert(game.ID != 0).IsTrue()
+
+				dbGame, err := GetGameByID(testDb, game.ID)
+				g.Assert(err == nil).IsTrue()
+
+				g.Assert(dbGame.PublicID).Equal(game.PublicID)
+				g.Assert(dbGame.Name).Equal(game.Name)
+				g.Assert(dbGame.MinMembershipLevel).Equal(game.MinMembershipLevel)
+				g.Assert(dbGame.MaxMembershipLevel).Equal(game.MaxMembershipLevel)
+				g.Assert(dbGame.MinLevelToAcceptApplication).Equal(game.MinLevelToAcceptApplication)
+				g.Assert(dbGame.MinLevelToCreateInvitation).Equal(game.MinLevelToCreateInvitation)
+				g.Assert(dbGame.AllowApplication).Equal(game.AllowApplication)
+				g.Assert(dbGame.Metadata).Equal(game.Metadata)
+			})
+		})
+
+		g.Describe("Update Game", func() {
+			g.It("Should update a Game with UpdateGame", func() {
+				game := GameFactory.MustCreate().(*Game)
+				err := testDb.Insert(game)
+				g.Assert(err == nil).IsTrue()
+
+				updGame, err := UpdateGame(
+					testDb,
+					game.PublicID,
+					"game-new-name",
+					"{\"x\": 1}",
+					2,
+					12,
+					5,
+					4,
+					true,
+				)
+
+				g.Assert(err == nil).IsTrue()
+				g.Assert(updGame.ID).Equal(game.ID)
+
+				dbGame, err := GetGameByPublicID(testDb, game.PublicID)
+				g.Assert(err == nil).IsTrue()
+				g.Assert(dbGame.PublicID).Equal(updGame.PublicID)
+				g.Assert(dbGame.Name).Equal(updGame.Name)
+				g.Assert(dbGame.MinMembershipLevel).Equal(updGame.MinMembershipLevel)
+				g.Assert(dbGame.MaxMembershipLevel).Equal(updGame.MaxMembershipLevel)
+				g.Assert(dbGame.MinLevelToAcceptApplication).Equal(updGame.MinLevelToAcceptApplication)
+				g.Assert(dbGame.MinLevelToCreateInvitation).Equal(updGame.MinLevelToCreateInvitation)
+				g.Assert(dbGame.AllowApplication).Equal(updGame.AllowApplication)
+				g.Assert(dbGame.Metadata).Equal(updGame.Metadata)
+			})
+
+			g.It("Should not update a Game that does not exist with UpdateGame", func() {
+				_, err := UpdateGame(
+					testDb,
+					"-1",
+					"game-new-name",
+					"{\"x\": 1}",
+					2,
+					12,
+					5,
+					4,
+					true,
+				)
+
+				g.Assert(err == nil).IsFalse()
+				g.Assert(err.Error()).Equal("Game was not found with id: -1")
+			})
+
+			g.It("Should not update a Game with Invalid Data with UpdateGame", func() {
+				game := GameFactory.MustCreate().(*Game)
+				err := testDb.Insert(game)
+				g.Assert(err == nil).IsTrue()
+
+				_, err = UpdateGame(
+					testDb,
+					game.PublicID,
+					"game-new-name",
+					"it-will-fail-beacause-metada-is-not-a-json",
+					2,
+					12,
+					5,
+					4,
+					true,
+				)
+
+				g.Assert(err == nil).IsFalse()
+				g.Assert(err.Error()).Equal("pq: invalid input syntax for type json")
+			})
+		})
+	})
+}
