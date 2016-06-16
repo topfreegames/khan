@@ -30,11 +30,13 @@ func configureFactory(fct *factory.Factory) *factory.Factory {
 //GameFactory is responsible for constructing test game instances
 var GameFactory = factory.NewFactory(
 	&Game{
-		MinMembershipLevel:          0,
-		MaxMembershipLevel:          1000000,
-		MinLevelToAcceptApplication: 1,
-		MinLevelToCreateInvitation:  1,
-		AllowApplication:            true,
+		MinMembershipLevel:            0,
+		MaxMembershipLevel:            1000000,
+		MinLevelToAcceptApplication:   1,
+		MinLevelToCreateInvitation:    1,
+		MinLevelOffsetToPromoteMember: 2,
+		MinLevelOffsetToDemoteMember:  1,
+		AllowApplication:              true,
 	},
 ).Attr("PublicID", func(args factory.Args) (interface{}, error) {
 	return randomdata.FullName(randomdata.RandomGender), nil
