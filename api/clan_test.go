@@ -183,6 +183,65 @@ func TestClanHandler(t *testing.T) {
 		})
 	})
 
+	g.Describe("Transfer Clan Ownership Handler", func() {
+		g.It("Should transfer a clan ownership", func() {
+			clan, owner, players, _, err := models.GetClanWithMemberships(testDb, 1, "", "")
+			g.Assert(err == nil).IsTrue()
+			ownerPublicID := owner.PublicID
+			playerPublicID := players[0].PublicID
+
+			a := GetDefaultTestApp()
+			payload := map[string]interface{}{
+				"ownerPublicID":  ownerPublicID,
+				"playerPublicID": playerPublicID,
+			}
+			route := GetGameRoute(clan.GameID, fmt.Sprintf("clans/%s/transfer-ownership", clan.PublicID))
+			fmt.Println(route)
+			res := PostJSON(a, route, t, payload)
+
+			res.Status(http.StatusOK)
+			var result map[string]interface{}
+			json.Unmarshal([]byte(res.Body().Raw()), &result)
+			g.Assert(result["success"]).IsTrue()
+
+			dbClan, err := models.GetClanByPublicID(a.Db, clan.GameID, clan.PublicID)
+			AssertNotError(g, err)
+			g.Assert(dbClan.OwnerID).Equal(players[0].ID)
+		})
+
+		g.It("Should not transfer a clan ownership if invalid payload", func() {
+			a := GetDefaultTestApp()
+
+			route := GetGameRoute("game-id", fmt.Sprintf("clans/%s/transfer-ownership", "random-id"))
+			res := PostBody(a, route, t, "invalid")
+
+			res.Status(http.StatusBadRequest)
+			var result map[string]interface{}
+			json.Unmarshal([]byte(res.Body().Raw()), &result)
+			g.Assert(result["success"]).IsFalse()
+			g.Assert(strings.Contains(result["reason"].(string), "While trying to read JSON")).IsTrue()
+		})
+
+		g.It("Should not transfer a clan ownership if player is not the owner", func() {
+			clan, _, players, _, err := models.GetClanWithMemberships(testDb, 1, "", "")
+			g.Assert(err == nil).IsTrue()
+
+			a := GetDefaultTestApp()
+			payload := map[string]interface{}{
+				"ownerPublicID":  players[0].PublicID,
+				"playerPublicID": players[0].PublicID,
+			}
+			route := GetGameRoute(clan.GameID, fmt.Sprintf("clans/%s/transfer-ownership", clan.PublicID))
+			res := PostJSON(a, route, t, payload)
+
+			res.Status(http.StatusInternalServerError)
+			var result map[string]interface{}
+			json.Unmarshal([]byte(res.Body().Raw()), &result)
+			g.Assert(result["success"]).IsFalse()
+			g.Assert(result["reason"]).Equal(fmt.Sprintf("Clan was not found with id: %s", clan.PublicID))
+		})
+	})
+
 	g.Describe("Update Clan Handler", func() {
 		g.It("Should update clan", func() {
 			player := models.PlayerFactory.MustCreate().(*models.Player)

@@ -25,6 +25,12 @@ type leaveClanPayload struct {
 	OwnerPublicID string
 }
 
+//transferClanOwnershipPayload maps the payload for the Transfer Clan Ownership route
+type transferClanOwnershipPayload struct {
+	OwnerPublicID  string
+	PlayerPublicID string
+}
+
 //CreateClanHandler is the handler responsible for creating new clans
 func CreateClanHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
@@ -90,15 +96,6 @@ func UpdateClanHandler(app *App) func(c *iris.Context) {
 	}
 }
 
-func serializeClans(clans []models.Clan, includePublicID bool) []map[string]interface{} {
-	serializedClans := make([]map[string]interface{}, len(clans))
-	for i, clan := range clans {
-		serializedClans[i] = serializeClan(&clan, includePublicID)
-	}
-
-	return serializedClans
-}
-
 //LeaveClanHandler is the handler responsible for changing the clan ownership when the owner leaves it
 func LeaveClanHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
@@ -129,17 +126,35 @@ func LeaveClanHandler(app *App) func(c *iris.Context) {
 	}
 }
 
-func serializeClan(clan *models.Clan, includePublicID bool) map[string]interface{} {
-	serial := map[string]interface{}{
-		"name":     clan.Name,
-		"metadata": clan.Metadata,
-	}
+//TransferOwnershipHandler is the handler responsible for transfering the clan ownership to another clan member
+func TransferOwnershipHandler(app *App) func(c *iris.Context) {
+	return func(c *iris.Context) {
+		gameID := c.Param("gameID")
+		publicID := c.Param("clanPublicID")
 
-	if includePublicID {
-		serial["publicID"] = clan.PublicID
-	}
+		var payload transferClanOwnershipPayload
+		if err := c.ReadJSON(&payload); err != nil {
+			FailWith(400, err.Error(), c)
+			return
+		}
 
-	return serial
+		db := GetCtxDB(c)
+
+		err := models.TransferClanOwnership(
+			db,
+			gameID,
+			publicID,
+			payload.OwnerPublicID,
+			payload.PlayerPublicID,
+		)
+
+		if err != nil {
+			FailWith(500, err.Error(), c)
+			return
+		}
+
+		SucceedWith(map[string]interface{}{}, c)
+	}
 }
 
 //ListClansHandler is the handler responsible for returning a list of all clans
@@ -215,4 +230,26 @@ func RetrieveClanHandler(app *App) func(c *iris.Context) {
 
 		SucceedWith(clan, c)
 	}
+}
+
+func serializeClans(clans []models.Clan, includePublicID bool) []map[string]interface{} {
+	serializedClans := make([]map[string]interface{}, len(clans))
+	for i, clan := range clans {
+		serializedClans[i] = serializeClan(&clan, includePublicID)
+	}
+
+	return serializedClans
+}
+
+func serializeClan(clan *models.Clan, includePublicID bool) map[string]interface{} {
+	serial := map[string]interface{}{
+		"name":     clan.Name,
+		"metadata": clan.Metadata,
+	}
+
+	if includePublicID {
+		serial["publicID"] = clan.PublicID
+	}
+
+	return serial
 }

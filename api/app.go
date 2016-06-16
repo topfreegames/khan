@@ -115,6 +115,7 @@ func (app *App) configureApplication() {
 	a.Get("/games/:gameID/clans/:clanPublicID", RetrieveClanHandler(app))
 	a.Put("/games/:gameID/clans/:clanPublicID", UpdateClanHandler(app))
 	a.Post("/games/:gameID/clans/:clanPublicID/leave", LeaveClanHandler(app))
+	a.Post("/games/:gameID/clans/:clanPublicID/transfer-ownership", TransferOwnershipHandler(app))
 
 	//Membership Routes
 	a.Post("/games/:gameID/clans/:clanPublicID/memberships/application", ApplyForMembershipHandler(app))
