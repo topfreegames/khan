@@ -15,7 +15,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-var cfgFile string
+var ConfigFile string
 
 //RootCmd is the root command for khan CLI application
 var RootCmd = &cobra.Command{
@@ -36,15 +36,15 @@ func init() {
 	//cobra.OnInitialize(initConfig)
 
 	RootCmd.PersistentFlags().StringVarP(
-		&cfgFile, "config", "c", "./config/local.yaml",
+		&ConfigFile, "config", "c", "./config/local.yaml",
 		"config file (default is ./config/local.yaml",
 	)
 }
 
 // initConfig reads in config file and ENV variables if set.
 func initConfig() {
-	if cfgFile != "" { // enable ability to specify config file via flag
-		viper.SetConfigFile(cfgFile)
+	if ConfigFile != "" { // enable ability to specify config file via flag
+		viper.SetConfigFile(ConfigFile)
 	}
 	viper.SetEnvPrefix("khan")
 	viper.SetConfigName(".khan") // name of config file (without extension)

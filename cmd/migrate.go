@@ -20,7 +20,6 @@ import (
 	"github.com/topfreegames/khan/models"
 )
 
-var migrateDown bool
 var migrationVersion int64
 
 func getDatabase() (*gorp.DbMap, error) {
@@ -39,16 +38,18 @@ func getDatabase() (*gorp.DbMap, error) {
 	return db.(*gorp.DbMap), err
 }
 
-func getGooseConf() *goose.DBConf {
-	_, filename, _, ok := runtime.Caller(1)
-	if !ok {
-		panic("Could not find configuration file...")
-		return nil
+func getGooseConf(migrationsDir string) *goose.DBConf {
+	if migrationsDir == "" {
+		_, filename, _, ok := runtime.Caller(1)
+		if !ok {
+			panic("Could not find configuration file...")
+			return nil
+		}
+		migrationsDir = path.Join(path.Dir(filename), "../db/migrations/")
 	}
-	migrationsPath := path.Join(path.Dir(filename), "../db/migrations/")
 
 	return &goose.DBConf{
-		MigrationsDir: migrationsPath,
+		MigrationsDir: migrationsDir,
 		Env:           "production",
 		Driver: goose.DBDriver{
 			Name:    "postgres",
@@ -59,12 +60,20 @@ func getGooseConf() *goose.DBConf {
 	}
 }
 
-func runMigrations(migrateDown bool, migrationVersion int64) {
-	conf := getGooseConf()
+//MigrationError identified rigrations running error
+type MigrationError struct {
+	Message string
+}
+
+func (err *MigrationError) Error() string {
+	return fmt.Sprintf("Could not run migrations: %s", err.Message)
+}
+
+func runMigrations(migrationsDir string, migrationVersion int64) error {
+	conf := getGooseConf(migrationsDir)
 	db, err := getDatabase()
 	if err != nil {
-		panic(fmt.Sprintf("Could not connect to database: %s", err.Error()))
-		return
+		return &MigrationError{fmt.Sprintf("could not connect to database: %s", err.Error())}
 	}
 
 	targetVersion := migrationVersion
@@ -72,8 +81,7 @@ func runMigrations(migrateDown bool, migrationVersion int64) {
 		// Get the latest possible migration
 		latest, err := goose.GetMostRecentDBVersion(conf.MigrationsDir)
 		if err != nil {
-			panic(fmt.Sprintf("Could not get migrations at %s: %s", conf.MigrationsDir, err.Error()))
-			return
+			return &MigrationError{fmt.Sprintf("could not get migrations at %s: %s", conf.MigrationsDir, err.Error())}
 		}
 		targetVersion = latest
 	}
@@ -81,10 +89,10 @@ func runMigrations(migrateDown bool, migrationVersion int64) {
 	// Migrate up to the latest version
 	err = goose.RunMigrationsOnDb(conf, conf.MigrationsDir, targetVersion, db.Db)
 	if err != nil {
-		panic(fmt.Sprintf("Could not run migrations to %d: %s", targetVersion, err.Error()))
-		return
+		return &MigrationError{fmt.Sprintf("could not run migrations to %d: %s", targetVersion, err.Error())}
 	}
 	fmt.Printf("Migrated database successfully to version %d.\n", targetVersion)
+	return nil
 }
 
 // migrateCmd represents the migrate command
@@ -94,7 +102,10 @@ var migrateCmd = &cobra.Command{
 	Long:  `Migrate the database specified in the configuration file to the given version (or latest if none provided)`,
 	Run: func(cmd *cobra.Command, args []string) {
 		initConfig()
-		runMigrations(migrateDown, migrationVersion)
+		err := runMigrations("", migrationVersion)
+		if err != nil {
+			panic(err.Error())
+		}
 	},
 }
 

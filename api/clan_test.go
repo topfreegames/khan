@@ -17,7 +17,6 @@ import (
 
 	"github.com/Pallinder/go-randomdata"
 	. "github.com/franela/goblin"
-	. "github.com/onsi/gomega"
 	"github.com/topfreegames/khan/models"
 )
 
@@ -37,9 +36,6 @@ func TestClanHandler(t *testing.T) {
 	g := Goblin(t)
 	testDb, err := models.GetTestDB()
 	AssertNotError(g, err)
-
-	//special hook for gomega
-	RegisterFailHandler(func(m string, _ ...int) { g.Fail(m) })
 
 	g.Describe("Create Clan Handler", func() {
 		g.It("Should create clan", func() {
@@ -380,20 +376,8 @@ func TestClanHandler(t *testing.T) {
 
 	g.Describe("List All Clans Handler", func() {
 		g.It("Should get all clans", func() {
-			player := models.PlayerFactory.MustCreate().(*models.Player)
-			err = testDb.Insert(player)
+			player, expectedClans, err := models.GetTestClans(testDb, "", "", 10)
 			AssertNotError(g, err)
-
-			expectedClans := []*models.Clan{}
-			for i := 0; i < 10; i++ {
-				clan := models.ClanFactory.MustCreateWithOption(map[string]interface{}{
-					"GameID":  player.GameID,
-					"OwnerID": player.ID,
-				}).(*models.Clan)
-				err = testDb.Insert(clan)
-				AssertNotError(g, err)
-				expectedClans = append(expectedClans, clan)
-			}
 			sort.Sort(models.ClanByName(expectedClans))
 
 			a := GetDefaultTestApp()

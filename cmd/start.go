@@ -26,7 +26,7 @@ environment variables to override configuration keys.`,
 		app := api.GetApp(
 			host,
 			port,
-			cfgFile,
+			ConfigFile,
 			debug,
 		)
 
