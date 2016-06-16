@@ -24,15 +24,17 @@ func (a ClanByName) Less(i, j int) bool { return a[i].Name < a[j].Name }
 
 //Clan identifies uniquely one clan in a given game
 type Clan struct {
-	ID        int    `db:"id"`
-	GameID    string `db:"game_id"`
-	PublicID  string `db:"public_id"`
-	Name      string `db:"name"`
-	OwnerID   int    `db:"owner_id"`
-	Metadata  string `db:"metadata"`
-	CreatedAt int64  `db:"created_at"`
-	UpdatedAt int64  `db:"updated_at"`
-	DeletedAt int64  `db:"deleted_at"`
+	ID               int    `db:"id"`
+	GameID           string `db:"game_id"`
+	PublicID         string `db:"public_id"`
+	Name             string `db:"name"`
+	OwnerID          int    `db:"owner_id"`
+	Metadata         string `db:"metadata"`
+	AllowApplication bool   `db:"allow_application"`
+	AutoJoin         bool   `db:"auto_join"`
+	CreatedAt        int64  `db:"created_at"`
+	UpdatedAt        int64  `db:"updated_at"`
+	DeletedAt        int64  `db:"deleted_at"`
 }
 
 //PreInsert populates fields before inserting a new clan
@@ -78,18 +80,20 @@ func GetClanByPublicIDAndOwnerPublicID(db DB, gameID, publicID, ownerPublicID st
 }
 
 //CreateClan creates a new clan
-func CreateClan(db DB, gameID, publicID, name, ownerPublicID, metadata string) (*Clan, error) {
+func CreateClan(db DB, gameID, publicID, name, ownerPublicID, metadata string, allowApplication, autoJoin bool) (*Clan, error) {
 	player, err := GetPlayerByPublicID(db, gameID, ownerPublicID)
 	if err != nil {
 		return nil, err
 	}
 
 	clan := &Clan{
-		GameID:   gameID,
-		PublicID: publicID,
-		Name:     name,
-		OwnerID:  player.ID,
-		Metadata: metadata,
+		GameID:           gameID,
+		PublicID:         publicID,
+		Name:             name,
+		OwnerID:          player.ID,
+		Metadata:         metadata,
+		AllowApplication: allowApplication,
+		AutoJoin:         autoJoin,
 	}
 
 	err = db.Insert(clan)
@@ -185,7 +189,7 @@ func TransferClanOwnership(db DB, gameID, clanPublicID, ownerPublicID, playerPub
 }
 
 //UpdateClan updates an existing clan
-func UpdateClan(db DB, gameID, publicID, name, ownerPublicID, metadata string) (*Clan, error) {
+func UpdateClan(db DB, gameID, publicID, name, ownerPublicID, metadata string, allowApplication, autoJoin bool) (*Clan, error) {
 	clan, err := GetClanByPublicIDAndOwnerPublicID(db, gameID, publicID, ownerPublicID)
 
 	if err != nil {
@@ -194,6 +198,8 @@ func UpdateClan(db DB, gameID, publicID, name, ownerPublicID, metadata string) (
 
 	clan.Name = name
 	clan.Metadata = metadata
+	clan.AllowApplication = allowApplication
+	clan.AutoJoin = autoJoin
 
 	_, err = db.Update(clan)
 

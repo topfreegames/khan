@@ -10,20 +10,22 @@ package models
 import "database/sql"
 
 type clanDetailsDAO struct {
-	GameID              string
-	ClanPublicID        string
-	ClanName            string
-	ClanMetadata        string
-	MembershipLevel     sql.NullInt64
-	MembershipApproved  sql.NullBool
-	MembershipDenied    sql.NullBool
-	MembershipCreatedAt sql.NullInt64
-	MembershipUpdatedAt sql.NullInt64
-	PlayerPublicID      sql.NullString
-	PlayerName          sql.NullString
-	PlayerMetadata      sql.NullString
-	RequestorPublicID   sql.NullString
-	RequestorName       sql.NullString
+	GameID               string
+	ClanPublicID         string
+	ClanName             string
+	ClanMetadata         string
+	ClanAllowApplication bool
+	ClanAutoJoin         bool
+	MembershipLevel      sql.NullInt64
+	MembershipApproved   sql.NullBool
+	MembershipDenied     sql.NullBool
+	MembershipCreatedAt  sql.NullInt64
+	MembershipUpdatedAt  sql.NullInt64
+	PlayerPublicID       sql.NullString
+	PlayerName           sql.NullString
+	PlayerMetadata       sql.NullString
+	RequestorPublicID    sql.NullString
+	RequestorName        sql.NullString
 }
 
 func (member *clanDetailsDAO) Serialize() map[string]interface{} {

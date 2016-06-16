@@ -42,33 +42,32 @@ func TestClanHandler(t *testing.T) {
 			player, err := models.CreatePlayerFactory(testDb, "")
 			AssertNotError(g, err)
 
-			gameID := player.GameID
-			publicID := randomdata.FullName(randomdata.RandomGender)
-			clanName := randomdata.FullName(randomdata.RandomGender)
-			ownerPublicID := player.PublicID
-			metadata := "{\"x\": 1}"
-
 			a := GetDefaultTestApp()
+			clanPublicID := randomdata.FullName(randomdata.RandomGender)
 			payload := map[string]interface{}{
-				"publicID":      publicID,
-				"name":          clanName,
-				"ownerPublicID": ownerPublicID,
-				"metadata":      metadata,
+				"publicID":         clanPublicID,
+				"name":             randomdata.FullName(randomdata.RandomGender),
+				"ownerPublicID":    player.PublicID,
+				"metadata":         "{\"x\": 1}",
+				"allowApplication": true,
+				"autoJoin":         true,
 			}
-			res := PostJSON(a, GetGameRoute(gameID, "/clans"), t, payload)
+			res := PostJSON(a, GetGameRoute(player.GameID, "/clans"), t, payload)
 
 			res.Status(http.StatusOK)
 			var result map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsTrue()
 
-			dbClan, err := models.GetClanByPublicID(a.Db, gameID, publicID)
+			dbClan, err := models.GetClanByPublicID(a.Db, player.GameID, clanPublicID)
 			AssertNotError(g, err)
-			g.Assert(dbClan.GameID).Equal(gameID)
-			g.Assert(dbClan.PublicID).Equal(publicID)
-			g.Assert(dbClan.Name).Equal(clanName)
+			g.Assert(dbClan.GameID).Equal(player.GameID)
 			g.Assert(dbClan.OwnerID).Equal(player.ID)
-			g.Assert(dbClan.Metadata).Equal(metadata)
+			g.Assert(dbClan.PublicID).Equal(payload["publicID"])
+			g.Assert(dbClan.Name).Equal(payload["name"])
+			g.Assert(dbClan.Metadata).Equal(payload["metadata"])
+			g.Assert(dbClan.AllowApplication).Equal(payload["allowApplication"])
+			g.Assert(dbClan.AutoJoin).Equal(payload["autoJoin"])
 		})
 
 		g.It("Should not create clan if invalid payload", func() {
@@ -85,17 +84,14 @@ func TestClanHandler(t *testing.T) {
 
 		g.It("Should not create clan if owner does not exist", func() {
 			gameID := randomdata.FullName(randomdata.RandomGender)
-			publicID := randomdata.FullName(randomdata.RandomGender)
-			clanName := randomdata.FullName(randomdata.RandomGender)
-			ownerPublicID := randomdata.FullName(randomdata.RandomGender)
-			metadata := "{\"x\": 1}"
-
 			a := GetDefaultTestApp()
 			payload := map[string]interface{}{
-				"publicID":      publicID,
-				"name":          clanName,
-				"ownerPublicID": ownerPublicID,
-				"metadata":      metadata,
+				"publicID":         randomdata.FullName(randomdata.RandomGender),
+				"name":             randomdata.FullName(randomdata.RandomGender),
+				"ownerPublicID":    randomdata.FullName(randomdata.RandomGender),
+				"metadata":         "{\"x\": 1}",
+				"allowApplication": true,
+				"autoJoin":         true,
 			}
 			res := PostJSON(a, GetGameRoute(gameID, "/clans"), t, payload)
 
@@ -103,27 +99,24 @@ func TestClanHandler(t *testing.T) {
 			var result map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
-			g.Assert(result["reason"]).Equal(fmt.Sprintf("Player was not found with id: %s", ownerPublicID))
+			g.Assert(result["reason"]).Equal(fmt.Sprintf("Player was not found with id: %s", payload["ownerPublicID"]))
 		})
 
 		g.It("Should not create clan if invalid data", func() {
 			player, err := models.CreatePlayerFactory(testDb, "")
 			AssertNotError(g, err)
-
-			gameID := player.GameID
-			publicID := randomdata.FullName(randomdata.RandomGender)
-			clanName := randomdata.FullName(randomdata.RandomGender)
-			ownerPublicID := player.PublicID
 			metadata := "it-will-fail-beacause-metada-is-not-a-json"
 
 			a := GetDefaultTestApp()
 			payload := map[string]interface{}{
-				"PublicID":      publicID,
-				"name":          clanName,
-				"ownerPublicID": ownerPublicID,
-				"metadata":      metadata,
+				"PublicID":         randomdata.FullName(randomdata.RandomGender),
+				"name":             randomdata.FullName(randomdata.RandomGender),
+				"ownerPublicID":    player.PublicID,
+				"metadata":         metadata,
+				"allowApplication": true,
+				"autoJoin":         true,
 			}
-			res := PostJSON(a, GetGameRoute(gameID, "/clans"), t, payload)
+			res := PostJSON(a, GetGameRoute(player.GameID, "/clans"), t, payload)
 
 			res.Status(http.StatusInternalServerError)
 			var result map[string]interface{}
