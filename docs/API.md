@@ -387,12 +387,12 @@ Khan API
 
     ```
     {
-    	"publicID":                      [string],  // 255 characters max, must be unique for a given game
-    	"name":                          [string],  // 2000 characters max
-    	"metadata":                      [JSON],    
+      "publicID":                      [string],  // 255 characters max, must be unique for a given game
+      "name":                          [string],  // 2000 characters max
+      "metadata":                      [JSON],    
       "ownerPublicID":                 [string],  // must reference an existing player
-      "AllowApplication":              [boolean],
-      "AutoJoin":                      [boolean]
+      "allowApplication":              [boolean],
+      "autoJoin":                      [boolean]
   	}
     ```
 
