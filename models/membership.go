@@ -83,6 +83,22 @@ func GetOldestMemberWithHighestLevel(db DB, gameID, clanPublicID string) (*Membe
 	return &membership, nil
 }
 
+// ClanReachedMaxMemberships returns a bool indicating if the clan reached the max number of members (non deleted and approved)
+func ClanReachedMaxMemberships(db DB, gameID, clanPublicID string) error {
+	var reachedMaxMembers []bool
+	_, err := db.Select(&reachedMaxMembers, "SELECT COUNT(memberships.*) >= games.max_members FROM memberships, clans, games WHERE memberships.deleted_at=0 AND memberships.approved=true AND memberships.game_id=$1 AND memberships.clan_id=clans.id AND clans.public_id=$2 AND games.public_id=$1 GROUP BY games.max_members", gameID, clanPublicID)
+	if err != nil {
+		return err
+	}
+	if len(reachedMaxMembers) == 0 {
+		return nil
+	}
+	if reachedMaxMembers[0] {
+		return &ClanReachedMaxMembersError{clanPublicID}
+	}
+	return nil
+}
+
 // ApproveOrDenyMembershipInvitation sets Membership.Approved to true or Membership.Denied to true
 func ApproveOrDenyMembershipInvitation(db DB, gameID, playerPublicID, clanPublicID, action string) (*Membership, error) {
 	membership, err := GetMembershipByClanAndPlayerPublicID(db, gameID, clanPublicID, playerPublicID)
@@ -94,12 +110,18 @@ func ApproveOrDenyMembershipInvitation(db DB, gameID, playerPublicID, clanPublic
 		return nil, &CannotApproveOrDenyMembershipAlreadyProcessedError{action}
 	}
 
-	if membership.PlayerID != membership.RequestorID {
-		return approveOrDenyMembershipHelper(db, membership, action)
+	if membership.PlayerID == membership.RequestorID {
+		// Cannot approve own application
+		return nil, &PlayerCannotPerformMembershipActionError{action, playerPublicID, clanPublicID, playerPublicID}
 	}
 
-	// Cannot approve own application
-	return nil, &PlayerCannotPerformMembershipActionError{action, playerPublicID, clanPublicID, playerPublicID}
+	if action == "approve" {
+		reachedMaxMembersError := ClanReachedMaxMemberships(db, gameID, clanPublicID)
+		if reachedMaxMembersError != nil {
+			return nil, reachedMaxMembersError
+		}
+	}
+	return approveOrDenyMembershipHelper(db, membership, action)
 }
 
 // ApproveOrDenyMembershipApplication sets Membership.Approved to true or Membership.Denied to true
@@ -119,6 +141,13 @@ func ApproveOrDenyMembershipApplication(db DB, gameID, playerPublicID, clanPubli
 
 	if membership.Approved || membership.Denied {
 		return nil, &CannotApproveOrDenyMembershipAlreadyProcessedError{action}
+	}
+
+	if action == "approve" {
+		reachedMaxMembersError := ClanReachedMaxMemberships(db, gameID, clanPublicID)
+		if reachedMaxMembersError != nil {
+			return nil, reachedMaxMembersError
+		}
 	}
 
 	reqMembership, _ := GetMembershipByClanAndPlayerPublicID(db, gameID, clanPublicID, requestorPublicID)
@@ -165,6 +194,11 @@ func CreateMembership(db DB, gameID string, level int, playerPublicID, clanPubli
 		if !clan.AllowApplication {
 			return nil, &PlayerCannotCreateMembershipError{requestorPublicID, clanPublicID}
 		}
+
+		reachedMaxMembersError := ClanReachedMaxMemberships(db, gameID, clanPublicID)
+		if reachedMaxMembersError != nil {
+			return nil, reachedMaxMembersError
+		}
 		if previousMembership {
 			return recreateDeletedMembershipHelper(db, membership, level, membership.PlayerID)
 		}
@@ -177,12 +211,20 @@ func CreateMembership(db DB, gameID string, level int, playerPublicID, clanPubli
 		if clanErr != nil {
 			return nil, &PlayerCannotCreateMembershipError{requestorPublicID, clanPublicID}
 		}
+		reachedMaxMembersError := ClanReachedMaxMemberships(db, gameID, clanPublicID)
+		if reachedMaxMembersError != nil {
+			return nil, reachedMaxMembersError
+		}
 		if previousMembership {
 			return recreateDeletedMembershipHelper(db, membership, level, clan.OwnerID)
 		}
 		return createMembershipHelper(db, gameID, level, playerID, clan.ID, clan.OwnerID, false)
 	}
 
+	reachedMaxMembersError := ClanReachedMaxMemberships(db, gameID, clanPublicID)
+	if reachedMaxMembersError != nil {
+		return nil, reachedMaxMembersError
+	}
 	game, err := GetGameByPublicID(db, gameID)
 	if err != nil {
 		return nil, err

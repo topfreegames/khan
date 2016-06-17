@@ -158,6 +158,85 @@ func GetClanWithMemberships(
 	return clan, owner, players, memberships, nil
 }
 
+// GetClanReachedMaxMemberships returns a clan with one approved membership, one unapproved membership and game MaxMembers=1
+func GetClanReachedMaxMemberships(db DB) (*Clan, *Player, []*Player, []*Membership, error) {
+	gameID := uuid.NewV4().String()
+	clanPublicID := uuid.NewV4().String()
+
+	game := GameFactory.MustCreateWithOption(map[string]interface{}{
+		"PublicID":   gameID,
+		"MaxMembers": 1,
+	}).(*Game)
+	err := db.Insert(game)
+	if err != nil {
+		return nil, nil, nil, nil, err
+	}
+
+	owner := PlayerFactory.MustCreateWithOption(map[string]interface{}{
+		"GameID": gameID,
+	}).(*Player)
+	err = db.Insert(owner)
+	if err != nil {
+		return nil, nil, nil, nil, err
+	}
+
+	var players []*Player
+
+	for i := 0; i < 2; i++ {
+		player := PlayerFactory.MustCreateWithOption(map[string]interface{}{
+			"GameID": owner.GameID,
+		}).(*Player)
+		err = db.Insert(player)
+		if err != nil {
+			return nil, nil, nil, nil, err
+		}
+		players = append(players, player)
+	}
+
+	clan := ClanFactory.MustCreateWithOption(map[string]interface{}{
+		"GameID":   owner.GameID,
+		"PublicID": clanPublicID,
+		"OwnerID":  owner.ID,
+		"Metadata": "{\"x\": 1}",
+	}).(*Clan)
+	err = db.Insert(clan)
+	if err != nil {
+		return nil, nil, nil, nil, err
+	}
+
+	var memberships []*Membership
+
+	membership := MembershipFactory.MustCreateWithOption(map[string]interface{}{
+		"GameID":      owner.GameID,
+		"PlayerID":    players[0].ID,
+		"ClanID":      clan.ID,
+		"RequestorID": owner.ID,
+		"Metadata":    "{\"x\": 1}",
+		"Approved":    true,
+	}).(*Membership)
+	err = db.Insert(membership)
+	if err != nil {
+		return nil, nil, nil, nil, err
+	}
+	memberships = append(memberships, membership)
+
+	membership = MembershipFactory.MustCreateWithOption(map[string]interface{}{
+		"GameID":      owner.GameID,
+		"PlayerID":    players[1].ID,
+		"ClanID":      clan.ID,
+		"RequestorID": owner.ID,
+		"Metadata":    "{\"x\": 1}",
+		"Approved":    false,
+	}).(*Membership)
+	err = db.Insert(membership)
+	if err != nil {
+		return nil, nil, nil, nil, err
+	}
+	memberships = append(memberships, membership)
+
+	return clan, owner, players, memberships, nil
+}
+
 // GetTestClans returns a list of clans for tests
 func GetTestClans(db DB, gameID string, publicIDTemplate string, numberOfClans int) (*Player, []*Clan, error) {
 	if gameID == "" {
