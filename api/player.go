@@ -45,7 +45,7 @@ func CreatePlayerHandler(app *App) func(c *iris.Context) {
 		}
 
 		SucceedWith(map[string]interface{}{
-			"id": player.ID,
+			"publicID": player.PublicID,
 		}, c)
 	}
 }

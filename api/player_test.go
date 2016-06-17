@@ -44,6 +44,7 @@ func TestPlayerHandler(t *testing.T) {
 			var result map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsTrue()
+			g.Assert(result["publicID"]).Equal(payload["publicID"].(string))
 
 			dbPlayer, err := models.GetPlayerByPublicID(
 				a.Db, game.PublicID, payload["publicID"].(string),

@@ -63,7 +63,7 @@ func CreateClanHandler(app *App) func(c *iris.Context) {
 		}
 
 		SucceedWith(map[string]interface{}{
-			"id": clan.ID,
+			"publicID": clan.PublicID,
 		}, c)
 	}
 }
