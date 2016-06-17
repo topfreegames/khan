@@ -22,7 +22,7 @@ var out io.Writer = os.Stdout
 func Test(t *testing.T) {
 	g := Goblin(t)
 
-	//special hook for gomega
+	// special hook for gomega
 	RegisterFailHandler(func(m string, _ ...int) { g.Fail(m) })
 
 	g.Describe("Root Cmd", func() {

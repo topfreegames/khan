@@ -13,7 +13,7 @@ import (
 	"gopkg.in/gorp.v1"
 )
 
-//Membership relates a player to a clan
+// Membership relates a player to a clan
 type Membership struct {
 	ID          int    `db:"id"`
 	GameID      string `db:"game_id"`
@@ -29,7 +29,7 @@ type Membership struct {
 	DeletedAt   int64  `db:"deleted_at"`
 }
 
-//PreInsert populates fields before inserting a new clan
+// PreInsert populates fields before inserting a new clan
 func (m *Membership) PreInsert(s gorp.SqlExecutor) error {
 	if m.CreatedAt == 0 {
 		m.CreatedAt = time.Now().UnixNano()
@@ -38,13 +38,13 @@ func (m *Membership) PreInsert(s gorp.SqlExecutor) error {
 	return nil
 }
 
-//PreUpdate populates fields before updating a clan
+// PreUpdate populates fields before updating a clan
 func (m *Membership) PreUpdate(s gorp.SqlExecutor) error {
 	m.UpdatedAt = time.Now().UnixNano()
 	return nil
 }
 
-//GetMembershipByID returns a membership by id
+// GetMembershipByID returns a membership by id
 func GetMembershipByID(db DB, id int) (*Membership, error) {
 	obj, err := db.Get(Membership{}, id)
 	if err != nil || obj == nil {
@@ -53,7 +53,7 @@ func GetMembershipByID(db DB, id int) (*Membership, error) {
 	return obj.(*Membership), nil
 }
 
-//GetMembershipByClanAndPlayerPublicID returns a membership for the clan and the player with the given publicIDs
+// GetMembershipByClanAndPlayerPublicID returns a membership for the clan and the player with the given publicIDs
 func GetMembershipByClanAndPlayerPublicID(db DB, gameID, clanPublicID, playerPublicID string) (*Membership, error) {
 	var membership Membership
 	err := db.SelectOne(&membership, "SELECT memberships.* FROM memberships, clans, players WHERE memberships.deleted_at=0 AND memberships.game_id=$1 AND memberships.clan_id=clans.id AND memberships.player_id=players.id AND clans.public_id=$2 AND players.public_id=$3", gameID, clanPublicID, playerPublicID)
@@ -63,7 +63,7 @@ func GetMembershipByClanAndPlayerPublicID(db DB, gameID, clanPublicID, playerPub
 	return &membership, nil
 }
 
-//GetDeletedMembershipByClanAndPlayerPublicID returns a deleted membership for the clan and the player with the given publicIDs
+// GetDeletedMembershipByClanAndPlayerPublicID returns a deleted membership for the clan and the player with the given publicIDs
 func GetDeletedMembershipByClanAndPlayerPublicID(db DB, gameID, clanPublicID, playerPublicID string) (*Membership, error) {
 	var membership Membership
 	err := db.SelectOne(&membership, "SELECT memberships.* FROM memberships, clans, players WHERE memberships.deleted_at!=0 AND memberships.game_id=$1 AND memberships.clan_id=clans.id AND memberships.player_id=players.id AND clans.public_id=$2 AND players.public_id=$3", gameID, clanPublicID, playerPublicID)
@@ -73,7 +73,7 @@ func GetDeletedMembershipByClanAndPlayerPublicID(db DB, gameID, clanPublicID, pl
 	return &membership, nil
 }
 
-//GetOldestMemberWithHighestLevel returns the member with highest level that has the oldest creation date
+// GetOldestMemberWithHighestLevel returns the member with highest level that has the oldest creation date
 func GetOldestMemberWithHighestLevel(db DB, gameID, clanPublicID string) (*Membership, error) {
 	var membership Membership
 	err := db.SelectOne(&membership, "SELECT memberships.* FROM memberships, clans WHERE memberships.deleted_at=0 AND memberships.game_id=$1 AND memberships.clan_id=clans.id AND clans.public_id=$2 ORDER BY memberships.membership_level DESC, memberships.created_at ASC LIMIT 1", gameID, clanPublicID)
@@ -83,7 +83,7 @@ func GetOldestMemberWithHighestLevel(db DB, gameID, clanPublicID string) (*Membe
 	return &membership, nil
 }
 
-//ApproveOrDenyMembershipInvitation sets Membership.Approved to true or Membership.Denied to true
+// ApproveOrDenyMembershipInvitation sets Membership.Approved to true or Membership.Denied to true
 func ApproveOrDenyMembershipInvitation(db DB, gameID, playerPublicID, clanPublicID, action string) (*Membership, error) {
 	membership, err := GetMembershipByClanAndPlayerPublicID(db, gameID, clanPublicID, playerPublicID)
 	if err != nil {
@@ -102,7 +102,7 @@ func ApproveOrDenyMembershipInvitation(db DB, gameID, playerPublicID, clanPublic
 	return nil, &PlayerCannotPerformMembershipActionError{action, playerPublicID, clanPublicID, playerPublicID}
 }
 
-//ApproveOrDenyMembershipApplication sets Membership.Approved to true or Membership.Denied to true
+// ApproveOrDenyMembershipApplication sets Membership.Approved to true or Membership.Denied to true
 func ApproveOrDenyMembershipApplication(db DB, gameID, playerPublicID, clanPublicID, requestorPublicID, action string) (*Membership, error) {
 	if playerPublicID == requestorPublicID {
 		return nil, &PlayerCannotPerformMembershipActionError{action, playerPublicID, clanPublicID, requestorPublicID}
@@ -140,7 +140,7 @@ func ApproveOrDenyMembershipApplication(db DB, gameID, playerPublicID, clanPubli
 	return approveOrDenyMembershipHelper(db, membership, action)
 }
 
-//CreateMembership creates a new membership
+// CreateMembership creates a new membership
 func CreateMembership(db DB, gameID string, level int, playerPublicID, clanPublicID, requestorPublicID string) (*Membership, error) {
 	previousMembership := false
 	var playerID int
@@ -197,7 +197,7 @@ func CreateMembership(db DB, gameID string, level int, playerPublicID, clanPubli
 	return nil, &PlayerCannotCreateMembershipError{requestorPublicID, clanPublicID}
 }
 
-//PromoteOrDemoteMember increments or decrements Membership.Level by one
+// PromoteOrDemoteMember increments or decrements Membership.Level by one
 func PromoteOrDemoteMember(db DB, gameID, playerPublicID, clanPublicID, requestorPublicID, action string) (*Membership, error) {
 	demote := action == "demote"
 	promote := action == "promote"
@@ -241,7 +241,7 @@ func PromoteOrDemoteMember(db DB, gameID, playerPublicID, clanPublicID, requesto
 	return nil, &PlayerCannotPerformMembershipActionError{action, playerPublicID, clanPublicID, requestorPublicID}
 }
 
-//DeleteMembership soft deletes a membership
+// DeleteMembership soft deletes a membership
 func DeleteMembership(db DB, gameID, playerPublicID, clanPublicID, requestorPublicID string) error {
 	membership, err := GetMembershipByClanAndPlayerPublicID(db, gameID, clanPublicID, playerPublicID)
 	if err != nil {

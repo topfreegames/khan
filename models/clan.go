@@ -15,14 +15,14 @@ import (
 	"gopkg.in/gorp.v1"
 )
 
-//ClanByName allows sorting clans by name
+// ClanByName allows sorting clans by name
 type ClanByName []*Clan
 
 func (a ClanByName) Len() int           { return len(a) }
 func (a ClanByName) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 func (a ClanByName) Less(i, j int) bool { return a[i].Name < a[j].Name }
 
-//Clan identifies uniquely one clan in a given game
+// Clan identifies uniquely one clan in a given game
 type Clan struct {
 	ID               int    `db:"id"`
 	GameID           string `db:"game_id"`
@@ -37,20 +37,20 @@ type Clan struct {
 	DeletedAt        int64  `db:"deleted_at"`
 }
 
-//PreInsert populates fields before inserting a new clan
+// PreInsert populates fields before inserting a new clan
 func (c *Clan) PreInsert(s gorp.SqlExecutor) error {
 	c.CreatedAt = time.Now().UnixNano()
 	c.UpdatedAt = c.CreatedAt
 	return nil
 }
 
-//PreUpdate populates fields before updating a clan
+// PreUpdate populates fields before updating a clan
 func (c *Clan) PreUpdate(s gorp.SqlExecutor) error {
 	c.UpdatedAt = time.Now().UnixNano()
 	return nil
 }
 
-//GetClanByID returns a clan by id
+// GetClanByID returns a clan by id
 func GetClanByID(db DB, id int) (*Clan, error) {
 	obj, err := db.Get(Clan{}, id)
 	if err != nil || obj == nil {
@@ -59,7 +59,7 @@ func GetClanByID(db DB, id int) (*Clan, error) {
 	return obj.(*Clan), nil
 }
 
-//GetClanByPublicID returns a clan by its public id
+// GetClanByPublicID returns a clan by its public id
 func GetClanByPublicID(db DB, gameID, publicID string) (*Clan, error) {
 	var clan Clan
 	err := db.SelectOne(&clan, "SELECT * FROM clans WHERE game_id=$1 AND public_id=$2", gameID, publicID)
@@ -69,7 +69,7 @@ func GetClanByPublicID(db DB, gameID, publicID string) (*Clan, error) {
 	return &clan, nil
 }
 
-//GetClanByPublicIDAndOwnerPublicID returns a clan by its public id and the owner public id
+// GetClanByPublicIDAndOwnerPublicID returns a clan by its public id and the owner public id
 func GetClanByPublicIDAndOwnerPublicID(db DB, gameID, publicID, ownerPublicID string) (*Clan, error) {
 	var clan Clan
 	err := db.SelectOne(&clan, "SELECT clans.* FROM clans, players WHERE clans.game_id=$1 AND clans.public_id=$2 AND clans.owner_id=players.id AND players.public_id=$3", gameID, publicID, ownerPublicID)
@@ -79,7 +79,7 @@ func GetClanByPublicIDAndOwnerPublicID(db DB, gameID, publicID, ownerPublicID st
 	return &clan, nil
 }
 
-//CreateClan creates a new clan
+// CreateClan creates a new clan
 func CreateClan(db DB, gameID, publicID, name, ownerPublicID, metadata string, allowApplication, autoJoin bool) (*Clan, error) {
 	player, err := GetPlayerByPublicID(db, gameID, ownerPublicID)
 	if err != nil {
@@ -103,7 +103,7 @@ func CreateClan(db DB, gameID, publicID, name, ownerPublicID, metadata string, a
 	return clan, nil
 }
 
-//LeaveClan allows the clan owner to leave the clan and transfer the clan ownership to the next player in line
+// LeaveClan allows the clan owner to leave the clan and transfer the clan ownership to the next player in line
 func LeaveClan(db DB, gameID, publicID, ownerPublicID string) error {
 	clan, err := GetClanByPublicIDAndOwnerPublicID(db, gameID, publicID, ownerPublicID)
 	if err != nil {
@@ -135,7 +135,7 @@ func LeaveClan(db DB, gameID, publicID, ownerPublicID string) error {
 	return nil
 }
 
-//TransferClanOwnership allows the clan owner to transfer the clan ownership to the a clan member
+// TransferClanOwnership allows the clan owner to transfer the clan ownership to the a clan member
 func TransferClanOwnership(db DB, gameID, clanPublicID, ownerPublicID, playerPublicID string) error {
 	maxLevel := 1000000 // TODO: get this from some config
 
@@ -188,7 +188,7 @@ func TransferClanOwnership(db DB, gameID, clanPublicID, ownerPublicID, playerPub
 	return nil
 }
 
-//UpdateClan updates an existing clan
+// UpdateClan updates an existing clan
 func UpdateClan(db DB, gameID, publicID, name, ownerPublicID, metadata string, allowApplication, autoJoin bool) (*Clan, error) {
 	clan, err := GetClanByPublicIDAndOwnerPublicID(db, gameID, publicID, ownerPublicID)
 
@@ -210,7 +210,7 @@ func UpdateClan(db DB, gameID, publicID, name, ownerPublicID, metadata string, a
 	return clan, nil
 }
 
-//GetAllClans returns a list of all clans in a given game
+// GetAllClans returns a list of all clans in a given game
 func GetAllClans(db DB, gameID string) ([]Clan, error) {
 	if gameID == "" {
 		return nil, &EmptyGameIDError{"Clan"}
@@ -225,7 +225,7 @@ func GetAllClans(db DB, gameID string) ([]Clan, error) {
 	return clans, nil
 }
 
-//GetClanDetails returns all details for a given clan by its game id and public id
+// GetClanDetails returns all details for a given clan by its game id and public id
 func GetClanDetails(db DB, gameID, publicID string) (map[string]interface{}, error) {
 	query := `
 	SELECT
@@ -273,7 +273,7 @@ func GetClanDetails(db DB, gameID, publicID string) (map[string]interface{}, err
 	return result, nil
 }
 
-//SearchClan returns a list of clans for a given term (by name or publicID)
+// SearchClan returns a list of clans for a given term (by name or publicID)
 func SearchClan(db DB, gameID, term string) ([]Clan, error) {
 	if term == "" {
 		return nil, &EmptySearchTermError{}

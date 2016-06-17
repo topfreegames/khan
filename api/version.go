@@ -7,5 +7,5 @@
 
 package api
 
-//VERSION identifies Khan's current version
+// VERSION identifies Khan's current version
 var VERSION = "0.2.1"

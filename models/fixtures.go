@@ -15,7 +15,7 @@ import (
 	"github.com/satori/go.uuid"
 )
 
-//GameFactory is responsible for constructing test game instances
+// GameFactory is responsible for constructing test game instances
 var GameFactory = factory.NewFactory(
 	&Game{
 		MinMembershipLevel:            0,
@@ -45,17 +45,17 @@ func configureFactory(fct *factory.Factory) *factory.Factory {
 	})
 }
 
-//PlayerFactory is responsible for constructing test player instances
+// PlayerFactory is responsible for constructing test player instances
 var PlayerFactory = configureFactory(factory.NewFactory(
 	&Player{},
 ))
 
-//ClanFactory is responsible for constructing test clan instances
+// ClanFactory is responsible for constructing test clan instances
 var ClanFactory = configureFactory(factory.NewFactory(
 	&Clan{},
 ))
 
-//CreatePlayerFactory is responsible for creaing a test player instance with the associated game
+// CreatePlayerFactory is responsible for creaing a test player instance with the associated game
 func CreatePlayerFactory(db DB, gameID string) (*Player, error) {
 	if gameID == "" {
 		gameID = uuid.NewV4().String()
@@ -78,14 +78,14 @@ func CreatePlayerFactory(db DB, gameID string) (*Player, error) {
 	return player, nil
 }
 
-//MembershipFactory is responsible for constructing test membership instances
+// MembershipFactory is responsible for constructing test membership instances
 var MembershipFactory = factory.NewFactory(
 	&Membership{},
 ).SeqInt("GameID", func(n int) (interface{}, error) {
 	return fmt.Sprintf("game-%d", n), nil
 })
 
-//GetClanWithMemberships returns a clan filled with the number of memberships specified
+// GetClanWithMemberships returns a clan filled with the number of memberships specified
 func GetClanWithMemberships(
 	db DB, numberOfMemberships int, gameID string, clanPublicID string,
 ) (*Clan, *Player, []*Player, []*Membership, error) {
@@ -158,7 +158,7 @@ func GetClanWithMemberships(
 	return clan, owner, players, memberships, nil
 }
 
-//GetTestClans returns a list of clans for tests
+// GetTestClans returns a list of clans for tests
 func GetTestClans(db DB, gameID string, publicIDTemplate string, numberOfClans int) (*Player, []*Clan, error) {
 	if gameID == "" {
 		gameID = uuid.NewV4().String()
