@@ -8,12 +8,21 @@ Khan documentation
 
 Contents:
 
+.. _api-docs:
+
 .. toctree::
    :maxdepth: 2
-   
+   :caption: API Documentation
+
    API
 
+.. _models-docs:
 
+.. toctree::
+  :maxdepth: 2
+  :caption: Models Documentation
+
+  models
 
 Indices and tables
 ==================

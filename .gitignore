@@ -25,3 +25,4 @@ _testmain.go
 coverage*.out
 vendor/
 /khan
+docs/_build

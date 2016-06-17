@@ -1,36 +1,6 @@
 Khan API
 ========
 
-## Routes Index
-
-1. [Healthcheck Routes](#healthcheck-routes)
-  - [Healthcheck](#healthcheck)
-
-2. [Game Routes](#game-routes)
-  - [Create Game](#create-game)
-  - [Update Game](#update-game)
-
-3. [Player Routes](#player-routes)
-  - [Create Player](#create-player)
-  - [Update Player](#update-player)
-
-4. [Clan Routes](#clan-routes)
-  - [Search Clans](#search-clans)
-  - [List Clans](#list-clans)
-  - [Create Clan](#create-clan)
-  - [Update Clan](#update-clan)
-  - [Retrieve Clan](#retrieve-clan)
-  - [Leave Clan](#leave-clan)
-  - [Transfer Clan Ownership](#transfer-clan-ownership)
-
-5. [Membership Routes](#membership-routes)
-  - [Apply For Membership](#apply-for-membership)
-  - [Approve Or Deny Membership Application](#approve-membership-application)
-  - [Invite For Membership](#invite-for-membership)
-  - [Approve Or Deny Membership Invitation](#approve-membership-invitation)
-  - [Promote Or Demote Member](#promote-member)
-  - [Delete Membership](#delete-membership)
-
 ## Healthcheck Routes
 
   ### Healthcheck
@@ -692,7 +662,7 @@ Khan API
       }
       ```
 
-##Membership Routes
+## Membership Routes
 
   ### Apply For Membership
 
