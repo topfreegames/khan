@@ -81,7 +81,7 @@ Khan API
       ```
       {
         "success": true,
-        "id": [int]  // game private id
+        "publicID": [string]  // game public id
       }
       ```
 
@@ -207,7 +207,7 @@ Khan API
       ```
       {
         "success": true,
-        "id": [int]  // game private id
+        "publicID": [string]  // player public id
       }
       ```
 
@@ -301,7 +301,7 @@ Khan API
       }
       ```
 
-##Clan Routes
+## Clan Routes
 
   ### Search Clans
   `GET /games/:gameID/clan-search`
@@ -387,12 +387,12 @@ Khan API
 
     ```
     {
-    	"publicID":                      [string],  // 255 characters max, must be unique for a given game
-    	"name":                          [string],  // 2000 characters max
-    	"metadata":                      [JSON],    
+      "publicID":                      [string],  // 255 characters max, must be unique for a given game
+      "name":                          [string],  // 2000 characters max
+      "metadata":                      [JSON],    
       "ownerPublicID":                 [string],  // must reference an existing player
-      "AllowApplication":              [boolean],
-      "AutoJoin":                      [boolean]
+      "allowApplication":              [boolean],
+      "autoJoin":                      [boolean]
   	}
     ```
 
@@ -411,7 +411,7 @@ Khan API
       ```
       {
         "success": true,
-        "id": [int]  // clan private id
+        "publicID": [string]  // clan public id
       }
       ```
 
