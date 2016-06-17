@@ -81,7 +81,7 @@ Khan API
       ```
       {
         "success": true,
-        "id": [int]  // game private id
+        "publicID": [string]  // game public id
       }
       ```
 
@@ -207,7 +207,7 @@ Khan API
       ```
       {
         "success": true,
-        "id": [int]  // game private id
+        "publicID": [string]  // player public id
       }
       ```
 
@@ -411,7 +411,7 @@ Khan API
       ```
       {
         "success": true,
-        "id": [int]  // clan private id
+        "publicID": [string]  // clan public id
       }
       ```
 

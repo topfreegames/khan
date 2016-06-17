@@ -58,6 +58,7 @@ func TestClanHandler(t *testing.T) {
 			var result map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsTrue()
+			g.Assert(result["publicID"]).Equal(clanPublicID)
 
 			dbClan, err := models.GetClanByPublicID(a.Db, player.GameID, clanPublicID)
 			AssertNotError(g, err)

@@ -79,7 +79,7 @@ func CreateGameHandler(app *App) func(c *iris.Context) {
 		}
 
 		SucceedWith(map[string]interface{}{
-			"id": game.ID,
+			"publicID": game.PublicID,
 		}, c)
 	}
 }
