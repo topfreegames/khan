@@ -54,6 +54,7 @@ func CreatePlayerHandler(app *App) func(c *iris.Context) {
 func UpdatePlayerHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
 		gameID := c.Param("gameID")
+		playerPublicID := c.Param("playerPublicID")
 
 		var payload playerDataChangePayload
 		if err := c.ReadJSON(&payload); err != nil {
@@ -66,7 +67,7 @@ func UpdatePlayerHandler(app *App) func(c *iris.Context) {
 		_, err := models.UpdatePlayer(
 			db,
 			gameID,
-			payload.PublicID,
+			playerPublicID,
 			payload.Name,
 			payload.Metadata,
 		)

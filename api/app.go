@@ -112,7 +112,7 @@ func (app *App) configureApplication() {
 
 	// Player Routes
 	a.Post("/games/:gameID/players", CreatePlayerHandler(app))
-	a.Put("/games/:gameID/players/:publicID", UpdatePlayerHandler(app))
+	a.Put("/games/:gameID/players/:playerPublicID", UpdatePlayerHandler(app))
 
 	// Clan Routes
 	a.Get("/games/:gameID/clan-search", SearchClansHandler(app))
