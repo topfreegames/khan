@@ -1,4 +1,4 @@
 Khan Models
 ===========
 
-TODO: write models documentation.
+Coming soon.
