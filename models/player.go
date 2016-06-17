@@ -13,7 +13,7 @@ import (
 	"gopkg.in/gorp.v1"
 )
 
-//Player identifies uniquely one player in a given game
+// Player identifies uniquely one player in a given game
 type Player struct {
 	ID        int    `db:"id"`
 	GameID    string `db:"game_id"`
@@ -24,20 +24,20 @@ type Player struct {
 	UpdatedAt int64  `db:"updated_at"`
 }
 
-//PreInsert populates fields before inserting a new player
+// PreInsert populates fields before inserting a new player
 func (p *Player) PreInsert(s gorp.SqlExecutor) error {
 	p.CreatedAt = time.Now().UnixNano()
 	p.UpdatedAt = p.CreatedAt
 	return nil
 }
 
-//PreUpdate populates fields before updating a player
+// PreUpdate populates fields before updating a player
 func (p *Player) PreUpdate(s gorp.SqlExecutor) error {
 	p.UpdatedAt = time.Now().UnixNano()
 	return nil
 }
 
-//GetPlayerByID returns a player by id
+// GetPlayerByID returns a player by id
 func GetPlayerByID(db DB, id int) (*Player, error) {
 	obj, err := db.Get(Player{}, id)
 	if err != nil || obj == nil {
@@ -48,7 +48,7 @@ func GetPlayerByID(db DB, id int) (*Player, error) {
 	return player, nil
 }
 
-//GetPlayerByPublicID returns a player by their public id
+// GetPlayerByPublicID returns a player by their public id
 func GetPlayerByPublicID(db DB, gameID string, publicID string) (*Player, error) {
 	var player Player
 	err := db.SelectOne(&player, "SELECT * FROM players WHERE game_id=$1 AND public_id=$2", gameID, publicID)
@@ -58,7 +58,7 @@ func GetPlayerByPublicID(db DB, gameID string, publicID string) (*Player, error)
 	return &player, nil
 }
 
-//CreatePlayer creates a new player
+// CreatePlayer creates a new player
 func CreatePlayer(db DB, gameID string, publicID string, name string, metadata string) (*Player, error) {
 	player := &Player{
 		GameID:   gameID,
@@ -73,7 +73,7 @@ func CreatePlayer(db DB, gameID string, publicID string, name string, metadata s
 	return player, nil
 }
 
-//UpdatePlayer updates an existing player
+// UpdatePlayer updates an existing player
 func UpdatePlayer(db DB, gameID string, publicID string, name string, metadata string) (*Player, error) {
 	player, err := GetPlayerByPublicID(db, gameID, publicID)
 

@@ -15,8 +15,8 @@ import (
 	"gopkg.in/gorp.v1"
 )
 
-//DB is the contract for all the operations we use from either a connection or transaction
-//This is required for automatic transactions
+// DB is the contract for all the operations we use from either a connection or transaction
+// This is required for automatic transactions
 type DB interface {
 	Get(interface{}, ...interface{}) (interface{}, error)
 	Select(interface{}, string, ...interface{}) ([]interface{}, error)
@@ -29,18 +29,18 @@ type DB interface {
 
 var _db DB
 
-//GetTestDB returns a connection to the test database
+// GetTestDB returns a connection to the test database
 func GetTestDB() (DB, error) {
 	return GetDB("localhost", "khan_test", 5432, "disable", "khan_test", "")
 }
 
-//GetFaultyTestDB returns an ill-configured test database
+// GetFaultyTestDB returns an ill-configured test database
 func GetFaultyTestDB() DB {
 	faultyDb, _ := InitDb("localhost", "khan_tet", 5432, "disable", "khan_test", "")
 	return faultyDb
 }
 
-//GetDB returns a DbMap connection to the database specified in the arguments
+// GetDB returns a DbMap connection to the database specified in the arguments
 func GetDB(host string, user string, port int, sslmode string, dbName string, password string) (DB, error) {
 	if _db == nil {
 		var err error
@@ -54,7 +54,7 @@ func GetDB(host string, user string, port int, sslmode string, dbName string, pa
 	return _db, nil
 }
 
-//InitDb initializes a connection to the database
+// InitDb initializes a connection to the database
 func InitDb(host string, user string, port int, sslmode string, dbName string, password string) (DB, error) {
 	connStr := fmt.Sprintf(
 		"host=%s user=%s port=%d sslmode=%s dbname=%s",
@@ -78,7 +78,7 @@ func InitDb(host string, user string, port int, sslmode string, dbName string, p
 	return dbmap, nil
 }
 
-//Returns value or 0
+// Returns value or 0
 func nullOrInt(value sql.NullInt64) int64 {
 	if value.Valid {
 		v, err := value.Value()
@@ -89,7 +89,7 @@ func nullOrInt(value sql.NullInt64) int64 {
 	return 0
 }
 
-//Returns value or ""
+// Returns value or ""
 func nullOrString(value sql.NullString) string {
 	if value.Valid {
 		v, err := value.Value()
@@ -100,7 +100,7 @@ func nullOrString(value sql.NullString) string {
 	return ""
 }
 
-//Returns value or false
+// Returns value or false
 func nullOrBool(value sql.NullBool) bool {
 	if value.Valid {
 		v, err := value.Value()

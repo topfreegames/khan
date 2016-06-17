@@ -13,14 +13,14 @@ import (
 
 	"gopkg.in/gorp.v1"
 
-	_ "github.com/jinzhu/gorm/dialects/postgres" //This is required to use postgres with gorm
+	_ "github.com/jinzhu/gorm/dialects/postgres" // This is required to use postgres with gorm
 	"github.com/kataras/iris"
 	"github.com/kataras/iris/middleware/logger"
 	"github.com/spf13/viper"
 	"github.com/topfreegames/khan/models"
 )
 
-//App is a struct that represents a Khan API Application
+// App is a struct that represents a Khan API Application
 type App struct {
 	Debug      bool
 	Port       int
@@ -31,7 +31,7 @@ type App struct {
 	Config     *viper.Viper
 }
 
-//GetApp returns a new Khan API Application
+// GetApp returns a new Khan API Application
 func GetApp(host string, port int, configPath string, debug bool) *App {
 	app := &App{
 		Host:       host,
@@ -44,7 +44,7 @@ func GetApp(host string, port int, configPath string, debug bool) *App {
 	return app
 }
 
-//Configure instantiates the required dependencies for Khan Api Application
+// Configure instantiates the required dependencies for Khan Api Application
 func (app *App) Configure() {
 	app.setConfigurationDefaults()
 	app.loadConfiguration()
@@ -101,20 +101,20 @@ func (app *App) configureApplication() {
 	if app.Debug {
 		a.Use(logger.New(iris.Logger))
 	}
-	//a.Use(recovery.New(os.Stderr))
+	// a.Use(recovery.New(os.Stderr))
 	a.Use(&TransactionMiddleware{App: app})
 
 	a.Get("/healthcheck", HealthCheckHandler(app))
 
-	//Game Routes
+	// Game Routes
 	a.Post("/games", CreateGameHandler(app))
 	a.Put("/games/:gameID", UpdateGameHandler(app))
 
-	//Player Routes
+	// Player Routes
 	a.Post("/games/:gameID/players", CreatePlayerHandler(app))
 	a.Put("/games/:gameID/players/:publicID", UpdatePlayerHandler(app))
 
-	//Clan Routes
+	// Clan Routes
 	a.Get("/games/:gameID/clan-search", SearchClansHandler(app))
 	a.Get("/games/:gameID/clans", ListClansHandler(app))
 	a.Post("/games/:gameID/clans", CreateClanHandler(app))
@@ -123,7 +123,7 @@ func (app *App) configureApplication() {
 	a.Post("/games/:gameID/clans/:clanPublicID/leave", LeaveClanHandler(app))
 	a.Post("/games/:gameID/clans/:clanPublicID/transfer-ownership", TransferOwnershipHandler(app))
 
-	//Membership Routes
+	// Membership Routes
 	a.Post("/games/:gameID/clans/:clanPublicID/memberships/application", ApplyForMembershipHandler(app))
 	a.Post("/games/:gameID/clans/:clanPublicID/memberships/application/:action", ApproveOrDenyMembershipApplicationHandler(app))
 	a.Post("/games/:gameID/clans/:clanPublicID/memberships/invitation", InviteForMembershipHandler(app))
@@ -137,7 +137,7 @@ func (app *App) finalizeApp() {
 	app.Db.(*gorp.DbMap).Db.Close()
 }
 
-//Start starts listening for web requests at specified host and port
+// Start starts listening for web requests at specified host and port
 func (app *App) Start() {
 	defer app.finalizeApp()
 	app.App.Listen(fmt.Sprintf("%s:%d", app.Host, app.Port))

@@ -43,7 +43,7 @@ func validateGamePayload(payload gamePayload) []string {
 	return errors
 }
 
-//CreateGameHandler is the handler responsible for creating new games
+// CreateGameHandler is the handler responsible for creating new games
 func CreateGameHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
 		var payload gamePayload
@@ -84,7 +84,7 @@ func CreateGameHandler(app *App) func(c *iris.Context) {
 	}
 }
 
-//UpdateGameHandler is the handler responsible for updating existing
+// UpdateGameHandler is the handler responsible for updating existing
 func UpdateGameHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
 		gameID := c.Param("gameID")

@@ -17,14 +17,14 @@ import (
 
 var ConfigFile string
 
-//RootCmd is the root command for khan CLI application
+// RootCmd is the root command for khan CLI application
 var RootCmd = &cobra.Command{
 	Use:   "khan",
 	Short: "khan handles clans",
 	Long:  `Use khan to handle clans for your game.`,
 }
 
-//Execute runs RootCmd to initialize khan CLI application
+// Execute runs RootCmd to initialize khan CLI application
 func Execute(cmd *cobra.Command) {
 	if err := cmd.Execute(); err != nil {
 		fmt.Println(err)
@@ -33,7 +33,7 @@ func Execute(cmd *cobra.Command) {
 }
 
 func init() {
-	//cobra.OnInitialize(initConfig)
+	// cobra.OnInitialize(initConfig)
 
 	RootCmd.PersistentFlags().StringVarP(
 		&ConfigFile, "config", "c", "./config/local.yaml",

@@ -13,12 +13,12 @@ import (
 	"gopkg.in/gorp.v1"
 )
 
-//TransactionMiddleware wraps transactions around the request
+// TransactionMiddleware wraps transactions around the request
 type TransactionMiddleware struct {
 	App *App
 }
 
-//Serve Automatically wrap transaction around the request
+// Serve Automatically wrap transaction around the request
 func (m *TransactionMiddleware) Serve(c *iris.Context) {
 	c.Set("db", m.App.Db)
 
@@ -37,7 +37,7 @@ func (m *TransactionMiddleware) Serve(c *iris.Context) {
 	}
 }
 
-//GetCtxDB returns the proper database connection depending on the request context
+// GetCtxDB returns the proper database connection depending on the request context
 func GetCtxDB(ctx *iris.Context) models.DB {
 	return ctx.Get("db").(models.DB)
 }

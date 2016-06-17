@@ -13,7 +13,7 @@ import (
 	"gopkg.in/gorp.v1"
 )
 
-//Game identifies uniquely one game
+// Game identifies uniquely one game
 type Game struct {
 	ID                            int    `db:"id"`
 	PublicID                      string `db:"public_id"`
@@ -31,20 +31,20 @@ type Game struct {
 	UpdatedAt                     int64  `db:"updated_at"`
 }
 
-//PreInsert populates fields before inserting a new game
+// PreInsert populates fields before inserting a new game
 func (p *Game) PreInsert(s gorp.SqlExecutor) error {
 	p.CreatedAt = time.Now().UnixNano()
 	p.UpdatedAt = p.CreatedAt
 	return nil
 }
 
-//PreUpdate populates fields before updating a game
+// PreUpdate populates fields before updating a game
 func (p *Game) PreUpdate(s gorp.SqlExecutor) error {
 	p.UpdatedAt = time.Now().UnixNano()
 	return nil
 }
 
-//GetGameByID returns a game by id
+// GetGameByID returns a game by id
 func GetGameByID(db DB, id int) (*Game, error) {
 	obj, err := db.Get(Game{}, id)
 	if err != nil || obj == nil {
@@ -55,7 +55,7 @@ func GetGameByID(db DB, id int) (*Game, error) {
 	return game, nil
 }
 
-//GetGameByPublicID returns a game by their public id
+// GetGameByPublicID returns a game by their public id
 func GetGameByPublicID(db DB, publicID string) (*Game, error) {
 	var game Game
 	err := db.SelectOne(&game, "SELECT * FROM games WHERE public_id=$1", publicID)
@@ -65,7 +65,7 @@ func GetGameByPublicID(db DB, publicID string) (*Game, error) {
 	return &game, nil
 }
 
-//CreateGame creates a new game
+// CreateGame creates a new game
 func CreateGame(db DB, publicID, name, metadata string,
 	minLevel, maxLevel, minLevelAccept, minLevelCreate, minLevelRemove, minOffsetPromote, minOffsetDemote, maxMembers int,
 ) (*Game, error) {
@@ -89,7 +89,7 @@ func CreateGame(db DB, publicID, name, metadata string,
 	return game, nil
 }
 
-//UpdateGame updates an existing game
+// UpdateGame updates an existing game
 func UpdateGame(db DB, publicID, name, metadata string,
 	minLevel, maxLevel, minLevelAccept, minLevelCreate, minLevelRemove, minOffsetPromote, minOffsetDemote, maxMembers int,
 ) (*Game, error) {

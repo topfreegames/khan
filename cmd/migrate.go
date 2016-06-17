@@ -60,7 +60,7 @@ func getGooseConf(migrationsDir string) *goose.DBConf {
 	}
 }
 
-//MigrationError identified rigrations running error
+// MigrationError identified rigrations running error
 type MigrationError struct {
 	Message string
 }

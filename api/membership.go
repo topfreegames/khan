@@ -32,7 +32,7 @@ type approveOrDenyMembershipInvitationPayload struct {
 	PlayerPublicID string
 }
 
-//ApplyForMembershipHandler is the handler responsible for applying for new memberships
+// ApplyForMembershipHandler is the handler responsible for applying for new memberships
 func ApplyForMembershipHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
 		gameID := c.Param("gameID")
@@ -64,7 +64,7 @@ func ApplyForMembershipHandler(app *App) func(c *iris.Context) {
 	}
 }
 
-//InviteForMembershipHandler is the handler responsible for creating new memberships
+// InviteForMembershipHandler is the handler responsible for creating new memberships
 func InviteForMembershipHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
 		gameID := c.Param("gameID")
@@ -97,7 +97,7 @@ func InviteForMembershipHandler(app *App) func(c *iris.Context) {
 	}
 }
 
-//ApproveOrDenyMembershipApplicationHandler is the handler responsible for approving or denying a membership invitation
+// ApproveOrDenyMembershipApplicationHandler is the handler responsible for approving or denying a membership invitation
 func ApproveOrDenyMembershipApplicationHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
 		action := c.Param("action")
@@ -130,7 +130,7 @@ func ApproveOrDenyMembershipApplicationHandler(app *App) func(c *iris.Context) {
 	}
 }
 
-//ApproveOrDenyMembershipInvitationHandler is the handler responsible for approving or denying a membership invitation
+// ApproveOrDenyMembershipInvitationHandler is the handler responsible for approving or denying a membership invitation
 func ApproveOrDenyMembershipInvitationHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
 		action := c.Param("action")
@@ -162,7 +162,7 @@ func ApproveOrDenyMembershipInvitationHandler(app *App) func(c *iris.Context) {
 	}
 }
 
-//DeleteMembershipHandler is the handler responsible for deleting a member
+// DeleteMembershipHandler is the handler responsible for deleting a member
 func DeleteMembershipHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
 		gameID := c.Param("gameID")
@@ -193,7 +193,7 @@ func DeleteMembershipHandler(app *App) func(c *iris.Context) {
 	}
 }
 
-//PromoteOrDemoteMembershipHandler is the handler responsible for promoting or demoting a member
+// PromoteOrDemoteMembershipHandler is the handler responsible for promoting or demoting a member
 func PromoteOrDemoteMembershipHandler(app *App, action string) func(c *iris.Context) {
 	return func(c *iris.Context) {
 		gameID := c.Param("gameID")

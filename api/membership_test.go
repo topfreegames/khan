@@ -25,7 +25,7 @@ func TestMembershipHandler(t *testing.T) {
 	testDb, err := models.GetTestDB()
 	g.Assert(err == nil).IsTrue()
 
-	//special hook for gomega
+	// special hook for gomega
 	RegisterFailHandler(func(m string, _ ...int) { g.Fail(m) })
 
 	g.Describe("Apply For Membership Handler", func() {

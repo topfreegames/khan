@@ -12,7 +12,7 @@ import (
 	"github.com/topfreegames/khan/models"
 )
 
-//clanPayload maps the payload for the Create Clan route
+// clanPayload maps the payload for the Create Clan route
 type clanPayload struct {
 	PublicID         string
 	Name             string
@@ -22,18 +22,18 @@ type clanPayload struct {
 	AutoJoin         bool
 }
 
-//leaveClanPayload maps the payload for the Leave Clan route
+// leaveClanPayload maps the payload for the Leave Clan route
 type leaveClanPayload struct {
 	OwnerPublicID string
 }
 
-//transferClanOwnershipPayload maps the payload for the Transfer Clan Ownership route
+// transferClanOwnershipPayload maps the payload for the Transfer Clan Ownership route
 type transferClanOwnershipPayload struct {
 	OwnerPublicID  string
 	PlayerPublicID string
 }
 
-//CreateClanHandler is the handler responsible for creating new clans
+// CreateClanHandler is the handler responsible for creating new clans
 func CreateClanHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
 		gameID := c.Param("gameID")
@@ -68,7 +68,7 @@ func CreateClanHandler(app *App) func(c *iris.Context) {
 	}
 }
 
-//UpdateClanHandler is the handler responsible for updating existing clans
+// UpdateClanHandler is the handler responsible for updating existing clans
 func UpdateClanHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
 		gameID := c.Param("gameID")
@@ -102,7 +102,7 @@ func UpdateClanHandler(app *App) func(c *iris.Context) {
 	}
 }
 
-//LeaveClanHandler is the handler responsible for changing the clan ownership when the owner leaves it
+// LeaveClanHandler is the handler responsible for changing the clan ownership when the owner leaves it
 func LeaveClanHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
 		gameID := c.Param("gameID")
@@ -132,7 +132,7 @@ func LeaveClanHandler(app *App) func(c *iris.Context) {
 	}
 }
 
-//TransferOwnershipHandler is the handler responsible for transfering the clan ownership to another clan member
+// TransferOwnershipHandler is the handler responsible for transfering the clan ownership to another clan member
 func TransferOwnershipHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
 		gameID := c.Param("gameID")
@@ -163,7 +163,7 @@ func TransferOwnershipHandler(app *App) func(c *iris.Context) {
 	}
 }
 
-//ListClansHandler is the handler responsible for returning a list of all clans
+// ListClansHandler is the handler responsible for returning a list of all clans
 func ListClansHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
 		db := GetCtxDB(c)
@@ -186,7 +186,7 @@ func ListClansHandler(app *App) func(c *iris.Context) {
 	}
 }
 
-//SearchClansHandler is the handler responsible for searching for clans
+// SearchClansHandler is the handler responsible for searching for clans
 func SearchClansHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
 		db := GetCtxDB(c)
@@ -216,7 +216,7 @@ func SearchClansHandler(app *App) func(c *iris.Context) {
 	}
 }
 
-//RetrieveClanHandler is the handler responsible for returning details for a given clan
+// RetrieveClanHandler is the handler responsible for returning details for a given clan
 func RetrieveClanHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
 		db := GetCtxDB(c)

@@ -19,7 +19,7 @@ type playerDataChangePayload struct {
 	Metadata string
 }
 
-//CreatePlayerHandler is the handler responsible for creating new players
+// CreatePlayerHandler is the handler responsible for creating new players
 func CreatePlayerHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
 		var payload playerDataChangePayload
@@ -49,7 +49,7 @@ func CreatePlayerHandler(app *App) func(c *iris.Context) {
 	}
 }
 
-//UpdatePlayerHandler is the handler responsible for updating existing
+// UpdatePlayerHandler is the handler responsible for updating existing
 func UpdatePlayerHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
 		var payload playerDataChangePayload
