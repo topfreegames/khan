@@ -301,7 +301,7 @@ Khan API
       }
       ```
 
-##Clan Routes
+## Clan Routes
 
   ### Search Clans
   `GET /games/:gameID/clan-search`
