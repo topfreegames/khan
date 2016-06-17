@@ -375,6 +375,29 @@ func TestMembershipModel(t *testing.T) {
 		})
 
 		g.Describe("Should not create a new Membership with CreateMembership if", func() {
+			g.It("If clan reached the game's MaxMembers", func() {
+				clan, owner, _, _, err := GetClanReachedMaxMemberships(testDb)
+				g.Assert(err == nil).IsTrue()
+
+				player := PlayerFactory.MustCreateWithOption(map[string]interface{}{
+					"GameID": clan.GameID,
+				}).(*Player)
+				err = testDb.Insert(player)
+				g.Assert(err == nil).IsTrue()
+
+				_, err = CreateMembership(
+					testDb,
+					player.GameID,
+					1,
+					player.PublicID,
+					clan.PublicID,
+					owner.PublicID,
+				)
+
+				g.Assert(err != nil).IsTrue()
+				g.Assert(err.Error()).Equal(fmt.Sprintf("Clan %s reached max members", clan.PublicID))
+			})
+
 			g.It("If requestor is the player and clan.AllowApplication = false", func() {
 				clan, _, _, _, err := GetClanWithMemberships(testDb, 1, "", "")
 				g.Assert(err == nil).IsTrue()
@@ -529,6 +552,23 @@ func TestMembershipModel(t *testing.T) {
 		})
 
 		g.Describe("Should not approve a Membership invitation with ApproveOrDenyMembershipInvitation if", func() {
+			g.It("If clan reached the game's MaxMembers", func() {
+				action := "approve"
+				clan, _, players, _, err := GetClanReachedMaxMemberships(testDb)
+				g.Assert(err == nil).IsTrue()
+
+				_, err = ApproveOrDenyMembershipInvitation(
+					testDb,
+					players[1].GameID,
+					players[1].PublicID,
+					clan.PublicID,
+					action,
+				)
+
+				g.Assert(err != nil).IsTrue()
+				g.Assert(err.Error()).Equal(fmt.Sprintf("Clan %s reached max members", clan.PublicID))
+			})
+
 			g.It("Player is the membership requestor", func() {
 				action := "approve"
 				clan, _, players, memberships, err := GetClanWithMemberships(testDb, 1, "", "")
@@ -746,6 +786,28 @@ func TestMembershipModel(t *testing.T) {
 		})
 
 		g.Describe("Should not approve a Membership application with ApproveOrDenyMembershipApplication if", func() {
+			g.It("If clan reached the game's MaxMembers", func() {
+				action := "approve"
+				clan, owner, players, memberships, err := GetClanReachedMaxMemberships(testDb)
+				g.Assert(err == nil).IsTrue()
+
+				memberships[1].RequestorID = memberships[1].PlayerID
+				_, err = testDb.Update(memberships[1])
+				g.Assert(err == nil).IsTrue()
+
+				_, err = ApproveOrDenyMembershipApplication(
+					testDb,
+					players[1].GameID,
+					players[1].PublicID,
+					clan.PublicID,
+					owner.PublicID,
+					action,
+				)
+
+				g.Assert(err != nil).IsTrue()
+				g.Assert(err.Error()).Equal(fmt.Sprintf("Clan %s reached max members", clan.PublicID))
+			})
+
 			g.It("Requestor is member of the clan with level < minLevel", func() {
 				action := "approve"
 				clan, _, players, memberships, err := GetClanWithMemberships(testDb, 2, "", "")

@@ -28,6 +28,15 @@ func (e *EmptyGameIDError) Error() string {
 	return fmt.Sprintf("Game ID is required to retrieve %s!", e.Type)
 }
 
+// ClanReachedMaxMembersError identifies that a given clan already reached the max number of members allowed
+type ClanReachedMaxMembersError struct {
+	ID interface{}
+}
+
+func (e *ClanReachedMaxMembersError) Error() string {
+	return fmt.Sprintf("Clan %s reached max members", e.ID)
+}
+
 // PlayerCannotCreateMembershipError identifies that a given player is not allowed to create a membership
 type PlayerCannotCreateMembershipError struct {
 	PlayerID interface{}
