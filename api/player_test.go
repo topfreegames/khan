@@ -34,12 +34,11 @@ func TestPlayerHandler(t *testing.T) {
 			AssertNotError(g, err)
 
 			payload := map[string]interface{}{
-				"gameID":   game.PublicID,
 				"publicID": randomdata.FullName(randomdata.RandomGender),
 				"name":     randomdata.FullName(randomdata.RandomGender),
 				"metadata": "{\"x\": 1}",
 			}
-			res := PostJSON(a, GetGameRoute(payload["gameID"].(string), "/players"), t, payload)
+			res := PostJSON(a, GetGameRoute(game.PublicID, "/players"), t, payload)
 
 			res.Status(http.StatusOK)
 			var result map[string]interface{}
@@ -47,10 +46,10 @@ func TestPlayerHandler(t *testing.T) {
 			g.Assert(result["success"]).IsTrue()
 
 			dbPlayer, err := models.GetPlayerByPublicID(
-				a.Db, payload["gameID"].(string), payload["publicID"].(string),
+				a.Db, game.PublicID, payload["publicID"].(string),
 			)
 			AssertNotError(g, err)
-			g.Assert(dbPlayer.GameID).Equal(payload["gameID"])
+			g.Assert(dbPlayer.GameID).Equal(game.PublicID)
 			g.Assert(dbPlayer.PublicID).Equal(payload["publicID"])
 			g.Assert(dbPlayer.Name).Equal(payload["name"])
 			g.Assert(dbPlayer.Metadata).Equal(payload["metadata"])
@@ -70,19 +69,22 @@ func TestPlayerHandler(t *testing.T) {
 
 		g.It("Should not create player if invalid data", func() {
 			a := GetDefaultTestApp()
+			game := models.GameFactory.MustCreate().(*models.Game)
+			err := a.Db.Insert(game)
+			AssertNotError(g, err)
+
 			payload := map[string]interface{}{
-				"gameID":   "game-id-is-too-large-for-this-field-should-be-less-than-36-chars",
 				"publicID": randomdata.FullName(randomdata.RandomGender),
 				"name":     randomdata.FullName(randomdata.RandomGender),
-				"metadata": "{\"x\": 1}",
+				"metadata": "metadata-it-not-a-json-and-will-break",
 			}
-			res := PostJSON(a, GetGameRoute(payload["gameID"].(string), "/players"), t, payload)
+			res := PostJSON(a, GetGameRoute(game.PublicID, "/players"), t, payload)
 
 			res.Status(http.StatusInternalServerError)
 			var result map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
-			g.Assert(result["reason"]).Equal("pq: value too long for type character varying(36)")
+			g.Assert(result["reason"]).Equal("pq: invalid input syntax for type json")
 		})
 	})
 
@@ -94,7 +96,6 @@ func TestPlayerHandler(t *testing.T) {
 
 			metadata := "{\"y\": 10}"
 			payload := map[string]interface{}{
-				"gameID":   player.GameID,
 				"publicID": player.PublicID,
 				"name":     player.Name,
 				"metadata": metadata,
@@ -135,12 +136,11 @@ func TestPlayerHandler(t *testing.T) {
 			metadata := ""
 
 			payload := map[string]interface{}{
-				"gameID":   player.GameID,
 				"publicID": player.PublicID,
 				"name":     player.Name,
 				"metadata": metadata,
 			}
-			route := GetGameRoute("game-id", fmt.Sprintf("/players/%s", player.PublicID))
+			route := GetGameRoute(player.GameID, fmt.Sprintf("/players/%s", player.PublicID))
 			res := PutJSON(a, route, t, payload)
 
 			res.Status(http.StatusInternalServerError)

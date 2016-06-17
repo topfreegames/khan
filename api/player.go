@@ -13,7 +13,6 @@ import (
 )
 
 type playerDataChangePayload struct {
-	GameID   string
 	PublicID string
 	Name     string
 	Metadata string
@@ -22,6 +21,8 @@ type playerDataChangePayload struct {
 // CreatePlayerHandler is the handler responsible for creating new players
 func CreatePlayerHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
+		gameID := c.Param("gameID")
+
 		var payload playerDataChangePayload
 		if err := c.ReadJSON(&payload); err != nil {
 			FailWith(400, err.Error(), c)
@@ -32,7 +33,7 @@ func CreatePlayerHandler(app *App) func(c *iris.Context) {
 
 		player, err := models.CreatePlayer(
 			db,
-			payload.GameID,
+			gameID,
 			payload.PublicID,
 			payload.Name,
 			payload.Metadata,
@@ -52,6 +53,8 @@ func CreatePlayerHandler(app *App) func(c *iris.Context) {
 // UpdatePlayerHandler is the handler responsible for updating existing
 func UpdatePlayerHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
+		gameID := c.Param("gameID")
+
 		var payload playerDataChangePayload
 		if err := c.ReadJSON(&payload); err != nil {
 			FailWith(400, err.Error(), c)
@@ -62,7 +65,7 @@ func UpdatePlayerHandler(app *App) func(c *iris.Context) {
 
 		_, err := models.UpdatePlayer(
 			db,
-			payload.GameID,
+			gameID,
 			payload.PublicID,
 			payload.Name,
 			payload.Metadata,
