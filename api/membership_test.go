@@ -69,6 +69,17 @@ func TestMembershipHandler(t *testing.T) {
 			g.Assert(dbMembership.Denied).Equal(false)
 		})
 
+		g.It("Should not create membership application if missing parameters", func() {
+			a := GetDefaultTestApp()
+			res := PostJSON(a, CreateMembershipRoute("gameID", "clanPublicID", "application"), t, map[string]interface{}{})
+
+			res.Status(http.StatusBadRequest)
+			var result map[string]interface{}
+			json.Unmarshal([]byte(res.Body().Raw()), &result)
+			g.Assert(result["success"]).IsFalse()
+			g.Assert(result["reason"]).Equal("level is required, playerPublicID is required")
+		})
+
 		g.It("Should not create membership application if invalid payload", func() {
 			a := GetDefaultTestApp()
 			gameID := "gameID"
@@ -217,6 +228,17 @@ func TestMembershipHandler(t *testing.T) {
 			g.Assert(dbMembership.Denied).Equal(false)
 		})
 
+		g.It("Should not create membership invitation if missing parameters", func() {
+			a := GetDefaultTestApp()
+			res := PostJSON(a, CreateMembershipRoute("gameID", "clanPublicID", "invitation"), t, map[string]interface{}{})
+
+			res.Status(http.StatusBadRequest)
+			var result map[string]interface{}
+			json.Unmarshal([]byte(res.Body().Raw()), &result)
+			g.Assert(result["success"]).IsFalse()
+			g.Assert(result["reason"]).Equal("level is required, playerPublicID is required, requestorPublicID is required")
+		})
+
 		g.It("Should not create membership invitation if invalid payload", func() {
 			a := GetDefaultTestApp()
 			gameID := "gameID"
@@ -339,6 +361,17 @@ func TestMembershipHandler(t *testing.T) {
 			g.Assert(dbMembership.Denied).Equal(true)
 		})
 
+		g.It("Should not approve membership invitation if missing parameters", func() {
+			a := GetDefaultTestApp()
+			res := PostJSON(a, CreateMembershipRoute("gameID", "clanPublicID", "invitation/approve"), t, map[string]interface{}{})
+
+			res.Status(http.StatusBadRequest)
+			var result map[string]interface{}
+			json.Unmarshal([]byte(res.Body().Raw()), &result)
+			g.Assert(result["success"]).IsFalse()
+			g.Assert(result["reason"]).Equal("playerPublicID is required")
+		})
+
 		g.It("Should not approve membership invitation if invalid payload", func() {
 			a := GetDefaultTestApp()
 			gameID := "gameID"
@@ -431,6 +464,17 @@ func TestMembershipHandler(t *testing.T) {
 			g.Assert(err == nil).IsTrue()
 			g.Assert(dbMembership.Approved).Equal(false)
 			g.Assert(dbMembership.Denied).Equal(true)
+		})
+
+		g.It("Should not approve membership application if missing parameters", func() {
+			a := GetDefaultTestApp()
+			res := PostJSON(a, CreateMembershipRoute("gameID", "clanPublicID", "application/approve"), t, map[string]interface{}{})
+
+			res.Status(http.StatusBadRequest)
+			var result map[string]interface{}
+			json.Unmarshal([]byte(res.Body().Raw()), &result)
+			g.Assert(result["success"]).IsFalse()
+			g.Assert(result["reason"]).Equal("playerPublicID is required, requestorPublicID is required")
 		})
 
 		g.It("Should not approve membership application if invalid payload", func() {
@@ -529,6 +573,17 @@ func TestMembershipHandler(t *testing.T) {
 			g.Assert(dbMembership.Level).Equal(memberships[0].Level - 1)
 		})
 
+		g.It("Should not promote member if missing parameters", func() {
+			a := GetDefaultTestApp()
+			res := PostJSON(a, CreateMembershipRoute("gameID", "clanPublicID", "promote"), t, map[string]interface{}{})
+
+			res.Status(http.StatusBadRequest)
+			var result map[string]interface{}
+			json.Unmarshal([]byte(res.Body().Raw()), &result)
+			g.Assert(result["success"]).IsFalse()
+			g.Assert(result["reason"]).Equal("playerPublicID is required, requestorPublicID is required")
+		})
+
 		g.It("Should not promote member if invalid payload", func() {
 			a := GetDefaultTestApp()
 			gameID := "gameID"
@@ -590,6 +645,17 @@ func TestMembershipHandler(t *testing.T) {
 			_, err = models.GetMembershipByClanAndPlayerPublicID(a.Db, gameID, clanPublicID, players[0].PublicID)
 			g.Assert(err != nil).IsTrue()
 			g.Assert(err.Error()).Equal(fmt.Sprintf("Membership was not found with id: %s", players[0].PublicID))
+		})
+
+		g.It("Should not delete member if missing parameters", func() {
+			a := GetDefaultTestApp()
+			res := PostJSON(a, CreateMembershipRoute("gameID", "clanPublicID", "delete"), t, map[string]interface{}{})
+
+			res.Status(http.StatusBadRequest)
+			var result map[string]interface{}
+			json.Unmarshal([]byte(res.Body().Raw()), &result)
+			g.Assert(result["success"]).IsFalse()
+			g.Assert(result["reason"]).Equal("playerPublicID is required, requestorPublicID is required")
 		})
 
 		g.It("Should not delete member if invalid payload", func() {

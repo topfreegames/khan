@@ -12,8 +12,13 @@ import (
 	"github.com/topfreegames/khan/models"
 )
 
-type playerDataChangePayload struct {
+type createPlayerPayload struct {
 	PublicID string
+	Name     string
+	Metadata string
+}
+
+type updatePlayerPayload struct {
 	Name     string
 	Metadata string
 }
@@ -23,8 +28,8 @@ func CreatePlayerHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
 		gameID := c.Param("gameID")
 
-		var payload playerDataChangePayload
-		if err := c.ReadJSON(&payload); err != nil {
+		var payload createPlayerPayload
+		if err := LoadJSONPayload(&payload, c); err != nil {
 			FailWith(400, err.Error(), c)
 			return
 		}
@@ -56,8 +61,8 @@ func UpdatePlayerHandler(app *App) func(c *iris.Context) {
 		gameID := c.Param("gameID")
 		playerPublicID := c.Param("playerPublicID")
 
-		var payload playerDataChangePayload
-		if err := c.ReadJSON(&payload); err != nil {
+		var payload updatePlayerPayload
+		if err := LoadJSONPayload(&payload, c); err != nil {
 			FailWith(400, err.Error(), c)
 			return
 		}

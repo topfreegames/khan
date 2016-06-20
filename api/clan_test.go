@@ -71,6 +71,26 @@ func TestClanHandler(t *testing.T) {
 			g.Assert(dbClan.AutoJoin).Equal(payload["autoJoin"])
 		})
 
+		g.It("Should not create clan if missing parameters", func() {
+			player, err := models.CreatePlayerFactory(testDb, "")
+			AssertNotError(g, err)
+
+			a := GetDefaultTestApp()
+			clanPublicID := randomdata.FullName(randomdata.RandomGender)
+			payload := map[string]interface{}{
+				"publicID":         clanPublicID,
+				"allowApplication": true,
+				"autoJoin":         true,
+			}
+			res := PostJSON(a, GetGameRoute(player.GameID, "/clans"), t, payload)
+
+			res.Status(http.StatusBadRequest)
+			var result map[string]interface{}
+			json.Unmarshal([]byte(res.Body().Raw()), &result)
+			g.Assert(result["success"]).IsFalse()
+			g.Assert(result["reason"]).Equal(fmt.Sprintf("name is required, ownerPublicID is required, metadata is required"))
+		})
+
 		g.It("Should not create clan if invalid payload", func() {
 			a := GetDefaultTestApp()
 			gameID := "gameID"
@@ -110,7 +130,7 @@ func TestClanHandler(t *testing.T) {
 
 			a := GetDefaultTestApp()
 			payload := map[string]interface{}{
-				"PublicID":         randomdata.FullName(randomdata.RandomGender),
+				"publicID":         randomdata.FullName(randomdata.RandomGender),
 				"name":             randomdata.FullName(randomdata.RandomGender),
 				"ownerPublicID":    player.PublicID,
 				"metadata":         metadata,
@@ -148,6 +168,19 @@ func TestClanHandler(t *testing.T) {
 			dbClan, err := models.GetClanByPublicID(a.Db, clan.GameID, clan.PublicID)
 			AssertNotError(g, err)
 			g.Assert(dbClan.OwnerID).Equal(memberships[0].PlayerID)
+		})
+
+		g.It("Should not leave a clan if missing parameters", func() {
+			a := GetDefaultTestApp()
+
+			route := GetGameRoute("game-id", fmt.Sprintf("clans/%s/leave", "random-id"))
+			res := PostJSON(a, route, t, map[string]interface{}{})
+
+			res.Status(http.StatusBadRequest)
+			var result map[string]interface{}
+			json.Unmarshal([]byte(res.Body().Raw()), &result)
+			g.Assert(result["success"]).IsFalse()
+			g.Assert(result["reason"]).Equal("ownerPublicID is required")
 		})
 
 		g.It("Should not leave a clan if invalid payload", func() {
@@ -207,6 +240,20 @@ func TestClanHandler(t *testing.T) {
 			g.Assert(dbClan.OwnerID).Equal(players[0].ID)
 		})
 
+		g.It("Should not transfer a clan ownership if missing parameters", func() {
+			a := GetDefaultTestApp()
+
+			route := GetGameRoute("game-id", fmt.Sprintf("clans/%s/transfer-ownership", "public-id"))
+			res := PostJSON(a, route, t, map[string]interface{}{})
+
+			res.Status(http.StatusBadRequest)
+			var result map[string]interface{}
+			json.Unmarshal([]byte(res.Body().Raw()), &result)
+			g.Assert(result["success"]).IsFalse()
+			g.Assert(result["reason"]).Equal("ownerPublicID is required, playerPublicID is required")
+
+		})
+
 		g.It("Should not transfer a clan ownership if invalid payload", func() {
 			a := GetDefaultTestApp()
 
@@ -253,9 +300,11 @@ func TestClanHandler(t *testing.T) {
 
 			a := GetDefaultTestApp()
 			payload := map[string]interface{}{
-				"name":          clanName,
-				"ownerPublicID": ownerPublicID,
-				"metadata":      metadata,
+				"name":             clanName,
+				"ownerPublicID":    ownerPublicID,
+				"metadata":         metadata,
+				"allowApplication": clan.AllowApplication,
+				"autoJoin":         clan.AutoJoin,
 			}
 			route := GetGameRoute(gameID, fmt.Sprintf("/clans/%s", publicID))
 			res := PutJSON(a, route, t, payload)
@@ -272,6 +321,19 @@ func TestClanHandler(t *testing.T) {
 			g.Assert(dbClan.Name).Equal(clanName)
 			g.Assert(dbClan.OwnerID).Equal(owner.ID)
 			g.Assert(dbClan.Metadata).Equal(metadata)
+		})
+
+		g.It("Should not update clan if missing parameters", func() {
+			a := GetDefaultTestApp()
+
+			route := GetGameRoute("gameID", fmt.Sprintf("/clans/%s", "publicID"))
+			res := PutJSON(a, route, t, map[string]interface{}{})
+
+			res.Status(http.StatusBadRequest)
+			var result map[string]interface{}
+			json.Unmarshal([]byte(res.Body().Raw()), &result)
+			g.Assert(result["success"]).IsFalse()
+			g.Assert(result["reason"]).Equal("name is required, ownerPublicID is required, metadata is required, allowApplication is required, autoJoin is required")
 		})
 
 		g.It("Should not update clan if invalid payload", func() {
@@ -293,15 +355,15 @@ func TestClanHandler(t *testing.T) {
 
 			gameID := clan.GameID
 			publicID := clan.PublicID
-			clanName := randomdata.FullName(randomdata.RandomGender)
-			ownerPublicID := randomdata.FullName(randomdata.RandomGender)
 			metadata := "{\"x\": 1}"
 
 			a := GetDefaultTestApp()
 			payload := map[string]interface{}{
-				"name":          clanName,
-				"ownerPublicID": ownerPublicID,
-				"metadata":      metadata,
+				"name":             clan.Name,
+				"ownerPublicID":    randomdata.FullName(randomdata.RandomGender),
+				"metadata":         metadata,
+				"allowApplication": clan.AllowApplication,
+				"autoJoin":         clan.AutoJoin,
 			}
 			route := GetGameRoute(gameID, fmt.Sprintf("/clans/%s", publicID))
 			res := PutJSON(a, route, t, payload)
@@ -319,17 +381,15 @@ func TestClanHandler(t *testing.T) {
 
 			gameID := clan.GameID
 			publicID := clan.PublicID
-			clanName := randomdata.FullName(randomdata.RandomGender)
-			ownerPublicID := owner.PublicID
 			metadata := "it-will-fail-beacause-metada-is-not-a-json"
 
 			a := GetDefaultTestApp()
 			payload := map[string]interface{}{
-				"gameID":        gameID,
-				"publicID":      publicID,
-				"name":          clanName,
-				"ownerPublicID": ownerPublicID,
-				"metadata":      metadata,
+				"name":             clan.Name,
+				"ownerPublicID":    owner.PublicID,
+				"metadata":         metadata,
+				"allowApplication": clan.AllowApplication,
+				"autoJoin":         clan.AutoJoin,
 			}
 			route := GetGameRoute(gameID, fmt.Sprintf("/clans/%s", publicID))
 			res := PutJSON(a, route, t, payload)
