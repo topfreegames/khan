@@ -8,6 +8,8 @@
 package api
 
 import (
+	"strings"
+
 	"github.com/kataras/iris"
 	"github.com/topfreegames/khan/models"
 )
@@ -29,16 +31,16 @@ type gamePayload struct {
 func validateGamePayload(payload gamePayload) []string {
 	var errors []string
 	if payload.MaxMembershipLevel < payload.MinMembershipLevel {
-		errors = append(errors, "MaxMembershipLevel should be greater or equal to MinMembershipLevel")
+		errors = append(errors, "maxMembershipLevel should be greater or equal to minMembershipLevel")
 	}
 	if payload.MinLevelToAcceptApplication < payload.MinMembershipLevel {
-		errors = append(errors, "MinLevelToAcceptApplication should be greater or equal to MinMembershipLevel")
+		errors = append(errors, "minLevelToAcceptApplication should be greater or equal to minMembershipLevel")
 	}
 	if payload.MinLevelToCreateInvitation < payload.MinMembershipLevel {
-		errors = append(errors, "MinLevelToCreateInvitation should be greater or equal to MinMembershipLevel")
+		errors = append(errors, "minLevelToCreateInvitation should be greater or equal to minMembershipLevel")
 	}
 	if payload.MinLevelToRemoveMember < payload.MinMembershipLevel {
-		errors = append(errors, "MinLevelToRemoveMember should be greater or equal to MinMembershipLevel")
+		errors = append(errors, "minLevelToRemoveMember should be greater or equal to minMembershipLevel")
 	}
 	return errors
 }
@@ -47,12 +49,13 @@ func validateGamePayload(payload gamePayload) []string {
 func CreateGameHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
 		var payload gamePayload
-		if err := c.ReadJSON(&payload); err != nil {
+		if err := LoadJSONPayload(&payload, c); err != nil {
 			FailWith(400, err.Error(), c)
 			return
 		}
 		if payloadErrors := validateGamePayload(payload); len(payloadErrors) != 0 {
-			FailWithJSON(422, map[string]interface{}{"reason": payloadErrors}, c)
+			errorString := strings.Join(payloadErrors[:], ", ")
+			FailWith(422, errorString, c)
 			return
 		}
 
@@ -90,12 +93,13 @@ func UpdateGameHandler(app *App) func(c *iris.Context) {
 		gameID := c.Param("gameID")
 		var payload gamePayload
 
-		if err := c.ReadJSON(&payload); err != nil {
+		if err := LoadJSONPayload(&payload, c); err != nil {
 			FailWith(400, err.Error(), c)
 			return
 		}
 		if payloadErrors := validateGamePayload(payload); len(payloadErrors) != 0 {
-			FailWithJSON(422, map[string]interface{}{"reason": payloadErrors}, c)
+			errorString := strings.Join(payloadErrors[:], ", ")
+			FailWith(422, errorString, c)
 			return
 		}
 

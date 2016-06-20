@@ -39,7 +39,7 @@ func ApplyForMembershipHandler(app *App) func(c *iris.Context) {
 		clanPublicID := c.Param("clanPublicID")
 
 		var payload applyForMembershipPayload
-		if err := c.ReadJSON(&payload); err != nil {
+		if err := LoadJSONPayload(&payload, c); err != nil {
 			FailWith(400, err.Error(), c)
 			return
 		}
@@ -71,7 +71,7 @@ func InviteForMembershipHandler(app *App) func(c *iris.Context) {
 		clanPublicID := c.Param("clanPublicID")
 
 		var payload inviteForMembershipPayload
-		if err := c.ReadJSON(&payload); err != nil {
+		if err := LoadJSONPayload(&payload, c); err != nil {
 			FailWith(400, err.Error(), c)
 			return
 		}
@@ -105,7 +105,7 @@ func ApproveOrDenyMembershipApplicationHandler(app *App) func(c *iris.Context) {
 		clanPublicID := c.Param("clanPublicID")
 
 		var payload basePayloadWithRequestorAndPlayerPublicIDs
-		if err := c.ReadJSON(&payload); err != nil {
+		if err := LoadJSONPayload(&payload, c); err != nil {
 			FailWith(400, err.Error(), c)
 			return
 		}
@@ -138,7 +138,7 @@ func ApproveOrDenyMembershipInvitationHandler(app *App) func(c *iris.Context) {
 		clanPublicID := c.Param("clanPublicID")
 
 		var payload approveOrDenyMembershipInvitationPayload
-		if err := c.ReadJSON(&payload); err != nil {
+		if err := LoadJSONPayload(&payload, c); err != nil {
 			FailWith(400, err.Error(), c)
 			return
 		}
@@ -169,7 +169,7 @@ func DeleteMembershipHandler(app *App) func(c *iris.Context) {
 		clanPublicID := c.Param("clanPublicID")
 
 		var payload basePayloadWithRequestorAndPlayerPublicIDs
-		if err := c.ReadJSON(&payload); err != nil {
+		if err := LoadJSONPayload(&payload, c); err != nil {
 			FailWith(400, err.Error(), c)
 			return
 		}
@@ -200,7 +200,7 @@ func PromoteOrDemoteMembershipHandler(app *App, action string) func(c *iris.Cont
 		clanPublicID := c.Param("clanPublicID")
 
 		var payload basePayloadWithRequestorAndPlayerPublicIDs
-		if err := c.ReadJSON(&payload); err != nil {
+		if err := LoadJSONPayload(&payload, c); err != nil {
 			FailWith(400, err.Error(), c)
 			return
 		}

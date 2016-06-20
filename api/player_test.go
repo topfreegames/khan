@@ -56,6 +56,18 @@ func TestPlayerHandler(t *testing.T) {
 			g.Assert(dbPlayer.Metadata).Equal(payload["metadata"])
 		})
 
+		g.It("Should not create player if missing parameters", func() {
+			a := GetDefaultTestApp()
+			route := GetGameRoute("game-id", "/players")
+			res := PostJSON(a, route, t, map[string]interface{}{})
+
+			res.Status(http.StatusBadRequest)
+			var result map[string]interface{}
+			json.Unmarshal([]byte(res.Body().Raw()), &result)
+			g.Assert(result["success"]).IsFalse()
+			g.Assert(result["reason"]).Equal("publicID is required, name is required, metadata is required")
+		})
+
 		g.It("Should not create player if invalid payload", func() {
 			a := GetDefaultTestApp()
 			route := GetGameRoute("game-id", "/players")
@@ -97,7 +109,6 @@ func TestPlayerHandler(t *testing.T) {
 
 			metadata := "{\"y\": 10}"
 			payload := map[string]interface{}{
-				"publicID": player.PublicID,
 				"name":     player.Name,
 				"metadata": metadata,
 			}
@@ -115,6 +126,18 @@ func TestPlayerHandler(t *testing.T) {
 			g.Assert(dbPlayer.PublicID).Equal(player.PublicID)
 			g.Assert(dbPlayer.Name).Equal(player.Name)
 			g.Assert(dbPlayer.Metadata).Equal(metadata)
+		})
+
+		g.It("Should not update player if missing parameters", func() {
+			a := GetDefaultTestApp()
+			route := GetGameRoute("game-id", "/players/player-id")
+			res := PutJSON(a, route, t, map[string]interface{}{})
+
+			res.Status(http.StatusBadRequest)
+			var result map[string]interface{}
+			json.Unmarshal([]byte(res.Body().Raw()), &result)
+			g.Assert(result["success"]).IsFalse()
+			g.Assert(result["reason"]).Equal("name is required, metadata is required")
 		})
 
 		g.It("Should not update player if invalid payload", func() {

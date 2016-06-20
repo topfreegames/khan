@@ -22,6 +22,15 @@ type clanPayload struct {
 	AutoJoin         bool
 }
 
+// updateClanPayload maps the payload for the Update Clan route
+type updateClanPayload struct {
+	Name             string
+	OwnerPublicID    string
+	Metadata         string
+	AllowApplication bool
+	AutoJoin         bool
+}
+
 // leaveClanPayload maps the payload for the Leave Clan route
 type leaveClanPayload struct {
 	OwnerPublicID string
@@ -39,7 +48,7 @@ func CreateClanHandler(app *App) func(c *iris.Context) {
 		gameID := c.Param("gameID")
 
 		var payload clanPayload
-		if err := c.ReadJSON(&payload); err != nil {
+		if err := LoadJSONPayload(&payload, c); err != nil {
 			FailWith(400, err.Error(), c)
 			return
 		}
@@ -74,8 +83,8 @@ func UpdateClanHandler(app *App) func(c *iris.Context) {
 		gameID := c.Param("gameID")
 		publicID := c.Param("clanPublicID")
 
-		var payload clanPayload
-		if err := c.ReadJSON(&payload); err != nil {
+		var payload updateClanPayload
+		if err := LoadJSONPayload(&payload, c); err != nil {
 			FailWith(400, err.Error(), c)
 			return
 		}
@@ -109,7 +118,7 @@ func LeaveClanHandler(app *App) func(c *iris.Context) {
 		publicID := c.Param("clanPublicID")
 
 		var payload leaveClanPayload
-		if err := c.ReadJSON(&payload); err != nil {
+		if err := LoadJSONPayload(&payload, c); err != nil {
 			FailWith(400, err.Error(), c)
 			return
 		}
@@ -139,7 +148,7 @@ func TransferOwnershipHandler(app *App) func(c *iris.Context) {
 		publicID := c.Param("clanPublicID")
 
 		var payload transferClanOwnershipPayload
-		if err := c.ReadJSON(&payload); err != nil {
+		if err := LoadJSONPayload(&payload, c); err != nil {
 			FailWith(400, err.Error(), c)
 			return
 		}
