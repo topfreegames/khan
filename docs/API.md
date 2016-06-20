@@ -87,7 +87,7 @@ Khan API
 
   * Error Response
 
-    It will return an error if an invalid payload is sent.
+    It will return an error if an invalid payload is sent or if there are missing parameters.
 
     * Code: 400
     * Content:
@@ -98,14 +98,14 @@ Khan API
       }
       ```
 
-    It will return an error if there are missing or invalid parameters.
+    It will return an error if there are invalid parameters.
 
     * Code: 422
     * Content:
       ```
       {
-        "success": true,
-        "reason": [list]
+        "success": false,
+        "reason": [string]
       }
       ```
 
@@ -113,7 +113,7 @@ Khan API
     * Content:
       ```
       {
-        "success": true,
+        "success": false,
         "reason": [string]
       }
       ```
@@ -151,7 +151,7 @@ Khan API
 
   * Error Response
 
-    It will return an error if an invalid payload is sent.
+    It will return an error if an invalid payload is sent or if there are missing parameters.
 
     * Code: 400
     * Content:
@@ -162,14 +162,14 @@ Khan API
       }
       ```
 
-    It will return an error if there are missing or invalid parameters.
+    It will return an error if there are invalid parameters.
 
     * Code: 422
     * Content:
       ```
       {
-        "success": true,
-        "reason": [list]
+        "success": false,
+        "reason": [string]
       }
       ```
 
@@ -177,7 +177,7 @@ Khan API
     * Content:
       ```
       {
-        "success": true,
+        "success": false,
         "reason": [string]
       }
       ```
@@ -213,7 +213,7 @@ Khan API
 
   * Error Response
 
-    It will return an error if an invalid payload is sent.
+    It will return an error if an invalid payload is sent or if there are missing parameters.
 
     * Code: 400
     * Content:
@@ -224,14 +224,14 @@ Khan API
       }
       ```
 
-    It will return an error if there are missing or invalid parameters.
+    It will return an error if there are invalid parameters.
 
     * Code: 422
     * Content:
       ```
       {
-        "success": true,
-        "reason": [list]
+        "success": false,
+        "reason": [string]
       }
       ```
 
@@ -239,7 +239,7 @@ Khan API
     * Content:
       ```
       {
-        "success": true,
+        "success": false,
         "reason": [string]
       }
       ```
@@ -270,7 +270,7 @@ Khan API
 
   * Error Response
 
-    It will return an error if an invalid payload is sent.
+    It will return an error if an invalid payload is sent or if there are missing parameters.
 
     * Code: 400
     * Content:
@@ -281,14 +281,14 @@ Khan API
       }
       ```
 
-    It will return an error if there are missing or invalid parameters.
+    It will return an error if there are invalid parameters.
 
     * Code: 422
     * Content:
       ```
       {
-        "success": true,
-        "reason": [list]
+        "success": false,
+        "reason": [string]
       }
       ```
 
@@ -296,7 +296,7 @@ Khan API
     * Content:
       ```
       {
-        "success": true,
+        "success": false,
         "reason": [string]
       }
       ```
@@ -417,7 +417,7 @@ Khan API
 
   * Error Response
 
-    It will return an error if an invalid payload is sent.
+    It will return an error if an invalid payload is sent or if there are missing parameters.
 
     * Code: 400
     * Content:
@@ -428,22 +428,11 @@ Khan API
       }
       ```
 
-    It will return an error if there are missing or invalid parameters.
-
-    * Code: 422
-    * Content:
-      ```
-      {
-        "success": true,
-        "reason": [list]
-      }
-      ```
-
     * Code: 500
     * Content:
       ```
       {
-        "success": true,
+        "success": false,
         "reason": [string]
       }
       ```
@@ -479,7 +468,7 @@ Khan API
 
   * Error Response
 
-    It will return an error if an invalid payload is sent.
+    It will return an error if an invalid payload is sent or if there are missing parameters.
 
     * Code: 400
     * Content:
@@ -490,22 +479,11 @@ Khan API
       }
       ```
 
-    It will return an error if there are missing or invalid parameters.
-
-    * Code: 422
-    * Content:
-      ```
-      {
-        "success": true,
-        "reason": [list]
-      }
-      ```
-
     * Code: 500
     * Content:
       ```
       {
-        "success": true,
+        "success": false,
         "reason": [string]
       }
       ```
@@ -546,7 +524,7 @@ Khan API
     * Content:
       ```
       {
-        "success": true,
+        "success": false,
         "reason": [string]
       }
       ```
@@ -575,7 +553,7 @@ Khan API
 
   * Error Response
 
-    It will return an error if an invalid payload is sent.
+    It will return an error if an invalid payload is sent or if there are missing parameters.
 
     * Code: 400
     * Content:
@@ -586,22 +564,11 @@ Khan API
       }
       ```
 
-    It will return an error if there are missing or invalid parameters.
-
-    * Code: 422
-    * Content:
-      ```
-      {
-        "success": true,
-        "reason": [list]
-      }
-      ```
-
     * Code: 500
     * Content:
       ```
       {
-        "success": true,
+        "success": false,
         "reason": [string]
       }
       ```
@@ -631,7 +598,7 @@ Khan API
 
   * Error Response
 
-    It will return an error if an invalid payload is sent.
+    It will return an error if an invalid payload is sent or if there are missing parameters.
 
     * Code: 400
     * Content:
@@ -642,22 +609,11 @@ Khan API
       }
       ```
 
-    It will return an error if there are missing or invalid parameters.
-
-    * Code: 422
-    * Content:
-      ```
-      {
-        "success": true,
-        "reason": [list]
-      }
-      ```
-
     * Code: 500
     * Content:
       ```
       {
-        "success": true,
+        "success": false,
         "reason": [string]
       }
       ```
@@ -690,7 +646,7 @@ Khan API
 
   * Error Response
 
-    It will return an error if an invalid payload is sent.
+    It will return an error if an invalid payload is sent or if there are missing parameters.
 
     * Code: 400
     * Content:
@@ -701,22 +657,11 @@ Khan API
       }
       ```
 
-    It will return an error if there are missing or invalid parameters.
-
-    * Code: 422
-    * Content:
-      ```
-      {
-        "success": true,
-        "reason": [list]
-      }
-      ```
-
     * Code: 500
     * Content:
       ```
       {
-        "success": true,
+        "success": false,
         "reason": [string]
       }
       ```
@@ -750,7 +695,7 @@ Khan API
 
   * Error Response
 
-    It will return an error if an invalid payload is sent.
+    It will return an error if an invalid payload is sent or if there are missing parameters.
 
     * Code: 400
     * Content:
@@ -761,22 +706,11 @@ Khan API
       }
       ```
 
-    It will return an error if there are missing or invalid parameters.
-
-    * Code: 422
-    * Content:
-      ```
-      {
-        "success": true,
-        "reason": [list]
-      }
-      ```
-
     * Code: 500
     * Content:
       ```
       {
-        "success": true,
+        "success": false,
         "reason": [string]
       }
       ```
@@ -808,7 +742,7 @@ Khan API
 
   * Error Response
 
-    It will return an error if an invalid payload is sent.
+    It will return an error if an invalid payload is sent or if there are missing parameters.
 
     * Code: 400
     * Content:
@@ -819,22 +753,11 @@ Khan API
       }
       ```
 
-    It will return an error if there are missing or invalid parameters.
-
-    * Code: 422
-    * Content:
-      ```
-      {
-        "success": true,
-        "reason": [list]
-      }
-      ```
-
     * Code: 500
     * Content:
       ```
       {
-        "success": true,
+        "success": false,
         "reason": [string]
       }
       ```
@@ -866,7 +789,7 @@ Khan API
 
   * Error Response
 
-    It will return an error if an invalid payload is sent.
+    It will return an error if an invalid payload is sent or if there are missing parameters.
 
     * Code: 400
     * Content:
@@ -877,22 +800,11 @@ Khan API
       }
       ```
 
-    It will return an error if there are missing or invalid parameters.
-
-    * Code: 422
-    * Content:
-      ```
-      {
-        "success": true,
-        "reason": [list]
-      }
-      ```
-
     * Code: 500
     * Content:
       ```
       {
-        "success": true,
+        "success": false,
         "reason": [string]
       }
       ```
@@ -925,7 +837,7 @@ Khan API
 
   * Error Response
 
-    It will return an error if an invalid payload is sent.
+    It will return an error if an invalid payload is sent or if there are missing parameters.
 
     * Code: 400
     * Content:
@@ -936,22 +848,11 @@ Khan API
       }
       ```
 
-    It will return an error if there are missing or invalid parameters.
-
-    * Code: 422
-    * Content:
-      ```
-      {
-        "success": true,
-        "reason": [list]
-      }
-      ```
-
     * Code: 500
     * Content:
       ```
       {
-        "success": true,
+        "success": false,
         "reason": [string]
       }
       ```
@@ -982,7 +883,7 @@ Khan API
 
   * Error Response
 
-    It will return an error if an invalid payload is sent.
+    It will return an error if an invalid payload is sent or if there are missing parameters.
 
     * Code: 400
     * Content:
@@ -993,22 +894,11 @@ Khan API
       }
       ```
 
-    It will return an error if there are missing or invalid parameters.
-
-    * Code: 422
-    * Content:
-      ```
-      {
-        "success": true,
-        "reason": [list]
-      }
-      ```
-
     * Code: 500
     * Content:
       ```
       {
-        "success": true,
+        "success": false,
         "reason": [string]
       }
       ```
