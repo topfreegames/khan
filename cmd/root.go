@@ -15,6 +15,7 @@ import (
 	"github.com/spf13/viper"
 )
 
+// ConfigFile is the configuration file used for running a command
 var ConfigFile string
 
 // RootCmd is the root command for khan CLI application
