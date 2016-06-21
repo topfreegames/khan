@@ -9,18 +9,53 @@ package cmd
 
 import (
 	"fmt"
-	"path"
-	"runtime"
+	"io/ioutil"
+	"os"
+	"path/filepath"
+	"strings"
 
 	"gopkg.in/gorp.v1"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/topfreegames/goose/lib/goose"
+	"github.com/topfreegames/khan/db"
 	"github.com/topfreegames/khan/models"
 )
 
 var migrationVersion int64
+
+func createTempDbDir() (string, error) {
+	dir, err := deleteTempDbDir()
+	if err != nil {
+		return "", err
+	}
+	err = os.MkdirAll(dir, 0777)
+	if err != nil {
+		return "", err
+	}
+	fmt.Printf("Created temporary directory %s.\n", dir)
+	assetNames := db.AssetNames()
+	for _, assetName := range assetNames {
+		asset, err := db.Asset(assetName)
+		if err != nil {
+			return "", err
+		}
+		fileName := strings.SplitN(assetName, "/", 2)[1]
+		err = ioutil.WriteFile(filepath.Join(dir, fileName), asset, 0777)
+		if err != nil {
+			return "", err
+		}
+		fmt.Printf("Wrote migration file %s.\n", fileName)
+	}
+	return dir, nil
+}
+
+func deleteTempDbDir() (string, error) {
+	dir := "tmpdb/migrations"
+	defer os.RemoveAll(dir) // clean up
+	return dir, nil
+}
 
 func getDatabase() (*gorp.DbMap, error) {
 	host := viper.GetString("postgres.host")
@@ -38,14 +73,10 @@ func getDatabase() (*gorp.DbMap, error) {
 	return db.(*gorp.DbMap), err
 }
 
-func getGooseConf(migrationsDir string) *goose.DBConf {
-	if migrationsDir == "" {
-		_, filename, _, ok := runtime.Caller(1)
-		if !ok {
-			panic("Could not find configuration file...")
-			return nil
-		}
-		migrationsDir = path.Join(path.Dir(filename), "../db/migrations/")
+func getGooseConf() *goose.DBConf {
+	migrationsDir, err := createTempDbDir()
+	if err != nil {
+		panic("Could not create migration files...")
 	}
 
 	return &goose.DBConf{
@@ -69,8 +100,8 @@ func (err *MigrationError) Error() string {
 	return fmt.Sprintf("Could not run migrations: %s", err.Message)
 }
 
-func runMigrations(migrationsDir string, migrationVersion int64) error {
-	conf := getGooseConf(migrationsDir)
+func runMigrations(migrationVersion int64) error {
+	conf := getGooseConf()
 	db, err := getDatabase()
 	if err != nil {
 		return &MigrationError{fmt.Sprintf("could not connect to database: %s", err.Error())}
@@ -92,6 +123,11 @@ func runMigrations(migrationsDir string, migrationVersion int64) error {
 		return &MigrationError{fmt.Sprintf("could not run migrations to %d: %s", targetVersion, err.Error())}
 	}
 	fmt.Printf("Migrated database successfully to version %d.\n", targetVersion)
+	dir, err := deleteTempDbDir()
+	if err != nil {
+		return err
+	}
+	fmt.Printf("Deleted temporary directory %s.\n", dir)
 	return nil
 }
 
@@ -102,7 +138,7 @@ var migrateCmd = &cobra.Command{
 	Long:  `Migrate the database specified in the configuration file to the given version (or latest if none provided)`,
 	Run: func(cmd *cobra.Command, args []string) {
 		initConfig()
-		err := runMigrations("", migrationVersion)
+		err := runMigrations(migrationVersion)
 		if err != nil {
 			panic(err.Error())
 		}

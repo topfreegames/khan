@@ -42,7 +42,7 @@ func TestMigrationCommand(t *testing.T) {
 		g.It("Should run migrations up", func() {
 			ConfigFile = "../config/test.yaml"
 			initConfig()
-			err := runMigrations("../db/migrations", -1)
+			err := runMigrations(-1)
 			g.Assert(err == nil).IsTrue()
 		})
 	})

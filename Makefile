@@ -15,6 +15,7 @@ setup:
 	@go get github.com/topfreegames/goose/cmd/goose
 	@go get github.com/fzipp/gocyclo
 	@go get github.com/gordonklaus/ineffassign
+	@go get -u github.com/jteeuwen/go-bindata/...
 	@glide install
 
 setup-ci:
@@ -28,7 +29,13 @@ build:
 	@go build $(PACKAGES)
 	@go build
 
-cross:
+assets:
+	@echo $(GODIRS)
+	@for pkg in $(GODIRS) ; do \
+		go generate -x $$pkg ; \
+    done
+
+cross: assets
 	@mkdir -p ./bin
 	@echo "Building for linux-386..."
 	@env GOOS=linux GOARCH=386 go build -o ./bin/khan-linux-386
