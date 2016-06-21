@@ -41,7 +41,7 @@ var HookFactory = factory.NewFactory(
 )
 
 // CreateHookFactory is responsible for creating a test hook instance with the associated game
-func CreateHookFactory(db DB, gameID string, eventType EventType, url string) (*Hook, error) {
+func CreateHookFactory(db DB, gameID string, eventType int, url string) (*Hook, error) {
 	if gameID == "" {
 		gameID = uuid.NewV4().String()
 	}
@@ -310,4 +310,34 @@ func GetTestClans(db DB, gameID string, publicIDTemplate string, numberOfClans i
 	}
 
 	return player, clans, nil
+}
+
+// GetTestHooks return a fixed number of hooks for each event available
+func GetTestHooks(db DB, gameID string, numberOfHooks int) ([]*Hook, error) {
+	game := GameFactory.MustCreateWithOption(map[string]interface{}{
+		"PublicID": gameID,
+	}).(*Game)
+	err := db.Insert(game)
+	if err != nil {
+		return nil, err
+	}
+
+	var hooks []*Hook
+	for i := 0; i < 2; i++ {
+		for j := 0; j < numberOfHooks; j++ {
+			hook := HookFactory.MustCreateWithOption(map[string]interface{}{
+				"GameID":    gameID,
+				"PublicID":  uuid.NewV4().String(),
+				"EventType": i,
+				"URL":       fmt.Sprintf("http://test/event-%d-%d", i, j),
+			}).(*Hook)
+			err = db.Insert(hook)
+			if err != nil {
+				return nil, err
+			}
+			hooks = append(hooks, hook)
+		}
+	}
+
+	return hooks, nil
 }

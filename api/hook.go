@@ -13,7 +13,7 @@ import (
 )
 
 type createHookPayload struct {
-	Type    models.EventType
+	Type    int
 	HookURL string
 }
 
