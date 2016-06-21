@@ -74,6 +74,7 @@ func InitDb(host string, user string, port int, sslmode string, dbName string, p
 	dbmap.AddTableWithName(Player{}, "players").SetKeys(true, "ID")
 	dbmap.AddTableWithName(Clan{}, "clans").SetKeys(true, "ID")
 	dbmap.AddTableWithName(Membership{}, "memberships").SetKeys(true, "ID")
+	dbmap.AddTableWithName(Hook{}, "hooks").SetKeys(true, "ID")
 
 	return dbmap, nil
 }
