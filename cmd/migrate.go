@@ -41,7 +41,7 @@ func createTempDbDir() (string, error) {
 		if err != nil {
 			return "", err
 		}
-		fileName := strings.SplitN(assetName, "/", 2)[1]
+		fileName := strings.SplitN(assetName, "/", 2)[1] // remove migrations folder from fileName
 		err = ioutil.WriteFile(filepath.Join(dir, fileName), asset, 0777)
 		if err != nil {
 			return "", err
@@ -52,8 +52,8 @@ func createTempDbDir() (string, error) {
 }
 
 func deleteTempDbDir() (string, error) {
-	dir := "tmpdb/migrations"
-	defer os.RemoveAll(dir) // clean up
+	dir := "tmpdb_migrations"
+	defer os.RemoveAll(dir)
 	return dir, nil
 }
 
