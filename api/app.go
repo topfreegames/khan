@@ -110,6 +110,9 @@ func (app *App) configureApplication() {
 	a.Post("/games", CreateGameHandler(app))
 	a.Put("/games/:gameID", UpdateGameHandler(app))
 
+	// Hook Routes
+	a.Post("/games/:gameID/hooks", CreateHookHandler(app))
+
 	// Player Routes
 	a.Post("/games/:gameID/players", CreatePlayerHandler(app))
 	a.Put("/games/:gameID/players/:playerPublicID", UpdatePlayerHandler(app))
