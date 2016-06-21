@@ -30,7 +30,6 @@ build:
 	@go build
 
 assets:
-	@echo $(GODIRS)
 	@for pkg in $(GODIRS) ; do \
 		go generate -x $$pkg ; \
     done
@@ -58,7 +57,7 @@ build-docker:
 run-docker:
 	@docker run -i -t --rm -e "KHAN_POSTGRES_HOST=10.0.20.81" -p 8080:8080 khan
 
-test: drop-test db-test
+test: assets drop-test db-test
 	@go test $(PACKAGES)
 
 coverage: drop-test db-test

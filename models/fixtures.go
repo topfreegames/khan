@@ -28,12 +28,43 @@ var GameFactory = factory.NewFactory(
 		MaxMembers:                    100,
 	},
 ).Attr("PublicID", func(args factory.Args) (interface{}, error) {
-	return randomdata.FullName(randomdata.RandomGender), nil
+	return uuid.NewV4().String(), nil
 }).Attr("Name", func(args factory.Args) (interface{}, error) {
-	return randomdata.FullName(randomdata.RandomGender), nil
+	return uuid.NewV4().String(), nil
 }).Attr("Metadata", func(args factory.Args) (interface{}, error) {
 	return "{}", nil
 })
+
+// HookFactory is responsible for constructing event hook instances
+var HookFactory = factory.NewFactory(
+	&Hook{EventType: GameCreatedHook, URL: "http://test/game-created"},
+)
+
+// CreateHookFactory is responsible for creating a test hook instance with the associated game
+func CreateHookFactory(db DB, gameID string, eventType EventType, url string) (*Hook, error) {
+	if gameID == "" {
+		gameID = uuid.NewV4().String()
+	}
+	game := GameFactory.MustCreateWithOption(map[string]interface{}{
+		"PublicID": gameID,
+	}).(*Game)
+	err := db.Insert(game)
+	if err != nil {
+		return nil, err
+	}
+
+	hook := HookFactory.MustCreateWithOption(map[string]interface{}{
+		"GameID":    gameID,
+		"PublicID":  uuid.NewV4().String(),
+		"EventType": eventType,
+		"URL":       url,
+	}).(*Hook)
+	err = db.Insert(hook)
+	if err != nil {
+		return nil, err
+	}
+	return hook, nil
+}
 
 func configureFactory(fct *factory.Factory) *factory.Factory {
 	return fct.Attr("PublicID", func(args factory.Args) (interface{}, error) {
@@ -55,7 +86,7 @@ var ClanFactory = configureFactory(factory.NewFactory(
 	&Clan{},
 ))
 
-// CreatePlayerFactory is responsible for creaing a test player instance with the associated game
+// CreatePlayerFactory is responsible for creating a test player instance with the associated game
 func CreatePlayerFactory(db DB, gameID string) (*Player, error) {
 	if gameID == "" {
 		gameID = uuid.NewV4().String()

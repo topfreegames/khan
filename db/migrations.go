@@ -4,6 +4,7 @@
 // migrations/20160608150958_CreatePlayerTable.sql
 // migrations/20160608174439_CreateClanTable.sql
 // migrations/20160608182307_CreateMembershipTable.sql
+// migrations/20160621161411_CreateHooksTable.sql
 // DO NOT EDIT!
 
 package db
@@ -86,7 +87,7 @@ func migrations20160608133902_creategametableSql() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "migrations/20160608133902_CreateGameTable.sql", size: 1037, mode: os.FileMode(420), modTime: time.Unix(1466119659, 0)}
+	info := bindataFileInfo{name: "migrations/20160608133902_CreateGameTable.sql", size: 1037, mode: os.FileMode(420), modTime: time.Unix(1466534088, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -106,7 +107,7 @@ func migrations20160608150958_createplayertableSql() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "migrations/20160608150958_CreatePlayerTable.sql", size: 731, mode: os.FileMode(420), modTime: time.Unix(1466108784, 0)}
+	info := bindataFileInfo{name: "migrations/20160608150958_CreatePlayerTable.sql", size: 731, mode: os.FileMode(420), modTime: time.Unix(1466108867, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -126,7 +127,7 @@ func migrations20160608174439_createclantableSql() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "migrations/20160608174439_CreateClanTable.sql", size: 907, mode: os.FileMode(420), modTime: time.Unix(1466119659, 0)}
+	info := bindataFileInfo{name: "migrations/20160608174439_CreateClanTable.sql", size: 907, mode: os.FileMode(420), modTime: time.Unix(1466534088, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -146,7 +147,27 @@ func migrations20160608182307_createmembershiptableSql() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "migrations/20160608182307_CreateMembershipTable.sql", size: 971, mode: os.FileMode(420), modTime: time.Unix(1466108784, 0)}
+	info := bindataFileInfo{name: "migrations/20160608182307_CreateMembershipTable.sql", size: 971, mode: os.FileMode(420), modTime: time.Unix(1466108867, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _migrations20160621161411_createhookstableSql = []byte("\x1f\x8b\x08\x00\x00\x09\x6e\x88\x00\xff\x8c\x51\xcb\x6e\xdb\x30\x10\xbc\xeb\x2b\xf6\x16\x1b\x8d\xad\x3e\x80\x1c\x92\xa2\xa8\xeb\x30\x85\x51\x45\x4e\x64\xe9\x90\x93\x41\x53\x1b\x8a\xb0\x4c\x12\x24\x15\x25\x9f\xd4\xdf\xe8\x97\x75\x29\x3b\xa9\x6b\xf4\x50\x5d\x84\xdd\x99\x59\xce\xee\x4c\x26\xb0\x6d\xb8\x4e\xe8\xdf\x84\x60\xfd\x65\x9a\x4a\x15\x9a\x6e\x33\x15\x66\x97\x06\x63\x1f\x1d\xa2\xe4\x3b\xf4\xe9\x81\x17\xa9\x99\x12\xa8\x3d\xd6\xd0\xe9\x1a\x1d\x84\x06\xe1\x76\x51\x42\xbb\x6f\x5f\xbe\x4e\xa3\x61\x7d\xdf\x4f\x8d\xa5\xae\xe9\x9c\xc0\xa9\x71\x32\x3d\xb0\x7c\xba\x53\x61\x72\x28\xa2\x62\x6e\xec\x8b\x53\xb2\x09\xf0\xeb\x27\x7c\x7c\xff\xe1\x02\x4a\x63\xe1\x86\xde\x87\xef\xd1\x00\x7c\xde\x70\xb1\x45\x5d\x7f\x0d\x8f\x52\x98\x68\xf0\x4b\x12\x85\xef\xa4\x31\x1e\xa1\xb2\xb1\x58\xdd\x67\xa0\x34\x78\x14\x41\x19\x0d\x67\x95\x3d\x03\xe5\x01\x9f\x51\x74\x81\x1c\xf7\x0d\x6a\x32\x4c\xad\x9d\x92\x8e\x0f\x24\x2a\xb8\xb5\xad\xc2\x3a\x99\x17\x6c\x56\x32\x28\x67\xdf\x32\x06\x8d\x31\x5b\x0f\xa3\x04\xe8\x53\x35\xcd\x74\x8a\xb7\x70\x57\x2c\x6e\x67\xc5\x03\xfc\x60\x0f\xe7\x03\x14\xcf\xb3\x26\xfc\x89\x3b\xd1\x70\x37\xfa\x74\x31\x86\x7c\x59\x42\x5e\x65\x19\x14\xec\x86\x15\x2c\x9f\xb3\xd5\xc0\xa3\x71\xb6\xdb\xd0\xd6\x24\x18\xef\xe5\x6f\xf5\x3f\x07\xec\x39\xf8\x84\x3a\xac\xc3\x8b\x45\x5a\x2e\xa0\xa4\xa3\xff\x4d\xe8\x5c\x0b\x01\x9f\xc3\x49\x5b\x38\xe4\xb4\xf5\x9a\x07\xd8\x28\x49\xd2\x53\x99\xad\x4f\xf1\x01\x1b\xc0\xf9\x32\x5f\x95\xc5\x6c\x91\x97\xc3\x25\x54\xbd\xde\x5b\x25\xa7\x55\xbe\xb8\xaf\xd8\xe8\xb0\xf9\xf9\x9f\x1d\xc6\xc9\xf8\xea\x38\x94\x6b\xd3\xeb\xd7\x58\xde\x32\x89\xcd\xff\x4a\xc5\x99\xb6\x25\x34\xe6\x9e\x5c\x17\xcb\xbb\xe3\x5c\xae\x92\xdf\x01\x00\x00\xff\xff\xe0\xb0\xeb\xc6\xbc\x02\x00\x00")
+
+func migrations20160621161411_createhookstableSqlBytes() ([]byte, error) {
+	return bindataRead(
+		_migrations20160621161411_createhookstableSql,
+		"migrations/20160621161411_CreateHooksTable.sql",
+	)
+}
+
+func migrations20160621161411_createhookstableSql() (*asset, error) {
+	bytes, err := migrations20160621161411_createhookstableSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "migrations/20160621161411_CreateHooksTable.sql", size: 700, mode: os.FileMode(420), modTime: time.Unix(1466538319, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -207,6 +228,7 @@ var _bindata = map[string]func() (*asset, error){
 	"migrations/20160608150958_CreatePlayerTable.sql": migrations20160608150958_createplayertableSql,
 	"migrations/20160608174439_CreateClanTable.sql": migrations20160608174439_createclantableSql,
 	"migrations/20160608182307_CreateMembershipTable.sql": migrations20160608182307_createmembershiptableSql,
+	"migrations/20160621161411_CreateHooksTable.sql": migrations20160621161411_createhookstableSql,
 }
 
 // AssetDir returns the file names below a certain
@@ -254,6 +276,7 @@ var _bintree = &bintree{nil, map[string]*bintree{
 		"20160608150958_CreatePlayerTable.sql": &bintree{migrations20160608150958_createplayertableSql, map[string]*bintree{}},
 		"20160608174439_CreateClanTable.sql": &bintree{migrations20160608174439_createclantableSql, map[string]*bintree{}},
 		"20160608182307_CreateMembershipTable.sql": &bintree{migrations20160608182307_createmembershiptableSql, map[string]*bintree{}},
+		"20160621161411_CreateHooksTable.sql": &bintree{migrations20160621161411_createhookstableSql, map[string]*bintree{}},
 	}},
 }}
 
