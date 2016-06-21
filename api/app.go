@@ -52,6 +52,7 @@ func (app *App) Configure() {
 	app.loadConfiguration()
 	app.connectDatabase()
 	app.configureApplication()
+	app.loadHooks()
 }
 
 func (app *App) setConfigurationDefaults() {
