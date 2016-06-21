@@ -10,6 +10,7 @@ package api
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"gopkg.in/gorp.v1"
 
@@ -29,6 +30,7 @@ type App struct {
 	App        *iris.Framework
 	Db         models.DB
 	Config     *viper.Viper
+	Hooks      map[string]map[int][]*models.Hook
 }
 
 // GetApp returns a new Khan API Application
@@ -134,6 +136,28 @@ func (app *App) configureApplication() {
 	a.Post("/games/:gameID/clans/:clanPublicID/memberships/delete", DeleteMembershipHandler(app))
 	a.Post("/games/:gameID/clans/:clanPublicID/memberships/promote", PromoteOrDemoteMembershipHandler(app, "promote"))
 	a.Post("/games/:gameID/clans/:clanPublicID/memberships/demote", PromoteOrDemoteMembershipHandler(app, "demote"))
+}
+
+func (app *App) loadHooks() {
+	app.Hooks = make(map[string]map[int][]*models.Hook)
+
+	go (func(a *App) {
+		hooks, err := models.GetAllHooks(a.Db)
+		if err != nil {
+			fmt.Println(fmt.Sprintf("Failed to retrieve hooks: %s", err.Error()))
+		}
+		for _, hook := range hooks {
+			if app.Hooks[hook.GameID] == nil {
+				app.Hooks[hook.GameID] = make(map[int][]*models.Hook)
+			}
+			app.Hooks[hook.GameID][hook.EventType] = append(
+				app.Hooks[hook.GameID][hook.EventType],
+				hook,
+			)
+		}
+
+		time.Sleep(time.Minute)
+	})(app)
 }
 
 func (app *App) finalizeApp() {

@@ -130,5 +130,18 @@ func TestHookModel(t *testing.T) {
 				g.Assert(number == 0).IsTrue()
 			})
 		})
+
+		g.Describe("Get All Hooks", func() {
+			g.It("Should get all hooks", func() {
+				_, err := GetTestHooks(testDb, "", 5)
+				g.Assert(err == nil).IsTrue()
+
+				hooks, err := GetAllHooks(testDb)
+
+				g.Assert(err == nil).IsTrue()
+				g.Assert(len(hooks) > 10).IsTrue()
+			})
+		})
+
 	})
 }

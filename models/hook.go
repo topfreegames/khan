@@ -15,25 +15,22 @@ import (
 	"gopkg.in/gorp.v1"
 )
 
-//EventType is a field type to detail events to hook on
-type EventType int32
-
 const (
 	//GameCreatedHook indicates an event that happens when a game is created
-	GameCreatedHook EventType = iota
+	GameCreatedHook = iota
 	//GameUpdatedHook indicates an event that happens when a game is updated
 	GameUpdatedHook
 )
 
 // Hook identifies a webhook for a given event
 type Hook struct {
-	ID        int       `db:"id"`
-	GameID    string    `db:"game_id"`
-	PublicID  string    `db:"public_id"`
-	EventType EventType `db:"event_type"`
-	URL       string    `db:"url"`
-	CreatedAt int64     `db:"created_at"`
-	UpdatedAt int64     `db:"updated_at"`
+	ID        int    `db:"id"`
+	GameID    string `db:"game_id"`
+	PublicID  string `db:"public_id"`
+	EventType int    `db:"event_type"`
+	URL       string `db:"url"`
+	CreatedAt int64  `db:"created_at"`
+	UpdatedAt int64  `db:"updated_at"`
 }
 
 // PreInsert populates fields before inserting a new hook
@@ -71,7 +68,7 @@ func GetHookByPublicID(db DB, gameID string, publicID string) (*Hook, error) {
 }
 
 // CreateHook returns a newly created event hook
-func CreateHook(db DB, gameID string, eventType EventType, url string) (*Hook, error) {
+func CreateHook(db DB, gameID string, eventType int, url string) (*Hook, error) {
 	publicID := uuid.NewV4().String()
 	hook := &Hook{
 		GameID:    gameID,
@@ -94,4 +91,14 @@ func RemoveHook(db DB, gameID string, publicID string) error {
 	}
 	_, err = db.Delete(hook)
 	return err
+}
+
+// GetAllHooks returns all the available hooks
+func GetAllHooks(db DB) ([]*Hook, error) {
+	var hooks []*Hook
+	_, err := db.Select(&hooks, "SELECT * FROM hooks")
+	if err != nil {
+		return nil, err
+	}
+	return hooks, nil
 }
