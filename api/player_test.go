@@ -13,18 +13,18 @@ import (
 	"net/http"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/Pallinder/go-randomdata"
 	. "github.com/franela/goblin"
-	. "github.com/onsi/gomega"
 	"github.com/topfreegames/khan/models"
 )
 
 func TestPlayerHandler(t *testing.T) {
 	g := Goblin(t)
 
-	// special hook for gomega
-	RegisterFailHandler(func(m string, _ ...int) { g.Fail(m) })
+	testDb, err := models.GetTestDB()
+	g.Assert(err == nil).IsTrue()
 
 	g.Describe("Create Player Handler", func() {
 		g.It("Should create player", func() {
@@ -172,6 +172,37 @@ func TestPlayerHandler(t *testing.T) {
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
 			g.Assert(result["reason"]).Equal("pq: invalid input syntax for type json")
+		})
+	})
+
+	g.Describe("Player Hooks", func() {
+		g.Describe("Create Player Hook", func() {
+			g.It("Should call create player hook", func() {
+				hooks, err := models.GetHooksForRoutes(testDb, []string{
+					"http://localhost:52525/playercreated",
+				}, models.PlayerCreatedHook)
+				g.Assert(err == nil).IsTrue()
+				responses := startRouteHandler([]string{"/playercreated"}, 52525)
+
+				app := GetDefaultTestApp()
+				time.Sleep(time.Second)
+
+				gameID := hooks[0].GameID
+				payload := map[string]interface{}{
+					"publicID": randomdata.FullName(randomdata.RandomGender),
+					"name":     randomdata.FullName(randomdata.RandomGender),
+					"metadata": "{\"x\": 1}",
+				}
+				res := PostJSON(app, GetGameRoute(gameID, "/players"), t, payload)
+
+				res.Status(http.StatusOK)
+				var result map[string]interface{}
+				json.Unmarshal([]byte(res.Body().Raw()), &result)
+				g.Assert(result["success"]).IsTrue()
+				g.Assert(result["publicID"]).Equal(payload["publicID"].(string))
+
+				g.Assert(len(*responses)).Equal(1)
+			})
 		})
 	})
 }

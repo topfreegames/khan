@@ -49,9 +49,12 @@ func CreatePlayerHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
-		SucceedWith(map[string]interface{}{
+		result := map[string]interface{}{
 			"publicID": player.PublicID,
-		}, c)
+		}
+		app.DispatchHooks(gameID, models.PlayerCreatedHook, result)
+
+		SucceedWith(result, c)
 	}
 }
 
