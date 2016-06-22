@@ -18,6 +18,9 @@ import (
 // ConfigFile is the configuration file used for running a command
 var ConfigFile string
 
+// Verbose determines how verbose khan will run under
+var Verbose int
+
 // RootCmd is the root command for khan CLI application
 var RootCmd = &cobra.Command{
 	Use:   "khan",
@@ -35,6 +38,10 @@ func Execute(cmd *cobra.Command) {
 
 func init() {
 	// cobra.OnInitialize(initConfig)
+	RootCmd.PersistentFlags().IntVarP(
+		&Verbose, "verbose", "v", 0,
+		"Verbosity level => v0: Error, v1=Warning, v2=Info, v3=Debug",
+	)
 
 	RootCmd.PersistentFlags().StringVarP(
 		&ConfigFile, "config", "c", "./config/local.yaml",
