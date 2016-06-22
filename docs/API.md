@@ -10,7 +10,7 @@ Khan API
   Validates that the app is still up, including the database connection.
 
   * Success Response
-    * Code: 200
+    * Code: `200`
     * Content:
 
       ```
@@ -25,7 +25,7 @@ Khan API
 
     It will return an error if it failed to connect to the database.
 
-    * Code: 500
+    * Code: `500`
     * Content:
 
       ```
@@ -76,7 +76,7 @@ Khan API
       **maxMembers**: Maximum number of members a clan of this game can have.
 
   * Success Response
-    * Code: 200
+    * Code: `200`
     * Content:
       ```
       {
@@ -89,7 +89,7 @@ Khan API
 
     It will return an error if an invalid payload is sent or if there are missing parameters.
 
-    * Code: 400
+    * Code: `400`
     * Content:
       ```
       {
@@ -100,7 +100,7 @@ Khan API
 
     It will return an error if there are invalid parameters.
 
-    * Code: 422
+    * Code: `422`
     * Content:
       ```
       {
@@ -109,7 +109,7 @@ Khan API
       }
       ```
 
-    * Code: 500
+    * Code: `500`
     * Content:
       ```
       {
@@ -141,7 +141,7 @@ Khan API
     ```
 
   * Success Response
-    * Code: 200
+    * Code: `200`
     * Content:
       ```
       {
@@ -153,7 +153,7 @@ Khan API
 
     It will return an error if an invalid payload is sent or if there are missing parameters.
 
-    * Code: 400
+    * Code: `400`
     * Content:
       ```
       {
@@ -164,7 +164,7 @@ Khan API
 
     It will return an error if there are invalid parameters.
 
-    * Code: 422
+    * Code: `422`
     * Content:
       ```
       {
@@ -173,7 +173,91 @@ Khan API
       }
       ```
 
-    * Code: 500
+    * Code: `500`
+    * Content:
+      ```
+      {
+        "success": false,
+        "reason": [string]
+      }
+      ```
+
+## Hook Routes
+
+More about web hooks can be found in [Using WebHooks](using_webhooks).
+
+  ### Supported Web Hook Event Types
+
+  * 0 - Game Created - Same payload as the response of the Create Game Route
+  * 1 - Game Updated - Same payload as the response of the Update Game Route
+
+  ### Create Hook
+
+  `POST /games/:gameID/hooks`
+
+  Creates a new web hook for the specified game when the specified event type happens.
+
+  * Payload
+
+    ```
+    {
+      "type": [int],             // Event Type
+      "hookURL": [string]        // the URL to call with the payload
+                                 // for the specified event.
+  	}
+    ```
+
+  * Success Response
+    * Code: `200`
+    * Content:
+      ```
+      {
+        "success": true
+        "publicID": [uuid]       // This is the id required to remove the hook.
+                                 // It should be stored with the client app.
+      }
+      ```
+
+  * Error Response
+
+    It will return an error if an invalid payload is sent or if there are missing parameters.
+
+    * Code: `400`
+    * Content:
+      ```
+      {
+        "success": false,
+        "reason": [string]
+      }
+      ```
+
+    * Code: `500`
+    * Content:
+      ```
+      {
+        "success": false,
+        "reason": [string]
+      }
+      ```
+
+  ### Remove Hook
+
+  `POST /games/:gameID/hooks/:hookPublicID`
+
+  Removes a web hook created with the Create Hook route. No payload is required for this route.
+
+  * Success Response
+    * Code: `200`
+    * Content:
+      ```
+      {
+        "success": true
+      }
+      ```
+
+  * Error Response
+
+    * Code: `500`
     * Content:
       ```
       {
@@ -202,7 +286,7 @@ Khan API
     Metadata is intended to include all the player's game specific informations that are not directly related to the khan's clan management. For example, player ranking, player trophies, player level, etc.
 
   * Success Response
-    * Code: 200
+    * Code: `200`
     * Content:
       ```
       {
@@ -215,7 +299,7 @@ Khan API
 
     It will return an error if an invalid payload is sent or if there are missing parameters.
 
-    * Code: 400
+    * Code: `400`
     * Content:
       ```
       {
@@ -226,7 +310,7 @@ Khan API
 
     It will return an error if there are invalid parameters.
 
-    * Code: 422
+    * Code: `422`
     * Content:
       ```
       {
@@ -235,7 +319,7 @@ Khan API
       }
       ```
 
-    * Code: 500
+    * Code: `500`
     * Content:
       ```
       {
@@ -260,7 +344,7 @@ Khan API
     ```
 
   * Success Response
-    * Code: 200
+    * Code: `200`
     * Content:
       ```
       {
@@ -272,7 +356,7 @@ Khan API
 
     It will return an error if an invalid payload is sent or if there are missing parameters.
 
-    * Code: 400
+    * Code: `400`
     * Content:
       ```
       {
@@ -283,7 +367,7 @@ Khan API
 
     It will return an error if there are invalid parameters.
 
-    * Code: 422
+    * Code: `422`
     * Content:
       ```
       {
@@ -292,7 +376,7 @@ Khan API
       }
       ```
 
-    * Code: 500
+    * Code: `500`
     * Content:
       ```
       {
@@ -315,7 +399,7 @@ Khan API
     ```
 
   * Success Response
-    * Code: 200
+    * Code: `200`
     * Content:
       ```
       {
@@ -341,7 +425,7 @@ Khan API
 
     It will return an error if an empty search term is sent.
 
-    * Code: 400
+    * Code: `400`
     * Content:
       ```
       {
@@ -356,7 +440,7 @@ Khan API
   List all clans for the game with publicID=`gameID`.
 
   * Success Response
-    * Code: 200
+    * Code: `200`
     * Content:
       ```
       {
@@ -406,7 +490,7 @@ Khan API
 
 
   * Success Response
-    * Code: 200
+    * Code: `200`
     * Content:
       ```
       {
@@ -419,7 +503,7 @@ Khan API
 
     It will return an error if an invalid payload is sent or if there are missing parameters.
 
-    * Code: 400
+    * Code: `400`
     * Content:
       ```
       {
@@ -428,7 +512,7 @@ Khan API
       }
       ```
 
-    * Code: 500
+    * Code: `500`
     * Content:
       ```
       {
@@ -458,7 +542,7 @@ Khan API
     All parameters but the `ownerPublicID` will be updated.
 
   * Success Response
-    * Code: 200
+    * Code: `200`
     * Content:
       ```
       {
@@ -470,7 +554,7 @@ Khan API
 
     It will return an error if an invalid payload is sent or if there are missing parameters.
 
-    * Code: 400
+    * Code: `400`
     * Content:
       ```
       {
@@ -479,7 +563,7 @@ Khan API
       }
       ```
 
-    * Code: 500
+    * Code: `500`
     * Content:
       ```
       {
@@ -494,7 +578,7 @@ Khan API
   Retrieves the clan with the given publicID. It will list all the clan information and its members.
 
   * Success Response
-    * Code: 200
+    * Code: `200`
     * Content:
       ```
       {
@@ -520,7 +604,7 @@ Khan API
 
   * Error Response
 
-    * Code: 500
+    * Code: `500`
     * Content:
       ```
       {
@@ -543,7 +627,7 @@ Khan API
     ```
 
   * Success Response
-    * Code: 200
+    * Code: `200`
     * Content:
       ```
       {
@@ -555,7 +639,7 @@ Khan API
 
     It will return an error if an invalid payload is sent or if there are missing parameters.
 
-    * Code: 400
+    * Code: `400`
     * Content:
       ```
       {
@@ -564,7 +648,7 @@ Khan API
       }
       ```
 
-    * Code: 500
+    * Code: `500`
     * Content:
       ```
       {
@@ -588,7 +672,7 @@ Khan API
     ```
 
   * Success Response
-    * Code: 200
+    * Code: `200`
     * Content:
       ```
       {
@@ -600,7 +684,7 @@ Khan API
 
     It will return an error if an invalid payload is sent or if there are missing parameters.
 
-    * Code: 400
+    * Code: `400`
     * Content:
       ```
       {
@@ -609,7 +693,7 @@ Khan API
       }
       ```
 
-    * Code: 500
+    * Code: `500`
     * Content:
       ```
       {
@@ -636,7 +720,7 @@ Khan API
     ```
 
   * Success Response
-    * Code: 200
+    * Code: `200`
     * Content:
       ```
       {
@@ -648,7 +732,7 @@ Khan API
 
     It will return an error if an invalid payload is sent or if there are missing parameters.
 
-    * Code: 400
+    * Code: `400`
     * Content:
       ```
       {
@@ -657,7 +741,7 @@ Khan API
       }
       ```
 
-    * Code: 500
+    * Code: `500`
     * Content:
       ```
       {
@@ -685,7 +769,7 @@ Khan API
     ```
 
   * Success Response
-    * Code: 200
+    * Code: `200`
     * Content:
       ```
       {
@@ -697,7 +781,7 @@ Khan API
 
     It will return an error if an invalid payload is sent or if there are missing parameters.
 
-    * Code: 400
+    * Code: `400`
     * Content:
       ```
       {
@@ -706,7 +790,7 @@ Khan API
       }
       ```
 
-    * Code: 500
+    * Code: `500`
     * Content:
       ```
       {
@@ -732,7 +816,7 @@ Khan API
     ```
 
   * Success Response
-    * Code: 200
+    * Code: `200`
     * Content:
       ```
       {
@@ -744,7 +828,7 @@ Khan API
 
     It will return an error if an invalid payload is sent or if there are missing parameters.
 
-    * Code: 400
+    * Code: `400`
     * Content:
       ```
       {
@@ -753,7 +837,7 @@ Khan API
       }
       ```
 
-    * Code: 500
+    * Code: `500`
     * Content:
       ```
       {
@@ -779,7 +863,7 @@ Khan API
     ```
 
   * Success Response
-    * Code: 200
+    * Code: `200`
     * Content:
       ```
       {
@@ -791,7 +875,7 @@ Khan API
 
     It will return an error if an invalid payload is sent or if there are missing parameters.
 
-    * Code: 400
+    * Code: `400`
     * Content:
       ```
       {
@@ -800,7 +884,7 @@ Khan API
       }
       ```
 
-    * Code: 500
+    * Code: `500`
     * Content:
       ```
       {
@@ -827,7 +911,7 @@ Khan API
     ```
 
   * Success Response
-    * Code: 200
+    * Code: `200`
     * Content:
       ```
       {
@@ -839,7 +923,7 @@ Khan API
 
     It will return an error if an invalid payload is sent or if there are missing parameters.
 
-    * Code: 400
+    * Code: `400`
     * Content:
       ```
       {
@@ -848,7 +932,7 @@ Khan API
       }
       ```
 
-    * Code: 500
+    * Code: `500`
     * Content:
       ```
       {
@@ -873,7 +957,7 @@ Khan API
     ```
 
   * Success Response
-    * Code: 200
+    * Code: `200`
     * Content:
       ```
       {
@@ -885,7 +969,7 @@ Khan API
 
     It will return an error if an invalid payload is sent or if there are missing parameters.
 
-    * Code: 400
+    * Code: `400`
     * Content:
       ```
       {
@@ -894,7 +978,7 @@ Khan API
       }
       ```
 
-    * Code: 500
+    * Code: `500`
     * Content:
       ```
       {

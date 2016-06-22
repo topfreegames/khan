@@ -17,6 +17,9 @@ setup:
 	@go get github.com/gordonklaus/ineffassign
 	@go get -u github.com/jteeuwen/go-bindata/...
 	@glide install
+	@pip install sphinx
+	@pip install recommonmark
+	@pip install sphinx_rtd_theme
 
 setup-ci:
 	@sudo add-apt-repository -y ppa:masterminds/glide && sudo apt-get update
@@ -109,3 +112,7 @@ pmd-full:
 	@for pkg in $(GODIRS) ; do \
 		/tmp/pmd-bin-5.4.2/bin/run.sh cpd --minimum-tokens 30 --files $$pkg --language go ; \
     done
+
+rtfd:
+	@sphinx-build -b html -d ./docs/_build/doctrees ./docs/ docs/_build/html
+	@open docs/_build/html/index.html

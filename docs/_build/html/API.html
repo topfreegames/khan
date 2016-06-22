@@ -93,6 +93,12 @@
 <li class="toctree-l3"><a class="reference internal" href="#update-game">Update Game</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="#hook-routes">Hook Routes</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#supported-web-hook-event-types">Supported Web Hook Event Types</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#create-hook">Create Hook</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#remove-hook">Remove Hook</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="#player-routes">Player Routes</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#create-player">Create Player</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#update-player">Update Player</a></li>
@@ -178,7 +184,7 @@
 <ul>
 <li><p class="first">Success Response</p>
 <ul>
-<li><p class="first">Code: 200</p>
+<li><p class="first">Code: <code class="docutils literal"><span class="pre">200</span></code></p>
 </li>
 <li><p class="first">Content:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span>  <span class="s2">&quot;WORKING&quot;</span>
@@ -193,7 +199,7 @@
 <li><p class="first">Error Response</p>
 <p>It will return an error if it failed to connect to the database.</p>
 <ul>
-<li><p class="first">Code: 500</p>
+<li><p class="first">Code: <code class="docutils literal"><span class="pre">500</span></code></p>
 </li>
 <li><p class="first">Content:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span>  <span class="s2">&quot;Error connecting to database: &lt;error-details&gt;&quot;</span>
@@ -243,7 +249,7 @@
 </li>
 <li><p class="first">Success Response</p>
 <ul>
-<li><p class="first">Code: 200</p>
+<li><p class="first">Code: <code class="docutils literal"><span class="pre">200</span></code></p>
 </li>
 <li><p class="first">Content:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
@@ -256,9 +262,9 @@
 </ul>
 </li>
 <li><p class="first">Error Response</p>
-<p>It will return an error if an invalid payload is sent.</p>
+<p>It will return an error if an invalid payload is sent or if there are missing parameters.</p>
 <ul>
-<li><p class="first">Code: 400</p>
+<li><p class="first">Code: <code class="docutils literal"><span class="pre">400</span></code></p>
 </li>
 <li><p class="first">Content:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
@@ -269,23 +275,23 @@
 </div>
 </li>
 </ul>
-<p>It will return an error if there are missing or invalid parameters.</p>
+<p>It will return an error if there are invalid parameters.</p>
 <ul>
-<li><p class="first">Code: 422</p>
+<li><p class="first">Code: <code class="docutils literal"><span class="pre">422</span></code></p>
 </li>
 <li><p class="first">Content:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
-  <span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="n">true</span><span class="p">,</span>
-  <span class="s2">&quot;reason&quot;</span><span class="p">:</span> <span class="p">[</span><span class="nb">list</span><span class="p">]</span>
+  <span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="n">false</span><span class="p">,</span>
+  <span class="s2">&quot;reason&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">string</span><span class="p">]</span>
 <span class="p">}</span>
 </pre></div>
 </div>
 </li>
-<li><p class="first">Code: 500</p>
+<li><p class="first">Code: <code class="docutils literal"><span class="pre">500</span></code></p>
 </li>
 <li><p class="first">Content:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
-  <span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="n">true</span><span class="p">,</span>
+  <span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="n">false</span><span class="p">,</span>
   <span class="s2">&quot;reason&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">string</span><span class="p">]</span>
 <span class="p">}</span>
 </pre></div>
@@ -318,7 +324,7 @@
 </li>
 <li><p class="first">Success Response</p>
 <ul>
-<li><p class="first">Code: 200</p>
+<li><p class="first">Code: <code class="docutils literal"><span class="pre">200</span></code></p>
 </li>
 <li><p class="first">Content:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
@@ -330,9 +336,9 @@
 </ul>
 </li>
 <li><p class="first">Error Response</p>
-<p>It will return an error if an invalid payload is sent.</p>
+<p>It will return an error if an invalid payload is sent or if there are missing parameters.</p>
 <ul>
-<li><p class="first">Code: 400</p>
+<li><p class="first">Code: <code class="docutils literal"><span class="pre">400</span></code></p>
 </li>
 <li><p class="first">Content:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
@@ -343,23 +349,124 @@
 </div>
 </li>
 </ul>
-<p>It will return an error if there are missing or invalid parameters.</p>
+<p>It will return an error if there are invalid parameters.</p>
 <ul>
-<li><p class="first">Code: 422</p>
+<li><p class="first">Code: <code class="docutils literal"><span class="pre">422</span></code></p>
 </li>
 <li><p class="first">Content:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
-  <span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="n">true</span><span class="p">,</span>
-  <span class="s2">&quot;reason&quot;</span><span class="p">:</span> <span class="p">[</span><span class="nb">list</span><span class="p">]</span>
+  <span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="n">false</span><span class="p">,</span>
+  <span class="s2">&quot;reason&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">string</span><span class="p">]</span>
 <span class="p">}</span>
 </pre></div>
 </div>
 </li>
-<li><p class="first">Code: 500</p>
+<li><p class="first">Code: <code class="docutils literal"><span class="pre">500</span></code></p>
 </li>
 <li><p class="first">Content:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
-  <span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="n">true</span><span class="p">,</span>
+  <span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="n">false</span><span class="p">,</span>
+  <span class="s2">&quot;reason&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">string</span><span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="hook-routes">
+<span id="hook-routes"></span><h2>Hook Routes<a class="headerlink" href="#hook-routes" title="Permalink to this headline">¶</a></h2>
+<p>More about web hooks can be found in <a class="reference external" href="using_webhooks">Using WebHooks</a>.</p>
+<div class="section" id="supported-web-hook-event-types">
+<span id="supported-web-hook-event-types"></span><h3>Supported Web Hook Event Types<a class="headerlink" href="#supported-web-hook-event-types" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>0 - Game Created - Same payload as the response of the Create Game Route</li>
+<li>1 - Game Updated - Same payload as the response of the Update Game Route</li>
+</ul>
+</div>
+<div class="section" id="create-hook">
+<span id="create-hook"></span><h3>Create Hook<a class="headerlink" href="#create-hook" title="Permalink to this headline">¶</a></h3>
+<p><code class="docutils literal"><span class="pre">POST</span> <span class="pre">/games/:gameID/hooks</span></code></p>
+<p>Creates a new web hook for the specified game when the specified event type happens.</p>
+<ul>
+<li><p class="first">Payload</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
+  <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="p">[</span><span class="nb">int</span><span class="p">],</span>             <span class="o">//</span> <span class="n">Event</span> <span class="n">Type</span>
+  <span class="s2">&quot;hookURL&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">string</span><span class="p">]</span>        <span class="o">//</span> <span class="n">the</span> <span class="n">URL</span> <span class="n">to</span> <span class="n">call</span> <span class="k">with</span> <span class="n">the</span> <span class="n">payload</span>
+                             <span class="o">//</span> <span class="k">for</span> <span class="n">the</span> <span class="n">specified</span> <span class="n">event</span><span class="o">.</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">Success Response</p>
+<ul>
+<li><p class="first">Code: <code class="docutils literal"><span class="pre">200</span></code></p>
+</li>
+<li><p class="first">Content:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
+  <span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="n">true</span>
+  <span class="s2">&quot;publicID&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">uuid</span><span class="p">]</span>       <span class="o">//</span> <span class="n">This</span> <span class="ow">is</span> <span class="n">the</span> <span class="nb">id</span> <span class="n">required</span> <span class="n">to</span> <span class="n">remove</span> <span class="n">the</span> <span class="n">hook</span><span class="o">.</span>
+                           <span class="o">//</span> <span class="n">It</span> <span class="n">should</span> <span class="n">be</span> <span class="n">stored</span> <span class="k">with</span> <span class="n">the</span> <span class="n">client</span> <span class="n">app</span><span class="o">.</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</li>
+<li><p class="first">Error Response</p>
+<p>It will return an error if an invalid payload is sent or if there are missing parameters.</p>
+<ul>
+<li><p class="first">Code: <code class="docutils literal"><span class="pre">400</span></code></p>
+</li>
+<li><p class="first">Content:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
+  <span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="n">false</span><span class="p">,</span>
+  <span class="s2">&quot;reason&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">string</span><span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">Code: <code class="docutils literal"><span class="pre">500</span></code></p>
+</li>
+<li><p class="first">Content:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
+  <span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="n">false</span><span class="p">,</span>
+  <span class="s2">&quot;reason&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">string</span><span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section" id="remove-hook">
+<span id="remove-hook"></span><h3>Remove Hook<a class="headerlink" href="#remove-hook" title="Permalink to this headline">¶</a></h3>
+<p><code class="docutils literal"><span class="pre">POST</span> <span class="pre">/games/:gameID/hooks/:hookPublicID</span></code></p>
+<p>Removes a web hook created with the Create Hook route. No payload is required for this route.</p>
+<ul>
+<li><p class="first">Success Response</p>
+<ul>
+<li><p class="first">Code: <code class="docutils literal"><span class="pre">200</span></code></p>
+</li>
+<li><p class="first">Content:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
+  <span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="n">true</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</li>
+<li><p class="first">Error Response</p>
+<ul>
+<li><p class="first">Code: <code class="docutils literal"><span class="pre">500</span></code></p>
+</li>
+<li><p class="first">Content:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
+  <span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="n">false</span><span class="p">,</span>
   <span class="s2">&quot;reason&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">string</span><span class="p">]</span>
 <span class="p">}</span>
 </pre></div>
@@ -389,7 +496,7 @@
 </li>
 <li><p class="first">Success Response</p>
 <ul>
-<li><p class="first">Code: 200</p>
+<li><p class="first">Code: <code class="docutils literal"><span class="pre">200</span></code></p>
 </li>
 <li><p class="first">Content:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
@@ -402,9 +509,9 @@
 </ul>
 </li>
 <li><p class="first">Error Response</p>
-<p>It will return an error if an invalid payload is sent.</p>
+<p>It will return an error if an invalid payload is sent or if there are missing parameters.</p>
 <ul>
-<li><p class="first">Code: 400</p>
+<li><p class="first">Code: <code class="docutils literal"><span class="pre">400</span></code></p>
 </li>
 <li><p class="first">Content:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
@@ -415,23 +522,23 @@
 </div>
 </li>
 </ul>
-<p>It will return an error if there are missing or invalid parameters.</p>
+<p>It will return an error if there are invalid parameters.</p>
 <ul>
-<li><p class="first">Code: 422</p>
+<li><p class="first">Code: <code class="docutils literal"><span class="pre">422</span></code></p>
 </li>
 <li><p class="first">Content:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
-  <span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="n">true</span><span class="p">,</span>
-  <span class="s2">&quot;reason&quot;</span><span class="p">:</span> <span class="p">[</span><span class="nb">list</span><span class="p">]</span>
+  <span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="n">false</span><span class="p">,</span>
+  <span class="s2">&quot;reason&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">string</span><span class="p">]</span>
 <span class="p">}</span>
 </pre></div>
 </div>
 </li>
-<li><p class="first">Code: 500</p>
+<li><p class="first">Code: <code class="docutils literal"><span class="pre">500</span></code></p>
 </li>
 <li><p class="first">Content:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
-  <span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="n">true</span><span class="p">,</span>
+  <span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="n">false</span><span class="p">,</span>
   <span class="s2">&quot;reason&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">string</span><span class="p">]</span>
 <span class="p">}</span>
 </pre></div>
@@ -456,7 +563,7 @@
 </li>
 <li><p class="first">Success Response</p>
 <ul>
-<li><p class="first">Code: 200</p>
+<li><p class="first">Code: <code class="docutils literal"><span class="pre">200</span></code></p>
 </li>
 <li><p class="first">Content:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
@@ -468,9 +575,9 @@
 </ul>
 </li>
 <li><p class="first">Error Response</p>
-<p>It will return an error if an invalid payload is sent.</p>
+<p>It will return an error if an invalid payload is sent or if there are missing parameters.</p>
 <ul>
-<li><p class="first">Code: 400</p>
+<li><p class="first">Code: <code class="docutils literal"><span class="pre">400</span></code></p>
 </li>
 <li><p class="first">Content:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
@@ -481,23 +588,23 @@
 </div>
 </li>
 </ul>
-<p>It will return an error if there are missing or invalid parameters.</p>
+<p>It will return an error if there are invalid parameters.</p>
 <ul>
-<li><p class="first">Code: 422</p>
+<li><p class="first">Code: <code class="docutils literal"><span class="pre">422</span></code></p>
 </li>
 <li><p class="first">Content:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
-  <span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="n">true</span><span class="p">,</span>
-  <span class="s2">&quot;reason&quot;</span><span class="p">:</span> <span class="p">[</span><span class="nb">list</span><span class="p">]</span>
+  <span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="n">false</span><span class="p">,</span>
+  <span class="s2">&quot;reason&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">string</span><span class="p">]</span>
 <span class="p">}</span>
 </pre></div>
 </div>
 </li>
-<li><p class="first">Code: 500</p>
+<li><p class="first">Code: <code class="docutils literal"><span class="pre">500</span></code></p>
 </li>
 <li><p class="first">Content:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
-  <span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="n">true</span><span class="p">,</span>
+  <span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="n">false</span><span class="p">,</span>
   <span class="s2">&quot;reason&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">string</span><span class="p">]</span>
 <span class="p">}</span>
 </pre></div>
@@ -522,7 +629,7 @@
 </li>
 <li><p class="first">Success Response</p>
 <ul>
-<li><p class="first">Code: 200</p>
+<li><p class="first">Code: <code class="docutils literal"><span class="pre">200</span></code></p>
 </li>
 <li><p class="first">Content:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
@@ -549,7 +656,7 @@
 <li><p class="first">Error Response</p>
 <p>It will return an error if an empty search term is sent.</p>
 <ul>
-<li><p class="first">Code: 400</p>
+<li><p class="first">Code: <code class="docutils literal"><span class="pre">400</span></code></p>
 </li>
 <li><p class="first">Content:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
@@ -570,7 +677,7 @@
 <ul>
 <li><p class="first">Success Response</p>
 <ul>
-<li><p class="first">Code: 200</p>
+<li><p class="first">Code: <code class="docutils literal"><span class="pre">200</span></code></p>
 </li>
 <li><p class="first">Content:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
@@ -624,7 +731,7 @@
 <ul>
 <li><p class="first">Success Response</p>
 <ul>
-<li><p class="first">Code: 200</p>
+<li><p class="first">Code: <code class="docutils literal"><span class="pre">200</span></code></p>
 </li>
 <li><p class="first">Content:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
@@ -637,9 +744,9 @@
 </ul>
 </li>
 <li><p class="first">Error Response</p>
-<p>It will return an error if an invalid payload is sent.</p>
+<p>It will return an error if an invalid payload is sent or if there are missing parameters.</p>
 <ul>
-<li><p class="first">Code: 400</p>
+<li><p class="first">Code: <code class="docutils literal"><span class="pre">400</span></code></p>
 </li>
 <li><p class="first">Content:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
@@ -649,24 +756,11 @@
 </pre></div>
 </div>
 </li>
-</ul>
-<p>It will return an error if there are missing or invalid parameters.</p>
-<ul>
-<li><p class="first">Code: 422</p>
+<li><p class="first">Code: <code class="docutils literal"><span class="pre">500</span></code></p>
 </li>
 <li><p class="first">Content:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
-  <span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="n">true</span><span class="p">,</span>
-  <span class="s2">&quot;reason&quot;</span><span class="p">:</span> <span class="p">[</span><span class="nb">list</span><span class="p">]</span>
-<span class="p">}</span>
-</pre></div>
-</div>
-</li>
-<li><p class="first">Code: 500</p>
-</li>
-<li><p class="first">Content:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
-  <span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="n">true</span><span class="p">,</span>
+  <span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="n">false</span><span class="p">,</span>
   <span class="s2">&quot;reason&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">string</span><span class="p">]</span>
 <span class="p">}</span>
 </pre></div>
@@ -695,7 +789,7 @@
 </li>
 <li><p class="first">Success Response</p>
 <ul>
-<li><p class="first">Code: 200</p>
+<li><p class="first">Code: <code class="docutils literal"><span class="pre">200</span></code></p>
 </li>
 <li><p class="first">Content:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
@@ -707,9 +801,9 @@
 </ul>
 </li>
 <li><p class="first">Error Response</p>
-<p>It will return an error if an invalid payload is sent.</p>
+<p>It will return an error if an invalid payload is sent or if there are missing parameters.</p>
 <ul>
-<li><p class="first">Code: 400</p>
+<li><p class="first">Code: <code class="docutils literal"><span class="pre">400</span></code></p>
 </li>
 <li><p class="first">Content:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
@@ -719,24 +813,11 @@
 </pre></div>
 </div>
 </li>
-</ul>
-<p>It will return an error if there are missing or invalid parameters.</p>
-<ul>
-<li><p class="first">Code: 422</p>
+<li><p class="first">Code: <code class="docutils literal"><span class="pre">500</span></code></p>
 </li>
 <li><p class="first">Content:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
-  <span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="n">true</span><span class="p">,</span>
-  <span class="s2">&quot;reason&quot;</span><span class="p">:</span> <span class="p">[</span><span class="nb">list</span><span class="p">]</span>
-<span class="p">}</span>
-</pre></div>
-</div>
-</li>
-<li><p class="first">Code: 500</p>
-</li>
-<li><p class="first">Content:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
-  <span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="n">true</span><span class="p">,</span>
+  <span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="n">false</span><span class="p">,</span>
   <span class="s2">&quot;reason&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">string</span><span class="p">]</span>
 <span class="p">}</span>
 </pre></div>
@@ -753,7 +834,7 @@
 <ul>
 <li><p class="first">Success Response</p>
 <ul>
-<li><p class="first">Code: 200</p>
+<li><p class="first">Code: <code class="docutils literal"><span class="pre">200</span></code></p>
 </li>
 <li><p class="first">Content:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
@@ -782,11 +863,11 @@
 </li>
 <li><p class="first">Error Response</p>
 <ul>
-<li><p class="first">Code: 500</p>
+<li><p class="first">Code: <code class="docutils literal"><span class="pre">500</span></code></p>
 </li>
 <li><p class="first">Content:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
-  <span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="n">true</span><span class="p">,</span>
+  <span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="n">false</span><span class="p">,</span>
   <span class="s2">&quot;reason&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">string</span><span class="p">]</span>
 <span class="p">}</span>
 </pre></div>
@@ -810,7 +891,7 @@
 </li>
 <li><p class="first">Success Response</p>
 <ul>
-<li><p class="first">Code: 200</p>
+<li><p class="first">Code: <code class="docutils literal"><span class="pre">200</span></code></p>
 </li>
 <li><p class="first">Content:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
@@ -822,9 +903,9 @@
 </ul>
 </li>
 <li><p class="first">Error Response</p>
-<p>It will return an error if an invalid payload is sent.</p>
+<p>It will return an error if an invalid payload is sent or if there are missing parameters.</p>
 <ul>
-<li><p class="first">Code: 400</p>
+<li><p class="first">Code: <code class="docutils literal"><span class="pre">400</span></code></p>
 </li>
 <li><p class="first">Content:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
@@ -834,24 +915,11 @@
 </pre></div>
 </div>
 </li>
-</ul>
-<p>It will return an error if there are missing or invalid parameters.</p>
-<ul>
-<li><p class="first">Code: 422</p>
+<li><p class="first">Code: <code class="docutils literal"><span class="pre">500</span></code></p>
 </li>
 <li><p class="first">Content:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
-  <span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="n">true</span><span class="p">,</span>
-  <span class="s2">&quot;reason&quot;</span><span class="p">:</span> <span class="p">[</span><span class="nb">list</span><span class="p">]</span>
-<span class="p">}</span>
-</pre></div>
-</div>
-</li>
-<li><p class="first">Code: 500</p>
-</li>
-<li><p class="first">Content:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
-  <span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="n">true</span><span class="p">,</span>
+  <span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="n">false</span><span class="p">,</span>
   <span class="s2">&quot;reason&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">string</span><span class="p">]</span>
 <span class="p">}</span>
 </pre></div>
@@ -876,7 +944,7 @@
 </li>
 <li><p class="first">Success Response</p>
 <ul>
-<li><p class="first">Code: 200</p>
+<li><p class="first">Code: <code class="docutils literal"><span class="pre">200</span></code></p>
 </li>
 <li><p class="first">Content:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
@@ -888,9 +956,9 @@
 </ul>
 </li>
 <li><p class="first">Error Response</p>
-<p>It will return an error if an invalid payload is sent.</p>
+<p>It will return an error if an invalid payload is sent or if there are missing parameters.</p>
 <ul>
-<li><p class="first">Code: 400</p>
+<li><p class="first">Code: <code class="docutils literal"><span class="pre">400</span></code></p>
 </li>
 <li><p class="first">Content:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
@@ -900,24 +968,11 @@
 </pre></div>
 </div>
 </li>
-</ul>
-<p>It will return an error if there are missing or invalid parameters.</p>
-<ul>
-<li><p class="first">Code: 422</p>
+<li><p class="first">Code: <code class="docutils literal"><span class="pre">500</span></code></p>
 </li>
 <li><p class="first">Content:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
-  <span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="n">true</span><span class="p">,</span>
-  <span class="s2">&quot;reason&quot;</span><span class="p">:</span> <span class="p">[</span><span class="nb">list</span><span class="p">]</span>
-<span class="p">}</span>
-</pre></div>
-</div>
-</li>
-<li><p class="first">Code: 500</p>
-</li>
-<li><p class="first">Content:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
-  <span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="n">true</span><span class="p">,</span>
+  <span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="n">false</span><span class="p">,</span>
   <span class="s2">&quot;reason&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">string</span><span class="p">]</span>
 <span class="p">}</span>
 </pre></div>
@@ -945,7 +1000,7 @@
 </li>
 <li><p class="first">Success Response</p>
 <ul>
-<li><p class="first">Code: 200</p>
+<li><p class="first">Code: <code class="docutils literal"><span class="pre">200</span></code></p>
 </li>
 <li><p class="first">Content:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
@@ -957,9 +1012,9 @@
 </ul>
 </li>
 <li><p class="first">Error Response</p>
-<p>It will return an error if an invalid payload is sent.</p>
+<p>It will return an error if an invalid payload is sent or if there are missing parameters.</p>
 <ul>
-<li><p class="first">Code: 400</p>
+<li><p class="first">Code: <code class="docutils literal"><span class="pre">400</span></code></p>
 </li>
 <li><p class="first">Content:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
@@ -969,24 +1024,11 @@
 </pre></div>
 </div>
 </li>
-</ul>
-<p>It will return an error if there are missing or invalid parameters.</p>
-<ul>
-<li><p class="first">Code: 422</p>
+<li><p class="first">Code: <code class="docutils literal"><span class="pre">500</span></code></p>
 </li>
 <li><p class="first">Content:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
-  <span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="n">true</span><span class="p">,</span>
-  <span class="s2">&quot;reason&quot;</span><span class="p">:</span> <span class="p">[</span><span class="nb">list</span><span class="p">]</span>
-<span class="p">}</span>
-</pre></div>
-</div>
-</li>
-<li><p class="first">Code: 500</p>
-</li>
-<li><p class="first">Content:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
-  <span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="n">true</span><span class="p">,</span>
+  <span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="n">false</span><span class="p">,</span>
   <span class="s2">&quot;reason&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">string</span><span class="p">]</span>
 <span class="p">}</span>
 </pre></div>
@@ -1013,7 +1055,7 @@
 </li>
 <li><p class="first">Success Response</p>
 <ul>
-<li><p class="first">Code: 200</p>
+<li><p class="first">Code: <code class="docutils literal"><span class="pre">200</span></code></p>
 </li>
 <li><p class="first">Content:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
@@ -1025,9 +1067,9 @@
 </ul>
 </li>
 <li><p class="first">Error Response</p>
-<p>It will return an error if an invalid payload is sent.</p>
+<p>It will return an error if an invalid payload is sent or if there are missing parameters.</p>
 <ul>
-<li><p class="first">Code: 400</p>
+<li><p class="first">Code: <code class="docutils literal"><span class="pre">400</span></code></p>
 </li>
 <li><p class="first">Content:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
@@ -1037,24 +1079,11 @@
 </pre></div>
 </div>
 </li>
-</ul>
-<p>It will return an error if there are missing or invalid parameters.</p>
-<ul>
-<li><p class="first">Code: 422</p>
+<li><p class="first">Code: <code class="docutils literal"><span class="pre">500</span></code></p>
 </li>
 <li><p class="first">Content:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
-  <span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="n">true</span><span class="p">,</span>
-  <span class="s2">&quot;reason&quot;</span><span class="p">:</span> <span class="p">[</span><span class="nb">list</span><span class="p">]</span>
-<span class="p">}</span>
-</pre></div>
-</div>
-</li>
-<li><p class="first">Code: 500</p>
-</li>
-<li><p class="first">Content:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
-  <span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="n">true</span><span class="p">,</span>
+  <span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="n">false</span><span class="p">,</span>
   <span class="s2">&quot;reason&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">string</span><span class="p">]</span>
 <span class="p">}</span>
 </pre></div>
@@ -1080,7 +1109,7 @@
 </li>
 <li><p class="first">Success Response</p>
 <ul>
-<li><p class="first">Code: 200</p>
+<li><p class="first">Code: <code class="docutils literal"><span class="pre">200</span></code></p>
 </li>
 <li><p class="first">Content:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
@@ -1092,9 +1121,9 @@
 </ul>
 </li>
 <li><p class="first">Error Response</p>
-<p>It will return an error if an invalid payload is sent.</p>
+<p>It will return an error if an invalid payload is sent or if there are missing parameters.</p>
 <ul>
-<li><p class="first">Code: 400</p>
+<li><p class="first">Code: <code class="docutils literal"><span class="pre">400</span></code></p>
 </li>
 <li><p class="first">Content:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
@@ -1104,24 +1133,11 @@
 </pre></div>
 </div>
 </li>
-</ul>
-<p>It will return an error if there are missing or invalid parameters.</p>
-<ul>
-<li><p class="first">Code: 422</p>
+<li><p class="first">Code: <code class="docutils literal"><span class="pre">500</span></code></p>
 </li>
 <li><p class="first">Content:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
-  <span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="n">true</span><span class="p">,</span>
-  <span class="s2">&quot;reason&quot;</span><span class="p">:</span> <span class="p">[</span><span class="nb">list</span><span class="p">]</span>
-<span class="p">}</span>
-</pre></div>
-</div>
-</li>
-<li><p class="first">Code: 500</p>
-</li>
-<li><p class="first">Content:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
-  <span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="n">true</span><span class="p">,</span>
+  <span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="n">false</span><span class="p">,</span>
   <span class="s2">&quot;reason&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">string</span><span class="p">]</span>
 <span class="p">}</span>
 </pre></div>
@@ -1146,7 +1162,7 @@
 </li>
 <li><p class="first">Success Response</p>
 <ul>
-<li><p class="first">Code: 200</p>
+<li><p class="first">Code: <code class="docutils literal"><span class="pre">200</span></code></p>
 </li>
 <li><p class="first">Content:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
@@ -1158,9 +1174,9 @@
 </ul>
 </li>
 <li><p class="first">Error Response</p>
-<p>It will return an error if an invalid payload is sent.</p>
+<p>It will return an error if an invalid payload is sent or if there are missing parameters.</p>
 <ul>
-<li><p class="first">Code: 400</p>
+<li><p class="first">Code: <code class="docutils literal"><span class="pre">400</span></code></p>
 </li>
 <li><p class="first">Content:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
@@ -1170,24 +1186,11 @@
 </pre></div>
 </div>
 </li>
-</ul>
-<p>It will return an error if there are missing or invalid parameters.</p>
-<ul>
-<li><p class="first">Code: 422</p>
+<li><p class="first">Code: <code class="docutils literal"><span class="pre">500</span></code></p>
 </li>
 <li><p class="first">Content:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
-  <span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="n">true</span><span class="p">,</span>
-  <span class="s2">&quot;reason&quot;</span><span class="p">:</span> <span class="p">[</span><span class="nb">list</span><span class="p">]</span>
-<span class="p">}</span>
-</pre></div>
-</div>
-</li>
-<li><p class="first">Code: 500</p>
-</li>
-<li><p class="first">Content:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
-  <span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="n">true</span><span class="p">,</span>
+  <span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="n">false</span><span class="p">,</span>
   <span class="s2">&quot;reason&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">string</span><span class="p">]</span>
 <span class="p">}</span>
 </pre></div>
@@ -1213,7 +1216,7 @@
 </li>
 <li><p class="first">Success Response</p>
 <ul>
-<li><p class="first">Code: 200</p>
+<li><p class="first">Code: <code class="docutils literal"><span class="pre">200</span></code></p>
 </li>
 <li><p class="first">Content:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
@@ -1225,9 +1228,9 @@
 </ul>
 </li>
 <li><p class="first">Error Response</p>
-<p>It will return an error if an invalid payload is sent.</p>
+<p>It will return an error if an invalid payload is sent or if there are missing parameters.</p>
 <ul>
-<li><p class="first">Code: 400</p>
+<li><p class="first">Code: <code class="docutils literal"><span class="pre">400</span></code></p>
 </li>
 <li><p class="first">Content:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
@@ -1237,24 +1240,11 @@
 </pre></div>
 </div>
 </li>
-</ul>
-<p>It will return an error if there are missing or invalid parameters.</p>
-<ul>
-<li><p class="first">Code: 422</p>
+<li><p class="first">Code: <code class="docutils literal"><span class="pre">500</span></code></p>
 </li>
 <li><p class="first">Content:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
-  <span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="n">true</span><span class="p">,</span>
-  <span class="s2">&quot;reason&quot;</span><span class="p">:</span> <span class="p">[</span><span class="nb">list</span><span class="p">]</span>
-<span class="p">}</span>
-</pre></div>
-</div>
-</li>
-<li><p class="first">Code: 500</p>
-</li>
-<li><p class="first">Content:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
-  <span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="n">true</span><span class="p">,</span>
+  <span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="n">false</span><span class="p">,</span>
   <span class="s2">&quot;reason&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">string</span><span class="p">]</span>
 <span class="p">}</span>
 </pre></div>
@@ -1279,7 +1269,7 @@
 </li>
 <li><p class="first">Success Response</p>
 <ul>
-<li><p class="first">Code: 200</p>
+<li><p class="first">Code: <code class="docutils literal"><span class="pre">200</span></code></p>
 </li>
 <li><p class="first">Content:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
@@ -1291,9 +1281,9 @@
 </ul>
 </li>
 <li><p class="first">Error Response</p>
-<p>It will return an error if an invalid payload is sent.</p>
+<p>It will return an error if an invalid payload is sent or if there are missing parameters.</p>
 <ul>
-<li><p class="first">Code: 400</p>
+<li><p class="first">Code: <code class="docutils literal"><span class="pre">400</span></code></p>
 </li>
 <li><p class="first">Content:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
@@ -1303,24 +1293,11 @@
 </pre></div>
 </div>
 </li>
-</ul>
-<p>It will return an error if there are missing or invalid parameters.</p>
-<ul>
-<li><p class="first">Code: 422</p>
+<li><p class="first">Code: <code class="docutils literal"><span class="pre">500</span></code></p>
 </li>
 <li><p class="first">Content:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
-  <span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="n">true</span><span class="p">,</span>
-  <span class="s2">&quot;reason&quot;</span><span class="p">:</span> <span class="p">[</span><span class="nb">list</span><span class="p">]</span>
-<span class="p">}</span>
-</pre></div>
-</div>
-</li>
-<li><p class="first">Code: 500</p>
-</li>
-<li><p class="first">Content:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
-  <span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="n">true</span><span class="p">,</span>
+  <span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="n">false</span><span class="p">,</span>
   <span class="s2">&quot;reason&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">string</span><span class="p">]</span>
 <span class="p">}</span>
 </pre></div>
