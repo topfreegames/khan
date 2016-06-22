@@ -9,6 +9,7 @@ package models
 
 import (
 	"testing"
+	"time"
 
 	. "github.com/franela/goblin"
 )
@@ -60,6 +61,8 @@ func TestGameModel(t *testing.T) {
 				err := testDb.Insert(game)
 				g.Assert(err == nil).IsTrue()
 				dt := game.UpdatedAt
+
+				time.Sleep(time.Millisecond)
 
 				game.Metadata = "{ \"x\": 1 }"
 				count, err := testDb.Update(game)
