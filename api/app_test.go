@@ -9,15 +9,41 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"testing"
 	"time"
 
 	. "github.com/franela/goblin"
-	"github.com/satori/go.uuid"
 	"github.com/topfreegames/khan/models"
 )
+
+func startRouteHandler(routes []string, port int) *[]map[string]interface{} {
+	responses := []map[string]interface{}{}
+
+	go func() {
+		handleFunc := func(w http.ResponseWriter, r *http.Request) {
+			bs, err := ioutil.ReadAll(r.Body)
+			if err != nil {
+				responses = append(responses, map[string]interface{}{"reason": err})
+				return
+			}
+
+			var payload map[string]interface{}
+			json.Unmarshal(bs, &payload)
+
+			responses = append(responses, payload)
+		}
+		for _, route := range routes {
+			http.HandleFunc(route, handleFunc)
+		}
+
+		http.ListenAndServe(fmt.Sprintf("0.0.0.0:%d", port), nil)
+	}()
+
+	return &responses
+}
 
 func Test(t *testing.T) {
 	g := Goblin(t)
@@ -52,52 +78,25 @@ func Test(t *testing.T) {
 
 	g.Describe("App Dispatch Hook", func() {
 		g.It("should dispatch hooks", func() {
-			responses := []map[string]interface{}{}
-			addResponse := func(payload map[string]interface{}) {
-				responses = append(responses, payload)
-			}
-
-			go func() {
-				handleFunc := func(w http.ResponseWriter, r *http.Request) {
-					bs, err := ioutil.ReadAll(r.Body)
-					g.Assert(err == nil).IsTrue()
-
-					var payload map[string]interface{}
-					json.Unmarshal(bs, &payload)
-
-					addResponse(payload)
-				}
-				http.HandleFunc("/created", handleFunc)
-				http.HandleFunc("/created2", handleFunc)
-
-				http.ListenAndServe(":52525", nil)
-			}()
+			hooks, err := models.GetHooksForRoutes(testDb, []string{
+				"http://localhost:52525/created",
+				"http://localhost:52525/created2",
+			}, models.GameCreatedHook)
+			g.Assert(err == nil).IsTrue()
+			responses := startRouteHandler([]string{"/created", "/created2"}, 52525)
 
 			app := GetDefaultTestApp()
-
-			hook, err := models.CreateHookFactory(testDb, "", models.GameCreatedHook, "http://localhost:52525/created")
-			g.Assert(err == nil).IsTrue()
-
-			hook2 := models.HookFactory.MustCreateWithOption(map[string]interface{}{
-				"GameID":    hook.GameID,
-				"PublicID":  uuid.NewV4().String(),
-				"EventType": models.GameCreatedHook,
-				"URL":       "http://localhost:52525/created2",
-			}).(*models.Hook)
-			err = testDb.Insert(hook2)
-			g.Assert(err == nil).IsTrue()
-
-			app.loadHooks()
+			//app.loadHooks()
 			time.Sleep(time.Second)
 
 			resultingPayload := map[string]interface{}{
 				"success":  true,
-				"publicID": hook.GameID,
+				"publicID": hooks[0].GameID,
 			}
-			err = app.DispatchHooks(hook.GameID, models.GameCreatedHook, resultingPayload)
+			err = app.DispatchHooks(hooks[0].GameID, models.GameCreatedHook, resultingPayload)
 			g.Assert(err == nil).IsTrue()
 
-			g.Assert(len(responses)).Equal(2)
+			g.Assert(len(*responses)).Equal(2)
 		})
 	})
 }

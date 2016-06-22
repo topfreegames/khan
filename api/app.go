@@ -92,7 +92,7 @@ func (app *App) connectDatabase() {
 	db, err := models.GetDB(host, user, port, sslMode, dbName, password)
 
 	if err != nil {
-		fmt.Printf(
+		glog.Errorf(
 			"Could not connect to Postgres at %s:%d with user %s and db %s with password %s (%s)\n",
 			host, port, user, dbName, password, err,
 		)

@@ -224,11 +224,11 @@ func AssetNames() []string {
 
 // _bindata is a table, holding each asset generator, mapped to its name.
 var _bindata = map[string]func() (*asset, error){
-	"migrations/20160608133902_CreateGameTable.sql":       migrations20160608133902_creategametableSql,
-	"migrations/20160608150958_CreatePlayerTable.sql":     migrations20160608150958_createplayertableSql,
-	"migrations/20160608174439_CreateClanTable.sql":       migrations20160608174439_createclantableSql,
+	"migrations/20160608133902_CreateGameTable.sql": migrations20160608133902_creategametableSql,
+	"migrations/20160608150958_CreatePlayerTable.sql": migrations20160608150958_createplayertableSql,
+	"migrations/20160608174439_CreateClanTable.sql": migrations20160608174439_createclantableSql,
 	"migrations/20160608182307_CreateMembershipTable.sql": migrations20160608182307_createmembershiptableSql,
-	"migrations/20160621161411_CreateHooksTable.sql":      migrations20160621161411_createhookstableSql,
+	"migrations/20160621161411_CreateHooksTable.sql": migrations20160621161411_createhookstableSql,
 }
 
 // AssetDir returns the file names below a certain
@@ -270,14 +270,13 @@ type bintree struct {
 	Func     func() (*asset, error)
 	Children map[string]*bintree
 }
-
 var _bintree = &bintree{nil, map[string]*bintree{
 	"migrations": &bintree{nil, map[string]*bintree{
-		"20160608133902_CreateGameTable.sql":       &bintree{migrations20160608133902_creategametableSql, map[string]*bintree{}},
-		"20160608150958_CreatePlayerTable.sql":     &bintree{migrations20160608150958_createplayertableSql, map[string]*bintree{}},
-		"20160608174439_CreateClanTable.sql":       &bintree{migrations20160608174439_createclantableSql, map[string]*bintree{}},
+		"20160608133902_CreateGameTable.sql": &bintree{migrations20160608133902_creategametableSql, map[string]*bintree{}},
+		"20160608150958_CreatePlayerTable.sql": &bintree{migrations20160608150958_createplayertableSql, map[string]*bintree{}},
+		"20160608174439_CreateClanTable.sql": &bintree{migrations20160608174439_createclantableSql, map[string]*bintree{}},
 		"20160608182307_CreateMembershipTable.sql": &bintree{migrations20160608182307_createmembershiptableSql, map[string]*bintree{}},
-		"20160621161411_CreateHooksTable.sql":      &bintree{migrations20160621161411_createhookstableSql, map[string]*bintree{}},
+		"20160621161411_CreateHooksTable.sql": &bintree{migrations20160621161411_createhookstableSql, map[string]*bintree{}},
 	}},
 }}
 
@@ -327,3 +326,4 @@ func _filePath(dir, name string) string {
 	cannonicalName := strings.Replace(name, "\\", "/", -1)
 	return filepath.Join(append([]string{dir}, strings.Split(cannonicalName, "/")...)...)
 }
+
