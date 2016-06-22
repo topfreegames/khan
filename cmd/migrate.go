@@ -16,6 +16,7 @@ import (
 
 	"gopkg.in/gorp.v1"
 
+	"github.com/golang/glog"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/topfreegames/goose/lib/goose"
@@ -26,14 +27,12 @@ import (
 var migrationVersion int64
 
 func createTempDbDir() (string, error) {
-	dir, err := deleteTempDbDir()
+	dir, err := ioutil.TempDir("", "migrations")
 	if err != nil {
+		glog.Fatal(err)
 		return "", err
 	}
-	err = os.MkdirAll(dir, 0777)
-	if err != nil {
-		return "", err
-	}
+
 	fmt.Printf("Created temporary directory %s.\n", dir)
 	assetNames := db.AssetNames()
 	for _, assetName := range assetNames {
@@ -48,12 +47,6 @@ func createTempDbDir() (string, error) {
 		}
 		fmt.Printf("Wrote migration file %s.\n", fileName)
 	}
-	return dir, nil
-}
-
-func deleteTempDbDir() (string, error) {
-	dir := "tmpdb_migrations"
-	defer os.RemoveAll(dir)
 	return dir, nil
 }
 
@@ -75,6 +68,7 @@ func getDatabase() (*gorp.DbMap, error) {
 
 func getGooseConf() *goose.DBConf {
 	migrationsDir, err := createTempDbDir()
+
 	if err != nil {
 		panic("Could not create migration files...")
 	}
@@ -102,6 +96,7 @@ func (err *MigrationError) Error() string {
 
 func runMigrations(migrationVersion int64) error {
 	conf := getGooseConf()
+	defer os.RemoveAll(conf.MigrationsDir)
 	db, err := getDatabase()
 	if err != nil {
 		return &MigrationError{fmt.Sprintf("could not connect to database: %s", err.Error())}
@@ -123,11 +118,6 @@ func runMigrations(migrationVersion int64) error {
 		return &MigrationError{fmt.Sprintf("could not run migrations to %d: %s", targetVersion, err.Error())}
 	}
 	fmt.Printf("Migrated database successfully to version %d.\n", targetVersion)
-	dir, err := deleteTempDbDir()
-	if err != nil {
-		return err
-	}
-	fmt.Printf("Deleted temporary directory %s.\n", dir)
 	return nil
 }
 

@@ -244,6 +244,5 @@ func TestPlayerHandler(t *testing.T) {
 			g.Assert(playerPayload["name"]).Equal(payload["name"])
 			g.Assert(playerPayload["metadata"]).Equal(payload["metadata"])
 		})
-
 	})
 }
