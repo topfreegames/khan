@@ -52,7 +52,7 @@ install:
 	@go install
 
 run:
-	@go run main.go start -d -c ./config/local.yaml
+	@go run main.go start -d -v3 -c ./config/local.yaml
 
 build-docker:
 	@docker build -t khan .
