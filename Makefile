@@ -17,6 +17,8 @@ setup:
 	@go get github.com/gordonklaus/ineffassign
 	@go get -u github.com/jteeuwen/go-bindata/...
 	@glide install
+
+setup-docs:
 	@pip install sphinx
 	@pip install recommonmark
 	@pip install sphinx_rtd_theme

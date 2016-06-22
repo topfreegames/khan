@@ -13,32 +13,45 @@ import (
 	"net/http"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/Pallinder/go-randomdata"
 	. "github.com/franela/goblin"
+	"github.com/satori/go.uuid"
 	"github.com/topfreegames/khan/models"
 )
+
+func getGamePayload(publicID, name string) map[string]interface{} {
+	return map[string]interface{}{
+		"publicID":                      randomdata.FullName(randomdata.RandomGender),
+		"name":                          randomdata.FullName(randomdata.RandomGender),
+		"metadata":                      "{\"x\": 1}",
+		"minMembershipLevel":            1,
+		"maxMembershipLevel":            10,
+		"minLevelToAcceptApplication":   1,
+		"minLevelToCreateInvitation":    1,
+		"minLevelToRemoveMember":        1,
+		"minLevelOffsetToRemoveMember":  1,
+		"minLevelOffsetToPromoteMember": 1,
+		"minLevelOffsetToDemoteMember":  1,
+		"maxMembers":                    100,
+	}
+}
 
 func TestGameHandler(t *testing.T) {
 	g := Goblin(t)
 
+	testDb, err := models.GetTestDB()
+	g.Assert(err == nil).IsTrue()
+
 	g.Describe("Create Game Handler", func() {
 		g.It("Should create game", func() {
 			a := GetDefaultTestApp()
-			payload := map[string]interface{}{
-				"publicID":                      randomdata.FullName(randomdata.RandomGender),
-				"name":                          randomdata.FullName(randomdata.RandomGender),
-				"metadata":                      "{\"x\": 1}",
-				"minMembershipLevel":            1,
-				"maxMembershipLevel":            10,
-				"minLevelToAcceptApplication":   1,
-				"minLevelToCreateInvitation":    1,
-				"minLevelToRemoveMember":        1,
-				"minLevelOffsetToRemoveMember":  1,
-				"minLevelOffsetToPromoteMember": 1,
-				"minLevelOffsetToDemoteMember":  1,
-				"maxMembers":                    100,
-			}
+
+			payload := getGamePayload(
+				randomdata.FullName(randomdata.RandomGender),
+				randomdata.FullName(randomdata.RandomGender),
+			)
 			res := PostJSON(a, "/games", t, payload)
 
 			res.Status(http.StatusOK)
@@ -295,14 +308,31 @@ func TestGameHandler(t *testing.T) {
 		})
 	})
 
-	//g.Describe("Game Hooks", func() {
-	//g.Describe("Create Game Hook", func() {
-	//g.It("Should call create game hook", func() {
-	//a := GetDefaultTestApp()
-	//game := models.GameFactory.MustCreate().(*models.Game)
-	//err := a.Db.Insert(game)
-	//AssertNotError(g, err)
-	//})
-	//})
-	//})
+	g.Describe("Game Hooks", func() {
+		g.Describe("Update Game Hook", func() {
+			g.It("Should call update game hook", func() {
+				hooks, err := models.GetHooksForRoutes(testDb, []string{
+					"http://localhost:52525/update",
+				}, models.GameUpdatedHook)
+				g.Assert(err == nil).IsTrue()
+				responses := startRouteHandler([]string{"/update"}, 52525)
+
+				app := GetDefaultTestApp()
+				time.Sleep(time.Second)
+
+				gameID := hooks[0].GameID
+
+				payload := getGamePayload(gameID, uuid.NewV4().String())
+
+				route := fmt.Sprintf("/games/%s", gameID)
+				res := PutJSON(app, route, t, payload)
+				res.Status(http.StatusOK)
+				var result map[string]interface{}
+				json.Unmarshal([]byte(res.Body().Raw()), &result)
+				g.Assert(result["success"]).IsTrue()
+
+				g.Assert(len(*responses)).Equal(1)
+			})
+		})
+	})
 }

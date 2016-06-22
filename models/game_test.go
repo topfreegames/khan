@@ -17,7 +17,6 @@ import (
 func TestGameModel(t *testing.T) {
 	g := Goblin(t)
 	testDb, err := GetTestDB()
-
 	g.Assert(err == nil).IsTrue()
 
 	g.Describe("Game Model", func() {

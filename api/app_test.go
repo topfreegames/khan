@@ -81,19 +81,18 @@ func Test(t *testing.T) {
 			hooks, err := models.GetHooksForRoutes(testDb, []string{
 				"http://localhost:52525/created",
 				"http://localhost:52525/created2",
-			}, models.GameCreatedHook)
+			}, models.GameUpdatedHook)
 			g.Assert(err == nil).IsTrue()
 			responses := startRouteHandler([]string{"/created", "/created2"}, 52525)
 
 			app := GetDefaultTestApp()
-			//app.loadHooks()
 			time.Sleep(time.Second)
 
 			resultingPayload := map[string]interface{}{
 				"success":  true,
 				"publicID": hooks[0].GameID,
 			}
-			err = app.DispatchHooks(hooks[0].GameID, models.GameCreatedHook, resultingPayload)
+			err = app.DispatchHooks(hooks[0].GameID, models.GameUpdatedHook, resultingPayload)
 			g.Assert(err == nil).IsTrue()
 
 			g.Assert(len(*responses)).Equal(2)

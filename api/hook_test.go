@@ -33,7 +33,7 @@ func TestHookHandler(t *testing.T) {
 			AssertNotError(g, err)
 
 			payload := map[string]interface{}{
-				"type":    models.GameCreatedHook,
+				"type":    models.GameUpdatedHook,
 				"hookURL": "http://test/create",
 			}
 			res := PostJSON(a, GetGameRoute(game.PublicID, "/hooks"), t, payload)
@@ -83,7 +83,7 @@ func TestHookHandler(t *testing.T) {
 		g.It("Should delete hook", func() {
 			a := GetDefaultTestApp()
 
-			hook, err := models.CreateHookFactory(testDb, "", models.GameCreatedHook, "http://test/update")
+			hook, err := models.CreateHookFactory(testDb, "", models.GameUpdatedHook, "http://test/update")
 			g.Assert(err == nil).IsTrue()
 
 			res := Delete(a, GetGameRoute(hook.GameID, fmt.Sprintf("/hooks/%s", hook.PublicID)), t)

@@ -38,7 +38,7 @@ var GameFactory = factory.NewFactory(
 
 // HookFactory is responsible for constructing event hook instances
 var HookFactory = factory.NewFactory(
-	&Hook{EventType: GameCreatedHook, URL: "http://test/game-created"},
+	&Hook{EventType: GameUpdatedHook, URL: "http://test/game-created"},
 )
 
 // CreateHookFactory is responsible for creating a test hook instance with the associated game
