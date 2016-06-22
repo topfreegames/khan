@@ -51,6 +51,7 @@ Khan API
     	"minLevelToAcceptApplication":   [int],     
     	"minLevelToCreateInvitation":    [int],
     	"minLevelToRemoveMember":        [int],
+      "MinLevelOffsetToRemoveMember":  [int],
     	"minLevelOffsetToPromoteMember": [int],
     	"minLevelOffsetToDemoteMember":  [int],
     	"maxMembers":                    [int]
@@ -69,9 +70,11 @@ Khan API
 
       **minLevelToCreateInvitation**: A member cannot invite a player to join the clan unless their level is greater or equal to this parameter.
 
-      **minLevelOffsetToPromoteMember**: A member cannot promote a member unless their level is at least `minLevelOffsetToPromoteMember` levels greater than the level of the player they wish to promote.
+      **MinLevelOffsetToRemoveMember**: A member cannot remove another member unless their level is at least `MinLevelOffsetToRemoveMember` levels greater than the level of the member they wish to promote.
 
-      **minLevelOffsetToDemoteMember**: A member cannot demote a member unless their level is at least `minLevelOffsetToDemoteMember` levels greater than the level of the player they wish to demote.
+      **minLevelOffsetToPromoteMember**: A member cannot promote another member unless their level is at least `minLevelOffsetToPromoteMember` levels greater than the level of the member they wish to promote.
+
+      **minLevelOffsetToDemoteMember**: A member cannot demote another member unless their level is at least `minLevelOffsetToDemoteMember` levels greater than the level of the member they wish to demote.
 
       **maxMembers**: Maximum number of members a clan of this game can have.
 
