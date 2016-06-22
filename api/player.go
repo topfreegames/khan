@@ -50,6 +50,7 @@ func CreatePlayerHandler(app *App) func(c *iris.Context) {
 		}
 
 		result := map[string]interface{}{
+			"success":  true,
 			"gameID":   gameID,
 			"publicID": player.PublicID,
 			"name":     player.Name,
@@ -89,6 +90,7 @@ func UpdatePlayerHandler(app *App) func(c *iris.Context) {
 		}
 
 		result := map[string]interface{}{
+			"success":  true,
 			"gameID":   gameID,
 			"publicID": playerPublicID,
 			"name":     payload.Name,
