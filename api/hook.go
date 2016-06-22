@@ -12,7 +12,7 @@ import (
 	"github.com/topfreegames/khan/models"
 )
 
-type createHookPayload struct {
+type hookPayload struct {
 	Type    int
 	HookURL string
 }
@@ -22,7 +22,7 @@ func CreateHookHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
 		gameID := c.Param("gameID")
 
-		var payload createHookPayload
+		var payload hookPayload
 		if err := LoadJSONPayload(&payload, c); err != nil {
 			FailWith(400, err.Error(), c)
 			return
@@ -45,5 +45,28 @@ func CreateHookHandler(app *App) func(c *iris.Context) {
 		SucceedWith(map[string]interface{}{
 			"publicID": hook.PublicID,
 		}, c)
+	}
+}
+
+// RemoveHookHandler is the handler responsible for removing existing hooks
+func RemoveHookHandler(app *App) func(c *iris.Context) {
+	return func(c *iris.Context) {
+		gameID := c.Param("gameID")
+		publicID := c.Param("publicID")
+
+		db := GetCtxDB(c)
+
+		err := models.RemoveHook(
+			db,
+			gameID,
+			publicID,
+		)
+
+		if err != nil {
+			FailWith(500, err.Error(), c)
+			return
+		}
+
+		SucceedWith(map[string]interface{}{}, c)
 	}
 }

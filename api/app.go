@@ -115,6 +115,7 @@ func (app *App) configureApplication() {
 
 	// Hook Routes
 	a.Post("/games/:gameID/hooks", CreateHookHandler(app))
+	a.Delete("/games/:gameID/hooks/:publicID", RemoveHookHandler(app))
 
 	// Player Routes
 	a.Post("/games/:gameID/players", CreatePlayerHandler(app))
