@@ -23,6 +23,7 @@ type gamePayload struct {
 	MinLevelToAcceptApplication   int
 	MinLevelToCreateInvitation    int
 	MinLevelToRemoveMember        int
+	MinLevelOffsetToRemoveMember  int
 	MinLevelOffsetToPromoteMember int
 	MinLevelOffsetToDemoteMember  int
 	MaxMembers                    int
@@ -37,6 +38,7 @@ type createGamePayload struct {
 	MinLevelToAcceptApplication   int
 	MinLevelToCreateInvitation    int
 	MinLevelToRemoveMember        int
+	MinLevelOffsetToRemoveMember  int
 	MinLevelOffsetToPromoteMember int
 	MinLevelOffsetToDemoteMember  int
 	MaxMembers                    int
@@ -91,6 +93,7 @@ func CreateGameHandler(app *App) func(c *iris.Context) {
 			payload.MinLevelToRemoveMember,
 			payload.MinLevelToCreateInvitation,
 			payload.MinLevelToRemoveMember,
+			payload.MinLevelOffsetToRemoveMember,
 			payload.MinLevelOffsetToPromoteMember,
 			payload.MinLevelOffsetToDemoteMember,
 			payload.MaxMembers,
@@ -135,6 +138,7 @@ func UpdateGameHandler(app *App) func(c *iris.Context) {
 			payload.MinLevelToAcceptApplication,
 			payload.MinLevelToCreateInvitation,
 			payload.MinLevelToRemoveMember,
+			payload.MinLevelOffsetToRemoveMember,
 			payload.MinLevelOffsetToPromoteMember,
 			payload.MinLevelOffsetToDemoteMember,
 			payload.MaxMembers,
