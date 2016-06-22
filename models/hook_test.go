@@ -9,6 +9,7 @@ package models
 
 import (
 	"testing"
+	"time"
 
 	. "github.com/franela/goblin"
 	"github.com/satori/go.uuid"
@@ -27,7 +28,7 @@ func TestHookModel(t *testing.T) {
 				hook := &Hook{
 					GameID:    "test",
 					PublicID:  uuid.NewV4().String(),
-					EventType: GameCreatedHook,
+					EventType: GameUpdatedHook,
 					URL:       "http://test/created",
 				}
 				err := testDb.Insert(hook)
@@ -43,10 +44,12 @@ func TestHookModel(t *testing.T) {
 			})
 
 			g.It("Should update a Hook", func() {
-				hook, err := CreateHookFactory(testDb, "", GameCreatedHook, "http://test/updated")
+				hook, err := CreateHookFactory(testDb, "", GameUpdatedHook, "http://test/updated")
 				g.Assert(err == nil).IsTrue()
 				dt := hook.UpdatedAt
 				hook.URL = "http://test/updated2"
+
+				time.Sleep(time.Millisecond)
 
 				count, err := testDb.Update(hook)
 				g.Assert(err == nil).IsTrue()
@@ -58,7 +61,7 @@ func TestHookModel(t *testing.T) {
 
 		g.Describe("Get Hook By ID", func() {
 			g.It("Should get existing Hook", func() {
-				hook, err := CreateHookFactory(testDb, "", GameCreatedHook, "http://test/getbyid")
+				hook, err := CreateHookFactory(testDb, "", GameUpdatedHook, "http://test/getbyid")
 				g.Assert(err == nil).IsTrue()
 
 				dbHook, err := GetHookByID(testDb, hook.ID)
@@ -75,7 +78,7 @@ func TestHookModel(t *testing.T) {
 
 		g.Describe("Get Hook By Public ID", func() {
 			g.It("Should get existing Hook", func() {
-				hook, err := CreateHookFactory(testDb, "", GameCreatedHook, "http://test/getbyid")
+				hook, err := CreateHookFactory(testDb, "", GameUpdatedHook, "http://test/getbyid")
 				g.Assert(err == nil).IsTrue()
 
 				dbHook, err := GetHookByPublicID(testDb, hook.GameID, hook.PublicID)
@@ -95,7 +98,7 @@ func TestHookModel(t *testing.T) {
 				hook, err := CreateHook(
 					testDb,
 					"create-1",
-					GameCreatedHook,
+					GameUpdatedHook,
 					"http://test/created",
 				)
 				g.Assert(err == nil).IsTrue()
@@ -112,7 +115,7 @@ func TestHookModel(t *testing.T) {
 
 		g.Describe("Remove Hook", func() {
 			g.It("Should remove a Hook with RemoveHook", func() {
-				hook, err := CreateHookFactory(testDb, "", GameCreatedHook, "http://test/update")
+				hook, err := CreateHookFactory(testDb, "", GameUpdatedHook, "http://test/update")
 				g.Assert(err == nil).IsTrue()
 
 				err = RemoveHook(

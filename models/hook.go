@@ -16,10 +16,8 @@ import (
 )
 
 const (
-	//GameCreatedHook indicates an event that happens when a game is created
-	GameCreatedHook = iota
 	//GameUpdatedHook indicates an event that happens when a game is updated
-	GameUpdatedHook
+	GameUpdatedHook = iota
 )
 
 // Hook identifies a webhook for a given event

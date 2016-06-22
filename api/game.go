@@ -149,6 +149,9 @@ func UpdateGameHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
+		successPayload := map[string]interface{}{"success": true}
+		app.DispatchHooks(gameID, models.GameUpdatedHook, successPayload)
+
 		SucceedWith(map[string]interface{}{}, c)
 	}
 }
