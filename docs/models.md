@@ -1,4 +1,0 @@
-Khan Models
-===========
-
-Coming soon.

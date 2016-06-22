@@ -184,12 +184,12 @@ Khan API
 
 ## Hook Routes
 
-More about web hooks can be found in [Using WebHooks](using_webhooks).
+More about web hooks can be found in [Using WebHooks](using_webhooks.html).
 
   ### Supported Web Hook Event Types
 
-  * 0 - Game Created - Same payload as the response of the Create Game Route
-  * 1 - Game Updated - Same payload as the response of the Update Game Route
+  * `0 Game Created` - Same payload as the response of the Create Game Route
+  * `1 Game Updated` - Same payload as the response of the Update Game Route
 
   ### Create Hook
 
