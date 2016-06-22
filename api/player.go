@@ -50,7 +50,10 @@ func CreatePlayerHandler(app *App) func(c *iris.Context) {
 		}
 
 		result := map[string]interface{}{
+			"gameID":   gameID,
 			"publicID": player.PublicID,
+			"name":     player.Name,
+			"metadata": player.Metadata,
 		}
 		app.DispatchHooks(gameID, models.PlayerCreatedHook, result)
 
@@ -84,6 +87,14 @@ func UpdatePlayerHandler(app *App) func(c *iris.Context) {
 			FailWith(500, err.Error(), c)
 			return
 		}
+
+		result := map[string]interface{}{
+			"gameID":   gameID,
+			"publicID": playerPublicID,
+			"name":     payload.Name,
+			"metadata": payload.Metadata,
+		}
+		app.DispatchHooks(gameID, models.PlayerUpdatedHook, result)
 
 		SucceedWith(map[string]interface{}{}, c)
 	}

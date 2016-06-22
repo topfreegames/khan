@@ -176,33 +176,74 @@ func TestPlayerHandler(t *testing.T) {
 	})
 
 	g.Describe("Player Hooks", func() {
-		g.Describe("Create Player Hook", func() {
-			g.It("Should call create player hook", func() {
-				hooks, err := models.GetHooksForRoutes(testDb, []string{
-					"http://localhost:52525/playercreated",
-				}, models.PlayerCreatedHook)
-				g.Assert(err == nil).IsTrue()
-				responses := startRouteHandler([]string{"/playercreated"}, 52525)
+		g.It("Should call create player hook", func() {
+			hooks, err := models.GetHooksForRoutes(testDb, []string{
+				"http://localhost:52525/playercreated",
+			}, models.PlayerCreatedHook)
+			g.Assert(err == nil).IsTrue()
+			responses := startRouteHandler([]string{"/playercreated"}, 52525)
 
-				app := GetDefaultTestApp()
-				time.Sleep(time.Second)
+			app := GetDefaultTestApp()
+			time.Sleep(time.Second)
 
-				gameID := hooks[0].GameID
-				payload := map[string]interface{}{
-					"publicID": randomdata.FullName(randomdata.RandomGender),
-					"name":     randomdata.FullName(randomdata.RandomGender),
-					"metadata": "{\"x\": 1}",
-				}
-				res := PostJSON(app, GetGameRoute(gameID, "/players"), t, payload)
+			gameID := hooks[0].GameID
+			payload := map[string]interface{}{
+				"publicID": randomdata.FullName(randomdata.RandomGender),
+				"name":     randomdata.FullName(randomdata.RandomGender),
+				"metadata": "{\"x\": 1}",
+			}
+			res := PostJSON(app, GetGameRoute(gameID, "/players"), t, payload)
 
-				res.Status(http.StatusOK)
-				var result map[string]interface{}
-				json.Unmarshal([]byte(res.Body().Raw()), &result)
-				g.Assert(result["success"]).IsTrue()
-				g.Assert(result["publicID"]).Equal(payload["publicID"].(string))
+			res.Status(http.StatusOK)
+			var result map[string]interface{}
+			json.Unmarshal([]byte(res.Body().Raw()), &result)
+			g.Assert(result["success"]).IsTrue()
+			g.Assert(result["publicID"]).Equal(payload["publicID"].(string))
 
-				g.Assert(len(*responses)).Equal(1)
-			})
+			g.Assert(len(*responses)).Equal(1)
+
+			player := (*responses)[0]
+			g.Assert(player["gameID"]).Equal(gameID)
+			g.Assert(player["publicID"]).Equal(payload["publicID"])
+			g.Assert(player["name"]).Equal(payload["name"])
+			g.Assert(player["metadata"]).Equal(payload["metadata"])
 		})
+
+		g.It("Should call update player hook", func() {
+			hooks, err := models.GetHooksForRoutes(testDb, []string{
+				"http://localhost:52525/updated",
+			}, models.PlayerUpdatedHook)
+			g.Assert(err == nil).IsTrue()
+			responses := startRouteHandler([]string{"/updated"}, 52525)
+
+			player := models.PlayerFactory.MustCreateWithOption(map[string]interface{}{"GameID": hooks[0].GameID}).(*models.Player)
+			err = testDb.Insert(player)
+			AssertNotError(g, err)
+
+			app := GetDefaultTestApp()
+			time.Sleep(time.Second)
+
+			gameID := hooks[0].GameID
+			payload := map[string]interface{}{
+				"publicID": player.PublicID,
+				"name":     player.Name,
+				"metadata": player.Metadata,
+			}
+			res := PutJSON(app, GetGameRoute(gameID, fmt.Sprintf("/players/%s", player.PublicID)), t, payload)
+
+			res.Status(http.StatusOK)
+			var result map[string]interface{}
+			json.Unmarshal([]byte(res.Body().Raw()), &result)
+			g.Assert(result["success"]).IsTrue()
+
+			g.Assert(len(*responses)).Equal(1)
+
+			playerPayload := (*responses)[0]
+			g.Assert(playerPayload["gameID"]).Equal(gameID)
+			g.Assert(playerPayload["publicID"]).Equal(payload["publicID"])
+			g.Assert(playerPayload["name"]).Equal(payload["name"])
+			g.Assert(playerPayload["metadata"]).Equal(payload["metadata"])
+		})
+
 	})
 }
