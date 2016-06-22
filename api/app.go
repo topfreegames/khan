@@ -8,17 +8,20 @@
 package api
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
 
 	"gopkg.in/gorp.v1"
 
+	"github.com/golang/glog"
 	_ "github.com/jinzhu/gorm/dialects/postgres" // This is required to use postgres with gorm
 	"github.com/kataras/iris"
 	"github.com/kataras/iris/middleware/logger"
 	"github.com/spf13/viper"
 	"github.com/topfreegames/khan/models"
+	"github.com/valyala/fasthttp"
 )
 
 // App is a struct that represents a Khan API Application
@@ -62,6 +65,7 @@ func (app *App) setConfigurationDefaults() {
 	app.Config.SetDefault("postgres.dbName", "khan")
 	app.Config.SetDefault("postgres.port", 5432)
 	app.Config.SetDefault("postgres.sslMode", "disable")
+	app.Config.SetDefault("webhooks.timeout", 2)
 }
 
 func (app *App) loadConfiguration() {
@@ -71,7 +75,7 @@ func (app *App) loadConfiguration() {
 	app.Config.AutomaticEnv()
 
 	if err := app.Config.ReadInConfig(); err == nil {
-		fmt.Println("Using config file:", app.Config.ConfigFileUsed())
+		glog.Infof("Using config file: %s", app.Config.ConfigFileUsed())
 	} else {
 		panic(fmt.Sprintf("Could not load configuration file from: %s", app.ConfigPath))
 	}
@@ -146,7 +150,9 @@ func (app *App) loadHooks() {
 	go (func(a *App) {
 		hooks, err := models.GetAllHooks(a.Db)
 		if err != nil {
-			fmt.Println(fmt.Sprintf("Failed to retrieve hooks: %s", err.Error()))
+			glog.Fatalf(
+				"Failed to retrieve hooks: %s", err.Error(),
+			)
 		}
 		for _, hook := range hooks {
 			if app.Hooks[hook.GameID] == nil {
@@ -160,6 +166,63 @@ func (app *App) loadHooks() {
 
 		time.Sleep(time.Minute)
 	})(app)
+}
+
+type HookNotFoundError struct {
+	GameID    string
+	EventType int
+}
+
+func (hook *HookNotFoundError) Error() string {
+	return fmt.Sprintf("Hook not found for game %s with event type %d...", hook.GameID, hook.EventType)
+}
+
+// DispatchHooks dispatches web hooks for a specific game and event type
+func (app *App) DispatchHooks(gameID string, eventType int, payload map[string]interface{}) error {
+	if _, ok := app.Hooks[gameID]; !ok {
+		return &HookNotFoundError{GameID: gameID, EventType: eventType}
+	}
+	if _, ok := app.Hooks[gameID][eventType]; !ok {
+		return &HookNotFoundError{GameID: gameID, EventType: eventType}
+	}
+
+	timeout := time.Duration(app.Config.GetInt("webhooks.timeout")) * time.Second
+	payloadJSON, err := json.Marshal(payload)
+	if err != nil {
+		return err
+	}
+
+	var errors []error
+	for _, hook := range app.Hooks[gameID][eventType] {
+		glog.Infof("Sending webhook to %s", hook.URL)
+
+		client := fasthttp.Client{
+			Name: fmt.Sprintf("khan-%s", VERSION),
+		}
+
+		req := fasthttp.AcquireRequest()
+		req.Header.SetMethod("POST")
+		req.SetRequestURI(hook.URL)
+		req.AppendBody(payloadJSON)
+		resp := fasthttp.AcquireResponse()
+		err := client.DoTimeout(req, resp, timeout)
+		if err != nil {
+			glog.Error(fmt.Sprintf("Could not request webhook %s: %s", hook.URL, err.Error()))
+			errors = append(errors, err)
+			continue
+		}
+		if resp.StatusCode() > 399 {
+			glog.Error(fmt.Sprintf(
+				"Could not request webhook %s (status code: %d): %s",
+				hook.URL,
+				resp.StatusCode(),
+				resp.Body(),
+			))
+			continue
+		}
+	}
+
+	return nil
 }
 
 func (app *App) finalizeApp() {
