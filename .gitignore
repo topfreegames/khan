@@ -26,3 +26,4 @@ coverage*.out
 vendor/
 /khan
 docs/_build
+/docs/_build
