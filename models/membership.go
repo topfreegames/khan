@@ -304,7 +304,7 @@ func DeleteMembership(db DB, gameID, playerPublicID, clanPublicID, requestorPubl
 	if gameErr != nil {
 		return gameErr
 	}
-	if isValidMember(reqMembership) && reqMembership.Level >= game.MinLevelToRemoveMember {
+	if isValidMember(reqMembership) && reqMembership.Level >= game.MinLevelToRemoveMember && reqMembership.Level >= membership.Level+game.MinLevelOffsetToRemoveMember {
 		return deleteMembershipHelper(db, membership, reqMembership.PlayerID)
 	}
 	return &PlayerCannotPerformMembershipActionError{"delete", playerPublicID, clanPublicID, requestorPublicID}
