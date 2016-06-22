@@ -98,7 +98,11 @@ func UpdateGame(db DB, publicID, name, metadata string,
 	game, err := GetGameByPublicID(db, publicID)
 
 	if err != nil {
-		return nil, err
+		return CreateGame(
+			db, publicID, name, metadata, minLevel, maxLevel, minLevelAccept,
+			minLevelCreate, minLevelRemove, minOffsetRemove, minOffsetPromote,
+			minOffsetDemote, maxMembers,
+		)
 	}
 
 	game.Name = name

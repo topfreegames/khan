@@ -12,6 +12,7 @@ import (
 	"time"
 
 	. "github.com/franela/goblin"
+	"github.com/satori/go.uuid"
 )
 
 func TestGameModel(t *testing.T) {
@@ -172,17 +173,32 @@ func TestGameModel(t *testing.T) {
 				g.Assert(dbGame.Metadata).Equal(updGame.Metadata)
 			})
 
-			g.It("Should not update a Game that does not exist with UpdateGame", func() {
-				_, err := UpdateGame(
+			g.It("Should create a Game with UpdateGame if game does not exist", func() {
+				gameID := uuid.NewV4().String()
+				updGame, err := UpdateGame(
 					testDb,
-					"-1",
-					"game-new-name",
+					gameID,
+					gameID,
 					"{\"x\": 1}",
-					2, 12, 5, 4, 7, 1, 1, 2, 100,
+					2, 12, 5, 4, 7, 1, 1, 1, 100,
 				)
 
-				g.Assert(err == nil).IsFalse()
-				g.Assert(err.Error()).Equal("Game was not found with id: -1")
+				g.Assert(err == nil).IsTrue()
+
+				dbGame, err := GetGameByPublicID(testDb, gameID)
+				g.Assert(err == nil).IsTrue()
+				g.Assert(dbGame.PublicID).Equal(updGame.PublicID)
+				g.Assert(dbGame.Name).Equal(updGame.Name)
+				g.Assert(dbGame.MinMembershipLevel).Equal(updGame.MinMembershipLevel)
+				g.Assert(dbGame.MaxMembershipLevel).Equal(updGame.MaxMembershipLevel)
+				g.Assert(dbGame.MinLevelToAcceptApplication).Equal(updGame.MinLevelToAcceptApplication)
+				g.Assert(dbGame.MinLevelToCreateInvitation).Equal(updGame.MinLevelToCreateInvitation)
+				g.Assert(dbGame.MinLevelToRemoveMember).Equal(updGame.MinLevelToRemoveMember)
+				g.Assert(dbGame.MinLevelOffsetToRemoveMember).Equal(updGame.MinLevelOffsetToRemoveMember)
+				g.Assert(dbGame.MinLevelOffsetToPromoteMember).Equal(updGame.MinLevelOffsetToPromoteMember)
+				g.Assert(dbGame.MinLevelOffsetToDemoteMember).Equal(updGame.MinLevelOffsetToDemoteMember)
+				g.Assert(dbGame.MaxMembers).Equal(updGame.MaxMembers)
+				g.Assert(dbGame.Metadata).Equal(updGame.Metadata)
 			})
 
 			g.It("Should not update a Game with Invalid Data with UpdateGame", func() {
