@@ -903,6 +903,7 @@ func TestMembershipModel(t *testing.T) {
 				memberships[1].DeletedAt = time.Now().UnixNano() / 1000000
 				memberships[1].DeletedBy = players[1].ID
 				_, err = testDb.Update(memberships[1])
+				g.Assert(err == nil).IsTrue()
 
 				_, err = ApproveOrDenyMembershipApplication(
 					testDb,
@@ -1036,6 +1037,7 @@ func TestMembershipModel(t *testing.T) {
 
 				memberships[0].RequestorID = memberships[0].PlayerID
 				_, err = testDb.Update(memberships[0])
+				g.Assert(err == nil).IsTrue()
 
 				updatedMembership, err := ApproveOrDenyMembershipApplication(
 					testDb,
@@ -1064,6 +1066,7 @@ func TestMembershipModel(t *testing.T) {
 
 				memberships[0].RequestorID = memberships[0].PlayerID
 				_, err = testDb.Update(memberships[0])
+				g.Assert(err == nil).IsTrue()
 
 				_, err = ApproveOrDenyMembershipApplication(
 					testDb,
@@ -1087,6 +1090,7 @@ func TestMembershipModel(t *testing.T) {
 
 				memberships[0].Approved = true
 				_, err = testDb.Update(memberships[0])
+				g.Assert(err == nil).IsTrue()
 
 				updatedMembership, err := PromoteOrDemoteMember(
 					testDb,
@@ -1113,10 +1117,12 @@ func TestMembershipModel(t *testing.T) {
 
 				memberships[0].Approved = true
 				_, err = testDb.Update(memberships[0])
+				g.Assert(err == nil).IsTrue()
 
 				memberships[1].Level = 5
 				memberships[1].Approved = true
 				_, err = testDb.Update(memberships[1])
+				g.Assert(err == nil).IsTrue()
 
 				updatedMembership, err := PromoteOrDemoteMember(
 					testDb,
@@ -1145,6 +1151,7 @@ func TestMembershipModel(t *testing.T) {
 
 				memberships[0].Approved = true
 				_, err = testDb.Update(memberships[0])
+				g.Assert(err == nil).IsTrue()
 
 				_, err = PromoteOrDemoteMember(
 					testDb,
@@ -1166,10 +1173,12 @@ func TestMembershipModel(t *testing.T) {
 
 				memberships[0].Approved = true
 				_, err = testDb.Update(memberships[0])
+				g.Assert(err == nil).IsTrue()
 
 				memberships[1].Level = 0
 				memberships[1].Approved = true
 				_, err = testDb.Update(memberships[1])
+				g.Assert(err == nil).IsTrue()
 
 				_, err = PromoteOrDemoteMember(
 					testDb,
@@ -1191,6 +1200,7 @@ func TestMembershipModel(t *testing.T) {
 
 				memberships[0].Approved = true
 				_, err = testDb.Update(memberships[0])
+				g.Assert(err == nil).IsTrue()
 
 				requestorPublicID := randomdata.FullName(randomdata.RandomGender)
 				_, err = PromoteOrDemoteMember(
@@ -1217,6 +1227,7 @@ func TestMembershipModel(t *testing.T) {
 				memberships[1].DeletedAt = time.Now().UnixNano() / 1000000
 				memberships[1].DeletedBy = clan.OwnerID
 				_, err = testDb.Update(memberships[1])
+				g.Assert(err == nil).IsTrue()
 
 				_, err = PromoteOrDemoteMember(
 					testDb,
@@ -1280,6 +1291,7 @@ func TestMembershipModel(t *testing.T) {
 
 				memberships[0].Denied = true
 				_, err = testDb.Update(memberships[0])
+				g.Assert(err == nil).IsTrue()
 
 				_, err = PromoteOrDemoteMember(
 					testDb,
@@ -1323,6 +1335,7 @@ func TestMembershipModel(t *testing.T) {
 				memberships[0].Approved = true
 				memberships[0].Level = 1000000
 				_, err = testDb.Update(memberships[0])
+				g.Assert(err == nil).IsTrue()
 
 				_, err = PromoteOrDemoteMember(
 					testDb,
@@ -1376,6 +1389,7 @@ func TestMembershipModel(t *testing.T) {
 				memberships[0].Approved = true
 				memberships[0].Level = 0
 				_, err = testDb.Update(memberships[0])
+				g.Assert(err == nil).IsTrue()
 
 				_, err = PromoteOrDemoteMember(
 					testDb,
@@ -1398,6 +1412,7 @@ func TestMembershipModel(t *testing.T) {
 
 				memberships[0].Approved = true
 				_, err = testDb.Update(memberships[0])
+				g.Assert(err == nil).IsTrue()
 
 				_, err = PromoteOrDemoteMember(
 					testDb,
@@ -1458,13 +1473,14 @@ func TestMembershipModel(t *testing.T) {
 				g.Assert(dbMembership.DeletedAt > time.Now().UnixNano()/1000000-1000).IsTrue()
 			})
 
-			g.It("If requestor has enough level", func() {
+			g.It("If requestor has enough level and offset", func() {
 				clan, _, players, memberships, err := GetClanWithMemberships(testDb, 2, "", "")
 				g.Assert(err == nil).IsTrue()
 
 				memberships[1].Level = 5
 				memberships[1].Approved = true
 				_, err = testDb.Update(memberships[1])
+				g.Assert(err == nil).IsTrue()
 
 				err = DeleteMembership(
 					testDb,
@@ -1492,6 +1508,22 @@ func TestMembershipModel(t *testing.T) {
 				memberships[1].Level = 0
 				memberships[1].Approved = true
 				_, err = testDb.Update(memberships[1])
+				g.Assert(err == nil).IsTrue()
+
+				err = DeleteMembership(
+					testDb,
+					clan.GameID,
+					players[0].PublicID,
+					clan.PublicID,
+					players[1].PublicID,
+				)
+				g.Assert(err != nil).IsTrue()
+				g.Assert(err.Error()).Equal(fmt.Sprintf("Player %s cannot %s membership for player %s and clan %s", players[1].PublicID, "delete", players[0].PublicID, clan.PublicID))
+			})
+
+			g.It("If requestor has enough level but not enough offset", func() {
+				clan, _, players, _, err := GetClanWithMemberships(testDb, 2, "", "")
+				g.Assert(err == nil).IsTrue()
 
 				err = DeleteMembership(
 					testDb,
