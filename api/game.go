@@ -149,7 +149,21 @@ func UpdateGameHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
-		successPayload := map[string]interface{}{"success": true}
+		successPayload := map[string]interface{}{
+			"success":                       true,
+			"publicID":                      gameID,
+			"name":                          payload.Name,
+			"metadata":                      payload.Metadata,
+			"minMembershipLevel":            payload.MinMembershipLevel,
+			"maxMembershipLevel":            payload.MaxMembershipLevel,
+			"minLevelToAcceptApplication":   payload.MinLevelToAcceptApplication,
+			"minLevelToCreateInvitation":    payload.MinLevelToCreateInvitation,
+			"minLevelToRemoveMember":        payload.MinLevelToRemoveMember,
+			"minLevelOffsetToRemoveMember":  payload.MinLevelOffsetToRemoveMember,
+			"minLevelOffsetToPromoteMember": payload.MinLevelOffsetToPromoteMember,
+			"minLevelOffsetToDemoteMember":  payload.MinLevelOffsetToDemoteMember,
+			"maxMembers":                    payload.MaxMembers,
+		}
 		app.DispatchHooks(gameID, models.GameUpdatedHook, successPayload)
 
 		SucceedWith(map[string]interface{}{}, c)

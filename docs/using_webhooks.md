@@ -29,11 +29,62 @@ We could then use this information to store this clan in our Database, to integr
 
 So what types of events can you create Web Hooks for?
 
-### Game Created
+### Game Updated
 
 Event Type: `0`
 
-Payload: `{
-    publicID: [uuid]
-}`
+Payload: 
 
+    {
+        "success": true,
+        "publicID": [string],                       // Game ID.
+        "name": [string],                           // Game Name.
+        "metadata": [JSON],                         // JSON Object containing game metadata.
+        "minMembershipLevel": [int],                // Minimum level of membership.
+        "maxMembershipLevel": [int],                // Maximum level of membership.
+        "minLevelToAcceptApplication": [int],       // Minimum level of membership required
+                                                    // to accept players into clan.
+        "minLevelToCreateInvitation": [int],        // Minimum level of membership required
+                                                    // to invite players into clan.
+        "minLevelToRemoveMember": [int],            // Minimum level of membership required
+                                                    // to remove players from clan.
+        "minLevelOffsetToRemoveMember": [int],      // A player must be at least this offset
+                                                    // higher than the player being removed.
+        "minLevelOffsetToPromoteMember": [int],     // A player must be at least this offset
+                                                    // higher than the player being promoted.
+        "minLevelOffsetToDemoteMember": [int],      // A player must be at least this offset
+                                                    // higher than the player being demoted.
+        "maxMembers": [int]                         // Maximum number of players in the clan.
+    }
+
+### Player Created
+
+Event Type: `1`
+
+Payload:
+
+    {
+        "success": true,
+        "gameID":  [string],                        // Game ID
+        "publicID": [string],                       // Created Player PublicID. This id should
+                                                    // be used when referring to the player in 
+                                                    // future operations.
+        "name": [string],                           // Player Name
+        "metadata": [JSON],                         // JSON Object containing player metadata
+    }
+
+### Player Updated
+
+Event Type: `2`
+
+Payload:
+
+    {
+        "success": true,
+        "gameID":  [string],                        // Game ID
+        "publicID": [string],                       // Created Player PublicID. This id should
+                                                    // be used when referring to the player in 
+                                                    // future operations.
+        "name": [string],                           // Player Name
+        "metadata": [JSON],                         // JSON Object containing player metadata
+    }
