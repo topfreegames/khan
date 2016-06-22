@@ -56,6 +56,12 @@ func sendJSON(app *App, method, url string, t *testing.T, payload map[string]int
 	return req.WithJSON(payload).Expect()
 }
 
+// Delete returns a test request against specified URL
+func Delete(app *App, url string, t *testing.T) *httpexpect.Response {
+	req := sendRequest(app, "DELETE", url, t)
+	return req.Expect()
+}
+
 func sendRequest(app *App, method, url string, t *testing.T) *httpexpect.Request {
 	handler := app.App.NoListen().Handler
 

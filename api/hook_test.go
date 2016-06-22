@@ -9,6 +9,7 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strings"
 	"testing"
@@ -19,6 +20,10 @@ import (
 
 func TestHookHandler(t *testing.T) {
 	g := Goblin(t)
+
+	testDb, err := models.GetTestDB()
+
+	g.Assert(err == nil).IsTrue()
 
 	g.Describe("Create Hook Handler", func() {
 		g.It("Should create hook", func() {
@@ -71,6 +76,28 @@ func TestHookHandler(t *testing.T) {
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
 			g.Assert(strings.Contains(result["reason"].(string), "While trying to read JSON")).IsTrue()
+		})
+	})
+
+	g.Describe("Delete Hook Handler", func() {
+		g.It("Should delete hook", func() {
+			a := GetDefaultTestApp()
+
+			hook, err := models.CreateHookFactory(testDb, "", models.GameCreatedHook, "http://test/update")
+			g.Assert(err == nil).IsTrue()
+
+			res := Delete(a, GetGameRoute(hook.GameID, fmt.Sprintf("/hooks/%s", hook.PublicID)), t)
+
+			res.Status(http.StatusOK)
+
+			var result map[string]interface{}
+			json.Unmarshal([]byte(res.Body().Raw()), &result)
+			g.Assert(result["success"]).IsTrue()
+
+			number, err := testDb.SelectInt("select count(*) from hooks where id=$1", hook.ID)
+			fmt.Println(err)
+			g.Assert(err == nil).IsTrue()
+			g.Assert(number == 0).IsTrue()
 		})
 	})
 }
