@@ -8,29 +8,16 @@ Khan documentation
 
 Contents:
 
-.. _api-docs:
+.. _docs:
 
 .. toctree::
    :maxdepth: 2
-   :caption: API Documentation
 
+   overview
+   installing
+   hosting
+   using_webhooks
    API
-
-.. _models-docs:
-
-.. toctree::
-  :maxdepth: 2
-  :caption: Models Documentation
-
-  models
-
-.. _webhooks-docs:
-
-.. toctree::
-  :maxdepth: 2
-  :caption: Web Hooks
-
-  using_webhooks
 
 
 Indices and tables

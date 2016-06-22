@@ -32,7 +32,7 @@
   
     <link rel="top" title="Khan 0.2.1 documentation" href="index.html"/>
         <link rel="next" title="Khan Models" href="models.html"/>
-        <link rel="prev" title="Khan documentation" href="index.html"/> 
+        <link rel="prev" title="Hosting Khan" href="hosting.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -81,8 +81,10 @@
           
             
             
-                <p class="caption"><span class="caption-text">API Documentation</span></p>
-<ul class="current">
+                <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installing.html">Installing Khan</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hosting.html">Hosting Khan</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Khan API</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#healthcheck-routes">Healthcheck Routes</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#healthcheck">Healthcheck</a></li>
@@ -125,10 +127,8 @@
 </li>
 </ul>
 </li>
-</ul>
-<p class="caption"><span class="caption-text">Models Documentation</span></p>
-<ul>
 <li class="toctree-l1"><a class="reference internal" href="models.html">Khan Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="using_webhooks.html">Using Web Hooks</a></li>
 </ul>
 
             
@@ -378,12 +378,12 @@
 </div>
 <div class="section" id="hook-routes">
 <span id="hook-routes"></span><h2>Hook Routes<a class="headerlink" href="#hook-routes" title="Permalink to this headline">¶</a></h2>
-<p>More about web hooks can be found in <a class="reference external" href="using_webhooks">Using WebHooks</a>.</p>
+<p>More about web hooks can be found in <a class="reference external" href="using_webhooks.html">Using WebHooks</a>.</p>
 <div class="section" id="supported-web-hook-event-types">
 <span id="supported-web-hook-event-types"></span><h3>Supported Web Hook Event Types<a class="headerlink" href="#supported-web-hook-event-types" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li>0 - Game Created - Same payload as the response of the Create Game Route</li>
-<li>1 - Game Updated - Same payload as the response of the Update Game Route</li>
+<li><code class="docutils literal"><span class="pre">0</span> <span class="pre">Game</span> <span class="pre">Created</span></code> - Same payload as the response of the Create Game Route</li>
+<li><code class="docutils literal"><span class="pre">1</span> <span class="pre">Game</span> <span class="pre">Updated</span></code> - Same payload as the response of the Update Game Route</li>
 </ul>
 </div>
 <div class="section" id="create-hook">
@@ -846,8 +846,8 @@
       <span class="s2">&quot;membershipLevel&quot;</span><span class="p">:</span>     <span class="p">[</span><span class="nb">int</span><span class="p">],</span>
       <span class="s2">&quot;membershipApproved&quot;</span><span class="p">:</span>  <span class="p">[</span><span class="n">boolean</span><span class="p">],</span>
       <span class="s2">&quot;membershipDenied&quot;</span><span class="p">:</span>    <span class="p">[</span><span class="n">boolean</span><span class="p">],</span>
-      <span class="s2">&quot;membershipCreatedAt&quot;</span><span class="p">:</span> <span class="p">[</span><span class="nb">int</span><span class="p">],</span>     <span class="o">//</span> <span class="n">nanoseconds</span> <span class="n">since</span> <span class="n">epoch</span>
-      <span class="s2">&quot;membershipUpdatedAt&quot;</span><span class="p">:</span> <span class="p">[</span><span class="nb">int</span><span class="p">],</span>     <span class="o">//</span> <span class="n">nanoseconds</span> <span class="n">since</span> <span class="n">epoch</span>
+      <span class="s2">&quot;membershipCreatedAt&quot;</span><span class="p">:</span> <span class="p">[</span><span class="nb">int</span><span class="p">],</span>     <span class="o">//</span> <span class="n">milliseconds</span> <span class="n">since</span> <span class="n">epoch</span>
+      <span class="s2">&quot;membershipUpdatedAt&quot;</span><span class="p">:</span> <span class="p">[</span><span class="nb">int</span><span class="p">],</span>     <span class="o">//</span> <span class="n">milliseconds</span> <span class="n">since</span> <span class="n">epoch</span>
       <span class="s2">&quot;playerPublicID&quot;</span><span class="p">:</span>      <span class="p">[</span><span class="n">string</span><span class="p">],</span>
       <span class="s2">&quot;playerName&quot;</span><span class="p">:</span>          <span class="p">[</span><span class="n">string</span><span class="p">],</span>
       <span class="s2">&quot;playerMetadata&quot;</span><span class="p">:</span>      <span class="p">[</span><span class="n">JSON</span><span class="p">],</span>
@@ -1320,7 +1320,7 @@
         <a href="models.html" class="btn btn-neutral float-right" title="Khan Models" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="index.html" class="btn btn-neutral" title="Khan documentation" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="hosting.html" class="btn btn-neutral" title="Hosting Khan" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
