@@ -19,9 +19,7 @@ setup:
 	@glide install
 
 setup-docs:
-	@pip install sphinx
-	@pip install recommonmark
-	@pip install sphinx_rtd_theme
+	@pip install -q --log /tmp/pip.log --no-cache-dir sphinx recommonmark sphinx_rtd_theme
 
 setup-ci:
 	@sudo add-apt-repository -y ppa:masterminds/glide && sudo apt-get update
