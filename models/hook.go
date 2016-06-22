@@ -65,10 +65,27 @@ func GetHookByPublicID(db DB, gameID string, publicID string) (*Hook, error) {
 	return &hook, nil
 }
 
+// GetHookByDetails returns a hook by its details (GameID, EventType and Hook URL)
+// If no hook is found returns nil.
+func GetHookByDetails(db DB, gameID string, eventType int, hookURL string) *Hook {
+	var hook Hook
+	err := db.SelectOne(&hook, "SELECT * FROM hooks WHERE game_id=$1 AND event_type=$2 AND url=$3", gameID, eventType, hookURL)
+	if err != nil || &hook == nil {
+		return nil
+	}
+	return &hook
+}
+
 // CreateHook returns a newly created event hook
 func CreateHook(db DB, gameID string, eventType int, url string) (*Hook, error) {
+	hook := GetHookByDetails(db, gameID, eventType, url)
+
+	if hook != nil {
+		return hook, nil
+	}
+
 	publicID := uuid.NewV4().String()
-	hook := &Hook{
+	hook = &Hook{
 		GameID:    gameID,
 		PublicID:  publicID,
 		EventType: eventType,
