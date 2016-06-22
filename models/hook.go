@@ -21,6 +21,9 @@ const (
 
 	//PlayerCreatedHook happens when a new player is created
 	PlayerCreatedHook
+
+	//PlayerUpdatedHook happens when a player is updated
+	PlayerUpdatedHook
 )
 
 // Hook identifies a webhook for a given event
