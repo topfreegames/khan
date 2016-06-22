@@ -257,6 +257,8 @@ func GetClanDetails(db DB, gameID, publicID string) (map[string]interface{}, err
 	result := make(map[string]interface{})
 	result["name"] = details[0].ClanName
 	result["metadata"] = details[0].ClanMetadata
+	result["allowApplication"] = details[0].ClanAllowApplication
+	result["autoJoin"] = details[0].ClanAutoJoin
 
 	result["owner"] = map[string]interface{}{
 		"publicID": details[0].OwnerPublicID,
