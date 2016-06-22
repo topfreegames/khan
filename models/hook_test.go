@@ -111,6 +111,28 @@ func TestHookModel(t *testing.T) {
 				g.Assert(dbHook.EventType).Equal(hook.EventType)
 				g.Assert(dbHook.URL).Equal(hook.URL)
 			})
+
+			g.It("Create same Hook works fine", func() {
+				gameID := uuid.NewV4().String()
+				hook, err := CreateHookFactory(testDb, gameID, GameUpdatedHook, "http://test/created")
+
+				hook2, err := CreateHook(
+					testDb,
+					gameID,
+					GameUpdatedHook,
+					"http://test/created",
+				)
+				g.Assert(err == nil).IsTrue()
+				g.Assert(hook2.ID == hook.ID).IsTrue()
+
+				dbHook, err := GetHookByID(testDb, hook.ID)
+				g.Assert(err == nil).IsTrue()
+
+				g.Assert(dbHook.GameID).Equal(hook.GameID)
+				g.Assert(dbHook.EventType).Equal(hook.EventType)
+				g.Assert(dbHook.URL).Equal(hook.URL)
+			})
+
 		})
 
 		g.Describe("Remove Hook", func() {
