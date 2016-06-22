@@ -39,14 +39,14 @@ type Clan struct {
 
 // PreInsert populates fields before inserting a new clan
 func (c *Clan) PreInsert(s gorp.SqlExecutor) error {
-	c.CreatedAt = time.Now().UnixNano()
+	c.CreatedAt = time.Now().UnixNano() / 1000000
 	c.UpdatedAt = c.CreatedAt
 	return nil
 }
 
 // PreUpdate populates fields before updating a clan
 func (c *Clan) PreUpdate(s gorp.SqlExecutor) error {
-	c.UpdatedAt = time.Now().UnixNano()
+	c.UpdatedAt = time.Now().UnixNano() / 1000000
 	return nil
 }
 
@@ -167,7 +167,7 @@ func TransferClanOwnership(db DB, gameID, clanPublicID, ownerPublicID, playerPub
 			Approved:    true,
 			Denied:      false,
 			CreatedAt:   clan.CreatedAt,
-			UpdatedAt:   time.Now().UnixNano(),
+			UpdatedAt:   time.Now().UnixNano() / 1000000,
 		})
 		if err != nil {
 			return err

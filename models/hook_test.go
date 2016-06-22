@@ -8,7 +8,6 @@
 package models
 
 import (
-	"fmt"
 	"testing"
 
 	. "github.com/franela/goblin"
@@ -125,7 +124,6 @@ func TestHookModel(t *testing.T) {
 				g.Assert(err == nil).IsTrue()
 
 				number, err := testDb.SelectInt("select count(*) from hooks where id=$1", hook.ID)
-				fmt.Println(err)
 				g.Assert(err == nil).IsTrue()
 				g.Assert(number == 0).IsTrue()
 			})

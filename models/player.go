@@ -26,14 +26,14 @@ type Player struct {
 
 // PreInsert populates fields before inserting a new player
 func (p *Player) PreInsert(s gorp.SqlExecutor) error {
-	p.CreatedAt = time.Now().UnixNano()
+	p.CreatedAt = time.Now().UnixNano() / 1000000
 	p.UpdatedAt = p.CreatedAt
 	return nil
 }
 
 // PreUpdate populates fields before updating a player
 func (p *Player) PreUpdate(s gorp.SqlExecutor) error {
-	p.UpdatedAt = time.Now().UnixNano()
+	p.UpdatedAt = time.Now().UnixNano() / 1000000
 	return nil
 }
 

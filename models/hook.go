@@ -35,14 +35,14 @@ type Hook struct {
 
 // PreInsert populates fields before inserting a new hook
 func (h *Hook) PreInsert(s gorp.SqlExecutor) error {
-	h.CreatedAt = time.Now().UnixNano()
+	h.CreatedAt = time.Now().UnixNano() / 1000000
 	h.UpdatedAt = h.CreatedAt
 	return nil
 }
 
 // PreUpdate populates fields before updating a hook
 func (h *Hook) PreUpdate(s gorp.SqlExecutor) error {
-	h.UpdatedAt = time.Now().UnixNano()
+	h.UpdatedAt = time.Now().UnixNano() / 1000000
 	return nil
 }
 
