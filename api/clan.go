@@ -141,7 +141,7 @@ func LeaveClanHandler(app *App) func(c *iris.Context) {
 	}
 }
 
-// TransferOwnershipHandler is the handler responsible for transfering the clan ownership to another clan member
+// TransferOwnershipHandler is the handler responsible for transferring the clan ownership to another clan member
 func TransferOwnershipHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
 		gameID := c.Param("gameID")
