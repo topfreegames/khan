@@ -443,7 +443,7 @@ func TestClanModel(t *testing.T) {
 
 		g.Describe("Get Clan Details", func() {
 			g.It("Should get clan members", func() {
-				clan, _, players, _, err := GetClanWithMemberships(
+				clan, owner, players, _, err := GetClanWithMemberships(
 					testDb, 10, "clan-details", "clan-details-clan",
 				)
 				g.Assert(err == nil).IsTrue()
@@ -452,6 +452,9 @@ func TestClanModel(t *testing.T) {
 				g.Assert(err == nil).IsTrue()
 				g.Assert(clanData["name"]).Equal(clan.Name)
 				g.Assert(clanData["metadata"]).Equal(clan.Metadata)
+
+				g.Assert(clanData["owner"].(map[string]interface{})["publicID"]).Equal(owner.PublicID)
+
 				members := clanData["members"].([]map[string]interface{})
 				g.Assert(len(members)).Equal(10)
 

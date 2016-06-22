@@ -233,9 +233,11 @@ func GetClanDetails(db DB, gameID, publicID string) (map[string]interface{}, err
 		c.public_id ClanPublicID, c.name ClanName, c.metadata ClanMetadata,
 		m.membership_level MembershipLevel, m.approved MembershipApproved, m.denied MembershipDenied,
 		m.created_at MembershipCreatedAt, m.updated_at MembershipUpdatedAt,
+		o.public_id OwnerPublicID, o.name OwnerName, o.metadata OwnerMetadata,
 		p.public_id PlayerPublicID, p.name PlayerName, p.metadata PlayerMetadata,
 		r.public_id RequestorPublicID, r.name RequestorName
 	FROM clans c
+		INNER JOIN players o ON c.owner_id=o.id
 		LEFT OUTER JOIN memberships m ON m.clan_id=c.id AND m.deleted_at=0
 		LEFT OUTER JOIN players r ON m.requestor_id=r.id
 		LEFT OUTER JOIN players p ON m.player_id=p.id
@@ -255,6 +257,12 @@ func GetClanDetails(db DB, gameID, publicID string) (map[string]interface{}, err
 	result := make(map[string]interface{})
 	result["name"] = details[0].ClanName
 	result["metadata"] = details[0].ClanMetadata
+
+	result["owner"] = map[string]interface{}{
+		"publicID": details[0].OwnerPublicID,
+		"name":     details[0].OwnerName,
+		"metadata": details[0].OwnerMetadata,
+	}
 
 	if details[0].PlayerPublicID.Valid {
 		// First row player public id is not null, meaning we found players!
