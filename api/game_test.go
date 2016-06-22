@@ -16,15 +16,11 @@ import (
 
 	"github.com/Pallinder/go-randomdata"
 	. "github.com/franela/goblin"
-	. "github.com/onsi/gomega"
 	"github.com/topfreegames/khan/models"
 )
 
 func TestGameHandler(t *testing.T) {
 	g := Goblin(t)
-
-	// special hook for gomega
-	RegisterFailHandler(func(m string, _ ...int) { g.Fail(m) })
 
 	g.Describe("Create Game Handler", func() {
 		g.It("Should create game", func() {
@@ -290,4 +286,15 @@ func TestGameHandler(t *testing.T) {
 			g.Assert(result["reason"]).Equal("pq: invalid input syntax for type json")
 		})
 	})
+
+	//g.Describe("Game Hooks", func() {
+	//g.Describe("Create Game Hook", func() {
+	//g.It("Should call create game hook", func() {
+	//a := GetDefaultTestApp()
+	//game := models.GameFactory.MustCreate().(*models.Game)
+	//err := a.Db.Insert(game)
+	//AssertNotError(g, err)
+	//})
+	//})
+	//})
 }

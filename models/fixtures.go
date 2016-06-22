@@ -66,6 +66,37 @@ func CreateHookFactory(db DB, gameID string, eventType int, url string) (*Hook, 
 	return hook, nil
 }
 
+// GetHooksForRoutes gets hooks for all the specified routes
+func GetHooksForRoutes(db DB, routes []string, eventType int) ([]*Hook, error) {
+	var hooks []*Hook
+
+	gameID := uuid.NewV4().String()
+
+	game := GameFactory.MustCreateWithOption(map[string]interface{}{
+		"PublicID": gameID,
+	}).(*Game)
+	err := db.Insert(game)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, route := range routes {
+		hook := HookFactory.MustCreateWithOption(map[string]interface{}{
+			"GameID":    gameID,
+			"PublicID":  uuid.NewV4().String(),
+			"EventType": eventType,
+			"URL":       route,
+		}).(*Hook)
+		err := db.Insert(hook)
+		if err != nil {
+			return nil, err
+		}
+		hooks = append(hooks, hook)
+	}
+
+	return hooks, nil
+}
+
 func configureFactory(fct *factory.Factory) *factory.Factory {
 	return fct.Attr("PublicID", func(args factory.Args) (interface{}, error) {
 		return uuid.NewV4().String(), nil

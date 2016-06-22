@@ -9,6 +9,7 @@ package models
 
 import (
 	"testing"
+	"time"
 
 	"github.com/Pallinder/go-randomdata"
 	. "github.com/franela/goblin"
@@ -45,6 +46,8 @@ func TestPlayerModel(t *testing.T) {
 				player, err := CreatePlayerFactory(testDb, "")
 				g.Assert(err == nil).IsTrue()
 				dt := player.UpdatedAt
+
+				time.Sleep(time.Millisecond)
 
 				player.Metadata = "{ \"x\": 1 }"
 				count, err := testDb.Update(player)
