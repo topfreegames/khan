@@ -506,8 +506,8 @@ Khan API
             "membershipLevel":     [int],
             "membershipApproved":  [boolean],
             "membershipDenied":    [boolean],
-            "membershipCreatedAt": [int],     // nanoseconds since epoch
-            "membershipUpdatedAt": [int],     // nanoseconds since epoch
+            "membershipCreatedAt": [int],     // milliseconds since epoch
+            "membershipUpdatedAt": [int],     // milliseconds since epoch
             "playerPublicID":      [string],
             "playerName":          [string],
             "playerMetadata":      [JSON],

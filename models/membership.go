@@ -32,7 +32,7 @@ type Membership struct {
 // PreInsert populates fields before inserting a new clan
 func (m *Membership) PreInsert(s gorp.SqlExecutor) error {
 	if m.CreatedAt == 0 {
-		m.CreatedAt = time.Now().UnixNano()
+		m.CreatedAt = time.Now().UnixNano() / 1000000
 	}
 	m.UpdatedAt = m.CreatedAt
 	return nil
@@ -40,7 +40,7 @@ func (m *Membership) PreInsert(s gorp.SqlExecutor) error {
 
 // PreUpdate populates fields before updating a clan
 func (m *Membership) PreUpdate(s gorp.SqlExecutor) error {
-	m.UpdatedAt = time.Now().UnixNano()
+	m.UpdatedAt = time.Now().UnixNano() / 1000000
 	return nil
 }
 
@@ -378,7 +378,7 @@ func promoteOrDemoteMemberHelper(db DB, membership *Membership, action string) (
 }
 
 func deleteMembershipHelper(db DB, membership *Membership, deletedBy int) error {
-	membership.DeletedAt = time.Now().UnixNano()
+	membership.DeletedAt = time.Now().UnixNano() / 1000000
 	membership.DeletedBy = deletedBy
 	membership.Approved = false
 	membership.Denied = false

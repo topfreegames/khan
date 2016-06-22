@@ -294,7 +294,7 @@ func TestClanModel(t *testing.T) {
 					dbDeletedMembership, err := GetMembershipByID(testDb, memberships[0].ID)
 					g.Assert(err == nil).IsTrue()
 					g.Assert(dbDeletedMembership.DeletedBy).Equal(owner.ID)
-					g.Assert(dbDeletedMembership.DeletedAt > time.Now().UnixNano()-50000000).IsTrue()
+					g.Assert(dbDeletedMembership.DeletedAt > time.Now().UnixNano()/1000000-1000).IsTrue()
 				})
 
 				g.It("And clan has no memberships", func() {
@@ -351,7 +351,7 @@ func TestClanModel(t *testing.T) {
 					newOwnerMembership, err := GetMembershipByID(testDb, memberships[0].ID)
 					g.Assert(err == nil).IsTrue()
 					g.Assert(newOwnerMembership.DeletedBy).Equal(owner.ID)
-					g.Assert(newOwnerMembership.DeletedAt > time.Now().UnixNano()-50000000).IsTrue()
+					g.Assert(newOwnerMembership.DeletedAt > time.Now().UnixNano()/1000000-1000).IsTrue()
 				})
 
 				g.It("And not first clan owner and next owner membership exists", func() {
@@ -381,7 +381,7 @@ func TestClanModel(t *testing.T) {
 					newOwnerMembership, err := GetMembershipByID(testDb, memberships[1].ID)
 					g.Assert(err == nil).IsTrue()
 					g.Assert(newOwnerMembership.DeletedBy).Equal(players[0].ID)
-					g.Assert(newOwnerMembership.DeletedAt > time.Now().UnixNano()-50000000).IsTrue()
+					g.Assert(newOwnerMembership.DeletedAt > time.Now().UnixNano()/1000000-1000).IsTrue()
 				})
 			})
 
@@ -465,7 +465,7 @@ func TestClanModel(t *testing.T) {
 				)
 				g.Assert(err == nil).IsTrue()
 
-				memberships[9].DeletedAt = time.Now().UnixNano()
+				memberships[9].DeletedAt = time.Now().UnixNano() / 1000000
 				memberships[9].DeletedBy = clan.OwnerID
 				_, err = testDb.Update(memberships[9])
 				g.Assert(err == nil).IsTrue()

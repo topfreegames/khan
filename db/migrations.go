@@ -87,7 +87,7 @@ func migrations20160608133902_creategametableSql() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "migrations/20160608133902_CreateGameTable.sql", size: 1037, mode: os.FileMode(420), modTime: time.Unix(1466534088, 0)}
+	info := bindataFileInfo{name: "migrations/20160608133902_CreateGameTable.sql", size: 1037, mode: os.FileMode(420), modTime: time.Unix(1466119659, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -107,7 +107,7 @@ func migrations20160608150958_createplayertableSql() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "migrations/20160608150958_CreatePlayerTable.sql", size: 731, mode: os.FileMode(420), modTime: time.Unix(1466108867, 0)}
+	info := bindataFileInfo{name: "migrations/20160608150958_CreatePlayerTable.sql", size: 731, mode: os.FileMode(420), modTime: time.Unix(1466108784, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -127,7 +127,7 @@ func migrations20160608174439_createclantableSql() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "migrations/20160608174439_CreateClanTable.sql", size: 907, mode: os.FileMode(420), modTime: time.Unix(1466534088, 0)}
+	info := bindataFileInfo{name: "migrations/20160608174439_CreateClanTable.sql", size: 907, mode: os.FileMode(420), modTime: time.Unix(1466119659, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -147,7 +147,7 @@ func migrations20160608182307_createmembershiptableSql() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "migrations/20160608182307_CreateMembershipTable.sql", size: 971, mode: os.FileMode(420), modTime: time.Unix(1466108867, 0)}
+	info := bindataFileInfo{name: "migrations/20160608182307_CreateMembershipTable.sql", size: 971, mode: os.FileMode(420), modTime: time.Unix(1466108784, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -167,7 +167,7 @@ func migrations20160621161411_createhookstableSql() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "migrations/20160621161411_CreateHooksTable.sql", size: 700, mode: os.FileMode(420), modTime: time.Unix(1466538319, 0)}
+	info := bindataFileInfo{name: "migrations/20160621161411_CreateHooksTable.sql", size: 700, mode: os.FileMode(420), modTime: time.Unix(1466601889, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
