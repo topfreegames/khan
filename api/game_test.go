@@ -204,6 +204,26 @@ func TestGameHandler(t *testing.T) {
 			g.Assert(dbGame.MaxMembers).Equal(game.MaxMembers)
 		})
 
+		g.It("Should insert if game does not exist", func() {
+			a := GetDefaultTestApp()
+
+			gameID := uuid.NewV4().String()
+			payload := getGamePayload(gameID, gameID)
+
+			route := fmt.Sprintf("/games/%s", gameID)
+			res := PutJSON(a, route, t, payload)
+			res.Status(http.StatusOK)
+			var result map[string]interface{}
+			json.Unmarshal([]byte(res.Body().Raw()), &result)
+			g.Assert(result["success"]).IsTrue()
+
+			dbGame, err := models.GetGameByPublicID(a.Db, gameID)
+			AssertNotError(g, err)
+			g.Assert(dbGame.Metadata).Equal(payload["metadata"])
+			g.Assert(dbGame.PublicID).Equal(gameID)
+			g.Assert(dbGame.Name).Equal(payload["name"])
+		})
+
 		g.It("Should not update game if missing parameters", func() {
 			a := GetDefaultTestApp()
 			game := models.GameFactory.MustCreate().(*models.Game)
