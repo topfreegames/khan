@@ -168,6 +168,7 @@ func (app *App) loadHooks() {
 	})(app)
 }
 
+//HookNotFoundError means that hooks for the specified game and event type were not found
 type HookNotFoundError struct {
 	GameID    string
 	EventType int
