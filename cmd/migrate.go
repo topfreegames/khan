@@ -79,7 +79,6 @@ func getGooseConf() *goose.DBConf {
 		Driver: goose.DBDriver{
 			Name:    "postgres",
 			OpenStr: "",
-			Import:  "github.com/jinzhu/gorm/dialects/postgres",
 			Dialect: &goose.PostgresDialect{},
 		},
 	}

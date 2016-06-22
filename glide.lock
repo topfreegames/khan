@@ -65,10 +65,6 @@ imports:
   version: 672da7dc0b798b54603604e52d031bb0faf3ea2a
 - name: github.com/iris-contrib/websocket
   version: b754661664740b86f44f7bb34ba11e44b6194445
-- name: github.com/jinzhu/gorm
-  version: bf0e23607840019d62e32e87e9af48e881d74b1e
-  subpackages:
-  - dialects/postgres
 - name: github.com/Joker/jade
   version: db4d7e4f68708c5020c392b380e3565df2132840
 - name: github.com/kataras/iris

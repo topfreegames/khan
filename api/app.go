@@ -16,7 +16,6 @@ import (
 	"gopkg.in/gorp.v1"
 
 	"github.com/golang/glog"
-	_ "github.com/jinzhu/gorm/dialects/postgres" // This is required to use postgres with gorm
 	"github.com/kataras/iris"
 	"github.com/kataras/iris/middleware/logger"
 	"github.com/spf13/viper"
