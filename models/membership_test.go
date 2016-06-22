@@ -55,6 +55,7 @@ func TestMembershipModel(t *testing.T) {
 			g.Assert(err == nil).IsTrue()
 			dt := memberships[0].UpdatedAt
 
+			time.Sleep(time.Millisecond)
 			memberships[0].Approved = true
 			count, err := testDb.Update(memberships[0])
 			g.Assert(err == nil).IsTrue()

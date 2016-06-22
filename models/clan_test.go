@@ -66,6 +66,7 @@ func TestClanModel(t *testing.T) {
 				clan := clans[0]
 
 				dt := clan.UpdatedAt
+				time.Sleep(time.Millisecond)
 
 				clan.Metadata = "{ \"x\": 1 }"
 				count, err := testDb.Update(clan)
