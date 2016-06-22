@@ -588,6 +588,13 @@ More about web hooks can be found in [Using WebHooks](using_webhooks.html).
         "success": true,
         "name": [string],
         "metadata": [JSON],
+        "allowApplication": [bool],
+        "autoJoin": [bool],
+        "owner": [
+            "publicID": [string],
+            "name":     [string],
+            "metadata": [JSON],
+        ],
         "members": [
           {      
             "membershipLevel":     [int],
@@ -603,7 +610,6 @@ More about web hooks can be found in [Using WebHooks](using_webhooks.html).
           }
         ]
       }
-      ```
 
   * Error Response
 
