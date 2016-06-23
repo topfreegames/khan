@@ -66,7 +66,7 @@ test: assets drop-test db-test
 coverage: drop-test db-test
 	@echo "mode: count" > coverage-all.out
 	@$(foreach pkg,$(PACKAGES),\
-		go test -coverprofile=coverage.out -covermode=count $(pkg);\
+		go test -coverprofile=coverage.out -covermode=count $(pkg) && \
 		tail -n +2 coverage.out >> coverage-all.out;)
 
 coverage-html:
