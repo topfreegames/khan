@@ -8,11 +8,13 @@
 package models
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
 	"github.com/Pallinder/go-randomdata"
 	. "github.com/franela/goblin"
+	"github.com/satori/go.uuid"
 	"github.com/topfreegames/khan/util"
 )
 
@@ -130,6 +132,33 @@ func TestPlayerModel(t *testing.T) {
 				g.Assert(dbPlayer.Metadata).Equal(metadata)
 			})
 
+			g.It("Should create Player with UpdatePlayer if player does not exist", func() {
+				game := GameFactory.MustCreate().(*Game)
+				err := testDb.Insert(game)
+				g.Assert(err == nil).IsTrue()
+
+				gameID := game.PublicID
+				publicID := uuid.NewV4().String()
+
+				metadata := "{\"x\": 1}"
+				updPlayer, err := UpdatePlayer(
+					testDb,
+					gameID,
+					publicID,
+					publicID,
+					metadata,
+				)
+
+				fmt.Println(err)
+				g.Assert(err == nil).IsTrue()
+				g.Assert(updPlayer.ID > 0).IsTrue()
+
+				dbPlayer, err := GetPlayerByPublicID(testDb, updPlayer.GameID, updPlayer.PublicID)
+				g.Assert(err == nil).IsTrue()
+
+				g.Assert(dbPlayer.Metadata).Equal(metadata)
+			})
+
 			g.It("Should not update a Player with Invalid Data with UpdatePlayer", func() {
 				_, err := UpdatePlayer(
 					testDb,
@@ -177,6 +206,53 @@ func TestPlayerModel(t *testing.T) {
 				g.Assert(len(denied)).Equal(2)
 				g.Assert(len(banned)).Equal(3)
 				g.Assert(len(pending)).Equal(8)
+			})
+
+			g.It("Should get Player Details when player has no affiliations", func() {
+				player, err := CreatePlayerFactory(testDb, "")
+				g.Assert(err == nil).IsTrue()
+
+				playerDetails, err := GetPlayerDetails(
+					testDb,
+					player.GameID,
+					player.PublicID,
+				)
+
+				fmt.Println(err)
+				g.Assert(err == nil).IsTrue()
+
+				// Player Details
+				g.Assert(playerDetails["publicID"]).Equal(player.PublicID)
+				g.Assert(playerDetails["name"]).Equal(player.Name)
+				g.Assert(playerDetails["metadata"]).Equal(player.Metadata)
+				g.Assert(playerDetails["createdAt"]).Equal(player.CreatedAt)
+				g.Assert(playerDetails["updatedAt"]).Equal(player.UpdatedAt)
+
+				//Memberships
+				g.Assert(len(playerDetails["memberships"].([]util.JSON))).Equal(0)
+
+				clans := playerDetails["clans"].(util.JSON)
+				approved := clans["approved"].([]util.JSON)
+				denied := clans["denied"].([]util.JSON)
+				banned := clans["banned"].([]util.JSON)
+				pending := clans["pending"].([]util.JSON)
+
+				g.Assert(len(approved)).Equal(0)
+				g.Assert(len(denied)).Equal(0)
+				g.Assert(len(banned)).Equal(0)
+				g.Assert(len(pending)).Equal(0)
+			})
+
+			g.It("Should return error if Player does not exist", func() {
+				playerDetails, err := GetPlayerDetails(
+					testDb,
+					"game-id",
+					"invalid-player-id",
+				)
+
+				g.Assert(playerDetails == nil).IsTrue()
+				g.Assert(err != nil).IsTrue()
+				g.Assert(err.Error()).Equal("Player was not found with id: invalid-player-id")
 			})
 		})
 	})

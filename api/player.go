@@ -8,6 +8,8 @@
 package api
 
 import (
+	"fmt"
+
 	"github.com/kataras/iris"
 	"github.com/topfreegames/khan/models"
 	"github.com/topfreegames/khan/util"
@@ -117,6 +119,11 @@ func RetrievePlayerHandler(app *App) func(c *iris.Context) {
 		)
 
 		if err != nil {
+			if err.Error() == fmt.Sprintf("Player was not found with id: %s", publicID) {
+				FailWith(404, err.Error(), c)
+				return
+			}
+
 			FailWith(500, err.Error(), c)
 			return
 		}

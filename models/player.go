@@ -8,6 +8,7 @@
 package models
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/topfreegames/khan/util"
@@ -80,6 +81,9 @@ func UpdatePlayer(db DB, gameID, publicID, name, metadata string) (*Player, erro
 	player, err := GetPlayerByPublicID(db, gameID, publicID)
 
 	if err != nil {
+		if err.Error() == fmt.Sprintf("Player was not found with id: %s", publicID) {
+			return CreatePlayer(db, gameID, publicID, name, metadata)
+		}
 		return nil, err
 	}
 
@@ -110,11 +114,12 @@ func GetPlayerDetails(db DB, gameID, publicID string) (util.JSON, error) {
 		m.deleted_at MembershipDeletedAt,
 		d.name DeletedByName, d.public_id DeletedByPublicID
 	FROM players p
-	LEFT OUTER JOIN memberships m on m.player_id = p.id
-	INNER JOIN clans c on c.id=m.clan_id
-	LEFT OUTER JOIN players d on d.id=m.deleted_by
-	LEFT OUTER JOIN players r on r.id=m.requestor_id
-	WHERE p.game_id=$1 and p.public_id=$2`
+		LEFT OUTER JOIN memberships m on m.player_id = p.id
+		LEFT OUTER JOIN clans c on c.id=m.clan_id
+		LEFT OUTER JOIN players d on d.id=m.deleted_by
+		LEFT OUTER JOIN players r on r.id=m.requestor_id
+	WHERE
+		p.game_id=$1 and p.public_id=$2`
 
 	var details []playerDetailsDAO
 	_, err := db.Select(&details, query, gameID, publicID)
@@ -179,6 +184,12 @@ func GetPlayerDetails(db DB, gameID, publicID string) (util.JSON, error) {
 
 	} else {
 		result["memberships"] = []util.JSON{}
+		result["clans"] = util.JSON{
+			"approved": []util.JSON{},
+			"denied":   []util.JSON{},
+			"banned":   []util.JSON{},
+			"pending":  []util.JSON{},
+		}
 	}
 
 	return result, nil

@@ -26,7 +26,8 @@ func TestHealthcheckHandler(t *testing.T) {
 			a := GetDefaultTestApp()
 			res := Get(a, "/healthcheck", t)
 
-			res.Status(http.StatusOK).Body().Equal("WORKING")
+			g.Assert(res.Raw().StatusCode).Equal(http.StatusOK)
+			res.Body().Equal("WORKING")
 		})
 
 		g.It("Should respond with customized WORKING string", func() {
@@ -34,7 +35,8 @@ func TestHealthcheckHandler(t *testing.T) {
 			a.Config.SetDefault("healthcheck.workingText", "OTHERWORKING")
 			res := Get(a, "/healthcheck", t)
 
-			res.Status(http.StatusOK).Body().Equal("OTHERWORKING")
+			g.Assert(res.Raw().StatusCode).Equal(http.StatusOK)
+			res.Body().Equal("OTHERWORKING")
 		})
 	})
 }

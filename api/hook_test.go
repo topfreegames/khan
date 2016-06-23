@@ -40,7 +40,7 @@ func TestHookHandler(t *testing.T) {
 			}
 			res := PostJSON(a, GetGameRoute(game.PublicID, "/hooks"), t, payload)
 
-			res.Status(http.StatusOK)
+			g.Assert(res.Raw().StatusCode).Equal(http.StatusOK)
 			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsTrue()
@@ -61,7 +61,7 @@ func TestHookHandler(t *testing.T) {
 			route := GetGameRoute("game-id", "/hooks")
 			res := PostJSON(a, route, t, util.JSON{})
 
-			res.Status(http.StatusBadRequest)
+			g.Assert(res.Raw().StatusCode).Equal(http.StatusBadRequest)
 			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
@@ -73,7 +73,7 @@ func TestHookHandler(t *testing.T) {
 			route := GetGameRoute("game-id", "/hooks")
 			res := PostBody(a, route, t, "invalid")
 
-			res.Status(http.StatusBadRequest)
+			g.Assert(res.Raw().StatusCode).Equal(http.StatusBadRequest)
 			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
@@ -90,7 +90,7 @@ func TestHookHandler(t *testing.T) {
 
 			res := Delete(a, GetGameRoute(hook.GameID, fmt.Sprintf("/hooks/%s", hook.PublicID)), t)
 
-			res.Status(http.StatusOK)
+			g.Assert(res.Raw().StatusCode).Equal(http.StatusOK)
 
 			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)

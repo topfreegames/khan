@@ -56,7 +56,7 @@ func TestGameHandler(t *testing.T) {
 			)
 			res := PostJSON(a, "/games", t, payload)
 
-			res.Status(http.StatusOK)
+			g.Assert(res.Raw().StatusCode).Equal(http.StatusOK)
 			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsTrue()
@@ -93,7 +93,7 @@ func TestGameHandler(t *testing.T) {
 			}
 			res := PostJSON(a, "/games", t, payload)
 
-			res.Status(http.StatusBadRequest)
+			g.Assert(res.Raw().StatusCode).Equal(http.StatusBadRequest)
 			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
@@ -118,7 +118,7 @@ func TestGameHandler(t *testing.T) {
 			}
 			res := PostJSON(a, "/games", t, payload)
 
-			res.Status(422)
+			g.Assert(res.Raw().StatusCode).Equal(422)
 			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
@@ -129,7 +129,7 @@ func TestGameHandler(t *testing.T) {
 			a := GetDefaultTestApp()
 			res := PostBody(a, "/games", t, "invalid")
 
-			res.Status(http.StatusBadRequest)
+			g.Assert(res.Raw().StatusCode).Equal(http.StatusBadRequest)
 			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
@@ -154,7 +154,7 @@ func TestGameHandler(t *testing.T) {
 			}
 			res := PostJSON(a, "/games", t, payload)
 
-			res.Status(http.StatusInternalServerError)
+			g.Assert(res.Raw().StatusCode).Equal(http.StatusInternalServerError)
 			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
@@ -187,7 +187,7 @@ func TestGameHandler(t *testing.T) {
 
 			route := fmt.Sprintf("/games/%s", game.PublicID)
 			res := PutJSON(a, route, t, payload)
-			res.Status(http.StatusOK)
+			g.Assert(res.Raw().StatusCode).Equal(http.StatusOK)
 			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsTrue()
@@ -214,7 +214,7 @@ func TestGameHandler(t *testing.T) {
 
 			route := fmt.Sprintf("/games/%s", gameID)
 			res := PutJSON(a, route, t, payload)
-			res.Status(http.StatusOK)
+			g.Assert(res.Raw().StatusCode).Equal(http.StatusOK)
 			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsTrue()
@@ -247,7 +247,7 @@ func TestGameHandler(t *testing.T) {
 
 			route := fmt.Sprintf("/games/%s", game.PublicID)
 			res := PutJSON(a, route, t, payload)
-			res.Status(http.StatusBadRequest)
+			g.Assert(res.Raw().StatusCode).Equal(http.StatusBadRequest)
 			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
@@ -277,7 +277,7 @@ func TestGameHandler(t *testing.T) {
 			route := fmt.Sprintf("/games/%s", game.PublicID)
 			res := PutJSON(a, route, t, payload)
 
-			res.Status(422)
+			g.Assert(res.Raw().StatusCode).Equal(422)
 			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
@@ -288,7 +288,7 @@ func TestGameHandler(t *testing.T) {
 			a := GetDefaultTestApp()
 			res := PutBody(a, "/games/game-id", t, "invalid")
 
-			res.Status(http.StatusBadRequest)
+			g.Assert(res.Raw().StatusCode).Equal(http.StatusBadRequest)
 			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
@@ -322,7 +322,7 @@ func TestGameHandler(t *testing.T) {
 			route := fmt.Sprintf("/games/%s", game.PublicID)
 			res := PutJSON(a, route, t, payload)
 
-			res.Status(http.StatusInternalServerError)
+			g.Assert(res.Raw().StatusCode).Equal(http.StatusInternalServerError)
 			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
@@ -348,7 +348,7 @@ func TestGameHandler(t *testing.T) {
 
 				route := fmt.Sprintf("/games/%s", gameID)
 				res := PutJSON(app, route, t, payload)
-				res.Status(http.StatusOK)
+				g.Assert(res.Raw().StatusCode).Equal(http.StatusOK)
 				var result util.JSON
 				json.Unmarshal([]byte(res.Body().Raw()), &result)
 				g.Assert(result["success"]).IsTrue()
