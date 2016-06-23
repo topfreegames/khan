@@ -141,5 +141,42 @@ func TestPlayerModel(t *testing.T) {
 				g.Assert(err == nil).IsFalse()
 			})
 		})
+
+		g.Describe("Get Player Details", func() {
+			g.It("Should get Player Details", func() {
+				gameID := "player-details"
+				player, err := GetTestPlayerWithMemberships(testDb, gameID, 5, 2, 3, 8)
+				g.Assert(err == nil).IsTrue()
+
+				playerDetails, err := GetPlayerDetails(
+					testDb,
+					player.GameID,
+					player.PublicID,
+				)
+
+				g.Assert(err == nil).IsTrue()
+
+				// Player Details
+				g.Assert(playerDetails["publicID"]).Equal(player.PublicID)
+				g.Assert(playerDetails["name"]).Equal(player.Name)
+				g.Assert(playerDetails["metadata"]).Equal(player.Metadata)
+				g.Assert(playerDetails["createdAt"]).Equal(player.CreatedAt)
+				g.Assert(playerDetails["updatedAt"]).Equal(player.UpdatedAt)
+
+				//Memberships
+				g.Assert(len(playerDetails["memberships"].([]JSON))).Equal(18)
+
+				clans := playerDetails["clans"].(JSON)
+				approved := clans["approved"].([]JSON)
+				denied := clans["denied"].([]JSON)
+				banned := clans["banned"].([]JSON)
+				pending := clans["pending"].([]JSON)
+
+				g.Assert(len(approved)).Equal(5)
+				g.Assert(len(denied)).Equal(2)
+				g.Assert(len(banned)).Equal(3)
+				g.Assert(len(pending)).Equal(8)
+			})
+		})
 	})
 }

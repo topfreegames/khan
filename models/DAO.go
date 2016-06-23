@@ -22,6 +22,7 @@ type clanDetailsDAO struct {
 	MembershipLevel     sql.NullInt64
 	MembershipApproved  sql.NullBool
 	MembershipDenied    sql.NullBool
+	MembershipBanned    sql.NullBool
 	MembershipCreatedAt sql.NullInt64
 	MembershipUpdatedAt sql.NullInt64
 
@@ -46,6 +47,7 @@ func (member *clanDetailsDAO) Serialize() map[string]interface{} {
 		"membershipLevel":     nullOrInt(member.MembershipLevel),
 		"membershipApproved":  nullOrBool(member.MembershipApproved),
 		"membershipDenied":    nullOrBool(member.MembershipDenied),
+		"membershipBanned":    nullOrBool(member.MembershipBanned),
 		"membershipCreatedAt": nullOrInt(member.MembershipCreatedAt),
 		"membershipUpdatedAt": nullOrInt(member.MembershipUpdatedAt),
 		"playerPublicID":      nullOrString(member.PlayerPublicID),
@@ -54,4 +56,65 @@ func (member *clanDetailsDAO) Serialize() map[string]interface{} {
 		"requestorPublicID":   nullOrString(member.RequestorPublicID),
 		"requestorName":       nullOrString(member.RequestorName),
 	}
+}
+
+type playerDetailsDAO struct {
+	// Player Details
+	PlayerName      string
+	PlayerMetadata  string
+	PlayerPublicID  string
+	PlayerCreatedAt int64
+	PlayerUpdatedAt int64
+
+	// Membership Details
+	MembershipLevel     sql.NullInt64
+	MembershipApproved  sql.NullBool
+	MembershipDenied    sql.NullBool
+	MembershipBanned    sql.NullBool
+	MembershipCreatedAt sql.NullInt64
+	MembershipUpdatedAt sql.NullInt64
+	MembershipDeletedAt sql.NullInt64
+
+	// Clan Details
+	ClanPublicID sql.NullString
+	ClanName     sql.NullString
+	ClanMetadata sql.NullString
+
+	// Membership Requestor Details
+	RequestorName     sql.NullString
+	RequestorPublicID sql.NullString
+	RequestorMetadata sql.NullString
+
+	// Deleted by Details
+	DeletedByName     sql.NullString
+	DeletedByPublicID sql.NullString
+}
+
+func (p *playerDetailsDAO) Serialize() map[string]interface{} {
+	result := map[string]interface{}{
+		"level":     nullOrInt(p.MembershipLevel),
+		"approved":  nullOrBool(p.MembershipApproved),
+		"denied":    nullOrBool(p.MembershipDenied),
+		"banned":    nullOrBool(p.MembershipBanned),
+		"createdAt": nullOrInt(p.MembershipCreatedAt),
+		"updatedAt": nullOrInt(p.MembershipUpdatedAt),
+		"deletedAt": nullOrInt(p.MembershipDeletedAt),
+		"clan": map[string]interface{}{
+			"publicID": nullOrString(p.ClanPublicID),
+			"name":     nullOrString(p.ClanName),
+			"metadata": nullOrString(p.ClanMetadata),
+		},
+		"requestor": map[string]interface{}{
+			"publicID": nullOrString(p.RequestorPublicID),
+			"name":     nullOrString(p.RequestorName),
+			"metadata": nullOrString(p.RequestorMetadata),
+		},
+	}
+	if p.DeletedByPublicID.Valid {
+		result["deletedBy"] = map[string]interface{}{
+			"publicID": nullOrString(p.DeletedByPublicID),
+			"name":     nullOrString(p.DeletedByName),
+		}
+	}
+	return result
 }

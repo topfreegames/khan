@@ -448,8 +448,14 @@ func TestClanModel(t *testing.T) {
 				members := clanData["members"].([]map[string]interface{})
 				g.Assert(len(members)).Equal(10)
 
+				playerDict := map[string]*Player{}
 				for i := 0; i < 10; i++ {
-					g.Assert(members[i]["playerName"]).Equal(players[i].Name)
+					playerDict[players[i].PublicID] = players[i]
+				}
+
+				for i := 0; i < 10; i++ {
+					pid := members[i]["playerPublicID"].(string)
+					g.Assert(members[i]["playerName"]).Equal(playerDict[pid].Name)
 				}
 			})
 
@@ -471,8 +477,14 @@ func TestClanModel(t *testing.T) {
 				members := clanData["members"].([]map[string]interface{})
 				g.Assert(len(members)).Equal(9)
 
-				for i := 0; i < 9; i++ {
-					g.Assert(members[i]["playerName"]).Equal(players[i].Name)
+				playerDict := map[string]*Player{}
+				for i := 0; i < len(members); i++ {
+					playerDict[players[i].PublicID] = players[i]
+				}
+
+				for i := 0; i < len(members); i++ {
+					pid := members[i]["playerPublicID"].(string)
+					g.Assert(members[i]["playerName"]).Equal(playerDict[pid].Name)
 				}
 			})
 

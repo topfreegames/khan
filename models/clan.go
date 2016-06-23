@@ -232,6 +232,7 @@ func GetClanDetails(db DB, gameID, publicID string) (map[string]interface{}, err
 		c.game_id GameID,
 		c.public_id ClanPublicID, c.name ClanName, c.metadata ClanMetadata,
 		m.membership_level MembershipLevel, m.approved MembershipApproved, m.denied MembershipDenied,
+		m.Banned MembershipBanned,
 		m.created_at MembershipCreatedAt, m.updated_at MembershipUpdatedAt,
 		o.public_id OwnerPublicID, o.name OwnerName, o.metadata OwnerMetadata,
 		p.public_id PlayerPublicID, p.name PlayerName, p.metadata PlayerMetadata,

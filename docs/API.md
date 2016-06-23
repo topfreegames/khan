@@ -48,7 +48,7 @@ Khan API
     	"metadata":                      [JSON],
     	"minMembershipLevel":            [int],
     	"maxMembershipLevel":            [int],
-    	"minLevelToAcceptApplication":   [int],     
+    	"minLevelToAcceptApplication":   [int],
     	"minLevelToCreateInvitation":    [int],
     	"minLevelToRemoveMember":        [int],
       "MinLevelOffsetToRemoveMember":  [int],
@@ -388,6 +388,91 @@ More about web hooks can be found in [Using WebHooks](using_webhooks.html).
       }
       ```
 
+  ### Retrieve Player
+  `GET /games/:gameID/players/:playerPublicID`
+
+  Gets the player with the given publicID.
+
+
+
+  * Success Response
+    * Code: `200`
+    * Content:
+      ```
+      {
+        "success": true,
+        "publicID": [string], // Player publicID
+        "name": [string], // Player Name
+        "metadata": [JSON], // Player Metadata
+        "createdAt": [int64], // timestamp in milliseconds of when the user was created
+        "updatedAt": [int64]  // timestamp in milliseconds of when the user was last updated
+        
+        //All clans the user is involved with show here
+        "clans":{
+          // Clans the player has been approved and is currently a member of
+          "approved":[
+            { "name": [string], "publicID": [string] }, // clan name and publicID
+          ],
+  
+          // Clans the player has been banned from
+          "banned":[
+            { "name": [string], "publicID": [string] }, // clan name and publicID
+          ],
+  
+          // Clans the player has been rejected from
+          "denied":[   
+            { "name": [string], "publicID": [string] }, // clan name and publicID
+          ],
+  
+          // Clans the player has pending applications to
+          "pending":[
+            { "name": [string], "publicID": [string] }, // clan name and publicID
+          ]
+        },
+  
+        // All memberships this player has with details
+        "memberships":[
+          {
+            //if approved, denied and banned are false, the membership is pending approval
+            "approved": [bool],
+            "denied": [bool],
+            "banned": [bool],
+  
+            //clan the user applied to
+            "clan":{
+              "metadata": [JSON],
+              "name": [string],
+              "publicID": [string]
+            },
+            "createdAt": [int64], // timestamp the user applied to a clan
+            "updatedAt": [int64], // timestamp that the membership was last updated
+            "deletedAt": [int64], // timestamp that the user was banned
+            "level": [int], // level of the user in this clan
+  
+            // User that requested membership
+            // If the user was invited, this should be another player.
+            // Otherwise, this is the same as the player.
+            "requestor":{
+              "metadata": [JSON],
+              "name": [string],
+              "publicID": [string]
+            },
+          }
+        ]
+      }
+      ```
+
+  * Error Response
+
+    * Code: `500`
+    * Content:
+      ```
+      {
+        "success": false,
+        "reason": [string]
+      }
+      ```
+
 ## Clan Routes
 
   ### Search Clans
@@ -476,7 +561,7 @@ More about web hooks can be found in [Using WebHooks](using_webhooks.html).
     {
       "publicID":                      [string],  // 255 characters max, must be unique for a given game
       "name":                          [string],  // 2000 characters max
-      "metadata":                      [JSON],    
+      "metadata":                      [JSON],
       "ownerPublicID":                 [string],  // must reference an existing player
       "allowApplication":              [boolean],
       "autoJoin":                      [boolean]
@@ -535,7 +620,7 @@ More about web hooks can be found in [Using WebHooks](using_webhooks.html).
     ```
     {
     	"name":                          [string],  // 2000 characters max
-    	"metadata":                      [JSON],    
+    	"metadata":                      [JSON],
       "ownerPublicID":                 [string],  // must match the clan owner's public id
       "AllowApplication":              [boolean],
       "AutoJoin":                      [boolean]
@@ -596,7 +681,7 @@ More about web hooks can be found in [Using WebHooks](using_webhooks.html).
             "metadata": [JSON],
         ],
         "members": [
-          {      
+          {
             "membershipLevel":     [int],
             "membershipApproved":  [boolean],
             "membershipDenied":    [boolean],
