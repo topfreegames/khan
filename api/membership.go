@@ -10,6 +10,7 @@ package api
 import (
 	"github.com/kataras/iris"
 	"github.com/topfreegames/khan/models"
+	"github.com/topfreegames/khan/util"
 )
 
 type applyForMembershipPayload struct {
@@ -60,7 +61,7 @@ func ApplyForMembershipHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
-		SucceedWith(map[string]interface{}{}, c)
+		SucceedWith(util.JSON{}, c)
 	}
 }
 
@@ -92,7 +93,7 @@ func InviteForMembershipHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
-		SucceedWith(map[string]interface{}{}, c)
+		SucceedWith(util.JSON{}, c)
 
 	}
 }
@@ -126,7 +127,7 @@ func ApproveOrDenyMembershipApplicationHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
-		SucceedWith(map[string]interface{}{}, c)
+		SucceedWith(util.JSON{}, c)
 	}
 }
 
@@ -158,7 +159,7 @@ func ApproveOrDenyMembershipInvitationHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
-		SucceedWith(map[string]interface{}{}, c)
+		SucceedWith(util.JSON{}, c)
 	}
 }
 
@@ -189,7 +190,7 @@ func DeleteMembershipHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
-		SucceedWith(map[string]interface{}{}, c)
+		SucceedWith(util.JSON{}, c)
 	}
 }
 
@@ -221,7 +222,7 @@ func PromoteOrDemoteMembershipHandler(app *App, action string) func(c *iris.Cont
 			return
 		}
 
-		SucceedWith(map[string]interface{}{
+		SucceedWith(util.JSON{
 			"level": membership.Level,
 		}, c)
 	}

@@ -7,7 +7,11 @@
 
 package models
 
-import "database/sql"
+import (
+	"database/sql"
+
+	"github.com/topfreegames/khan/util"
+)
 
 type clanDetailsDAO struct {
 	// Clan general information
@@ -41,8 +45,8 @@ type clanDetailsDAO struct {
 	RequestorName     sql.NullString
 }
 
-func (member *clanDetailsDAO) Serialize() map[string]interface{} {
-	return map[string]interface{}{
+func (member *clanDetailsDAO) Serialize() util.JSON {
+	return util.JSON{
 		// No need to include clan information as that will be available in the payload already
 		"membershipLevel":     nullOrInt(member.MembershipLevel),
 		"membershipApproved":  nullOrBool(member.MembershipApproved),
@@ -90,8 +94,8 @@ type playerDetailsDAO struct {
 	DeletedByPublicID sql.NullString
 }
 
-func (p *playerDetailsDAO) Serialize() map[string]interface{} {
-	result := map[string]interface{}{
+func (p *playerDetailsDAO) Serialize() util.JSON {
+	result := util.JSON{
 		"level":     nullOrInt(p.MembershipLevel),
 		"approved":  nullOrBool(p.MembershipApproved),
 		"denied":    nullOrBool(p.MembershipDenied),
@@ -99,19 +103,19 @@ func (p *playerDetailsDAO) Serialize() map[string]interface{} {
 		"createdAt": nullOrInt(p.MembershipCreatedAt),
 		"updatedAt": nullOrInt(p.MembershipUpdatedAt),
 		"deletedAt": nullOrInt(p.MembershipDeletedAt),
-		"clan": map[string]interface{}{
+		"clan": util.JSON{
 			"publicID": nullOrString(p.ClanPublicID),
 			"name":     nullOrString(p.ClanName),
 			"metadata": nullOrString(p.ClanMetadata),
 		},
-		"requestor": map[string]interface{}{
+		"requestor": util.JSON{
 			"publicID": nullOrString(p.RequestorPublicID),
 			"name":     nullOrString(p.RequestorName),
 			"metadata": nullOrString(p.RequestorMetadata),
 		},
 	}
 	if p.DeletedByPublicID.Valid {
-		result["deletedBy"] = map[string]interface{}{
+		result["deletedBy"] = util.JSON{
 			"publicID": nullOrString(p.DeletedByPublicID),
 			"name":     nullOrString(p.DeletedByName),
 		}

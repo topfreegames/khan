@@ -17,11 +17,12 @@ import (
 	"unicode/utf8"
 
 	"github.com/kataras/iris"
+	"github.com/topfreegames/khan/util"
 )
 
 // FailWith fails with the specified message
 func FailWith(status int, message string, c *iris.Context) {
-	result, _ := json.Marshal(map[string]interface{}{
+	result, _ := json.Marshal(util.JSON{
 		"success": false,
 		"reason":  message,
 	})
@@ -30,7 +31,7 @@ func FailWith(status int, message string, c *iris.Context) {
 }
 
 // SucceedWith sends payload to user with status 200
-func SucceedWith(payload map[string]interface{}, c *iris.Context) {
+func SucceedWith(payload util.JSON, c *iris.Context) {
 	payload["success"] = true
 	result, _ := json.Marshal(payload)
 	c.SetStatusCode(200)
@@ -46,7 +47,7 @@ func LoadJSONPayload(payloadStruct interface{}, c *iris.Context) error {
 	}
 
 	data := c.RequestCtx.Request.Body()
-	var jsonPayload map[string]interface{}
+	var jsonPayload util.JSON
 	err := json.Unmarshal(data, &jsonPayload)
 	if err != nil {
 		return err

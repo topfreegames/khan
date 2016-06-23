@@ -10,6 +10,8 @@ package models
 import (
 	"time"
 
+	"github.com/topfreegames/khan/util"
+
 	"gopkg.in/gorp.v1"
 )
 
@@ -94,7 +96,7 @@ func UpdatePlayer(db DB, gameID, publicID, name, metadata string) (*Player, erro
 }
 
 // GetPlayerDetails returns detailed information about a player and their memberships
-func GetPlayerDetails(db DB, gameID, publicID string) (map[string]interface{}, error) {
+func GetPlayerDetails(db DB, gameID, publicID string) (util.JSON, error) {
 	query := `
 	SELECT
 		p.name PlayerName, p.metadata PlayerMetadata, p.public_id PlayerPublicID,
@@ -124,7 +126,7 @@ func GetPlayerDetails(db DB, gameID, publicID string) (map[string]interface{}, e
 		return nil, &ModelNotFoundError{"Player", publicID}
 	}
 
-	result := make(map[string]interface{})
+	result := make(util.JSON)
 
 	result["name"] = details[0].PlayerName
 	result["metadata"] = details[0].PlayerMetadata
@@ -134,22 +136,22 @@ func GetPlayerDetails(db DB, gameID, publicID string) (map[string]interface{}, e
 
 	if details[0].MembershipLevel.Valid {
 		// Player has memberships
-		result["memberships"] = make([]JSON, len(details))
+		result["memberships"] = make([]util.JSON, len(details))
 
-		approved := []JSON{}
-		denied := []JSON{}
-		banned := []JSON{}
-		pending := []JSON{}
+		approved := []util.JSON{}
+		denied := []util.JSON{}
+		banned := []util.JSON{}
+		pending := []util.JSON{}
 
-		clanFromDetail := func(clanDetail playerDetailsDAO) JSON {
-			return JSON{
+		clanFromDetail := func(clanDetail playerDetailsDAO) util.JSON {
+			return util.JSON{
 				"publicID": nullOrString(clanDetail.ClanPublicID),
 				"name":     nullOrString(clanDetail.ClanName),
 			}
 		}
 
 		for index, detail := range details {
-			result["memberships"].([]JSON)[index] = detail.Serialize()
+			result["memberships"].([]util.JSON)[index] = detail.Serialize()
 
 			ma := nullOrBool(detail.MembershipApproved)
 			md := nullOrBool(detail.MembershipDenied)
@@ -168,7 +170,7 @@ func GetPlayerDetails(db DB, gameID, publicID string) (map[string]interface{}, e
 			}
 		}
 
-		result["clans"] = JSON{
+		result["clans"] = util.JSON{
 			"approved": approved,
 			"denied":   denied,
 			"banned":   banned,
@@ -176,7 +178,7 @@ func GetPlayerDetails(db DB, gameID, publicID string) (map[string]interface{}, e
 		}
 
 	} else {
-		result["memberships"] = []JSON{}
+		result["memberships"] = []util.JSON{}
 	}
 
 	return result, nil

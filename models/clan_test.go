@@ -15,6 +15,7 @@ import (
 
 	"github.com/Pallinder/go-randomdata"
 	. "github.com/franela/goblin"
+	"github.com/topfreegames/khan/util"
 )
 
 func TestClanModel(t *testing.T) {
@@ -443,9 +444,9 @@ func TestClanModel(t *testing.T) {
 				g.Assert(clanData["name"]).Equal(clan.Name)
 				g.Assert(clanData["metadata"]).Equal(clan.Metadata)
 
-				g.Assert(clanData["owner"].(map[string]interface{})["publicID"]).Equal(owner.PublicID)
+				g.Assert(clanData["owner"].(util.JSON)["publicID"]).Equal(owner.PublicID)
 
-				members := clanData["members"].([]map[string]interface{})
+				members := clanData["members"].([]util.JSON)
 				g.Assert(len(members)).Equal(10)
 
 				playerDict := map[string]*Player{}
@@ -474,7 +475,7 @@ func TestClanModel(t *testing.T) {
 				g.Assert(err == nil).IsTrue()
 				g.Assert(clanData["name"]).Equal(clan.Name)
 				g.Assert(clanData["metadata"]).Equal(clan.Metadata)
-				members := clanData["members"].([]map[string]interface{})
+				members := clanData["members"].([]util.JSON)
 				g.Assert(len(members)).Equal(9)
 
 				playerDict := map[string]*Player{}
@@ -498,7 +499,7 @@ func TestClanModel(t *testing.T) {
 				g.Assert(err == nil).IsTrue()
 				g.Assert(clanData["name"]).Equal(clan.Name)
 				g.Assert(clanData["metadata"]).Equal(clan.Metadata)
-				members := clanData["members"].([]map[string]interface{})
+				members := clanData["members"].([]util.JSON)
 				g.Assert(len(members)).Equal(0)
 			})
 

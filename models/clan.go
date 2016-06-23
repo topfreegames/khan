@@ -12,6 +12,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/topfreegames/khan/util"
+
 	"gopkg.in/gorp.v1"
 )
 
@@ -226,7 +228,7 @@ func GetAllClans(db DB, gameID string) ([]Clan, error) {
 }
 
 // GetClanDetails returns all details for a given clan by its game id and public id
-func GetClanDetails(db DB, gameID, publicID string) (map[string]interface{}, error) {
+func GetClanDetails(db DB, gameID, publicID string) (util.JSON, error) {
 	query := `
 	SELECT
 		c.game_id GameID,
@@ -255,13 +257,13 @@ func GetClanDetails(db DB, gameID, publicID string) (map[string]interface{}, err
 		return nil, &ModelNotFoundError{"Clan", publicID}
 	}
 
-	result := make(map[string]interface{})
+	result := make(util.JSON)
 	result["name"] = details[0].ClanName
 	result["metadata"] = details[0].ClanMetadata
 	result["allowApplication"] = details[0].ClanAllowApplication
 	result["autoJoin"] = details[0].ClanAutoJoin
 
-	result["owner"] = map[string]interface{}{
+	result["owner"] = util.JSON{
 		"publicID": details[0].OwnerPublicID,
 		"name":     details[0].OwnerName,
 		"metadata": details[0].OwnerMetadata,
@@ -270,15 +272,15 @@ func GetClanDetails(db DB, gameID, publicID string) (map[string]interface{}, err
 	if details[0].PlayerPublicID.Valid {
 		// First row player public id is not null, meaning we found players!
 
-		result["members"] = make([]map[string]interface{}, len(details))
-		memberList := result["members"].([]map[string]interface{})
+		result["members"] = make([]util.JSON, len(details))
+		memberList := result["members"].([]util.JSON)
 
 		for index, member := range details {
 			memberList[index] = member.Serialize()
 		}
 	} else {
 		//Otherwise return empty array of object
-		result["members"] = []map[string]interface{}{}
+		result["members"] = []util.JSON{}
 	}
 
 	return result, nil

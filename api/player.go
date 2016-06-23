@@ -10,6 +10,7 @@ package api
 import (
 	"github.com/kataras/iris"
 	"github.com/topfreegames/khan/models"
+	"github.com/topfreegames/khan/util"
 )
 
 type createPlayerPayload struct {
@@ -49,7 +50,7 @@ func CreatePlayerHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
-		result := map[string]interface{}{
+		result := util.JSON{
 			"success":  true,
 			"gameID":   gameID,
 			"publicID": player.PublicID,
@@ -89,7 +90,7 @@ func UpdatePlayerHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
-		result := map[string]interface{}{
+		result := util.JSON{
 			"success":  true,
 			"gameID":   gameID,
 			"publicID": playerPublicID,
@@ -98,7 +99,7 @@ func UpdatePlayerHandler(app *App) func(c *iris.Context) {
 		}
 		app.DispatchHooks(gameID, models.PlayerUpdatedHook, result)
 
-		SucceedWith(map[string]interface{}{}, c)
+		SucceedWith(util.JSON{}, c)
 	}
 }
 

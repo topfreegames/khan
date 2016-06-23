@@ -13,6 +13,7 @@ import (
 
 	"github.com/gavv/httpexpect"
 	"github.com/gavv/httpexpect/fasthttpexpect"
+	"github.com/topfreegames/khan/util"
 )
 
 // GetDefaultTestApp returns a new Khan API Application bound to 0.0.0.0:8888 for test
@@ -42,16 +43,16 @@ func sendBody(app *App, method string, url string, t *testing.T, payload string)
 }
 
 // PostJSON returns a test request against specified URL
-func PostJSON(app *App, url string, t *testing.T, payload map[string]interface{}) *httpexpect.Response {
+func PostJSON(app *App, url string, t *testing.T, payload util.JSON) *httpexpect.Response {
 	return sendJSON(app, "POST", url, t, payload)
 }
 
 // PutJSON returns a test request against specified URL
-func PutJSON(app *App, url string, t *testing.T, payload map[string]interface{}) *httpexpect.Response {
+func PutJSON(app *App, url string, t *testing.T, payload util.JSON) *httpexpect.Response {
 	return sendJSON(app, "PUT", url, t, payload)
 }
 
-func sendJSON(app *App, method, url string, t *testing.T, payload map[string]interface{}) *httpexpect.Response {
+func sendJSON(app *App, method, url string, t *testing.T, payload util.JSON) *httpexpect.Response {
 	req := sendRequest(app, method, url, t)
 	return req.WithJSON(payload).Expect()
 }

@@ -20,6 +20,7 @@ import (
 	"github.com/kataras/iris/middleware/logger"
 	"github.com/spf13/viper"
 	"github.com/topfreegames/khan/models"
+	"github.com/topfreegames/khan/util"
 	"github.com/valyala/fasthttp"
 )
 
@@ -179,7 +180,7 @@ func (hook *HookNotFoundError) Error() string {
 }
 
 // DispatchHooks dispatches web hooks for a specific game and event type
-func (app *App) DispatchHooks(gameID string, eventType int, payload map[string]interface{}) error {
+func (app *App) DispatchHooks(gameID string, eventType int, payload util.JSON) error {
 	if _, ok := app.Hooks[gameID]; !ok {
 		return &HookNotFoundError{GameID: gameID, EventType: eventType}
 	}

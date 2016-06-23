@@ -17,20 +17,21 @@ import (
 
 	. "github.com/franela/goblin"
 	"github.com/topfreegames/khan/models"
+	"github.com/topfreegames/khan/util"
 )
 
-func startRouteHandler(routes []string, port int) *[]map[string]interface{} {
-	responses := []map[string]interface{}{}
+func startRouteHandler(routes []string, port int) *[]util.JSON {
+	responses := []util.JSON{}
 
 	go func() {
 		handleFunc := func(w http.ResponseWriter, r *http.Request) {
 			bs, err := ioutil.ReadAll(r.Body)
 			if err != nil {
-				responses = append(responses, map[string]interface{}{"reason": err})
+				responses = append(responses, util.JSON{"reason": err})
 				return
 			}
 
-			var payload map[string]interface{}
+			var payload util.JSON
 			json.Unmarshal(bs, &payload)
 
 			responses = append(responses, payload)
@@ -89,7 +90,7 @@ func Test(t *testing.T) {
 			app := GetDefaultTestApp()
 			time.Sleep(time.Second)
 
-			resultingPayload := map[string]interface{}{
+			resultingPayload := util.JSON{
 				"success":  true,
 				"publicID": hooks[0].GameID,
 			}
