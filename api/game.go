@@ -18,6 +18,7 @@ import (
 
 type gamePayload struct {
 	Name                          string
+	MembershipLevels              string
 	Metadata                      string
 	MinMembershipLevel            int
 	MaxMembershipLevel            int
@@ -33,6 +34,7 @@ type gamePayload struct {
 type createGamePayload struct {
 	PublicID                      string
 	Name                          string
+	MembershipLevels              string
 	Metadata                      string
 	MinMembershipLevel            int
 	MaxMembershipLevel            int
@@ -88,6 +90,7 @@ func CreateGameHandler(app *App) func(c *iris.Context) {
 			db,
 			payload.PublicID,
 			payload.Name,
+			payload.MembershipLevels,
 			payload.Metadata,
 			payload.MinMembershipLevel,
 			payload.MaxMembershipLevel,
@@ -133,6 +136,7 @@ func UpdateGameHandler(app *App) func(c *iris.Context) {
 			db,
 			gameID,
 			payload.Name,
+			payload.MembershipLevels,
 			payload.Metadata,
 			payload.MinMembershipLevel,
 			payload.MaxMembershipLevel,
@@ -154,6 +158,7 @@ func UpdateGameHandler(app *App) func(c *iris.Context) {
 			"success":                       true,
 			"publicID":                      gameID,
 			"name":                          payload.Name,
+			"membershipLevels":              payload.MembershipLevels,
 			"metadata":                      payload.Metadata,
 			"minMembershipLevel":            payload.MinMembershipLevel,
 			"maxMembershipLevel":            payload.MaxMembershipLevel,
