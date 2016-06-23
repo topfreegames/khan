@@ -17,29 +17,18 @@ import (
 )
 
 func TestMembershipModel(t *testing.T) {
+	t.Parallel()
 	g := Goblin(t)
 	testDb, err := GetTestDB()
 	g.Assert(err == nil).IsTrue()
 
 	g.Describe("Membership Model", func() {
 		g.It("Should create a new Membership", func() {
-			player, err := CreatePlayerFactory(testDb, "")
+			_, _, _, memberships, err := GetClanWithMemberships(testDb, 1, "", "")
 			g.Assert(err == nil).IsTrue()
 
-			clan, _, _, _, err := GetClanWithMemberships(testDb, 0, "", "")
-			g.Assert(err == nil).IsTrue()
+			membership := memberships[0]
 
-			membership := &Membership{
-				GameID:      "test",
-				ClanID:      clan.ID,
-				PlayerID:    player.ID,
-				RequestorID: player.ID,
-				Level:       1,
-				Approved:    false,
-				Denied:      false,
-			}
-			err = testDb.Insert(membership)
-			g.Assert(err == nil).IsTrue()
 			g.Assert(membership.ID != 0).IsTrue()
 
 			dbMembership, err := GetMembershipByID(testDb, membership.ID)

@@ -16,6 +16,7 @@ import (
 )
 
 func TestGameModel(t *testing.T) {
+	t.Parallel()
 	g := Goblin(t)
 	testDb, err := GetTestDB()
 	g.Assert(err == nil).IsTrue()
@@ -24,20 +25,7 @@ func TestGameModel(t *testing.T) {
 
 		g.Describe("Model Basic Tests", func() {
 			g.It("Should create a new Game", func() {
-				game := &Game{
-					PublicID:                      "test-test-test-game",
-					Name:                          "user-name",
-					MinMembershipLevel:            0,
-					MaxMembershipLevel:            15,
-					MinLevelToAcceptApplication:   15,
-					MinLevelToCreateInvitation:    15,
-					MinLevelToRemoveMember:        15,
-					MinLevelOffsetToRemoveMember:  1,
-					MinLevelOffsetToPromoteMember: 2,
-					MinLevelOffsetToDemoteMember:  3,
-					MaxMembers:                    100,
-					Metadata:                      "{}",
-				}
+				game := GameFactory.MustCreate().(*Game)
 				err := testDb.Insert(game)
 				g.Assert(err == nil).IsTrue()
 				g.Assert(game.ID != 0).IsTrue()

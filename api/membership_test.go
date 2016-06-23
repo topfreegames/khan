@@ -16,17 +16,14 @@ import (
 
 	"github.com/Pallinder/go-randomdata"
 	. "github.com/franela/goblin"
-	. "github.com/onsi/gomega"
 	"github.com/topfreegames/khan/models"
 )
 
 func TestMembershipHandler(t *testing.T) {
+	t.Parallel()
 	g := Goblin(t)
 	testDb, err := models.GetTestDB()
 	g.Assert(err == nil).IsTrue()
-
-	// special hook for gomega
-	RegisterFailHandler(func(m string, _ ...int) { g.Fail(m) })
 
 	g.Describe("Apply For Membership Handler", func() {
 		g.It("Should create membership application", func() {

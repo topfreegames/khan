@@ -18,6 +18,7 @@ import (
 )
 
 func TestClanModel(t *testing.T) {
+	t.Parallel()
 	g := Goblin(t)
 	testDb, err := GetTestDB()
 	g.Assert(err == nil).IsTrue()
@@ -37,20 +38,9 @@ func TestClanModel(t *testing.T) {
 			})
 
 			g.It("Should create a new Clan", func() {
-				player, err := CreatePlayerFactory(testDb, "")
+				_, clans, err := GetTestClans(testDb, "", "", 1)
 				g.Assert(err == nil).IsTrue()
-
-				clan := &Clan{
-					GameID:           "test",
-					PublicID:         "test-clan-2",
-					Name:             "clan-name",
-					Metadata:         "{}",
-					OwnerID:          player.ID,
-					AllowApplication: true,
-					AutoJoin:         false,
-				}
-				err = testDb.Insert(clan)
-				g.Assert(err == nil).IsTrue()
+				clan := clans[0]
 				g.Assert(clan.ID != 0).IsTrue()
 
 				dbClan, err := GetClanByID(testDb, clan.ID)
