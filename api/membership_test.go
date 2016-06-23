@@ -17,6 +17,7 @@ import (
 	"github.com/Pallinder/go-randomdata"
 	. "github.com/franela/goblin"
 	"github.com/topfreegames/khan/models"
+	"github.com/topfreegames/khan/util"
 )
 
 func TestMembershipHandler(t *testing.T) {
@@ -34,7 +35,7 @@ func TestMembershipHandler(t *testing.T) {
 			_, err = testDb.Update(clan)
 			g.Assert(err == nil).IsTrue()
 
-			player := models.PlayerFactory.MustCreateWithOption(map[string]interface{}{
+			player := models.PlayerFactory.MustCreateWithOption(util.JSON{
 				"GameID": clan.GameID,
 			}).(*models.Player)
 			err = testDb.Insert(player)
@@ -45,14 +46,14 @@ func TestMembershipHandler(t *testing.T) {
 			level := 1
 
 			a := GetDefaultTestApp()
-			payload := map[string]interface{}{
+			payload := util.JSON{
 				"level":          level,
 				"playerPublicID": player.PublicID,
 			}
 			res := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "application"), t, payload)
 
 			res.Status(http.StatusOK)
-			var result map[string]interface{}
+			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsTrue()
 
@@ -68,10 +69,10 @@ func TestMembershipHandler(t *testing.T) {
 
 		g.It("Should not create membership application if missing parameters", func() {
 			a := GetDefaultTestApp()
-			res := PostJSON(a, CreateMembershipRoute("gameID", "clanPublicID", "application"), t, map[string]interface{}{})
+			res := PostJSON(a, CreateMembershipRoute("gameID", "clanPublicID", "application"), t, util.JSON{})
 
 			res.Status(http.StatusBadRequest)
-			var result map[string]interface{}
+			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
 			g.Assert(result["reason"]).Equal("level is required, playerPublicID is required")
@@ -85,7 +86,7 @@ func TestMembershipHandler(t *testing.T) {
 			res := PostBody(a, CreateMembershipRoute(gameID, clanPublicID, "application"), t, "invalid")
 
 			res.Status(http.StatusBadRequest)
-			var result map[string]interface{}
+			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
 			g.Assert(strings.Contains(result["reason"].(string), "While trying to read JSON")).IsTrue()
@@ -101,7 +102,7 @@ func TestMembershipHandler(t *testing.T) {
 			level := 1
 
 			a := GetDefaultTestApp()
-			payload := map[string]interface{}{
+			payload := util.JSON{
 				"level":          level,
 				"playerPublicID": playerPublicID,
 			}
@@ -109,7 +110,7 @@ func TestMembershipHandler(t *testing.T) {
 			res := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "application"), t, payload)
 
 			res.Status(http.StatusInternalServerError)
-			var result map[string]interface{}
+			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
 			g.Assert(result["reason"]).Equal(fmt.Sprintf("Player was not found with id: %s", playerPublicID))
@@ -119,7 +120,7 @@ func TestMembershipHandler(t *testing.T) {
 			clan, _, _, _, err := models.GetClanWithMemberships(testDb, 0, "", "")
 			g.Assert(err == nil).IsTrue()
 
-			player := models.PlayerFactory.MustCreateWithOption(map[string]interface{}{
+			player := models.PlayerFactory.MustCreateWithOption(util.JSON{
 				"GameID": clan.GameID,
 			}).(*models.Player)
 			err = testDb.Insert(player)
@@ -129,7 +130,7 @@ func TestMembershipHandler(t *testing.T) {
 			clanPublicID := clan.PublicID
 
 			a := GetDefaultTestApp()
-			payload := map[string]interface{}{
+			payload := util.JSON{
 				"level":          "it-will-fail-beacause-level-is-not-an-int",
 				"playerPublicID": player.PublicID,
 			}
@@ -137,7 +138,7 @@ func TestMembershipHandler(t *testing.T) {
 			res := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "application"), t, payload)
 
 			res.Status(http.StatusBadRequest)
-			var result map[string]interface{}
+			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
 			g.Assert(strings.Contains(result["reason"].(string), "While trying to read JSON")).IsTrue()
@@ -149,7 +150,7 @@ func TestMembershipHandler(t *testing.T) {
 			clan, owner, _, _, err := models.GetClanWithMemberships(testDb, 0, "", "")
 			g.Assert(err == nil).IsTrue()
 
-			player := models.PlayerFactory.MustCreateWithOption(map[string]interface{}{
+			player := models.PlayerFactory.MustCreateWithOption(util.JSON{
 				"GameID": clan.GameID,
 			}).(*models.Player)
 			err = testDb.Insert(player)
@@ -160,7 +161,7 @@ func TestMembershipHandler(t *testing.T) {
 			level := 1
 
 			a := GetDefaultTestApp()
-			payload := map[string]interface{}{
+			payload := util.JSON{
 				"level":             level,
 				"playerPublicID":    player.PublicID,
 				"requestorPublicID": owner.PublicID,
@@ -168,7 +169,7 @@ func TestMembershipHandler(t *testing.T) {
 			res := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "invitation"), t, payload)
 
 			res.Status(http.StatusOK)
-			var result map[string]interface{}
+			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsTrue()
 
@@ -191,7 +192,7 @@ func TestMembershipHandler(t *testing.T) {
 			_, err = testDb.Update(memberships[0])
 			g.Assert(err == nil).IsTrue()
 
-			player := models.PlayerFactory.MustCreateWithOption(map[string]interface{}{
+			player := models.PlayerFactory.MustCreateWithOption(util.JSON{
 				"GameID": clan.GameID,
 			}).(*models.Player)
 			err = testDb.Insert(player)
@@ -202,7 +203,7 @@ func TestMembershipHandler(t *testing.T) {
 			level := 1
 
 			a := GetDefaultTestApp()
-			payload := map[string]interface{}{
+			payload := util.JSON{
 				"level":             level,
 				"playerPublicID":    player.PublicID,
 				"requestorPublicID": players[0].PublicID,
@@ -210,7 +211,7 @@ func TestMembershipHandler(t *testing.T) {
 			res := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "invitation"), t, payload)
 
 			res.Status(http.StatusOK)
-			var result map[string]interface{}
+			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsTrue()
 
@@ -227,10 +228,10 @@ func TestMembershipHandler(t *testing.T) {
 
 		g.It("Should not create membership invitation if missing parameters", func() {
 			a := GetDefaultTestApp()
-			res := PostJSON(a, CreateMembershipRoute("gameID", "clanPublicID", "invitation"), t, map[string]interface{}{})
+			res := PostJSON(a, CreateMembershipRoute("gameID", "clanPublicID", "invitation"), t, util.JSON{})
 
 			res.Status(http.StatusBadRequest)
-			var result map[string]interface{}
+			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
 			g.Assert(result["reason"]).Equal("level is required, playerPublicID is required, requestorPublicID is required")
@@ -244,7 +245,7 @@ func TestMembershipHandler(t *testing.T) {
 			res := PostBody(a, CreateMembershipRoute(gameID, clanPublicID, "invitation"), t, "invalid")
 
 			res.Status(http.StatusBadRequest)
-			var result map[string]interface{}
+			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
 			g.Assert(strings.Contains(result["reason"].(string), "While trying to read JSON")).IsTrue()
@@ -260,7 +261,7 @@ func TestMembershipHandler(t *testing.T) {
 			level := 1
 
 			a := GetDefaultTestApp()
-			payload := map[string]interface{}{
+			payload := util.JSON{
 				"level":             level,
 				"playerPublicID":    playerPublicID,
 				"requestorPublicID": owner.PublicID,
@@ -269,7 +270,7 @@ func TestMembershipHandler(t *testing.T) {
 			res := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "invitation"), t, payload)
 
 			res.Status(http.StatusInternalServerError)
-			var result map[string]interface{}
+			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
 			g.Assert(result["reason"]).Equal(fmt.Sprintf("Player was not found with id: %s", playerPublicID))
@@ -279,7 +280,7 @@ func TestMembershipHandler(t *testing.T) {
 			clan, owner, _, _, err := models.GetClanWithMemberships(testDb, 0, "", "")
 			g.Assert(err == nil).IsTrue()
 
-			player := models.PlayerFactory.MustCreateWithOption(map[string]interface{}{
+			player := models.PlayerFactory.MustCreateWithOption(util.JSON{
 				"GameID": clan.GameID,
 			}).(*models.Player)
 			err = testDb.Insert(player)
@@ -289,7 +290,7 @@ func TestMembershipHandler(t *testing.T) {
 			clanPublicID := clan.PublicID
 
 			a := GetDefaultTestApp()
-			payload := map[string]interface{}{
+			payload := util.JSON{
 				"level":             "it-will-fail-beacause-level-is-not-an-int",
 				"playerPublicID":    player.PublicID,
 				"requestorPublicID": owner.PublicID,
@@ -298,7 +299,7 @@ func TestMembershipHandler(t *testing.T) {
 			res := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "invitation"), t, payload)
 
 			res.Status(http.StatusBadRequest)
-			var result map[string]interface{}
+			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
 			g.Assert(strings.Contains(result["reason"].(string), "While trying to read JSON")).IsTrue()
@@ -314,13 +315,13 @@ func TestMembershipHandler(t *testing.T) {
 			clanPublicID := clan.PublicID
 
 			a := GetDefaultTestApp()
-			payload := map[string]interface{}{
+			payload := util.JSON{
 				"playerPublicID": players[0].PublicID,
 			}
 			res := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "invitation/approve"), t, payload)
 
 			res.Status(http.StatusOK)
-			var result map[string]interface{}
+			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsTrue()
 
@@ -340,13 +341,13 @@ func TestMembershipHandler(t *testing.T) {
 			clanPublicID := clan.PublicID
 
 			a := GetDefaultTestApp()
-			payload := map[string]interface{}{
+			payload := util.JSON{
 				"playerPublicID": players[0].PublicID,
 			}
 			res := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "invitation/deny"), t, payload)
 
 			res.Status(http.StatusOK)
-			var result map[string]interface{}
+			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsTrue()
 
@@ -360,10 +361,10 @@ func TestMembershipHandler(t *testing.T) {
 
 		g.It("Should not approve membership invitation if missing parameters", func() {
 			a := GetDefaultTestApp()
-			res := PostJSON(a, CreateMembershipRoute("gameID", "clanPublicID", "invitation/approve"), t, map[string]interface{}{})
+			res := PostJSON(a, CreateMembershipRoute("gameID", "clanPublicID", "invitation/approve"), t, util.JSON{})
 
 			res.Status(http.StatusBadRequest)
-			var result map[string]interface{}
+			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
 			g.Assert(result["reason"]).Equal("playerPublicID is required")
@@ -377,7 +378,7 @@ func TestMembershipHandler(t *testing.T) {
 			res := PostBody(a, CreateMembershipRoute(gameID, clanPublicID, "invitation/approve"), t, "invalid")
 
 			res.Status(http.StatusBadRequest)
-			var result map[string]interface{}
+			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
 			g.Assert(strings.Contains(result["reason"].(string), "While trying to read JSON")).IsTrue()
@@ -392,14 +393,14 @@ func TestMembershipHandler(t *testing.T) {
 			clanPublicID := clan.PublicID
 
 			a := GetDefaultTestApp()
-			payload := map[string]interface{}{
+			payload := util.JSON{
 				"playerPublicID": playerPublicID,
 			}
 
 			res := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "invitation/approve"), t, payload)
 
 			res.Status(http.StatusInternalServerError)
-			var result map[string]interface{}
+			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
 			g.Assert(result["reason"]).Equal(fmt.Sprintf("Membership was not found with id: %s", playerPublicID))
@@ -418,14 +419,14 @@ func TestMembershipHandler(t *testing.T) {
 			clanPublicID := clan.PublicID
 
 			a := GetDefaultTestApp()
-			payload := map[string]interface{}{
+			payload := util.JSON{
 				"playerPublicID":    players[0].PublicID,
 				"requestorPublicID": owner.PublicID,
 			}
 			res := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "application/approve"), t, payload)
 
 			res.Status(http.StatusOK)
-			var result map[string]interface{}
+			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsTrue()
 
@@ -446,14 +447,14 @@ func TestMembershipHandler(t *testing.T) {
 			clanPublicID := clan.PublicID
 
 			a := GetDefaultTestApp()
-			payload := map[string]interface{}{
+			payload := util.JSON{
 				"playerPublicID":    players[0].PublicID,
 				"requestorPublicID": owner.PublicID,
 			}
 			res := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "application/deny"), t, payload)
 
 			res.Status(http.StatusOK)
-			var result map[string]interface{}
+			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsTrue()
 
@@ -465,10 +466,10 @@ func TestMembershipHandler(t *testing.T) {
 
 		g.It("Should not approve membership application if missing parameters", func() {
 			a := GetDefaultTestApp()
-			res := PostJSON(a, CreateMembershipRoute("gameID", "clanPublicID", "application/approve"), t, map[string]interface{}{})
+			res := PostJSON(a, CreateMembershipRoute("gameID", "clanPublicID", "application/approve"), t, util.JSON{})
 
 			res.Status(http.StatusBadRequest)
-			var result map[string]interface{}
+			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
 			g.Assert(result["reason"]).Equal("playerPublicID is required, requestorPublicID is required")
@@ -482,7 +483,7 @@ func TestMembershipHandler(t *testing.T) {
 			res := PostBody(a, CreateMembershipRoute(gameID, clanPublicID, "application/approve"), t, "invalid")
 
 			res.Status(http.StatusBadRequest)
-			var result map[string]interface{}
+			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
 			g.Assert(strings.Contains(result["reason"].(string), "While trying to read JSON")).IsTrue()
@@ -497,7 +498,7 @@ func TestMembershipHandler(t *testing.T) {
 			clanPublicID := clan.PublicID
 
 			a := GetDefaultTestApp()
-			payload := map[string]interface{}{
+			payload := util.JSON{
 				"playerPublicID":    playerPublicID,
 				"requestorPublicID": owner.PublicID,
 			}
@@ -505,7 +506,7 @@ func TestMembershipHandler(t *testing.T) {
 			res := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "application/approve"), t, payload)
 
 			res.Status(http.StatusInternalServerError)
-			var result map[string]interface{}
+			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
 			g.Assert(result["reason"]).Equal(fmt.Sprintf("Membership was not found with id: %s", playerPublicID))
@@ -524,14 +525,14 @@ func TestMembershipHandler(t *testing.T) {
 			clanPublicID := clan.PublicID
 
 			a := GetDefaultTestApp()
-			payload := map[string]interface{}{
+			payload := util.JSON{
 				"playerPublicID":    players[0].PublicID,
 				"requestorPublicID": owner.PublicID,
 			}
 			res := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "promote"), t, payload)
 
 			res.Status(http.StatusOK)
-			var result map[string]interface{}
+			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsTrue()
 			g.Assert(int(result["level"].(float64))).Equal(memberships[0].Level + 1)
@@ -553,14 +554,14 @@ func TestMembershipHandler(t *testing.T) {
 			clanPublicID := clan.PublicID
 
 			a := GetDefaultTestApp()
-			payload := map[string]interface{}{
+			payload := util.JSON{
 				"playerPublicID":    players[0].PublicID,
 				"requestorPublicID": owner.PublicID,
 			}
 			res := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "demote"), t, payload)
 
 			res.Status(http.StatusOK)
-			var result map[string]interface{}
+			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsTrue()
 			g.Assert(int(result["level"].(float64))).Equal(memberships[0].Level - 1)
@@ -572,10 +573,10 @@ func TestMembershipHandler(t *testing.T) {
 
 		g.It("Should not promote member if missing parameters", func() {
 			a := GetDefaultTestApp()
-			res := PostJSON(a, CreateMembershipRoute("gameID", "clanPublicID", "promote"), t, map[string]interface{}{})
+			res := PostJSON(a, CreateMembershipRoute("gameID", "clanPublicID", "promote"), t, util.JSON{})
 
 			res.Status(http.StatusBadRequest)
-			var result map[string]interface{}
+			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
 			g.Assert(result["reason"]).Equal("playerPublicID is required, requestorPublicID is required")
@@ -589,7 +590,7 @@ func TestMembershipHandler(t *testing.T) {
 			res := PostBody(a, CreateMembershipRoute(gameID, clanPublicID, "promote"), t, "invalid")
 
 			res.Status(http.StatusBadRequest)
-			var result map[string]interface{}
+			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
 			g.Assert(strings.Contains(result["reason"].(string), "While trying to read JSON")).IsTrue()
@@ -604,7 +605,7 @@ func TestMembershipHandler(t *testing.T) {
 			clanPublicID := clan.PublicID
 
 			a := GetDefaultTestApp()
-			payload := map[string]interface{}{
+			payload := util.JSON{
 				"playerPublicID":    playerPublicID,
 				"requestorPublicID": owner.PublicID,
 			}
@@ -612,7 +613,7 @@ func TestMembershipHandler(t *testing.T) {
 			res := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "promote"), t, payload)
 
 			res.Status(http.StatusInternalServerError)
-			var result map[string]interface{}
+			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
 			g.Assert(result["reason"]).Equal(fmt.Sprintf("Membership was not found with id: %s", playerPublicID))
@@ -628,14 +629,14 @@ func TestMembershipHandler(t *testing.T) {
 			clanPublicID := clan.PublicID
 
 			a := GetDefaultTestApp()
-			payload := map[string]interface{}{
+			payload := util.JSON{
 				"playerPublicID":    players[0].PublicID,
 				"requestorPublicID": owner.PublicID,
 			}
 			res := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "delete"), t, payload)
 
 			res.Status(http.StatusOK)
-			var result map[string]interface{}
+			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsTrue()
 
@@ -646,10 +647,10 @@ func TestMembershipHandler(t *testing.T) {
 
 		g.It("Should not delete member if missing parameters", func() {
 			a := GetDefaultTestApp()
-			res := PostJSON(a, CreateMembershipRoute("gameID", "clanPublicID", "delete"), t, map[string]interface{}{})
+			res := PostJSON(a, CreateMembershipRoute("gameID", "clanPublicID", "delete"), t, util.JSON{})
 
 			res.Status(http.StatusBadRequest)
-			var result map[string]interface{}
+			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
 			g.Assert(result["reason"]).Equal("playerPublicID is required, requestorPublicID is required")
@@ -663,7 +664,7 @@ func TestMembershipHandler(t *testing.T) {
 			res := PostBody(a, CreateMembershipRoute(gameID, clanPublicID, "delete"), t, "invalid")
 
 			res.Status(http.StatusBadRequest)
-			var result map[string]interface{}
+			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
 			g.Assert(strings.Contains(result["reason"].(string), "While trying to read JSON")).IsTrue()
@@ -678,7 +679,7 @@ func TestMembershipHandler(t *testing.T) {
 			clanPublicID := clan.PublicID
 
 			a := GetDefaultTestApp()
-			payload := map[string]interface{}{
+			payload := util.JSON{
 				"playerPublicID":    playerPublicID,
 				"requestorPublicID": owner.PublicID,
 			}
@@ -686,7 +687,7 @@ func TestMembershipHandler(t *testing.T) {
 			res := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "delete"), t, payload)
 
 			res.Status(http.StatusInternalServerError)
-			var result map[string]interface{}
+			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
 			g.Assert(result["reason"]).Equal(fmt.Sprintf("Membership was not found with id: %s", playerPublicID))

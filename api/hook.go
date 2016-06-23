@@ -10,6 +10,7 @@ package api
 import (
 	"github.com/kataras/iris"
 	"github.com/topfreegames/khan/models"
+	"github.com/topfreegames/khan/util"
 )
 
 type hookPayload struct {
@@ -42,7 +43,7 @@ func CreateHookHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
-		SucceedWith(map[string]interface{}{
+		SucceedWith(util.JSON{
 			"publicID": hook.PublicID,
 		}, c)
 	}
@@ -67,6 +68,6 @@ func RemoveHookHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
-		SucceedWith(map[string]interface{}{}, c)
+		SucceedWith(util.JSON{}, c)
 	}
 }

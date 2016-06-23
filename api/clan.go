@@ -10,6 +10,7 @@ package api
 import (
 	"github.com/kataras/iris"
 	"github.com/topfreegames/khan/models"
+	"github.com/topfreegames/khan/util"
 )
 
 // clanPayload maps the payload for the Create Clan route
@@ -71,7 +72,7 @@ func CreateClanHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
-		SucceedWith(map[string]interface{}{
+		SucceedWith(util.JSON{
 			"publicID": clan.PublicID,
 		}, c)
 	}
@@ -107,7 +108,7 @@ func UpdateClanHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
-		SucceedWith(map[string]interface{}{}, c)
+		SucceedWith(util.JSON{}, c)
 	}
 }
 
@@ -137,7 +138,7 @@ func LeaveClanHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
-		SucceedWith(map[string]interface{}{}, c)
+		SucceedWith(util.JSON{}, c)
 	}
 }
 
@@ -168,7 +169,7 @@ func TransferOwnershipHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
-		SucceedWith(map[string]interface{}{}, c)
+		SucceedWith(util.JSON{}, c)
 	}
 }
 
@@ -189,7 +190,7 @@ func ListClansHandler(app *App) func(c *iris.Context) {
 		}
 
 		serializedClans := serializeClans(clans, true)
-		SucceedWith(map[string]interface{}{
+		SucceedWith(util.JSON{
 			"clans": serializedClans,
 		}, c)
 	}
@@ -219,7 +220,7 @@ func SearchClansHandler(app *App) func(c *iris.Context) {
 		}
 
 		serializedClans := serializeClans(clans, true)
-		SucceedWith(map[string]interface{}{
+		SucceedWith(util.JSON{
 			"clans": serializedClans,
 		}, c)
 	}
@@ -247,8 +248,8 @@ func RetrieveClanHandler(app *App) func(c *iris.Context) {
 	}
 }
 
-func serializeClans(clans []models.Clan, includePublicID bool) []map[string]interface{} {
-	serializedClans := make([]map[string]interface{}, len(clans))
+func serializeClans(clans []models.Clan, includePublicID bool) []util.JSON {
+	serializedClans := make([]util.JSON, len(clans))
 	for i, clan := range clans {
 		serializedClans[i] = serializeClan(&clan, includePublicID)
 	}
@@ -256,8 +257,8 @@ func serializeClans(clans []models.Clan, includePublicID bool) []map[string]inte
 	return serializedClans
 }
 
-func serializeClan(clan *models.Clan, includePublicID bool) map[string]interface{} {
-	serial := map[string]interface{}{
+func serializeClan(clan *models.Clan, includePublicID bool) util.JSON {
+	serial := util.JSON{
 		"name":     clan.Name,
 		"metadata": clan.Metadata,
 	}

@@ -18,6 +18,7 @@ import (
 	"github.com/Pallinder/go-randomdata"
 	. "github.com/franela/goblin"
 	"github.com/topfreegames/khan/models"
+	"github.com/topfreegames/khan/util"
 )
 
 func TestPlayerHandler(t *testing.T) {
@@ -34,7 +35,7 @@ func TestPlayerHandler(t *testing.T) {
 			err := a.Db.Insert(game)
 			AssertNotError(g, err)
 
-			payload := map[string]interface{}{
+			payload := util.JSON{
 				"publicID": randomdata.FullName(randomdata.RandomGender),
 				"name":     randomdata.FullName(randomdata.RandomGender),
 				"metadata": "{\"x\": 1}",
@@ -42,7 +43,7 @@ func TestPlayerHandler(t *testing.T) {
 			res := PostJSON(a, GetGameRoute(game.PublicID, "/players"), t, payload)
 
 			res.Status(http.StatusOK)
-			var result map[string]interface{}
+			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsTrue()
 			g.Assert(result["publicID"]).Equal(payload["publicID"].(string))
@@ -60,10 +61,10 @@ func TestPlayerHandler(t *testing.T) {
 		g.It("Should not create player if missing parameters", func() {
 			a := GetDefaultTestApp()
 			route := GetGameRoute("game-id", "/players")
-			res := PostJSON(a, route, t, map[string]interface{}{})
+			res := PostJSON(a, route, t, util.JSON{})
 
 			res.Status(http.StatusBadRequest)
-			var result map[string]interface{}
+			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
 			g.Assert(result["reason"]).Equal("publicID is required, name is required, metadata is required")
@@ -75,7 +76,7 @@ func TestPlayerHandler(t *testing.T) {
 			res := PostBody(a, route, t, "invalid")
 
 			res.Status(http.StatusBadRequest)
-			var result map[string]interface{}
+			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
 			g.Assert(strings.Contains(result["reason"].(string), "While trying to read JSON")).IsTrue()
@@ -87,7 +88,7 @@ func TestPlayerHandler(t *testing.T) {
 			err := a.Db.Insert(game)
 			AssertNotError(g, err)
 
-			payload := map[string]interface{}{
+			payload := util.JSON{
 				"publicID": randomdata.FullName(randomdata.RandomGender),
 				"name":     randomdata.FullName(randomdata.RandomGender),
 				"metadata": "metadata-it-not-a-json-and-will-break",
@@ -95,7 +96,7 @@ func TestPlayerHandler(t *testing.T) {
 			res := PostJSON(a, GetGameRoute(game.PublicID, "/players"), t, payload)
 
 			res.Status(http.StatusInternalServerError)
-			var result map[string]interface{}
+			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
 			g.Assert(result["reason"]).Equal("pq: invalid input syntax for type json")
@@ -109,7 +110,7 @@ func TestPlayerHandler(t *testing.T) {
 			AssertNotError(g, err)
 
 			metadata := "{\"y\": 10}"
-			payload := map[string]interface{}{
+			payload := util.JSON{
 				"name":     player.Name,
 				"metadata": metadata,
 			}
@@ -117,7 +118,7 @@ func TestPlayerHandler(t *testing.T) {
 			route := GetGameRoute(player.GameID, fmt.Sprintf("/players/%s", player.PublicID))
 			res := PutJSON(a, route, t, payload)
 			res.Status(http.StatusOK)
-			var result map[string]interface{}
+			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsTrue()
 
@@ -132,10 +133,10 @@ func TestPlayerHandler(t *testing.T) {
 		g.It("Should not update player if missing parameters", func() {
 			a := GetDefaultTestApp()
 			route := GetGameRoute("game-id", "/players/player-id")
-			res := PutJSON(a, route, t, map[string]interface{}{})
+			res := PutJSON(a, route, t, util.JSON{})
 
 			res.Status(http.StatusBadRequest)
-			var result map[string]interface{}
+			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
 			g.Assert(result["reason"]).Equal("name is required, metadata is required")
@@ -147,7 +148,7 @@ func TestPlayerHandler(t *testing.T) {
 			res := PutBody(a, route, t, "invalid")
 
 			res.Status(http.StatusBadRequest)
-			var result map[string]interface{}
+			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
 			g.Assert(strings.Contains(result["reason"].(string), "While trying to read JSON")).IsTrue()
@@ -160,7 +161,7 @@ func TestPlayerHandler(t *testing.T) {
 
 			metadata := ""
 
-			payload := map[string]interface{}{
+			payload := util.JSON{
 				"publicID": player.PublicID,
 				"name":     player.Name,
 				"metadata": metadata,
@@ -169,7 +170,7 @@ func TestPlayerHandler(t *testing.T) {
 			res := PutJSON(a, route, t, payload)
 
 			res.Status(http.StatusInternalServerError)
-			var result map[string]interface{}
+			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
 			g.Assert(result["reason"]).Equal("pq: invalid input syntax for type json")
@@ -188,7 +189,7 @@ func TestPlayerHandler(t *testing.T) {
 			time.Sleep(time.Second)
 
 			gameID := hooks[0].GameID
-			payload := map[string]interface{}{
+			payload := util.JSON{
 				"publicID": randomdata.FullName(randomdata.RandomGender),
 				"name":     randomdata.FullName(randomdata.RandomGender),
 				"metadata": "{\"x\": 1}",
@@ -196,7 +197,7 @@ func TestPlayerHandler(t *testing.T) {
 			res := PostJSON(app, GetGameRoute(gameID, "/players"), t, payload)
 
 			res.Status(http.StatusOK)
-			var result map[string]interface{}
+			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsTrue()
 			g.Assert(result["publicID"]).Equal(payload["publicID"].(string))
@@ -217,7 +218,7 @@ func TestPlayerHandler(t *testing.T) {
 			g.Assert(err == nil).IsTrue()
 			responses := startRouteHandler([]string{"/updated"}, 52525)
 
-			player := models.PlayerFactory.MustCreateWithOption(map[string]interface{}{"GameID": hooks[0].GameID}).(*models.Player)
+			player := models.PlayerFactory.MustCreateWithOption(util.JSON{"GameID": hooks[0].GameID}).(*models.Player)
 			err = testDb.Insert(player)
 			AssertNotError(g, err)
 
@@ -225,7 +226,7 @@ func TestPlayerHandler(t *testing.T) {
 			time.Sleep(time.Second)
 
 			gameID := hooks[0].GameID
-			payload := map[string]interface{}{
+			payload := util.JSON{
 				"publicID": player.PublicID,
 				"name":     player.Name,
 				"metadata": player.Metadata,
@@ -233,7 +234,7 @@ func TestPlayerHandler(t *testing.T) {
 			res := PutJSON(app, GetGameRoute(gameID, fmt.Sprintf("/players/%s", player.PublicID)), t, payload)
 
 			res.Status(http.StatusOK)
-			var result map[string]interface{}
+			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsTrue()
 

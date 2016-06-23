@@ -13,6 +13,7 @@ import (
 
 	"github.com/kataras/iris"
 	"github.com/topfreegames/khan/models"
+	"github.com/topfreegames/khan/util"
 )
 
 type gamePayload struct {
@@ -104,7 +105,7 @@ func CreateGameHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
-		SucceedWith(map[string]interface{}{
+		SucceedWith(util.JSON{
 			"publicID": game.PublicID,
 		}, c)
 	}
@@ -149,7 +150,7 @@ func UpdateGameHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
-		successPayload := map[string]interface{}{
+		successPayload := util.JSON{
 			"success":                       true,
 			"publicID":                      gameID,
 			"name":                          payload.Name,
@@ -166,6 +167,6 @@ func UpdateGameHandler(app *App) func(c *iris.Context) {
 		}
 		app.DispatchHooks(gameID, models.GameUpdatedHook, successPayload)
 
-		SucceedWith(map[string]interface{}{}, c)
+		SucceedWith(util.JSON{}, c)
 	}
 }

@@ -13,6 +13,7 @@ import (
 
 	"github.com/Pallinder/go-randomdata"
 	. "github.com/franela/goblin"
+	"github.com/topfreegames/khan/util"
 )
 
 func TestPlayerModel(t *testing.T) {
@@ -164,13 +165,13 @@ func TestPlayerModel(t *testing.T) {
 				g.Assert(playerDetails["updatedAt"]).Equal(player.UpdatedAt)
 
 				//Memberships
-				g.Assert(len(playerDetails["memberships"].([]JSON))).Equal(18)
+				g.Assert(len(playerDetails["memberships"].([]util.JSON))).Equal(18)
 
-				clans := playerDetails["clans"].(JSON)
-				approved := clans["approved"].([]JSON)
-				denied := clans["denied"].([]JSON)
-				banned := clans["banned"].([]JSON)
-				pending := clans["pending"].([]JSON)
+				clans := playerDetails["clans"].(util.JSON)
+				approved := clans["approved"].([]util.JSON)
+				denied := clans["denied"].([]util.JSON)
+				banned := clans["banned"].([]util.JSON)
+				pending := clans["pending"].([]util.JSON)
 
 				g.Assert(len(approved)).Equal(5)
 				g.Assert(len(denied)).Equal(2)
