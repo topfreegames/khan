@@ -9,6 +9,7 @@ package models
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/Pallinder/go-randomdata"
 	"github.com/bluele/factory-go/factory"
@@ -372,4 +373,104 @@ func GetTestHooks(db DB, gameID string, numberOfHooks int) ([]*Hook, error) {
 	}
 
 	return hooks, nil
+}
+
+//GetTestPlayerWithMemberships returns a player with approved, rejected and banned memberships
+func GetTestPlayerWithMemberships(db DB, gameID string, approvedMemberships, rejectedMemberships, bannedMemberships, pendingMemberships int) (*Player, error) {
+	game := GameFactory.MustCreateWithOption(map[string]interface{}{
+		"PublicID": gameID,
+	}).(*Game)
+	err := db.Insert(game)
+	if err != nil {
+		return nil, err
+	}
+
+	owner := PlayerFactory.MustCreateWithOption(map[string]interface{}{
+		"GameID": gameID,
+	}).(*Player)
+	err = db.Insert(owner)
+	if err != nil {
+		return nil, err
+	}
+
+	player := PlayerFactory.MustCreateWithOption(map[string]interface{}{
+		"GameID": owner.GameID,
+	}).(*Player)
+	err = db.Insert(player)
+	if err != nil {
+		return nil, err
+	}
+
+	createClan := func() (*Clan, error) {
+		clan := ClanFactory.MustCreateWithOption(map[string]interface{}{
+			"GameID":   owner.GameID,
+			"PublicID": uuid.NewV4().String(),
+			"OwnerID":  owner.ID,
+			"Metadata": "{\"x\": 1}",
+		}).(*Clan)
+		err = db.Insert(clan)
+		if err != nil {
+			return nil, err
+		}
+
+		return clan, nil
+	}
+
+	createMembership := func(approved, denied, banned bool) (*Membership, error) {
+		clan, err := createClan()
+		if err != nil {
+			return nil, err
+		}
+
+		payload := map[string]interface{}{
+			"GameID":      owner.GameID,
+			"PlayerID":    player.ID,
+			"ClanID":      clan.ID,
+			"RequestorID": owner.ID,
+			"Metadata":    "{\"x\": 1}",
+			"Approved":    approved,
+			"Denied":      denied,
+			"Banned":      banned,
+		}
+		if banned {
+			payload["DeletedAt"] = time.Now().UnixNano()
+			payload["DeletedBy"] = owner.ID
+		}
+
+		membership := MembershipFactory.MustCreateWithOption(payload).(*Membership)
+
+		err = db.Insert(membership)
+		if err != nil {
+			return nil, err
+		}
+
+		return membership, nil
+	}
+
+	for i := 0; i < approvedMemberships; i++ {
+		_, err := createMembership(true, false, false)
+		if err != nil {
+			return nil, err
+		}
+	}
+	for i := 0; i < rejectedMemberships; i++ {
+		_, err := createMembership(false, true, false)
+		if err != nil {
+			return nil, err
+		}
+	}
+	for i := 0; i < bannedMemberships; i++ {
+		_, err := createMembership(false, false, true)
+		if err != nil {
+			return nil, err
+		}
+	}
+	for i := 0; i < pendingMemberships; i++ {
+		_, err := createMembership(false, false, false)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return player, nil
 }

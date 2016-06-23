@@ -61,7 +61,7 @@ run-docker:
 	@docker run -i -t --rm -e "KHAN_POSTGRES_HOST=10.0.20.81" -p 8080:8080 khan
 
 test: assets drop-test db-test
-	@GOMAXPROCS=8 go test -p 8 -parallel 8 $(PACKAGES)
+	@go test $(PACKAGES)
 
 coverage: drop-test db-test
 	@echo "mode: count" > coverage-all.out

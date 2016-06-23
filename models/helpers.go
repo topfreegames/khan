@@ -15,6 +15,8 @@ import (
 	"gopkg.in/gorp.v1"
 )
 
+type JSON map[string]interface{}
+
 // DB is the contract for all the operations we use from either a connection or transaction
 // This is required for automatic transactions
 type DB interface {

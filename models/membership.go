@@ -20,6 +20,7 @@ type Membership struct {
 	Level       int    `db:"membership_level"`
 	Approved    bool   `db:"approved"`
 	Denied      bool   `db:"denied"`
+	Banned      bool   `db:"banned"`
 	PlayerID    int    `db:"player_id"`
 	ClanID      int    `db:"clan_id"`
 	RequestorID int    `db:"requestor_id"`
@@ -382,6 +383,9 @@ func deleteMembershipHelper(db DB, membership *Membership, deletedBy int) error 
 	membership.DeletedBy = deletedBy
 	membership.Approved = false
 	membership.Denied = false
+
+	membership.Banned = deletedBy != membership.PlayerID // TODO: Test this
+
 	_, err := db.Update(membership)
 	return err
 }

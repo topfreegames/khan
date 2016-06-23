@@ -101,3 +101,25 @@ func UpdatePlayerHandler(app *App) func(c *iris.Context) {
 		SucceedWith(map[string]interface{}{}, c)
 	}
 }
+
+// RetrievePlayerHandler is the handler responsible for returning details for a given player
+func RetrievePlayerHandler(app *App) func(c *iris.Context) {
+	return func(c *iris.Context) {
+		db := GetCtxDB(c)
+		gameID := c.Param("gameID")
+		publicID := c.Param("playerPublicID")
+
+		player, err := models.GetPlayerDetails(
+			db,
+			gameID,
+			publicID,
+		)
+
+		if err != nil {
+			FailWith(500, err.Error(), c)
+			return
+		}
+
+		SucceedWith(player, c)
+	}
+}
