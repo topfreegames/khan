@@ -72,6 +72,16 @@ func GetGameByPublicID(db DB, publicID string) (*Game, error) {
 	return &game, nil
 }
 
+// GetAllGames returns all games in the DB
+func GetAllGames(db DB) ([]*Game, error) {
+	var games []*Game
+	_, err := db.Select(&games, "SELECT * FROM games")
+	if err != nil {
+		return nil, err
+	}
+	return games, nil
+}
+
 // CreateGame creates a new game
 func CreateGame(db DB, publicID, name string, levels, metadata util.JSON,
 	minLevel, maxLevel, minLevelAccept, minLevelCreate, minLevelRemove, minOffsetRemove, minOffsetPromote, minOffsetDemote, maxMembers int,

@@ -34,6 +34,7 @@ type App struct {
 	Db         models.DB
 	Config     *viper.Viper
 	Hooks      map[string]map[int][]*models.Hook
+	Games      map[string]*models.Game
 }
 
 // GetApp returns a new Khan API Application
@@ -55,6 +56,7 @@ func (app *App) Configure() {
 	app.loadConfiguration()
 	app.connectDatabase()
 	app.configureApplication()
+	app.loadGames()
 	app.loadHooks()
 }
 
@@ -163,6 +165,24 @@ func (app *App) loadHooks() {
 				app.Hooks[hook.GameID][hook.EventType],
 				hook,
 			)
+		}
+
+		time.Sleep(time.Minute)
+	})(app)
+}
+
+func (app *App) loadGames() {
+	app.Games = make(map[string]*models.Game)
+
+	go (func(a *App) {
+		games, err := models.GetAllGames(a.Db)
+		if err != nil {
+			glog.Fatalf(
+				"Failed to retrieve games: %s", err.Error(),
+			)
+		}
+		for _, game := range games {
+			app.Games[game.PublicID] = game
 		}
 
 		time.Sleep(time.Minute)
