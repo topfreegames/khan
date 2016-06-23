@@ -224,5 +224,20 @@ func TestGameModel(t *testing.T) {
 				g.Assert(err.Error()).Equal("pq: value too long for type character varying(255)")
 			})
 		})
+
+		g.Describe("Get All Games", func() {
+			g.It("Should get all games", func() {
+				game := GameFactory.MustCreate().(*Game)
+				err := testDb.Insert(game)
+				g.Assert(err == nil).IsTrue()
+
+				games, err := GetAllGames(
+					testDb,
+				)
+
+				g.Assert(err == nil).IsTrue()
+				g.Assert(len(games) > 0).IsTrue()
+			})
+		})
 	})
 }
