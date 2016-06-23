@@ -36,6 +36,8 @@ var GameFactory = factory.NewFactory(
 	return uuid.NewV4().String(), nil
 }).Attr("Metadata", func(args factory.Args) (interface{}, error) {
 	return "{}", nil
+}).Attr("MembershipLevels", func(args factory.Args) (interface{}, error) {
+	return "{\"Member\": 1, \"Elder\": 2, \"CoLeader\": 3}", nil
 })
 
 // HookFactory is responsible for constructing event hook instances

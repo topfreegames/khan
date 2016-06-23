@@ -23,9 +23,16 @@ import (
 )
 
 func getGamePayload(publicID, name string) util.JSON {
+	if publicID == "" {
+		publicID = randomdata.FullName(randomdata.RandomGender)
+	}
+	if name == "" {
+		name = randomdata.FullName(randomdata.RandomGender)
+	}
 	return util.JSON{
-		"publicID":                      randomdata.FullName(randomdata.RandomGender),
-		"name":                          randomdata.FullName(randomdata.RandomGender),
+		"publicID":                      publicID,
+		"name":                          name,
+		"membershipLevels":              "{\"Member\": 1, \"Elder\": 2, \"CoLeader\": 3}",
 		"metadata":                      "{\"x\": 1}",
 		"minMembershipLevel":            1,
 		"maxMembershipLevel":            10,
@@ -50,10 +57,7 @@ func TestGameHandler(t *testing.T) {
 		g.It("Should create game", func() {
 			a := GetDefaultTestApp()
 
-			payload := getGamePayload(
-				randomdata.FullName(randomdata.RandomGender),
-				randomdata.FullName(randomdata.RandomGender),
-			)
+			payload := getGamePayload("", "")
 			res := PostJSON(a, "/games", t, payload)
 
 			g.Assert(res.Raw().StatusCode).Equal(http.StatusOK)
@@ -66,6 +70,7 @@ func TestGameHandler(t *testing.T) {
 			AssertNotError(g, err)
 			g.Assert(dbGame.PublicID).Equal(payload["publicID"])
 			g.Assert(dbGame.Name).Equal(payload["name"])
+			// g.Assert(dbGame.MembershipLevels).Equal(payload["membershipLevels"])
 			g.Assert(dbGame.Metadata).Equal(payload["metadata"])
 			g.Assert(dbGame.MinMembershipLevel).Equal(payload["minMembershipLevel"])
 			g.Assert(dbGame.MaxMembershipLevel).Equal(payload["maxMembershipLevel"])
@@ -78,19 +83,8 @@ func TestGameHandler(t *testing.T) {
 
 		g.It("Should not create game if missing parameters", func() {
 			a := GetDefaultTestApp()
-			payload := util.JSON{
-				"publicID":                      randomdata.FullName(randomdata.RandomGender),
-				"name":                          randomdata.FullName(randomdata.RandomGender),
-				"metadata":                      "{\"x\": 1}",
-				"minMembershipLevel":            1,
-				"maxMembershipLevel":            10,
-				"minLevelToAcceptApplication":   1,
-				"minLevelToCreateInvitation":    1,
-				"minLevelToRemoveMember":        1,
-				"minLevelOffsetToRemoveMember":  1,
-				"minLevelOffsetToPromoteMember": 1,
-				"minLevelOffsetToDemoteMember":  1,
-			}
+			payload := getGamePayload("", "")
+			delete(payload, "maxMembers")
 			res := PostJSON(a, "/games", t, payload)
 
 			g.Assert(res.Raw().StatusCode).Equal(http.StatusBadRequest)
@@ -102,20 +96,8 @@ func TestGameHandler(t *testing.T) {
 
 		g.It("Should not create game if bad payload", func() {
 			a := GetDefaultTestApp()
-			payload := util.JSON{
-				"publicID":                      randomdata.FullName(randomdata.RandomGender),
-				"name":                          randomdata.FullName(randomdata.RandomGender),
-				"metadata":                      "{\"x\": 1}",
-				"minMembershipLevel":            15,
-				"maxMembershipLevel":            10,
-				"minLevelToAcceptApplication":   1,
-				"minLevelToCreateInvitation":    1,
-				"minLevelToRemoveMember":        1,
-				"minLevelOffsetToRemoveMember":  1,
-				"minLevelOffsetToPromoteMember": 1,
-				"minLevelOffsetToDemoteMember":  1,
-				"maxMembers":                    100,
-			}
+			payload := getGamePayload("", "")
+			payload["minMembershipLevel"] = payload["maxMembershipLevel"].(int) + 1
 			res := PostJSON(a, "/games", t, payload)
 
 			g.Assert(res.Raw().StatusCode).Equal(422)
@@ -138,20 +120,7 @@ func TestGameHandler(t *testing.T) {
 
 		g.It("Should not create game if invalid data", func() {
 			a := GetDefaultTestApp()
-			payload := util.JSON{
-				"publicID":                      "game-id-is-too-large-for-this-field-should-be-less-than-36-chars",
-				"name":                          randomdata.FullName(randomdata.RandomGender),
-				"metadata":                      "{\"x\": 1}",
-				"minMembershipLevel":            1,
-				"maxMembershipLevel":            10,
-				"minLevelToAcceptApplication":   1,
-				"minLevelToCreateInvitation":    1,
-				"minLevelToRemoveMember":        1,
-				"minLevelOffsetToRemoveMember":  1,
-				"minLevelOffsetToPromoteMember": 1,
-				"minLevelOffsetToDemoteMember":  1,
-				"maxMembers":                    100,
-			}
+			payload := getGamePayload("game-id-is-too-large-for-this-field-should-be-less-than-36-chars", "")
 			res := PostJSON(a, "/games", t, payload)
 
 			g.Assert(res.Raw().StatusCode).Equal(http.StatusInternalServerError)
@@ -170,20 +139,8 @@ func TestGameHandler(t *testing.T) {
 			AssertNotError(g, err)
 
 			metadata := "{\"y\": 10}"
-			payload := util.JSON{
-				"publicID":                      game.PublicID,
-				"name":                          game.Name,
-				"minMembershipLevel":            game.MinMembershipLevel,
-				"maxMembershipLevel":            game.MaxMembershipLevel,
-				"minLevelToAcceptApplication":   game.MinLevelToAcceptApplication,
-				"minLevelToCreateInvitation":    game.MinLevelToCreateInvitation,
-				"minLevelToRemoveMember":        game.MinLevelToRemoveMember,
-				"minLevelOffsetToRemoveMember":  game.MinLevelOffsetToRemoveMember,
-				"minLevelOffsetToPromoteMember": game.MinLevelOffsetToPromoteMember,
-				"minLevelOffsetToDemoteMember":  game.MinLevelOffsetToDemoteMember,
-				"maxMembers":                    100,
-				"metadata":                      metadata,
-			}
+			payload := getGamePayload(game.PublicID, game.Name)
+			payload["metadata"] = metadata
 
 			route := fmt.Sprintf("/games/%s", game.PublicID)
 			res := PutJSON(a, route, t, payload)
@@ -195,15 +152,16 @@ func TestGameHandler(t *testing.T) {
 			dbGame, err := models.GetGameByPublicID(a.Db, game.PublicID)
 			AssertNotError(g, err)
 			g.Assert(dbGame.Metadata).Equal(metadata)
+			// g.Assert(dbGame.MembershipLevels).Equal(payload["membershipLevels"])
 			g.Assert(dbGame.PublicID).Equal(game.PublicID)
 			g.Assert(dbGame.Name).Equal(game.Name)
-			g.Assert(dbGame.MinMembershipLevel).Equal(game.MinMembershipLevel)
-			g.Assert(dbGame.MaxMembershipLevel).Equal(game.MaxMembershipLevel)
-			g.Assert(dbGame.MinLevelToAcceptApplication).Equal(game.MinLevelToAcceptApplication)
-			g.Assert(dbGame.MinLevelToCreateInvitation).Equal(game.MinLevelToCreateInvitation)
-			g.Assert(dbGame.MinLevelOffsetToPromoteMember).Equal(game.MinLevelOffsetToPromoteMember)
-			g.Assert(dbGame.MinLevelOffsetToDemoteMember).Equal(game.MinLevelOffsetToDemoteMember)
-			g.Assert(dbGame.MaxMembers).Equal(game.MaxMembers)
+			g.Assert(dbGame.MinMembershipLevel).Equal(payload["minMembershipLevel"])
+			g.Assert(dbGame.MaxMembershipLevel).Equal(payload["maxMembershipLevel"])
+			g.Assert(dbGame.MinLevelToAcceptApplication).Equal(payload["minLevelToAcceptApplication"])
+			g.Assert(dbGame.MinLevelToCreateInvitation).Equal(payload["minLevelToCreateInvitation"])
+			g.Assert(dbGame.MinLevelOffsetToPromoteMember).Equal(payload["minLevelOffsetToPromoteMember"])
+			g.Assert(dbGame.MinLevelOffsetToDemoteMember).Equal(payload["minLevelOffsetToDemoteMember"])
+			g.Assert(dbGame.MaxMembers).Equal(payload["maxMembers"])
 		})
 
 		g.It("Should insert if game does not exist", func() {
@@ -233,17 +191,11 @@ func TestGameHandler(t *testing.T) {
 			AssertNotError(g, err)
 
 			metadata := "{\"y\": 10}"
-			payload := util.JSON{
-				"publicID":                     game.PublicID,
-				"minMembershipLevel":           game.MinMembershipLevel,
-				"maxMembershipLevel":           game.MaxMembershipLevel,
-				"minLevelToAcceptApplication":  game.MinLevelToAcceptApplication,
-				"minLevelToCreateInvitation":   game.MinLevelToCreateInvitation,
-				"minLevelToRemoveMember":       game.MinLevelToRemoveMember,
-				"minLevelOffsetToRemoveMember": game.MinLevelOffsetToRemoveMember,
-				"minLevelOffsetToDemoteMember": game.MinLevelOffsetToDemoteMember,
-				"metadata":                     metadata,
-			}
+			payload := getGamePayload(game.PublicID, game.Name)
+			payload["metadata"] = metadata
+			delete(payload, "name")
+			delete(payload, "minLevelOffsetToPromoteMember")
+			delete(payload, "maxMembers")
 
 			route := fmt.Sprintf("/games/%s", game.PublicID)
 			res := PutJSON(a, route, t, payload)
@@ -260,20 +212,9 @@ func TestGameHandler(t *testing.T) {
 			err := a.Db.Insert(game)
 			AssertNotError(g, err)
 
-			payload := util.JSON{
-				"publicID":                      game.PublicID,
-				"name":                          game.Name,
-				"metadata":                      game.Metadata,
-				"minMembershipLevel":            game.MaxMembershipLevel + 1,
-				"maxMembershipLevel":            game.MaxMembershipLevel,
-				"minLevelToAcceptApplication":   game.MaxMembershipLevel,
-				"minLevelToCreateInvitation":    game.MaxMembershipLevel,
-				"minLevelToRemoveMember":        game.MaxMembershipLevel,
-				"minLevelOffsetToRemoveMember":  game.MinLevelOffsetToRemoveMember,
-				"minLevelOffsetToPromoteMember": game.MinLevelOffsetToPromoteMember,
-				"minLevelOffsetToDemoteMember":  game.MinLevelOffsetToDemoteMember,
-				"maxMembers":                    game.MaxMembers,
-			}
+			payload := getGamePayload(game.PublicID, game.Name)
+			payload["minMembershipLevel"] = payload["maxMembershipLevel"].(int) + 1
+
 			route := fmt.Sprintf("/games/%s", game.PublicID)
 			res := PutJSON(a, route, t, payload)
 
@@ -303,21 +244,8 @@ func TestGameHandler(t *testing.T) {
 			AssertNotError(g, err)
 
 			metadata := ""
-
-			payload := util.JSON{
-				"publicID":                      game.PublicID,
-				"name":                          game.Name,
-				"minMembershipLevel":            game.MinMembershipLevel,
-				"maxMembershipLevel":            game.MaxMembershipLevel,
-				"minLevelToAcceptApplication":   game.MinLevelToAcceptApplication,
-				"minLevelToCreateInvitation":    game.MinLevelToCreateInvitation,
-				"minLevelToRemoveMember":        game.MinLevelToRemoveMember,
-				"minLevelOffsetToRemoveMember":  game.MinLevelOffsetToRemoveMember,
-				"minLevelOffsetToPromoteMember": game.MinLevelOffsetToPromoteMember,
-				"minLevelOffsetToDemoteMember":  game.MinLevelOffsetToDemoteMember,
-				"maxMembers":                    100,
-				"metadata":                      metadata,
-			}
+			payload := getGamePayload(game.PublicID, game.Name)
+			payload["metadata"] = metadata
 
 			route := fmt.Sprintf("/games/%s", game.PublicID)
 			res := PutJSON(a, route, t, payload)

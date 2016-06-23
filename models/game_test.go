@@ -43,6 +43,7 @@ func TestGameModel(t *testing.T) {
 				g.Assert(dbGame.MinLevelOffsetToPromoteMember).Equal(game.MinLevelOffsetToPromoteMember)
 				g.Assert(dbGame.MinLevelOffsetToDemoteMember).Equal(game.MinLevelOffsetToDemoteMember)
 				g.Assert(dbGame.MaxMembers).Equal(game.MaxMembers)
+				// g.Assert(dbGame.MembershipLevels).Equal(game.MembershipLevels)
 				g.Assert(dbGame.Metadata).Equal(game.Metadata)
 			})
 
@@ -104,6 +105,7 @@ func TestGameModel(t *testing.T) {
 					testDb,
 					"create-1",
 					"game-name",
+					"{\"Member\": 1, \"Elder\": 2, \"CoLeader\": 3}",
 					"{}",
 					5, 10, 8, 7, 8, 1, 2, 3, 100,
 				)
@@ -124,6 +126,7 @@ func TestGameModel(t *testing.T) {
 				g.Assert(dbGame.MinLevelOffsetToPromoteMember).Equal(game.MinLevelOffsetToPromoteMember)
 				g.Assert(dbGame.MinLevelOffsetToDemoteMember).Equal(game.MinLevelOffsetToDemoteMember)
 				g.Assert(dbGame.MaxMembers).Equal(game.MaxMembers)
+				// g.Assert(dbGame.MembershipLevels).Equal(game.MembershipLevels)
 				g.Assert(dbGame.Metadata).Equal(game.Metadata)
 			})
 		})
@@ -138,6 +141,7 @@ func TestGameModel(t *testing.T) {
 					testDb,
 					game.PublicID,
 					"game-new-name",
+					"{\"Member\": 1, \"Elder\": 2, \"CoLeader\": 3}",
 					"{\"x\": 1}",
 					2, 12, 5, 4, 7, 1, 1, 1, 100,
 				)
@@ -158,6 +162,7 @@ func TestGameModel(t *testing.T) {
 				g.Assert(dbGame.MinLevelOffsetToPromoteMember).Equal(updGame.MinLevelOffsetToPromoteMember)
 				g.Assert(dbGame.MinLevelOffsetToDemoteMember).Equal(updGame.MinLevelOffsetToDemoteMember)
 				g.Assert(dbGame.MaxMembers).Equal(updGame.MaxMembers)
+				// g.Assert(dbGame.MembershipLevels).Equal(updGame.MembershipLevels)
 				g.Assert(dbGame.Metadata).Equal(updGame.Metadata)
 			})
 
@@ -167,6 +172,7 @@ func TestGameModel(t *testing.T) {
 					testDb,
 					gameID,
 					gameID,
+					"{\"Member\": 1, \"Elder\": 2, \"CoLeader\": 3}",
 					"{\"x\": 1}",
 					2, 12, 5, 4, 7, 1, 1, 1, 100,
 				)
@@ -186,6 +192,7 @@ func TestGameModel(t *testing.T) {
 				g.Assert(dbGame.MinLevelOffsetToPromoteMember).Equal(updGame.MinLevelOffsetToPromoteMember)
 				g.Assert(dbGame.MinLevelOffsetToDemoteMember).Equal(updGame.MinLevelOffsetToDemoteMember)
 				g.Assert(dbGame.MaxMembers).Equal(updGame.MaxMembers)
+				// g.Assert(dbGame.MembershipLevels).Equal(updGame.MembershipLevels)
 				g.Assert(dbGame.Metadata).Equal(updGame.Metadata)
 			})
 
@@ -198,6 +205,7 @@ func TestGameModel(t *testing.T) {
 					testDb,
 					game.PublicID,
 					"game-new-name",
+					"{\"Member\": 1, \"Elder\": 2, \"CoLeader\": 3}",
 					"it-will-fail-beacause-metada-is-not-a-json",
 					2, 12, 5, 4, 7, 1, 1, 0, 100,
 				)

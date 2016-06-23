@@ -28,6 +28,7 @@ type Game struct {
 	MinLevelOffsetToPromoteMember int    `db:"min_level_offset_to_promote_member"`
 	MinLevelOffsetToDemoteMember  int    `db:"min_level_offset_to_demote_member"`
 	MaxMembers                    int    `db:"max_members"`
+	MembershipLevels              string `db:"membership_levels"`
 	Metadata                      string `db:"metadata"`
 	CreatedAt                     int64  `db:"created_at"`
 	UpdatedAt                     int64  `db:"updated_at"`
@@ -35,6 +36,8 @@ type Game struct {
 
 // PreInsert populates fields before inserting a new game
 func (p *Game) PreInsert(s gorp.SqlExecutor) error {
+	// Handle JSON fields
+
 	p.CreatedAt = time.Now().UnixNano() / 1000000
 	p.UpdatedAt = p.CreatedAt
 	return nil
@@ -68,7 +71,7 @@ func GetGameByPublicID(db DB, publicID string) (*Game, error) {
 }
 
 // CreateGame creates a new game
-func CreateGame(db DB, publicID, name, metadata string,
+func CreateGame(db DB, publicID, name, levels, metadata string,
 	minLevel, maxLevel, minLevelAccept, minLevelCreate, minLevelRemove, minOffsetRemove, minOffsetPromote, minOffsetDemote, maxMembers int,
 ) (*Game, error) {
 	game := &Game{
@@ -83,6 +86,7 @@ func CreateGame(db DB, publicID, name, metadata string,
 		MinLevelOffsetToPromoteMember: minOffsetPromote,
 		MinLevelOffsetToDemoteMember:  minOffsetDemote,
 		MaxMembers:                    maxMembers,
+		MembershipLevels:              levels,
 		Metadata:                      metadata,
 	}
 	err := db.Insert(game)
@@ -93,7 +97,7 @@ func CreateGame(db DB, publicID, name, metadata string,
 }
 
 // UpdateGame updates an existing game
-func UpdateGame(db DB, publicID, name, metadata string,
+func UpdateGame(db DB, publicID, name, levels, metadata string,
 	minLevel, maxLevel, minLevelAccept, minLevelCreate, minLevelRemove, minOffsetRemove, minOffsetPromote, minOffsetDemote, maxMembers int,
 ) (*Game, error) {
 	game, err := GetGameByPublicID(db, publicID)
@@ -101,7 +105,7 @@ func UpdateGame(db DB, publicID, name, metadata string,
 	if err != nil {
 		if err.Error() == fmt.Sprintf("Game was not found with id: %s", publicID) {
 			return CreateGame(
-				db, publicID, name, metadata, minLevel, maxLevel, minLevelAccept,
+				db, publicID, name, levels, metadata, minLevel, maxLevel, minLevelAccept,
 				minLevelCreate, minLevelRemove, minOffsetRemove, minOffsetPromote,
 				minOffsetDemote, maxMembers,
 			)
@@ -119,6 +123,7 @@ func UpdateGame(db DB, publicID, name, metadata string,
 	game.MinLevelOffsetToPromoteMember = minOffsetPromote
 	game.MinLevelOffsetToDemoteMember = minOffsetDemote
 	game.MaxMembers = maxMembers
+	game.MembershipLevels = levels
 	game.Metadata = metadata
 
 	_, err = db.Update(game)
