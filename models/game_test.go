@@ -8,11 +8,13 @@
 package models
 
 import (
+	"strings"
 	"testing"
 	"time"
 
 	. "github.com/franela/goblin"
 	"github.com/satori/go.uuid"
+	"github.com/topfreegames/khan/util"
 )
 
 func TestGameModel(t *testing.T) {
@@ -43,7 +45,9 @@ func TestGameModel(t *testing.T) {
 				g.Assert(dbGame.MinLevelOffsetToPromoteMember).Equal(game.MinLevelOffsetToPromoteMember)
 				g.Assert(dbGame.MinLevelOffsetToDemoteMember).Equal(game.MinLevelOffsetToDemoteMember)
 				g.Assert(dbGame.MaxMembers).Equal(game.MaxMembers)
-				// g.Assert(dbGame.MembershipLevels).Equal(game.MembershipLevels)
+				for k, v := range dbGame.MembershipLevels {
+					g.Assert(int(v.(float64))).Equal(game.MembershipLevels[k].(int))
+				}
 				g.Assert(dbGame.Metadata).Equal(game.Metadata)
 			})
 
@@ -55,7 +59,7 @@ func TestGameModel(t *testing.T) {
 
 				time.Sleep(time.Millisecond)
 
-				game.Metadata = "{ \"x\": 1 }"
+				game.Metadata = util.JSON{"x": "a"}
 				count, err := testDb.Update(game)
 				g.Assert(err == nil).IsTrue()
 				g.Assert(int(count)).Equal(1)
@@ -105,8 +109,8 @@ func TestGameModel(t *testing.T) {
 					testDb,
 					"create-1",
 					"game-name",
-					"{\"Member\": 1, \"Elder\": 2, \"CoLeader\": 3}",
-					"{}",
+					util.JSON{"Member": 1, "Elder": 2, "CoLeader": 3},
+					util.JSON{},
 					5, 10, 8, 7, 8, 1, 2, 3, 100,
 				)
 				g.Assert(err == nil).IsTrue()
@@ -126,7 +130,9 @@ func TestGameModel(t *testing.T) {
 				g.Assert(dbGame.MinLevelOffsetToPromoteMember).Equal(game.MinLevelOffsetToPromoteMember)
 				g.Assert(dbGame.MinLevelOffsetToDemoteMember).Equal(game.MinLevelOffsetToDemoteMember)
 				g.Assert(dbGame.MaxMembers).Equal(game.MaxMembers)
-				// g.Assert(dbGame.MembershipLevels).Equal(game.MembershipLevels)
+				for k, v := range dbGame.MembershipLevels {
+					g.Assert(int(v.(float64))).Equal(game.MembershipLevels[k].(int))
+				}
 				g.Assert(dbGame.Metadata).Equal(game.Metadata)
 			})
 		})
@@ -141,8 +147,8 @@ func TestGameModel(t *testing.T) {
 					testDb,
 					game.PublicID,
 					"game-new-name",
-					"{\"Member\": 1, \"Elder\": 2, \"CoLeader\": 3}",
-					"{\"x\": 1}",
+					util.JSON{"Member": 1, "Elder": 2, "CoLeader": 3},
+					util.JSON{"x": 1},
 					2, 12, 5, 4, 7, 1, 1, 1, 100,
 				)
 
@@ -162,7 +168,9 @@ func TestGameModel(t *testing.T) {
 				g.Assert(dbGame.MinLevelOffsetToPromoteMember).Equal(updGame.MinLevelOffsetToPromoteMember)
 				g.Assert(dbGame.MinLevelOffsetToDemoteMember).Equal(updGame.MinLevelOffsetToDemoteMember)
 				g.Assert(dbGame.MaxMembers).Equal(updGame.MaxMembers)
-				// g.Assert(dbGame.MembershipLevels).Equal(updGame.MembershipLevels)
+				for k, v := range dbGame.MembershipLevels {
+					g.Assert(int(v.(float64))).Equal(updGame.MembershipLevels[k].(int))
+				}
 				g.Assert(dbGame.Metadata).Equal(updGame.Metadata)
 			})
 
@@ -172,8 +180,8 @@ func TestGameModel(t *testing.T) {
 					testDb,
 					gameID,
 					gameID,
-					"{\"Member\": 1, \"Elder\": 2, \"CoLeader\": 3}",
-					"{\"x\": 1}",
+					util.JSON{"Member": 1, "Elder": 2, "CoLeader": 3},
+					util.JSON{"x": 1},
 					2, 12, 5, 4, 7, 1, 1, 1, 100,
 				)
 
@@ -192,7 +200,9 @@ func TestGameModel(t *testing.T) {
 				g.Assert(dbGame.MinLevelOffsetToPromoteMember).Equal(updGame.MinLevelOffsetToPromoteMember)
 				g.Assert(dbGame.MinLevelOffsetToDemoteMember).Equal(updGame.MinLevelOffsetToDemoteMember)
 				g.Assert(dbGame.MaxMembers).Equal(updGame.MaxMembers)
-				// g.Assert(dbGame.MembershipLevels).Equal(updGame.MembershipLevels)
+				for k, v := range dbGame.MembershipLevels {
+					g.Assert(int(v.(float64))).Equal(updGame.MembershipLevels[k].(int))
+				}
 				g.Assert(dbGame.Metadata).Equal(updGame.Metadata)
 			})
 
@@ -204,14 +214,14 @@ func TestGameModel(t *testing.T) {
 				_, err = UpdateGame(
 					testDb,
 					game.PublicID,
-					"game-new-name",
-					"{\"Member\": 1, \"Elder\": 2, \"CoLeader\": 3}",
-					"it-will-fail-beacause-metada-is-not-a-json",
+					strings.Repeat("a", 256),
+					util.JSON{"Member": 1, "Elder": 2, "CoLeader": 3},
+					util.JSON{"x": 1},
 					2, 12, 5, 4, 7, 1, 1, 0, 100,
 				)
 
 				g.Assert(err == nil).IsFalse()
-				g.Assert(err.Error()).Equal("pq: invalid input syntax for type json")
+				g.Assert(err.Error()).Equal("pq: value too long for type character varying(255)")
 			})
 		})
 	})

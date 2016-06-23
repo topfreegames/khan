@@ -10,6 +10,7 @@ package models
 import (
 	"fmt"
 	"sort"
+	"strings"
 	"testing"
 	"time"
 
@@ -21,8 +22,8 @@ import (
 func TestClanModel(t *testing.T) {
 	t.Parallel()
 	g := Goblin(t)
-	testDb, err := GetTestDB()
-	g.Assert(err == nil).IsTrue()
+	testDb, _err := GetTestDB()
+	g.Assert(_err == nil).IsTrue()
 	faultyDb := GetFaultyTestDB()
 
 	g.Describe("Clan Model", func() {
@@ -59,7 +60,7 @@ func TestClanModel(t *testing.T) {
 				dt := clan.UpdatedAt
 				time.Sleep(time.Millisecond)
 
-				clan.Metadata = "{ \"x\": 1 }"
+				clan.Metadata = util.JSON{"x": 1}
 				count, err := testDb.Update(clan)
 				g.Assert(err == nil).IsTrue()
 				g.Assert(int(count)).Equal(1)
@@ -79,7 +80,7 @@ func TestClanModel(t *testing.T) {
 			})
 
 			g.It("Should not get non-existing Clan", func() {
-				_, err = GetClanByID(testDb, -1)
+				_, err := GetClanByID(testDb, -1)
 				g.Assert(err != nil).IsTrue()
 				g.Assert(err.Error()).Equal("Clan was not found with id: -1")
 			})
@@ -97,7 +98,7 @@ func TestClanModel(t *testing.T) {
 			})
 
 			g.It("Should not get a non-existing Clan by Game and PublicID", func() {
-				_, err = GetClanByPublicID(testDb, "invalid-game", "invalid-clan")
+				_, err := GetClanByPublicID(testDb, "invalid-game", "invalid-clan")
 				g.Assert(err != nil).IsTrue()
 				g.Assert(err.Error()).Equal("Clan was not found with id: invalid-clan")
 			})
@@ -119,7 +120,7 @@ func TestClanModel(t *testing.T) {
 			})
 
 			g.It("Should not get a non-existing Clan by Game, PublicID and OwnerPublicID", func() {
-				_, err = GetClanByPublicIDAndOwnerPublicID(testDb, "invalid-game", "invalid-clan", "invalid-owner-public-id")
+				_, err := GetClanByPublicIDAndOwnerPublicID(testDb, "invalid-game", "invalid-clan", "invalid-owner-public-id")
 				g.Assert(err != nil).IsTrue()
 				g.Assert(err.Error()).Equal("Clan was not found with id: invalid-clan")
 			})
@@ -146,7 +147,7 @@ func TestClanModel(t *testing.T) {
 					"create-1",
 					randomdata.FullName(randomdata.RandomGender),
 					player.PublicID,
-					"{}",
+					util.JSON{},
 					true,
 					false,
 				)
@@ -168,27 +169,27 @@ func TestClanModel(t *testing.T) {
 				_, err = CreateClan(
 					testDb,
 					player.GameID,
-					randomdata.FullName(randomdata.RandomGender),
+					strings.Repeat("a", 256),
 					"clan-name",
 					player.PublicID,
-					"it-will-fail-because-metadata-is-not-a-json",
+					util.JSON{},
 					true,
 					false,
 				)
 
 				g.Assert(err != nil).IsTrue()
-				g.Assert(err.Error()).Equal("pq: invalid input syntax for type json")
+				g.Assert(err.Error()).Equal("pq: value too long for type character varying(255)")
 			})
 
 			g.It("Should not create a new Clan with CreateClan if unexistent player", func() {
 				playerPublicID := randomdata.FullName(randomdata.RandomGender)
-				_, err = CreateClan(
+				_, err := CreateClan(
 					testDb,
 					"create-1",
 					randomdata.FullName(randomdata.RandomGender),
 					"clan-name",
 					playerPublicID,
-					"{}",
+					util.JSON{},
 					true,
 					false,
 				)
@@ -204,7 +205,7 @@ func TestClanModel(t *testing.T) {
 				g.Assert(err == nil).IsTrue()
 				clan := clans[0]
 
-				metadata := "{\"x\": 1}"
+				metadata := util.JSON{"x": 1}
 				updClan, err := UpdateClan(
 					testDb,
 					clan.GameID,
@@ -233,7 +234,7 @@ func TestClanModel(t *testing.T) {
 				player, err := CreatePlayerFactory(testDb, "")
 				g.Assert(err == nil).IsTrue()
 
-				metadata := "{\"x\": 1}"
+				metadata := util.JSON{"x": 1}
 				_, err = UpdateClan(
 					testDb,
 					clan.GameID,
@@ -254,12 +255,12 @@ func TestClanModel(t *testing.T) {
 				g.Assert(err == nil).IsTrue()
 				clan := clans[0]
 
-				metadata := "it will not work because i am not a json"
+				metadata := util.JSON{}
 				_, err = UpdateClan(
 					testDb,
 					clan.GameID,
 					clan.PublicID,
-					clan.Name,
+					strings.Repeat("a", 256),
 					player.PublicID,
 					metadata,
 					clan.AllowApplication,
@@ -267,7 +268,7 @@ func TestClanModel(t *testing.T) {
 				)
 
 				g.Assert(err == nil).IsFalse()
-				g.Assert(err.Error()).Equal("pq: invalid input syntax for type json")
+				g.Assert(err.Error()).Equal("pq: value too long for type character varying(255)")
 			})
 		})
 

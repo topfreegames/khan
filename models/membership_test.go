@@ -1555,6 +1555,7 @@ func TestMembershipModel(t *testing.T) {
 				memberships[1].Level = 10
 				memberships[1].Denied = true
 				_, err = testDb.Update(memberships[1])
+				g.Assert(err == nil).IsTrue()
 
 				err = DeleteMembership(
 					testDb,
@@ -1574,6 +1575,7 @@ func TestMembershipModel(t *testing.T) {
 				memberships[1].Level = 10
 				memberships[1].Approved = false
 				_, err = testDb.Update(memberships[1])
+				g.Assert(err == nil).IsTrue()
 
 				err = DeleteMembership(
 					testDb,

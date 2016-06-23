@@ -32,8 +32,8 @@ func getGamePayload(publicID, name string) util.JSON {
 	return util.JSON{
 		"publicID":                      publicID,
 		"name":                          name,
-		"membershipLevels":              "{\"Member\": 1, \"Elder\": 2, \"CoLeader\": 3}",
-		"metadata":                      "{\"x\": 1}",
+		"membershipLevels":              util.JSON{"Member": 1, "Elder": 2, "CoLeader": 3},
+		"metadata":                      util.JSON{"x": "a"},
 		"minMembershipLevel":            1,
 		"maxMembershipLevel":            10,
 		"minLevelToAcceptApplication":   1,
@@ -70,7 +70,10 @@ func TestGameHandler(t *testing.T) {
 			AssertNotError(g, err)
 			g.Assert(dbGame.PublicID).Equal(payload["publicID"])
 			g.Assert(dbGame.Name).Equal(payload["name"])
-			// g.Assert(dbGame.MembershipLevels).Equal(payload["membershipLevels"])
+			membershipLevels := payload["membershipLevels"].(util.JSON)
+			for k, v := range membershipLevels {
+				g.Assert(v.(int)).Equal(int(dbGame.MembershipLevels[k].(float64)))
+			}
 			g.Assert(dbGame.Metadata).Equal(payload["metadata"])
 			g.Assert(dbGame.MinMembershipLevel).Equal(payload["minMembershipLevel"])
 			g.Assert(dbGame.MaxMembershipLevel).Equal(payload["maxMembershipLevel"])
@@ -138,7 +141,7 @@ func TestGameHandler(t *testing.T) {
 			err := a.Db.Insert(game)
 			AssertNotError(g, err)
 
-			metadata := "{\"y\": 10}"
+			metadata := util.JSON{"y": "10"}
 			payload := getGamePayload(game.PublicID, game.Name)
 			payload["metadata"] = metadata
 
@@ -152,7 +155,10 @@ func TestGameHandler(t *testing.T) {
 			dbGame, err := models.GetGameByPublicID(a.Db, game.PublicID)
 			AssertNotError(g, err)
 			g.Assert(dbGame.Metadata).Equal(metadata)
-			// g.Assert(dbGame.MembershipLevels).Equal(payload["membershipLevels"])
+			membershipLevels := payload["membershipLevels"].(util.JSON)
+			for k, v := range membershipLevels {
+				g.Assert(v.(int)).Equal(int(dbGame.MembershipLevels[k].(float64)))
+			}
 			g.Assert(dbGame.PublicID).Equal(game.PublicID)
 			g.Assert(dbGame.Name).Equal(game.Name)
 			g.Assert(dbGame.MinMembershipLevel).Equal(payload["minMembershipLevel"])
@@ -190,7 +196,7 @@ func TestGameHandler(t *testing.T) {
 			err := a.Db.Insert(game)
 			AssertNotError(g, err)
 
-			metadata := "{\"y\": 10}"
+			metadata := util.JSON{"y": "10"}
 			payload := getGamePayload(game.PublicID, game.Name)
 			payload["metadata"] = metadata
 			delete(payload, "name")
@@ -243,9 +249,7 @@ func TestGameHandler(t *testing.T) {
 			err := a.Db.Insert(game)
 			AssertNotError(g, err)
 
-			metadata := ""
-			payload := getGamePayload(game.PublicID, game.Name)
-			payload["metadata"] = metadata
+			payload := getGamePayload(game.PublicID, strings.Repeat("a", 256))
 
 			route := fmt.Sprintf("/games/%s", game.PublicID)
 			res := PutJSON(a, route, t, payload)
@@ -254,7 +258,7 @@ func TestGameHandler(t *testing.T) {
 			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
-			g.Assert(result["reason"]).Equal("pq: invalid input syntax for type json")
+			g.Assert(result["reason"]).Equal("pq: value too long for type character varying(255)")
 		})
 	})
 

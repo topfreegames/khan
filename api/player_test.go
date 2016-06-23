@@ -39,7 +39,7 @@ func TestPlayerHandler(t *testing.T) {
 			payload := util.JSON{
 				"publicID": randomdata.FullName(randomdata.RandomGender),
 				"name":     randomdata.FullName(randomdata.RandomGender),
-				"metadata": "{\"x\": 1}",
+				"metadata": util.JSON{"x": 1},
 			}
 			res := PostJSON(a, GetGameRoute(game.PublicID, "/players"), t, payload)
 
@@ -90,9 +90,9 @@ func TestPlayerHandler(t *testing.T) {
 			AssertNotError(g, err)
 
 			payload := util.JSON{
-				"publicID": randomdata.FullName(randomdata.RandomGender),
+				"publicID": strings.Repeat("s", 256),
 				"name":     randomdata.FullName(randomdata.RandomGender),
-				"metadata": "metadata-it-not-a-json-and-will-break",
+				"metadata": util.JSON{"x": 1},
 			}
 			res := PostJSON(a, GetGameRoute(game.PublicID, "/players"), t, payload)
 
@@ -100,7 +100,7 @@ func TestPlayerHandler(t *testing.T) {
 			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
-			g.Assert(result["reason"]).Equal("pq: invalid input syntax for type json")
+			g.Assert(result["reason"]).Equal("pq: value too long for type character varying(255)")
 		})
 	})
 
@@ -110,7 +110,7 @@ func TestPlayerHandler(t *testing.T) {
 			player, err := models.CreatePlayerFactory(a.Db, "")
 			AssertNotError(g, err)
 
-			metadata := "{\"y\": 10}"
+			metadata := util.JSON{"y": 10}
 			payload := util.JSON{
 				"name":     player.Name,
 				"metadata": metadata,
@@ -160,12 +160,10 @@ func TestPlayerHandler(t *testing.T) {
 			player, err := models.CreatePlayerFactory(a.Db, "")
 			AssertNotError(g, err)
 
-			metadata := ""
-
 			payload := util.JSON{
 				"publicID": player.PublicID,
-				"name":     player.Name,
-				"metadata": metadata,
+				"name":     strings.Repeat("s", 256),
+				"metadata": util.JSON{},
 			}
 			route := GetGameRoute(player.GameID, fmt.Sprintf("/players/%s", player.PublicID))
 			res := PutJSON(a, route, t, payload)
@@ -174,7 +172,7 @@ func TestPlayerHandler(t *testing.T) {
 			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
-			g.Assert(result["reason"]).Equal("pq: invalid input syntax for type json")
+			g.Assert(result["reason"]).Equal("pq: value too long for type character varying(255)")
 		})
 	})
 
@@ -196,7 +194,7 @@ func TestPlayerHandler(t *testing.T) {
 			// Player Details
 			g.Assert(playerDetails["publicID"]).Equal(player.PublicID)
 			g.Assert(playerDetails["name"]).Equal(player.Name)
-			g.Assert(playerDetails["metadata"]).Equal(player.Metadata)
+			g.Assert(playerDetails["metadata"] != nil).IsTrue()
 
 			//Memberships
 			g.Assert(len(playerDetails["memberships"].([]interface{}))).Equal(18)
@@ -241,7 +239,7 @@ func TestPlayerHandler(t *testing.T) {
 			payload := util.JSON{
 				"publicID": randomdata.FullName(randomdata.RandomGender),
 				"name":     randomdata.FullName(randomdata.RandomGender),
-				"metadata": "{\"x\": 1}",
+				"metadata": util.JSON{"x": "a"},
 			}
 			res := PostJSON(app, GetGameRoute(gameID, "/players"), t, payload)
 
@@ -257,7 +255,11 @@ func TestPlayerHandler(t *testing.T) {
 			g.Assert(player["gameID"]).Equal(gameID)
 			g.Assert(player["publicID"]).Equal(payload["publicID"])
 			g.Assert(player["name"]).Equal(payload["name"])
-			g.Assert(player["metadata"]).Equal(payload["metadata"])
+			playerMetadata := player["metadata"].(map[string]interface{})
+			metadata := payload["metadata"].(util.JSON)
+			for k, v := range playerMetadata {
+				g.Assert(v).Equal(metadata[k])
+			}
 		})
 
 		g.It("Should call update player hook", func() {
@@ -293,7 +295,11 @@ func TestPlayerHandler(t *testing.T) {
 			g.Assert(playerPayload["gameID"]).Equal(gameID)
 			g.Assert(playerPayload["publicID"]).Equal(payload["publicID"])
 			g.Assert(playerPayload["name"]).Equal(payload["name"])
-			g.Assert(playerPayload["metadata"]).Equal(payload["metadata"])
+			playerMetadata := playerPayload["metadata"].(map[string]interface{})
+			metadata := payload["metadata"].(util.JSON)
+			for k, v := range playerMetadata {
+				g.Assert(v).Equal(metadata[k])
+			}
 		})
 	})
 }

@@ -18,7 +18,7 @@ type clanPayload struct {
 	PublicID         string
 	Name             string
 	OwnerPublicID    string
-	Metadata         string
+	Metadata         util.JSON
 	AllowApplication bool
 	AutoJoin         bool
 }
@@ -27,7 +27,7 @@ type clanPayload struct {
 type updateClanPayload struct {
 	Name             string
 	OwnerPublicID    string
-	Metadata         string
+	Metadata         util.JSON
 	AllowApplication bool
 	AutoJoin         bool
 }

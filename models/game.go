@@ -11,27 +11,29 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/topfreegames/khan/util"
+
 	"gopkg.in/gorp.v1"
 )
 
 // Game identifies uniquely one game
 type Game struct {
-	ID                            int    `db:"id"`
-	PublicID                      string `db:"public_id"`
-	Name                          string `db:"name"`
-	MinMembershipLevel            int    `db:"min_membership_level"`
-	MaxMembershipLevel            int    `db:"max_membership_level"`
-	MinLevelToAcceptApplication   int    `db:"min_level_to_accept_application"`
-	MinLevelToCreateInvitation    int    `db:"min_level_to_create_invitation"`
-	MinLevelToRemoveMember        int    `db:"min_level_to_remove_member"`
-	MinLevelOffsetToRemoveMember  int    `db:"min_level_offset_to_remove_member"`
-	MinLevelOffsetToPromoteMember int    `db:"min_level_offset_to_promote_member"`
-	MinLevelOffsetToDemoteMember  int    `db:"min_level_offset_to_demote_member"`
-	MaxMembers                    int    `db:"max_members"`
-	MembershipLevels              string `db:"membership_levels"`
-	Metadata                      string `db:"metadata"`
-	CreatedAt                     int64  `db:"created_at"`
-	UpdatedAt                     int64  `db:"updated_at"`
+	ID                            int       `db:"id"`
+	PublicID                      string    `db:"public_id"`
+	Name                          string    `db:"name"`
+	MinMembershipLevel            int       `db:"min_membership_level"`
+	MaxMembershipLevel            int       `db:"max_membership_level"`
+	MinLevelToAcceptApplication   int       `db:"min_level_to_accept_application"`
+	MinLevelToCreateInvitation    int       `db:"min_level_to_create_invitation"`
+	MinLevelToRemoveMember        int       `db:"min_level_to_remove_member"`
+	MinLevelOffsetToRemoveMember  int       `db:"min_level_offset_to_remove_member"`
+	MinLevelOffsetToPromoteMember int       `db:"min_level_offset_to_promote_member"`
+	MinLevelOffsetToDemoteMember  int       `db:"min_level_offset_to_demote_member"`
+	MaxMembers                    int       `db:"max_members"`
+	MembershipLevels              util.JSON `db:"membership_levels"`
+	Metadata                      util.JSON `db:"metadata"`
+	CreatedAt                     int64     `db:"created_at"`
+	UpdatedAt                     int64     `db:"updated_at"`
 }
 
 // PreInsert populates fields before inserting a new game
@@ -71,7 +73,7 @@ func GetGameByPublicID(db DB, publicID string) (*Game, error) {
 }
 
 // CreateGame creates a new game
-func CreateGame(db DB, publicID, name, levels, metadata string,
+func CreateGame(db DB, publicID, name string, levels, metadata util.JSON,
 	minLevel, maxLevel, minLevelAccept, minLevelCreate, minLevelRemove, minOffsetRemove, minOffsetPromote, minOffsetDemote, maxMembers int,
 ) (*Game, error) {
 	game := &Game{
@@ -97,7 +99,7 @@ func CreateGame(db DB, publicID, name, levels, metadata string,
 }
 
 // UpdateGame updates an existing game
-func UpdateGame(db DB, publicID, name, levels, metadata string,
+func UpdateGame(db DB, publicID, name string, levels, metadata util.JSON,
 	minLevel, maxLevel, minLevelAccept, minLevelCreate, minLevelRemove, minOffsetRemove, minOffsetPromote, minOffsetDemote, maxMembers int,
 ) (*Game, error) {
 	game, err := GetGameByPublicID(db, publicID)
