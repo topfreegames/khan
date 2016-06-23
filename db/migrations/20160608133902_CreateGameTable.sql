@@ -10,7 +10,7 @@
 CREATE TABLE games (
     id serial PRIMARY KEY,
     public_id varchar(36) NOT NULL,
-    name varchar(2000) NOT NULL,
+    name varchar(255) NOT NULL,
     min_membership_level integer NOT NULL,
     max_membership_level integer NOT NULL,
     min_level_to_accept_application integer NOT NULL,

@@ -9,6 +9,7 @@ package models
 
 import (
 	"database/sql"
+	"encoding/json"
 
 	"github.com/topfreegames/khan/util"
 )
@@ -18,7 +19,7 @@ type clanDetailsDAO struct {
 	GameID               string
 	ClanPublicID         string
 	ClanName             string
-	ClanMetadata         string
+	ClanMetadata         util.JSON
 	ClanAllowApplication bool
 	ClanAutoJoin         bool
 
@@ -33,12 +34,13 @@ type clanDetailsDAO struct {
 	// Clan Owner Information
 	OwnerPublicID string
 	OwnerName     string
-	OwnerMetadata string
+	OwnerMetadata util.JSON
 
 	// Member Information
-	PlayerPublicID sql.NullString
-	PlayerName     sql.NullString
-	PlayerMetadata sql.NullString
+	PlayerPublicID   sql.NullString
+	PlayerName       sql.NullString
+	DBPlayerMetadata sql.NullString
+	PlayerMetadata   util.JSON
 
 	// Requestor Information
 	RequestorPublicID sql.NullString
@@ -46,7 +48,7 @@ type clanDetailsDAO struct {
 }
 
 func (member *clanDetailsDAO) Serialize() util.JSON {
-	return util.JSON{
+	result := util.JSON{
 		// No need to include clan information as that will be available in the payload already
 		"membershipLevel":     nullOrInt(member.MembershipLevel),
 		"membershipApproved":  nullOrBool(member.MembershipApproved),
@@ -56,16 +58,22 @@ func (member *clanDetailsDAO) Serialize() util.JSON {
 		"membershipUpdatedAt": nullOrInt(member.MembershipUpdatedAt),
 		"playerPublicID":      nullOrString(member.PlayerPublicID),
 		"playerName":          nullOrString(member.PlayerName),
-		"playerMetadata":      nullOrString(member.PlayerMetadata),
 		"requestorPublicID":   nullOrString(member.RequestorPublicID),
 		"requestorName":       nullOrString(member.RequestorName),
 	}
+	if member.DBPlayerMetadata.Valid {
+		json.Unmarshal([]byte(nullOrString(member.DBPlayerMetadata)), &member.PlayerMetadata)
+	} else {
+		member.PlayerMetadata = util.JSON{}
+	}
+	result["playerMetadata"] = member.PlayerMetadata
+	return result
 }
 
 type playerDetailsDAO struct {
 	// Player Details
 	PlayerName      string
-	PlayerMetadata  string
+	PlayerMetadata  util.JSON
 	PlayerPublicID  string
 	PlayerCreatedAt int64
 	PlayerUpdatedAt int64
@@ -80,14 +88,16 @@ type playerDetailsDAO struct {
 	MembershipDeletedAt sql.NullInt64
 
 	// Clan Details
-	ClanPublicID sql.NullString
-	ClanName     sql.NullString
-	ClanMetadata sql.NullString
+	ClanPublicID   sql.NullString
+	ClanName       sql.NullString
+	DBClanMetadata sql.NullString
+	ClanMetadata   util.JSON
 
 	// Membership Requestor Details
-	RequestorName     sql.NullString
-	RequestorPublicID sql.NullString
-	RequestorMetadata sql.NullString
+	RequestorName       sql.NullString
+	RequestorPublicID   sql.NullString
+	DBRequestorMetadata sql.NullString
+	RequestorMetadata   util.JSON
 
 	// Deleted by Details
 	DeletedByName     sql.NullString
@@ -106,14 +116,27 @@ func (p *playerDetailsDAO) Serialize() util.JSON {
 		"clan": util.JSON{
 			"publicID": nullOrString(p.ClanPublicID),
 			"name":     nullOrString(p.ClanName),
-			"metadata": nullOrString(p.ClanMetadata),
 		},
 		"requestor": util.JSON{
 			"publicID": nullOrString(p.RequestorPublicID),
 			"name":     nullOrString(p.RequestorName),
-			"metadata": nullOrString(p.RequestorMetadata),
 		},
 	}
+
+	if p.DBClanMetadata.Valid {
+		json.Unmarshal([]byte(nullOrString(p.DBClanMetadata)), &p.ClanMetadata)
+	} else {
+		p.ClanMetadata = util.JSON{}
+	}
+	result["clan"].(util.JSON)["metadata"] = p.ClanMetadata
+
+	if p.DBRequestorMetadata.Valid {
+		json.Unmarshal([]byte(nullOrString(p.DBRequestorMetadata)), &p.RequestorMetadata)
+	} else {
+		p.RequestorMetadata = util.JSON{}
+	}
+	result["requestor"].(util.JSON)["metadata"] = p.RequestorMetadata
+
 	if p.DeletedByPublicID.Valid {
 		result["deletedBy"] = util.JSON{
 			"publicID": nullOrString(p.DeletedByPublicID),

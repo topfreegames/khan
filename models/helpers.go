@@ -12,6 +12,7 @@ import (
 	"fmt"
 
 	_ "github.com/lib/pq" //This is required to use postgres with database/sql
+	"github.com/topfreegames/khan/util"
 	"gopkg.in/gorp.v1"
 )
 
@@ -69,6 +70,7 @@ func InitDb(host string, user string, port int, sslmode string, dbName string, p
 	}
 
 	dbmap := &gorp.DbMap{Db: db, Dialect: gorp.PostgresDialect{}}
+	dbmap.TypeConverter = util.TypeConverter{}
 
 	dbmap.AddTableWithName(Game{}, "games").SetKeys(true, "ID")
 	dbmap.AddTableWithName(Player{}, "players").SetKeys(true, "ID")

@@ -18,13 +18,13 @@ import (
 
 // Player identifies uniquely one player in a given game
 type Player struct {
-	ID        int    `db:"id"`
-	GameID    string `db:"game_id"`
-	PublicID  string `db:"public_id"`
-	Name      string `db:"name"`
-	Metadata  string `db:"metadata"`
-	CreatedAt int64  `db:"created_at"`
-	UpdatedAt int64  `db:"updated_at"`
+	ID        int       `db:"id"`
+	GameID    string    `db:"game_id"`
+	PublicID  string    `db:"public_id"`
+	Name      string    `db:"name"`
+	Metadata  util.JSON `db:"metadata"`
+	CreatedAt int64     `db:"created_at"`
+	UpdatedAt int64     `db:"updated_at"`
 }
 
 // PreInsert populates fields before inserting a new player
@@ -62,7 +62,7 @@ func GetPlayerByPublicID(db DB, gameID string, publicID string) (*Player, error)
 }
 
 // CreatePlayer creates a new player
-func CreatePlayer(db DB, gameID string, publicID string, name string, metadata string) (*Player, error) {
+func CreatePlayer(db DB, gameID, publicID, name string, metadata util.JSON) (*Player, error) {
 	player := &Player{
 		GameID:   gameID,
 		PublicID: publicID,
@@ -77,7 +77,7 @@ func CreatePlayer(db DB, gameID string, publicID string, name string, metadata s
 }
 
 // UpdatePlayer updates an existing player
-func UpdatePlayer(db DB, gameID, publicID, name, metadata string) (*Player, error) {
+func UpdatePlayer(db DB, gameID, publicID, name string, metadata util.JSON) (*Player, error) {
 	player, err := GetPlayerByPublicID(db, gameID, publicID)
 
 	if err != nil {
@@ -107,8 +107,8 @@ func GetPlayerDetails(db DB, gameID, publicID string) (util.JSON, error) {
 		p.created_at PlayerCreatedAt, p.updated_at PlayerUpdatedAt,
 		m.membership_level MembershipLevel,
 		m.approved MembershipApproved, m.denied MembershipDenied, m.banned MembershipBanned,
-		c.public_id ClanPublicID, c.name ClanName, c.metadata ClanMetadata,
-		r.name RequestorName, r.public_id RequestorPublicID, r.metadata RequestorMetadata,
+		c.public_id ClanPublicID, c.name ClanName, c.metadata DBClanMetadata,
+		r.name RequestorName, r.public_id RequestorPublicID, r.metadata DBRequestorMetadata,
 		m.created_at MembershipCreatedAt,
 		m.updated_at MembershipUpdatedAt,
 		m.deleted_at MembershipDeletedAt,

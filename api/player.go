@@ -18,12 +18,12 @@ import (
 type createPlayerPayload struct {
 	PublicID string
 	Name     string
-	Metadata string
+	Metadata util.JSON
 }
 
 type updatePlayerPayload struct {
 	Name     string
-	Metadata string
+	Metadata util.JSON
 }
 
 // CreatePlayerHandler is the handler responsible for creating new players
@@ -59,6 +59,7 @@ func CreatePlayerHandler(app *App) func(c *iris.Context) {
 			"name":     player.Name,
 			"metadata": player.Metadata,
 		}
+
 		app.DispatchHooks(gameID, models.PlayerCreatedHook, result)
 
 		SucceedWith(result, c)

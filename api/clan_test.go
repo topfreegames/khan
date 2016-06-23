@@ -50,7 +50,7 @@ func TestClanHandler(t *testing.T) {
 				"publicID":         clanPublicID,
 				"name":             randomdata.FullName(randomdata.RandomGender),
 				"ownerPublicID":    player.PublicID,
-				"metadata":         "{\"x\": 1}",
+				"metadata":         util.JSON{"x": 1},
 				"allowApplication": true,
 				"autoJoin":         true,
 			}
@@ -112,7 +112,7 @@ func TestClanHandler(t *testing.T) {
 				"publicID":         randomdata.FullName(randomdata.RandomGender),
 				"name":             randomdata.FullName(randomdata.RandomGender),
 				"ownerPublicID":    randomdata.FullName(randomdata.RandomGender),
-				"metadata":         "{\"x\": 1}",
+				"metadata":         util.JSON{"x": 1},
 				"allowApplication": true,
 				"autoJoin":         true,
 			}
@@ -128,14 +128,13 @@ func TestClanHandler(t *testing.T) {
 		g.It("Should not create clan if invalid data", func() {
 			player, err := models.CreatePlayerFactory(testDb, "")
 			AssertNotError(g, err)
-			metadata := "it-will-fail-beacause-metada-is-not-a-json"
 
 			a := GetDefaultTestApp()
 			payload := util.JSON{
 				"publicID":         randomdata.FullName(randomdata.RandomGender),
-				"name":             randomdata.FullName(randomdata.RandomGender),
+				"name":             strings.Repeat("a", 256),
 				"ownerPublicID":    player.PublicID,
-				"metadata":         metadata,
+				"metadata":         util.JSON{"x": 1},
 				"allowApplication": true,
 				"autoJoin":         true,
 			}
@@ -145,7 +144,7 @@ func TestClanHandler(t *testing.T) {
 			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
-			g.Assert(result["reason"]).Equal("pq: invalid input syntax for type json")
+			g.Assert(result["reason"]).Equal("pq: value too long for type character varying(255)")
 		})
 	})
 
@@ -298,7 +297,7 @@ func TestClanHandler(t *testing.T) {
 			publicID := clan.PublicID
 			clanName := randomdata.FullName(randomdata.RandomGender)
 			ownerPublicID := owner.PublicID
-			metadata := "{\"new\": \"metadata\"}"
+			metadata := util.JSON{"new": "metadata"}
 
 			a := GetDefaultTestApp()
 			payload := util.JSON{
@@ -357,7 +356,7 @@ func TestClanHandler(t *testing.T) {
 
 			gameID := clan.GameID
 			publicID := clan.PublicID
-			metadata := "{\"x\": 1}"
+			metadata := util.JSON{"x": 1}
 
 			a := GetDefaultTestApp()
 			payload := util.JSON{
@@ -383,13 +382,12 @@ func TestClanHandler(t *testing.T) {
 
 			gameID := clan.GameID
 			publicID := clan.PublicID
-			metadata := "it-will-fail-beacause-metada-is-not-a-json"
 
 			a := GetDefaultTestApp()
 			payload := util.JSON{
-				"name":             clan.Name,
+				"name":             strings.Repeat("s", 256),
 				"ownerPublicID":    owner.PublicID,
-				"metadata":         metadata,
+				"metadata":         util.JSON{"x": 1},
 				"allowApplication": clan.AllowApplication,
 				"autoJoin":         clan.AutoJoin,
 			}
@@ -400,7 +398,7 @@ func TestClanHandler(t *testing.T) {
 			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
-			g.Assert(result["reason"]).Equal("pq: invalid input syntax for type json")
+			g.Assert(result["reason"]).Equal("pq: value too long for type character varying(255)")
 		})
 	})
 
@@ -421,7 +419,10 @@ func TestClanHandler(t *testing.T) {
 			for index, clanObj := range result["clans"].([]interface{}) {
 				clan := clanObj.(map[string]interface{}) // Can't be util.JSON
 				g.Assert(clan["name"]).Equal(expectedClans[index].Name)
-				g.Assert(clan["metadata"]).Equal(expectedClans[index].Metadata)
+				clanMetadata := clan["metadata"].(map[string]interface{})
+				for k, v := range clanMetadata {
+					g.Assert(v).Equal(expectedClans[index].Metadata[k])
+				}
 				g.Assert(clan["publicID"]).Equal(expectedClans[index].PublicID)
 				g.Assert(clan["ID"]).Equal(nil)
 			}
@@ -454,7 +455,10 @@ func TestClanHandler(t *testing.T) {
 			g.Assert(result["success"]).IsTrue()
 
 			g.Assert(result["name"]).Equal(clan.Name)
-			g.Assert(result["metadata"]).Equal(clan.Metadata)
+			resultMetadata := result["metadata"].(map[string]interface{})
+			for k, v := range resultMetadata {
+				g.Assert(v).Equal(clan.Metadata[k])
+			}
 			g.Assert(result["publicID"]).Equal(nil)
 		})
 

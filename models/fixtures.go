@@ -35,9 +35,9 @@ var GameFactory = factory.NewFactory(
 }).Attr("Name", func(args factory.Args) (interface{}, error) {
 	return uuid.NewV4().String(), nil
 }).Attr("Metadata", func(args factory.Args) (interface{}, error) {
-	return "{}", nil
+	return util.JSON{}, nil
 }).Attr("MembershipLevels", func(args factory.Args) (interface{}, error) {
-	return "{\"Member\": 1, \"Elder\": 2, \"CoLeader\": 3}", nil
+	return util.JSON{"Member": 1, "Elder": 2, "CoLeader": 3}, nil
 })
 
 // HookFactory is responsible for constructing event hook instances
@@ -108,7 +108,7 @@ func configureFactory(fct *factory.Factory) *factory.Factory {
 	}).Attr("Name", func(args factory.Args) (interface{}, error) {
 		return randomdata.FullName(randomdata.RandomGender), nil
 	}).Attr("Metadata", func(args factory.Args) (interface{}, error) {
-		return "{}", nil
+		return util.JSON{}, nil
 	})
 }
 
@@ -196,7 +196,7 @@ func GetClanWithMemberships(
 		"GameID":   owner.GameID,
 		"PublicID": clanPublicID,
 		"OwnerID":  owner.ID,
-		"Metadata": "{\"x\": 1}",
+		"Metadata": util.JSON{"x": "a"},
 	}).(*Clan)
 	err = db.Insert(clan)
 	if err != nil {
@@ -211,7 +211,7 @@ func GetClanWithMemberships(
 			"PlayerID":    players[i].ID,
 			"ClanID":      clan.ID,
 			"RequestorID": owner.ID,
-			"Metadata":    "{\"x\": 1}",
+			"Metadata":    util.JSON{"x": "a"},
 		}).(*Membership)
 
 		err = db.Insert(membership)
@@ -264,7 +264,7 @@ func GetClanReachedMaxMemberships(db DB) (*Clan, *Player, []*Player, []*Membersh
 		"GameID":   owner.GameID,
 		"PublicID": clanPublicID,
 		"OwnerID":  owner.ID,
-		"Metadata": "{\"x\": 1}",
+		"Metadata": util.JSON{"x": "a"},
 	}).(*Clan)
 	err = db.Insert(clan)
 	if err != nil {
@@ -278,7 +278,7 @@ func GetClanReachedMaxMemberships(db DB) (*Clan, *Player, []*Player, []*Membersh
 		"PlayerID":    players[0].ID,
 		"ClanID":      clan.ID,
 		"RequestorID": owner.ID,
-		"Metadata":    "{\"x\": 1}",
+		"Metadata":    util.JSON{"x": "a"},
 		"Approved":    true,
 	}).(*Membership)
 	err = db.Insert(membership)
@@ -292,7 +292,7 @@ func GetClanReachedMaxMemberships(db DB) (*Clan, *Player, []*Player, []*Membersh
 		"PlayerID":    players[1].ID,
 		"ClanID":      clan.ID,
 		"RequestorID": owner.ID,
-		"Metadata":    "{\"x\": 1}",
+		"Metadata":    util.JSON{"x": "a"},
 		"Approved":    false,
 	}).(*Membership)
 	err = db.Insert(membership)
@@ -409,7 +409,7 @@ func GetTestPlayerWithMemberships(db DB, gameID string, approvedMemberships, rej
 			"GameID":   owner.GameID,
 			"PublicID": uuid.NewV4().String(),
 			"OwnerID":  owner.ID,
-			"Metadata": "{\"x\": 1}",
+			"Metadata": util.JSON{"x": "a"},
 		}).(*Clan)
 		err = db.Insert(clan)
 		if err != nil {
@@ -430,7 +430,7 @@ func GetTestPlayerWithMemberships(db DB, gameID string, approvedMemberships, rej
 			"PlayerID":    player.ID,
 			"ClanID":      clan.ID,
 			"RequestorID": owner.ID,
-			"Metadata":    "{\"x\": 1}",
+			"Metadata":    util.JSON{"x": "a"},
 			"Approved":    approved,
 			"Denied":      denied,
 			"Banned":      banned,

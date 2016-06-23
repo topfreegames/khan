@@ -18,8 +18,8 @@ import (
 
 type gamePayload struct {
 	Name                          string
-	MembershipLevels              string
-	Metadata                      string
+	MembershipLevels              util.JSON
+	Metadata                      util.JSON
 	MinMembershipLevel            int
 	MaxMembershipLevel            int
 	MinLevelToAcceptApplication   int
@@ -34,8 +34,8 @@ type gamePayload struct {
 type createGamePayload struct {
 	PublicID                      string
 	Name                          string
-	MembershipLevels              string
-	Metadata                      string
+	MembershipLevels              util.JSON
+	Metadata                      util.JSON
 	MinMembershipLevel            int
 	MaxMembershipLevel            int
 	MinLevelToAcceptApplication   int

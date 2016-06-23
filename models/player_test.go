@@ -47,7 +47,7 @@ func TestPlayerModel(t *testing.T) {
 
 				time.Sleep(time.Millisecond)
 
-				player.Metadata = "{ \"x\": 1 }"
+				player.Metadata = util.JSON{"x": 1}
 				count, err := testDb.Update(player)
 				g.Assert(err == nil).IsTrue()
 				g.Assert(int(count)).Equal(1)
@@ -96,7 +96,7 @@ func TestPlayerModel(t *testing.T) {
 					"create-1",
 					randomdata.FullName(randomdata.RandomGender),
 					"player-name",
-					"{}",
+					util.JSON{},
 				)
 				g.Assert(err == nil).IsTrue()
 				g.Assert(player.ID != 0).IsTrue()
@@ -114,7 +114,7 @@ func TestPlayerModel(t *testing.T) {
 				player, err := CreatePlayerFactory(testDb, "")
 				g.Assert(err == nil).IsTrue()
 
-				metadata := "{\"x\": 1}"
+				metadata := util.JSON{"x": 1}
 				updPlayer, err := UpdatePlayer(
 					testDb,
 					player.GameID,
@@ -140,7 +140,7 @@ func TestPlayerModel(t *testing.T) {
 				gameID := game.PublicID
 				publicID := uuid.NewV4().String()
 
-				metadata := "{\"x\": 1}"
+				metadata := util.JSON{"x": "1"}
 				updPlayer, err := UpdatePlayer(
 					testDb,
 					gameID,
@@ -165,7 +165,7 @@ func TestPlayerModel(t *testing.T) {
 					"-1",
 					"qwe",
 					"some player name",
-					"{}",
+					util.JSON{},
 				)
 
 				g.Assert(err == nil).IsFalse()
