@@ -33,6 +33,7 @@ func AssertNotError(g *G, err error) {
 }
 
 func TestClanHandler(t *testing.T) {
+	t.Parallel()
 	g := Goblin(t)
 	testDb, err := models.GetTestDB()
 	AssertNotError(g, err)

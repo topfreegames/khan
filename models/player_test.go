@@ -13,10 +13,10 @@ import (
 
 	"github.com/Pallinder/go-randomdata"
 	. "github.com/franela/goblin"
-	"github.com/satori/go.uuid"
 )
 
 func TestPlayerModel(t *testing.T) {
+	t.Parallel()
 	g := Goblin(t)
 	testDb, err := GetTestDB()
 
@@ -26,13 +26,7 @@ func TestPlayerModel(t *testing.T) {
 
 		g.Describe("Model Basic Tests", func() {
 			g.It("Should create a new Player", func() {
-				player := &Player{
-					GameID:   "test",
-					PublicID: uuid.NewV4().String(),
-					Name:     uuid.NewV4().String(),
-					Metadata: "{}",
-				}
-				err := testDb.Insert(player)
+				player, err := CreatePlayerFactory(testDb, "")
 				g.Assert(err == nil).IsTrue()
 				g.Assert(player.ID != 0).IsTrue()
 

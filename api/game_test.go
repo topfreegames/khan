@@ -39,6 +39,7 @@ func getGamePayload(publicID, name string) map[string]interface{} {
 }
 
 func TestGameHandler(t *testing.T) {
+	t.Parallel()
 	g := Goblin(t)
 
 	testDb, err := models.GetTestDB()

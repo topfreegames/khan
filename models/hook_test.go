@@ -16,6 +16,7 @@ import (
 )
 
 func TestHookModel(t *testing.T) {
+	t.Parallel()
 	g := Goblin(t)
 	testDb, err := GetTestDB()
 
@@ -25,13 +26,7 @@ func TestHookModel(t *testing.T) {
 
 		g.Describe("Model Basic Tests", func() {
 			g.It("Should create a new Hook", func() {
-				hook := &Hook{
-					GameID:    "test",
-					PublicID:  uuid.NewV4().String(),
-					EventType: GameUpdatedHook,
-					URL:       "http://test/created",
-				}
-				err := testDb.Insert(hook)
+				hook, err := CreateHookFactory(testDb, "", GameUpdatedHook, "http://test/created")
 				g.Assert(err == nil).IsTrue()
 				g.Assert(hook.ID != 0).IsTrue()
 

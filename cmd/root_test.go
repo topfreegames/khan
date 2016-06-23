@@ -13,17 +13,14 @@ import (
 	"testing"
 
 	. "github.com/franela/goblin"
-	. "github.com/onsi/gomega"
 	"github.com/spf13/cobra"
 )
 
 var out io.Writer = os.Stdout
 
 func Test(t *testing.T) {
+	t.Parallel()
 	g := Goblin(t)
-
-	// special hook for gomega
-	RegisterFailHandler(func(m string, _ ...int) { g.Fail(m) })
 
 	g.Describe("Root Cmd", func() {
 		g.It("Should run command", func() {

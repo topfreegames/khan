@@ -46,6 +46,7 @@ func startRouteHandler(routes []string, port int) *[]map[string]interface{} {
 }
 
 func Test(t *testing.T) {
+	t.Parallel()
 	g := Goblin(t)
 
 	testDb, err := models.GetTestDB()
