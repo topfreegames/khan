@@ -8,7 +8,6 @@
 package models
 
 import (
-	"fmt"
 	"testing"
 	"time"
 
@@ -29,7 +28,7 @@ func TestPlayerModel(t *testing.T) {
 
 		g.Describe("Model Basic Tests", func() {
 			g.It("Should create a new Player", func() {
-				player, err := CreatePlayerFactory(testDb, "")
+				_, player, err := CreatePlayerFactory(testDb, "")
 				g.Assert(err == nil).IsTrue()
 				g.Assert(player.ID != 0).IsTrue()
 
@@ -41,7 +40,7 @@ func TestPlayerModel(t *testing.T) {
 			})
 
 			g.It("Should update a new Player", func() {
-				player, err := CreatePlayerFactory(testDb, "")
+				_, player, err := CreatePlayerFactory(testDb, "")
 				g.Assert(err == nil).IsTrue()
 				dt := player.UpdatedAt
 
@@ -57,7 +56,7 @@ func TestPlayerModel(t *testing.T) {
 
 		g.Describe("Get Player By ID", func() {
 			g.It("Should get existing Player", func() {
-				player, err := CreatePlayerFactory(testDb, "")
+				_, player, err := CreatePlayerFactory(testDb, "")
 				g.Assert(err == nil).IsTrue()
 
 				dbPlayer, err := GetPlayerByID(testDb, player.ID)
@@ -74,7 +73,7 @@ func TestPlayerModel(t *testing.T) {
 
 		g.Describe("Get Player By Public ID", func() {
 			g.It("Should get existing Player by Game and Player", func() {
-				player, err := CreatePlayerFactory(testDb, "")
+				_, player, err := CreatePlayerFactory(testDb, "")
 				g.Assert(err == nil).IsTrue()
 
 				dbPlayer, err := GetPlayerByPublicID(testDb, player.GameID, player.PublicID)
@@ -111,7 +110,7 @@ func TestPlayerModel(t *testing.T) {
 
 		g.Describe("Update Player", func() {
 			g.It("Should update a Player with UpdatePlayer", func() {
-				player, err := CreatePlayerFactory(testDb, "")
+				_, player, err := CreatePlayerFactory(testDb, "")
 				g.Assert(err == nil).IsTrue()
 
 				metadata := util.JSON{"x": 1}
@@ -149,7 +148,6 @@ func TestPlayerModel(t *testing.T) {
 					metadata,
 				)
 
-				fmt.Println(err)
 				g.Assert(err == nil).IsTrue()
 				g.Assert(updPlayer.ID > 0).IsTrue()
 
@@ -209,7 +207,7 @@ func TestPlayerModel(t *testing.T) {
 			})
 
 			g.It("Should get Player Details when player has no affiliations", func() {
-				player, err := CreatePlayerFactory(testDb, "")
+				_, player, err := CreatePlayerFactory(testDb, "")
 				g.Assert(err == nil).IsTrue()
 
 				playerDetails, err := GetPlayerDetails(
@@ -218,7 +216,6 @@ func TestPlayerModel(t *testing.T) {
 					player.PublicID,
 				)
 
-				fmt.Println(err)
 				g.Assert(err == nil).IsTrue()
 
 				// Player Details

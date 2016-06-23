@@ -20,11 +20,11 @@ import (
 // GameFactory is responsible for constructing test game instances
 var GameFactory = factory.NewFactory(
 	&Game{
-		MinMembershipLevel:            0,
-		MaxMembershipLevel:            1000000,
-		MinLevelToAcceptApplication:   1,
-		MinLevelToCreateInvitation:    1,
-		MinLevelToRemoveMember:        1,
+		MinMembershipLevel:            1,
+		MaxMembershipLevel:            3,
+		MinLevelToAcceptApplication:   2,
+		MinLevelToCreateInvitation:    2,
+		MinLevelToRemoveMember:        2,
 		MinLevelOffsetToRemoveMember:  1,
 		MinLevelOffsetToPromoteMember: 2,
 		MinLevelOffsetToDemoteMember:  1,
@@ -123,7 +123,7 @@ var ClanFactory = configureFactory(factory.NewFactory(
 ))
 
 // CreatePlayerFactory is responsible for creating a test player instance with the associated game
-func CreatePlayerFactory(db DB, gameID string) (*Player, error) {
+func CreatePlayerFactory(db DB, gameID string) (*Game, *Player, error) {
 	if gameID == "" {
 		gameID = uuid.NewV4().String()
 	}
@@ -132,7 +132,7 @@ func CreatePlayerFactory(db DB, gameID string) (*Player, error) {
 	}).(*Game)
 	err := db.Insert(game)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	player := PlayerFactory.MustCreateWithOption(util.JSON{
@@ -140,9 +140,9 @@ func CreatePlayerFactory(db DB, gameID string) (*Player, error) {
 	}).(*Player)
 	err = db.Insert(player)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	return player, nil
+	return game, player, nil
 }
 
 // MembershipFactory is responsible for constructing test membership instances
@@ -155,7 +155,7 @@ var MembershipFactory = factory.NewFactory(
 // GetClanWithMemberships returns a clan filled with the number of memberships specified
 func GetClanWithMemberships(
 	db DB, numberOfMemberships int, gameID string, clanPublicID string,
-) (*Clan, *Player, []*Player, []*Membership, error) {
+) (*Game, *Clan, *Player, []*Player, []*Membership, error) {
 	if gameID == "" {
 		gameID = uuid.NewV4().String()
 	}
@@ -168,7 +168,7 @@ func GetClanWithMemberships(
 	}).(*Game)
 	err := db.Insert(game)
 	if err != nil {
-		return nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, err
 	}
 
 	owner := PlayerFactory.MustCreateWithOption(util.JSON{
@@ -176,7 +176,7 @@ func GetClanWithMemberships(
 	}).(*Player)
 	err = db.Insert(owner)
 	if err != nil {
-		return nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, err
 	}
 
 	var players []*Player
@@ -187,7 +187,7 @@ func GetClanWithMemberships(
 		}).(*Player)
 		err = db.Insert(player)
 		if err != nil {
-			return nil, nil, nil, nil, err
+			return nil, nil, nil, nil, nil, err
 		}
 		players = append(players, player)
 	}
@@ -200,7 +200,7 @@ func GetClanWithMemberships(
 	}).(*Clan)
 	err = db.Insert(clan)
 	if err != nil {
-		return nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, err
 	}
 
 	var memberships []*Membership
@@ -212,21 +212,22 @@ func GetClanWithMemberships(
 			"ClanID":      clan.ID,
 			"RequestorID": owner.ID,
 			"Metadata":    util.JSON{"x": "a"},
+			"Level":       "Member",
 		}).(*Membership)
 
 		err = db.Insert(membership)
 		if err != nil {
-			return nil, nil, nil, nil, err
+			return nil, nil, nil, nil, nil, err
 		}
 
 		memberships = append(memberships, membership)
 	}
 
-	return clan, owner, players, memberships, nil
+	return game, clan, owner, players, memberships, nil
 }
 
 // GetClanReachedMaxMemberships returns a clan with one approved membership, one unapproved membership and game MaxMembers=1
-func GetClanReachedMaxMemberships(db DB) (*Clan, *Player, []*Player, []*Membership, error) {
+func GetClanReachedMaxMemberships(db DB) (*Game, *Clan, *Player, []*Player, []*Membership, error) {
 	gameID := uuid.NewV4().String()
 	clanPublicID := uuid.NewV4().String()
 
@@ -236,7 +237,7 @@ func GetClanReachedMaxMemberships(db DB) (*Clan, *Player, []*Player, []*Membersh
 	}).(*Game)
 	err := db.Insert(game)
 	if err != nil {
-		return nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, err
 	}
 
 	owner := PlayerFactory.MustCreateWithOption(util.JSON{
@@ -244,7 +245,7 @@ func GetClanReachedMaxMemberships(db DB) (*Clan, *Player, []*Player, []*Membersh
 	}).(*Player)
 	err = db.Insert(owner)
 	if err != nil {
-		return nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, err
 	}
 
 	var players []*Player
@@ -255,7 +256,7 @@ func GetClanReachedMaxMemberships(db DB) (*Clan, *Player, []*Player, []*Membersh
 		}).(*Player)
 		err = db.Insert(player)
 		if err != nil {
-			return nil, nil, nil, nil, err
+			return nil, nil, nil, nil, nil, err
 		}
 		players = append(players, player)
 	}
@@ -268,7 +269,7 @@ func GetClanReachedMaxMemberships(db DB) (*Clan, *Player, []*Player, []*Membersh
 	}).(*Clan)
 	err = db.Insert(clan)
 	if err != nil {
-		return nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, err
 	}
 
 	var memberships []*Membership
@@ -280,10 +281,11 @@ func GetClanReachedMaxMemberships(db DB) (*Clan, *Player, []*Player, []*Membersh
 		"RequestorID": owner.ID,
 		"Metadata":    util.JSON{"x": "a"},
 		"Approved":    true,
+		"Level":       "Member",
 	}).(*Membership)
 	err = db.Insert(membership)
 	if err != nil {
-		return nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, err
 	}
 	memberships = append(memberships, membership)
 
@@ -294,14 +296,15 @@ func GetClanReachedMaxMemberships(db DB) (*Clan, *Player, []*Player, []*Membersh
 		"RequestorID": owner.ID,
 		"Metadata":    util.JSON{"x": "a"},
 		"Approved":    false,
+		"Level":       "Member",
 	}).(*Membership)
 	err = db.Insert(membership)
 	if err != nil {
-		return nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, err
 	}
 	memberships = append(memberships, membership)
 
-	return clan, owner, players, memberships, nil
+	return game, clan, owner, players, memberships, nil
 }
 
 // GetTestClans returns a list of clans for tests

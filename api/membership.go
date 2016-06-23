@@ -14,12 +14,12 @@ import (
 )
 
 type applyForMembershipPayload struct {
-	Level          int
+	Level          string
 	PlayerPublicID string
 }
 
 type inviteForMembershipPayload struct {
-	Level             int
+	Level             string
 	PlayerPublicID    string
 	RequestorPublicID string
 }
@@ -49,6 +49,7 @@ func ApplyForMembershipHandler(app *App) func(c *iris.Context) {
 
 		_, err := models.CreateMembership(
 			db,
+			app.Games,
 			gameID,
 			payload.Level,
 			payload.PlayerPublicID,
@@ -81,6 +82,7 @@ func InviteForMembershipHandler(app *App) func(c *iris.Context) {
 
 		_, err := models.CreateMembership(
 			db,
+			app.Games,
 			gameID,
 			payload.Level,
 			payload.PlayerPublicID,
@@ -115,6 +117,7 @@ func ApproveOrDenyMembershipApplicationHandler(app *App) func(c *iris.Context) {
 
 		_, err := models.ApproveOrDenyMembershipApplication(
 			db,
+			app.Games,
 			gameID,
 			payload.PlayerPublicID,
 			clanPublicID,
@@ -179,6 +182,7 @@ func DeleteMembershipHandler(app *App) func(c *iris.Context) {
 
 		err := models.DeleteMembership(
 			db,
+			app.Games,
 			gameID,
 			payload.PlayerPublicID,
 			clanPublicID,
@@ -210,6 +214,7 @@ func PromoteOrDemoteMembershipHandler(app *App, action string) func(c *iris.Cont
 
 		membership, err := models.PromoteOrDemoteMember(
 			db,
+			app.Games,
 			gameID,
 			payload.PlayerPublicID,
 			clanPublicID,

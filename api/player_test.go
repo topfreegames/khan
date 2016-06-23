@@ -107,7 +107,7 @@ func TestPlayerHandler(t *testing.T) {
 	g.Describe("Update Player Handler", func() {
 		g.It("Should update player", func() {
 			a := GetDefaultTestApp()
-			player, err := models.CreatePlayerFactory(a.Db, "")
+			_, player, err := models.CreatePlayerFactory(a.Db, "")
 			AssertNotError(g, err)
 
 			metadata := util.JSON{"y": 10}
@@ -157,7 +157,7 @@ func TestPlayerHandler(t *testing.T) {
 
 		g.It("Should not update player if invalid data", func() {
 			a := GetDefaultTestApp()
-			player, err := models.CreatePlayerFactory(a.Db, "")
+			_, player, err := models.CreatePlayerFactory(a.Db, "")
 			AssertNotError(g, err)
 
 			payload := util.JSON{

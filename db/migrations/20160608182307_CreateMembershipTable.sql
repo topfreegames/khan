@@ -12,7 +12,7 @@ CREATE TABLE memberships (
     game_id varchar(36) NOT NULL REFERENCES games (public_id),
     clan_id integer NOT NULL REFERENCES clans (id),
     player_id integer NOT NULL REFERENCES players (id),
-    membership_level integer NOT NULL,
+    membership_level varchar(36) NOT NULL,
     approved boolean NOT NULL DEFAULT false,
     denied boolean NOT NULL DEFAULT false,
     banned boolean NOT NULL DEFAULT false,

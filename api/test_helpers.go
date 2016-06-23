@@ -13,6 +13,7 @@ import (
 
 	"github.com/gavv/httpexpect"
 	"github.com/gavv/httpexpect/fasthttpexpect"
+	"github.com/topfreegames/khan/models"
 	"github.com/topfreegames/khan/util"
 )
 
@@ -82,4 +83,14 @@ func GetGameRoute(gameID, route string) string {
 // CreateMembershipRoute returns a create membership route for the given game and clan id.
 func CreateMembershipRoute(gameID, clanPublicID, route string) string {
 	return fmt.Sprintf("/games/%s/clans/%s/memberships/%s", gameID, clanPublicID, route)
+}
+
+// LoadGames load the games
+func LoadGames(a *App) map[string]*models.Game {
+	g := make(map[string]*models.Game)
+	games, _ := models.GetAllGames(a.Db)
+	for _, game := range games {
+		g[game.PublicID] = game
+	}
+	return g
 }

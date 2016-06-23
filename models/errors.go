@@ -96,6 +96,16 @@ func (e *InvalidMembershipActionError) Error() string {
 	return fmt.Sprintf("%s a membership is not a valid action.", e.Action)
 }
 
+// InvalidLevelForGameError identifies that a given level is not valid for the given game
+type InvalidLevelForGameError struct {
+	GameID string
+	Level  interface{}
+}
+
+func (e *InvalidLevelForGameError) Error() string {
+	return fmt.Sprintf("Level %v is not valid for game %s.", e.Level, e.GameID)
+}
+
 // ClanHasNoMembersError identifies that a clan has no members
 type ClanHasNoMembersError struct {
 	ClanID interface{}
