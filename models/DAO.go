@@ -24,7 +24,7 @@ type clanDetailsDAO struct {
 	ClanAutoJoin         bool
 
 	//Membership Information
-	MembershipLevel     sql.NullInt64
+	MembershipLevel     sql.NullString
 	MembershipApproved  sql.NullBool
 	MembershipDenied    sql.NullBool
 	MembershipBanned    sql.NullBool
@@ -50,7 +50,7 @@ type clanDetailsDAO struct {
 func (member *clanDetailsDAO) Serialize() util.JSON {
 	result := util.JSON{
 		// No need to include clan information as that will be available in the payload already
-		"membershipLevel":     nullOrInt(member.MembershipLevel),
+		"membershipLevel":     nullOrString(member.MembershipLevel),
 		"membershipApproved":  nullOrBool(member.MembershipApproved),
 		"membershipDenied":    nullOrBool(member.MembershipDenied),
 		"membershipBanned":    nullOrBool(member.MembershipBanned),
@@ -79,7 +79,7 @@ type playerDetailsDAO struct {
 	PlayerUpdatedAt int64
 
 	// Membership Details
-	MembershipLevel     sql.NullInt64
+	MembershipLevel     sql.NullString
 	MembershipApproved  sql.NullBool
 	MembershipDenied    sql.NullBool
 	MembershipBanned    sql.NullBool
@@ -106,7 +106,7 @@ type playerDetailsDAO struct {
 
 func (p *playerDetailsDAO) Serialize() util.JSON {
 	result := util.JSON{
-		"level":     nullOrInt(p.MembershipLevel),
+		"level":     nullOrString(p.MembershipLevel),
 		"approved":  nullOrBool(p.MembershipApproved),
 		"denied":    nullOrBool(p.MembershipDenied),
 		"banned":    nullOrBool(p.MembershipBanned),

@@ -158,6 +158,7 @@ func TransferOwnershipHandler(app *App) func(c *iris.Context) {
 
 		err := models.TransferClanOwnership(
 			db,
+			app.Games,
 			gameID,
 			publicID,
 			payload.OwnerPublicID,

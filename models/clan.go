@@ -108,6 +108,7 @@ func CreateClan(db DB, gameID, publicID, name, ownerPublicID string, metadata ut
 // LeaveClan allows the clan owner to leave the clan and transfer the clan ownership to the next player in line
 func LeaveClan(db DB, gameID, publicID, ownerPublicID string) error {
 	clan, err := GetClanByPublicIDAndOwnerPublicID(db, gameID, publicID, ownerPublicID)
+
 	if err != nil {
 		return err
 	}
@@ -124,6 +125,7 @@ func LeaveClan(db DB, gameID, publicID, ownerPublicID string) error {
 
 	oldOwnerID := clan.OwnerID
 	clan.OwnerID = newOwnerMembership.PlayerID
+
 	_, err = db.Update(clan)
 	if err != nil {
 		return err
@@ -138,8 +140,12 @@ func LeaveClan(db DB, gameID, publicID, ownerPublicID string) error {
 }
 
 // TransferClanOwnership allows the clan owner to transfer the clan ownership to the a clan member
-func TransferClanOwnership(db DB, gameID, clanPublicID, ownerPublicID, playerPublicID string) error {
-	maxLevel := 1000000 // TODO: get this from some config
+func TransferClanOwnership(db DB, games map[string]*Game, gameID, clanPublicID, ownerPublicID, playerPublicID string) error {
+	var game *Game
+	var gameValid bool
+	if game, gameValid = games[gameID]; !gameValid {
+		return &ModelNotFoundError{"Game", gameID}
+	}
 
 	clan, err := GetClanByPublicIDAndOwnerPublicID(db, gameID, clanPublicID, ownerPublicID)
 	if err != nil {
@@ -158,6 +164,10 @@ func TransferClanOwnership(db DB, gameID, clanPublicID, ownerPublicID, playerPub
 		return err
 	}
 
+	level := GetLevelByLevelInt(game.MaxMembershipLevel, game.MembershipLevels)
+	if level == "" {
+		return &InvalidLevelForGameError{gameID, level}
+	}
 	oldOwnerMembership, err := GetDeletedMembershipByClanAndPlayerPublicID(db, gameID, clanPublicID, ownerPublicID)
 	if err != nil {
 		err = db.Insert(&Membership{
@@ -165,7 +175,7 @@ func TransferClanOwnership(db DB, gameID, clanPublicID, ownerPublicID, playerPub
 			ClanID:      clan.ID,
 			PlayerID:    oldOwnerID,
 			RequestorID: oldOwnerID,
-			Level:       maxLevel,
+			Level:       level,
 			Approved:    true,
 			Denied:      false,
 			CreatedAt:   clan.CreatedAt,
@@ -177,7 +187,7 @@ func TransferClanOwnership(db DB, gameID, clanPublicID, ownerPublicID, playerPub
 	} else {
 		oldOwnerMembership.Approved = true
 		oldOwnerMembership.Denied = false
-		oldOwnerMembership.Level = maxLevel
+		oldOwnerMembership.Level = level
 		oldOwnerMembership.RequestorID = oldOwnerID
 		_, err = db.Update(oldOwnerMembership)
 	}

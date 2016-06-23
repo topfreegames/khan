@@ -10,6 +10,8 @@ package models
 import (
 	"time"
 
+	"github.com/topfreegames/khan/util"
+
 	"gopkg.in/gorp.v1"
 )
 
@@ -17,7 +19,7 @@ import (
 type Membership struct {
 	ID          int    `db:"id"`
 	GameID      string `db:"game_id"`
-	Level       int    `db:"membership_level"`
+	Level       string `db:"membership_level"`
 	Approved    bool   `db:"approved"`
 	Denied      bool   `db:"denied"`
 	Banned      bool   `db:"banned"`
@@ -57,7 +59,17 @@ func GetMembershipByID(db DB, id int) (*Membership, error) {
 // GetMembershipByClanAndPlayerPublicID returns a membership for the clan and the player with the given publicIDs
 func GetMembershipByClanAndPlayerPublicID(db DB, gameID, clanPublicID, playerPublicID string) (*Membership, error) {
 	var membership Membership
-	err := db.SelectOne(&membership, "SELECT memberships.* FROM memberships, clans, players WHERE memberships.deleted_at=0 AND memberships.game_id=$1 AND memberships.clan_id=clans.id AND memberships.player_id=players.id AND clans.public_id=$2 AND players.public_id=$3", gameID, clanPublicID, playerPublicID)
+	query := `
+	SELECT
+		m.*
+	FROM memberships m
+		INNER JOIN games g ON g.public_id=$1 AND g.public_id=m.game_id
+		INNER JOIN clans c ON c.public_id=$2 AND c.id=m.clan_id
+		INNER JOIN players p ON p.public_id=$3 AND p.id=m.player_id
+	WHERE
+		m.deleted_at=0`
+
+	err := db.SelectOne(&membership, query, gameID, clanPublicID, playerPublicID)
 	if err != nil || &membership == nil {
 		return nil, &ModelNotFoundError{"Membership", playerPublicID}
 	}
@@ -67,7 +79,16 @@ func GetMembershipByClanAndPlayerPublicID(db DB, gameID, clanPublicID, playerPub
 // GetDeletedMembershipByClanAndPlayerPublicID returns a deleted membership for the clan and the player with the given publicIDs
 func GetDeletedMembershipByClanAndPlayerPublicID(db DB, gameID, clanPublicID, playerPublicID string) (*Membership, error) {
 	var membership Membership
-	err := db.SelectOne(&membership, "SELECT memberships.* FROM memberships, clans, players WHERE memberships.deleted_at!=0 AND memberships.game_id=$1 AND memberships.clan_id=clans.id AND memberships.player_id=players.id AND clans.public_id=$2 AND players.public_id=$3", gameID, clanPublicID, playerPublicID)
+	query := `
+	SELECT
+		m.*
+	FROM memberships m
+		INNER JOIN clans c ON c.public_id=$1 AND c.id=m.clan_id
+		INNER JOIN players p ON p.public_id=$2 AND p.id=m.player_id
+	WHERE
+		m.deleted_at!=0 AND m.game_id=$3`
+
+	err := db.SelectOne(&membership, query, clanPublicID, playerPublicID, gameID)
 	if err != nil || &membership == nil {
 		return nil, &ModelNotFoundError{"Membership", playerPublicID}
 	}
@@ -77,7 +98,17 @@ func GetDeletedMembershipByClanAndPlayerPublicID(db DB, gameID, clanPublicID, pl
 // GetOldestMemberWithHighestLevel returns the member with highest level that has the oldest creation date
 func GetOldestMemberWithHighestLevel(db DB, gameID, clanPublicID string) (*Membership, error) {
 	var membership Membership
-	err := db.SelectOne(&membership, "SELECT memberships.* FROM memberships, clans WHERE memberships.deleted_at=0 AND memberships.game_id=$1 AND memberships.clan_id=clans.id AND clans.public_id=$2 ORDER BY memberships.membership_level DESC, memberships.created_at ASC LIMIT 1", gameID, clanPublicID)
+	query := `
+	SELECT
+	 m.*
+	FROM memberships m
+	 INNER JOIN games g ON g.public_id=$1 AND g.public_id=m.game_id
+	 INNER JOIN clans c ON c.public_id=$2 AND c.id=m.clan_id
+	ORDER BY
+	 g.membership_levels::json->>m.membership_level DESC,
+	 m.created_at ASC
+	LIMIT 1`
+	err := db.SelectOne(&membership, query, gameID, clanPublicID)
 	if err != nil || &membership == nil {
 		return nil, &ClanHasNoMembersError{clanPublicID}
 	}
@@ -87,7 +118,16 @@ func GetOldestMemberWithHighestLevel(db DB, gameID, clanPublicID string) (*Membe
 // ClanReachedMaxMemberships returns a bool indicating if the clan reached the max number of members (non deleted and approved)
 func ClanReachedMaxMemberships(db DB, gameID, clanPublicID string) error {
 	var reachedMaxMembers []bool
-	_, err := db.Select(&reachedMaxMembers, "SELECT COUNT(memberships.*) >= games.max_members FROM memberships, clans, games WHERE memberships.deleted_at=0 AND memberships.approved=true AND memberships.game_id=$1 AND memberships.clan_id=clans.id AND clans.public_id=$2 AND games.public_id=$1 GROUP BY games.max_members", gameID, clanPublicID)
+	query := `
+	SELECT
+		COUNT(m.*) >= g.max_members
+	FROM memberships m
+		INNER JOIN games g ON g.public_id=$1 AND g.public_id=m.game_id
+		INNER JOIN clans c ON c.public_id=$2 AND c.id=m.clan_id
+	WHERE
+		m.deleted_at=0 AND m.approved=true
+	GROUP BY g.max_members`
+	_, err := db.Select(&reachedMaxMembers, query, gameID, clanPublicID)
 	if err != nil {
 		return err
 	}
@@ -126,9 +166,16 @@ func ApproveOrDenyMembershipInvitation(db DB, gameID, playerPublicID, clanPublic
 }
 
 // ApproveOrDenyMembershipApplication sets Membership.Approved to true or Membership.Denied to true
-func ApproveOrDenyMembershipApplication(db DB, gameID, playerPublicID, clanPublicID, requestorPublicID, action string) (*Membership, error) {
+func ApproveOrDenyMembershipApplication(db DB, games map[string]*Game, gameID, playerPublicID, clanPublicID, requestorPublicID, action string) (*Membership, error) {
 	if playerPublicID == requestorPublicID {
 		return nil, &PlayerCannotPerformMembershipActionError{action, playerPublicID, clanPublicID, requestorPublicID}
+	}
+
+	var game *Game
+	var gameValid bool
+
+	if game, gameValid = games[gameID]; !gameValid {
+		return nil, &ModelNotFoundError{"Game", gameID}
 	}
 
 	membership, err := GetMembershipByClanAndPlayerPublicID(db, gameID, clanPublicID, playerPublicID)
@@ -160,20 +207,27 @@ func ApproveOrDenyMembershipApplication(db DB, gameID, playerPublicID, clanPubli
 		return approveOrDenyMembershipHelper(db, membership, action)
 	}
 
-	game, err := GetGameByPublicID(db, gameID)
-	if err != nil {
-		return nil, err
-	}
-	if !reqMembership.Approved || reqMembership.Level < game.MinLevelToAcceptApplication {
+	levelInt := GetLevelIntByLevel(reqMembership.Level, game.MembershipLevels)
+	if !reqMembership.Approved || levelInt < game.MinLevelToAcceptApplication {
 		return nil, &PlayerCannotPerformMembershipActionError{action, playerPublicID, clanPublicID, requestorPublicID}
 	}
 	return approveOrDenyMembershipHelper(db, membership, action)
 }
 
 // CreateMembership creates a new membership
-func CreateMembership(db DB, gameID string, level int, playerPublicID, clanPublicID, requestorPublicID string) (*Membership, error) {
+func CreateMembership(db DB, games map[string]*Game, gameID, level, playerPublicID, clanPublicID, requestorPublicID string) (*Membership, error) {
 	previousMembership := false
 	var playerID int
+
+	var game *Game
+	var gameValid bool
+
+	if game, gameValid = games[gameID]; !gameValid {
+		return nil, &ModelNotFoundError{"Game", gameID}
+	}
+	if _, levelValid := games[gameID].MembershipLevels[level]; !levelValid {
+		return nil, &InvalidLevelForGameError{gameID, level}
+	}
 
 	membership, _ := GetDeletedMembershipByClanAndPlayerPublicID(db, gameID, clanPublicID, playerPublicID)
 	if membership != nil {
@@ -226,12 +280,10 @@ func CreateMembership(db DB, gameID string, level int, playerPublicID, clanPubli
 	if reachedMaxMembersError != nil {
 		return nil, reachedMaxMembersError
 	}
-	game, err := GetGameByPublicID(db, gameID)
-	if err != nil {
-		return nil, err
-	}
 
-	if isValidMember(reqMembership) && reqMembership.Level >= game.MinLevelToCreateInvitation {
+	levelInt := GetLevelIntByLevel(reqMembership.Level, game.MembershipLevels)
+
+	if isValidMember(reqMembership) && levelInt >= game.MinLevelToCreateInvitation {
 		if previousMembership {
 			return recreateDeletedMembershipHelper(db, membership, level, reqMembership.PlayerID)
 		}
@@ -240,14 +292,16 @@ func CreateMembership(db DB, gameID string, level int, playerPublicID, clanPubli
 	return nil, &PlayerCannotCreateMembershipError{requestorPublicID, clanPublicID}
 }
 
-// PromoteOrDemoteMember increments or decrements Membership.Level by one
-func PromoteOrDemoteMember(db DB, gameID, playerPublicID, clanPublicID, requestorPublicID, action string) (*Membership, error) {
+// PromoteOrDemoteMember increments or decrements Membership.LevelInt by one
+func PromoteOrDemoteMember(db DB, games map[string]*Game, gameID, playerPublicID, clanPublicID, requestorPublicID, action string) (*Membership, error) {
 	demote := action == "demote"
 	promote := action == "promote"
 
-	game, gameErr := GetGameByPublicID(db, gameID)
-	if gameErr != nil {
-		return nil, gameErr
+	var game *Game
+	var gameValid bool
+
+	if game, gameValid = games[gameID]; !gameValid {
+		return nil, &ModelNotFoundError{"Game", gameID}
 	}
 
 	levelOffset := game.MinLevelOffsetToDemoteMember
@@ -267,8 +321,9 @@ func PromoteOrDemoteMember(db DB, gameID, playerPublicID, clanPublicID, requesto
 		return nil, &CannotPromoteOrDemoteInvalidMemberError{action}
 	}
 
-	if promote && membership.Level >= game.MaxMembershipLevel || demote && membership.Level <= game.MinMembershipLevel {
-		return nil, &CannotPromoteOrDemoteMemberLevelError{action, membership.Level}
+	levelInt := GetLevelIntByLevel(membership.Level, game.MembershipLevels)
+	if promote && levelInt >= game.MaxMembershipLevel || demote && levelInt <= game.MinMembershipLevel {
+		return nil, &CannotPromoteOrDemoteMemberLevelError{action, levelInt}
 	}
 
 	reqMembership, _ := GetMembershipByClanAndPlayerPublicID(db, gameID, clanPublicID, requestorPublicID)
@@ -277,15 +332,25 @@ func PromoteOrDemoteMember(db DB, gameID, playerPublicID, clanPublicID, requesto
 		if clanErr != nil {
 			return nil, &PlayerCannotPerformMembershipActionError{action, playerPublicID, clanPublicID, requestorPublicID}
 		}
-		return promoteOrDemoteMemberHelper(db, membership, action)
-	} else if isValidMember(reqMembership) && reqMembership.Level > membership.Level+levelOffset {
-		return promoteOrDemoteMemberHelper(db, membership, action)
+		return promoteOrDemoteMemberHelper(db, membership, action, game.MembershipLevels)
+	}
+
+	reqLevelInt := GetLevelIntByLevel(reqMembership.Level, game.MembershipLevels)
+	if isValidMember(reqMembership) && reqLevelInt >= levelInt+levelOffset {
+		return promoteOrDemoteMemberHelper(db, membership, action, game.MembershipLevels)
 	}
 	return nil, &PlayerCannotPerformMembershipActionError{action, playerPublicID, clanPublicID, requestorPublicID}
 }
 
 // DeleteMembership soft deletes a membership
-func DeleteMembership(db DB, gameID, playerPublicID, clanPublicID, requestorPublicID string) error {
+func DeleteMembership(db DB, games map[string]*Game, gameID, playerPublicID, clanPublicID, requestorPublicID string) error {
+	var game *Game
+	var gameValid bool
+
+	if game, gameValid = games[gameID]; !gameValid {
+		return &ModelNotFoundError{"Game", gameID}
+	}
+
 	membership, err := GetMembershipByClanAndPlayerPublicID(db, gameID, clanPublicID, playerPublicID)
 	if err != nil {
 		return err
@@ -301,11 +366,10 @@ func DeleteMembership(db DB, gameID, playerPublicID, clanPublicID, requestorPubl
 		}
 		return deleteMembershipHelper(db, membership, clan.OwnerID)
 	}
-	game, gameErr := GetGameByPublicID(db, gameID)
-	if gameErr != nil {
-		return gameErr
-	}
-	if isValidMember(reqMembership) && reqMembership.Level >= game.MinLevelToRemoveMember && reqMembership.Level >= membership.Level+game.MinLevelOffsetToRemoveMember {
+
+	levelInt := GetLevelIntByLevel(membership.Level, game.MembershipLevels)
+	reqLevelInt := GetLevelIntByLevel(reqMembership.Level, game.MembershipLevels)
+	if isValidMember(reqMembership) && reqLevelInt >= game.MinLevelToRemoveMember && reqLevelInt >= levelInt+game.MinLevelOffsetToRemoveMember {
 		return deleteMembershipHelper(db, membership, reqMembership.PlayerID)
 	}
 	return &PlayerCannotPerformMembershipActionError{"delete", playerPublicID, clanPublicID, requestorPublicID}
@@ -330,7 +394,7 @@ func approveOrDenyMembershipHelper(db DB, membership *Membership, action string)
 	return membership, nil
 }
 
-func createMembershipHelper(db DB, gameID string, level, playerID, clanID, requestorID int, approved bool) (*Membership, error) {
+func createMembershipHelper(db DB, gameID, level string, playerID, clanID, requestorID int, approved bool) (*Membership, error) {
 	membership := &Membership{
 		GameID:      gameID,
 		ClanID:      clanID,
@@ -348,7 +412,7 @@ func createMembershipHelper(db DB, gameID string, level, playerID, clanID, reque
 	return membership, nil
 }
 
-func recreateDeletedMembershipHelper(db DB, membership *Membership, level, requestorID int) (*Membership, error) {
+func recreateDeletedMembershipHelper(db DB, membership *Membership, level string, requestorID int) (*Membership, error) {
 	membership.RequestorID = requestorID
 	membership.Level = level
 	membership.Approved = false
@@ -361,16 +425,20 @@ func recreateDeletedMembershipHelper(db DB, membership *Membership, level, reque
 	return membership, nil
 }
 
-func promoteOrDemoteMemberHelper(db DB, membership *Membership, action string) (*Membership, error) {
-	// TODO: make it safer by using something like SET column = column + X
-
+func promoteOrDemoteMemberHelper(db DB, membership *Membership, action string, levels util.JSON) (*Membership, error) {
+	levelInt := GetLevelIntByLevel(membership.Level, levels)
 	if action == "promote" {
-		membership.Level++
+		membership.Level = GetLevelByLevelInt(levelInt+1, levels)
 	} else if action == "demote" {
-		membership.Level--
+		membership.Level = GetLevelByLevelInt(levelInt-1, levels)
 	} else {
 		return nil, &InvalidMembershipActionError{action}
 	}
+
+	if membership.Level == "" {
+		return nil, &InvalidLevelForGameError{membership.GameID, membership.Level}
+	}
+
 	_, err := db.Update(membership)
 	if err != nil {
 		return nil, err
@@ -388,4 +456,32 @@ func deleteMembershipHelper(db DB, membership *Membership, deletedBy int) error 
 
 	_, err := db.Update(membership)
 	return err
+}
+
+// GetLevelByLevelInt returns the level string given the level int
+func GetLevelByLevelInt(levelInt int, levels util.JSON) string {
+	for k, v := range levels {
+		switch v.(type) {
+		case float64:
+			if int(v.(float64)) == levelInt {
+				return k
+			}
+		case int:
+			if v.(int) == levelInt {
+				return k
+			}
+		}
+	}
+	return ""
+}
+
+// GetLevelIntByLevel returns the level string given the level int
+func GetLevelIntByLevel(level string, levels util.JSON) int {
+	v := levels[level]
+	switch v.(type) {
+	case float64:
+		return int(v.(float64))
+	default:
+		return v.(int)
+	}
 }
