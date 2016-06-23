@@ -17,6 +17,7 @@ import (
 
 	"github.com/Pallinder/go-randomdata"
 	. "github.com/franela/goblin"
+	"github.com/satori/go.uuid"
 	"github.com/topfreegames/khan/models"
 	"github.com/topfreegames/khan/util"
 )
@@ -42,7 +43,7 @@ func TestPlayerHandler(t *testing.T) {
 			}
 			res := PostJSON(a, GetGameRoute(game.PublicID, "/players"), t, payload)
 
-			res.Status(http.StatusOK)
+			g.Assert(res.Raw().StatusCode).Equal(http.StatusOK)
 			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsTrue()
@@ -63,7 +64,7 @@ func TestPlayerHandler(t *testing.T) {
 			route := GetGameRoute("game-id", "/players")
 			res := PostJSON(a, route, t, util.JSON{})
 
-			res.Status(http.StatusBadRequest)
+			g.Assert(res.Raw().StatusCode).Equal(http.StatusBadRequest)
 			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
@@ -75,7 +76,7 @@ func TestPlayerHandler(t *testing.T) {
 			route := GetGameRoute("game-id", "/players")
 			res := PostBody(a, route, t, "invalid")
 
-			res.Status(http.StatusBadRequest)
+			g.Assert(res.Raw().StatusCode).Equal(http.StatusBadRequest)
 			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
@@ -95,7 +96,7 @@ func TestPlayerHandler(t *testing.T) {
 			}
 			res := PostJSON(a, GetGameRoute(game.PublicID, "/players"), t, payload)
 
-			res.Status(http.StatusInternalServerError)
+			g.Assert(res.Raw().StatusCode).Equal(http.StatusInternalServerError)
 			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
@@ -117,7 +118,7 @@ func TestPlayerHandler(t *testing.T) {
 
 			route := GetGameRoute(player.GameID, fmt.Sprintf("/players/%s", player.PublicID))
 			res := PutJSON(a, route, t, payload)
-			res.Status(http.StatusOK)
+			g.Assert(res.Raw().StatusCode).Equal(http.StatusOK)
 			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsTrue()
@@ -135,7 +136,7 @@ func TestPlayerHandler(t *testing.T) {
 			route := GetGameRoute("game-id", "/players/player-id")
 			res := PutJSON(a, route, t, util.JSON{})
 
-			res.Status(http.StatusBadRequest)
+			g.Assert(res.Raw().StatusCode).Equal(http.StatusBadRequest)
 			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
@@ -147,7 +148,7 @@ func TestPlayerHandler(t *testing.T) {
 			route := GetGameRoute("game-id", "/players/fake")
 			res := PutBody(a, route, t, "invalid")
 
-			res.Status(http.StatusBadRequest)
+			g.Assert(res.Raw().StatusCode).Equal(http.StatusBadRequest)
 			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
@@ -169,11 +170,59 @@ func TestPlayerHandler(t *testing.T) {
 			route := GetGameRoute(player.GameID, fmt.Sprintf("/players/%s", player.PublicID))
 			res := PutJSON(a, route, t, payload)
 
-			res.Status(http.StatusInternalServerError)
+			g.Assert(res.Raw().StatusCode).Equal(http.StatusInternalServerError)
 			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
 			g.Assert(result["reason"]).Equal("pq: invalid input syntax for type json")
+		})
+	})
+
+	g.Describe("Retrieve Player", func() {
+		g.It("Should retrieve player", func() {
+			a := GetDefaultTestApp()
+			gameID := uuid.NewV4().String()
+			player, err := models.GetTestPlayerWithMemberships(testDb, gameID, 5, 2, 3, 8)
+			g.Assert(err == nil).IsTrue()
+
+			route := GetGameRoute(player.GameID, fmt.Sprintf("/players/%s", player.PublicID))
+			res := Get(a, route, t)
+
+			g.Assert(res.Raw().StatusCode).Equal(http.StatusOK)
+			var playerDetails util.JSON
+			json.Unmarshal([]byte(res.Body().Raw()), &playerDetails)
+			g.Assert(playerDetails["success"]).IsTrue()
+
+			// Player Details
+			g.Assert(playerDetails["publicID"]).Equal(player.PublicID)
+			g.Assert(playerDetails["name"]).Equal(player.Name)
+			g.Assert(playerDetails["metadata"]).Equal(player.Metadata)
+
+			//Memberships
+			g.Assert(len(playerDetails["memberships"].([]interface{}))).Equal(18)
+
+			clans := playerDetails["clans"].(map[string]interface{}) // can't be util.JSON
+			approved := clans["approved"].([]interface{})
+			denied := clans["denied"].([]interface{})
+			banned := clans["banned"].([]interface{})
+			pending := clans["pending"].([]interface{})
+
+			g.Assert(len(approved)).Equal(5)
+			g.Assert(len(denied)).Equal(2)
+			g.Assert(len(banned)).Equal(3)
+			g.Assert(len(pending)).Equal(8)
+		})
+		g.It("Should return 404 for invalid player", func() {
+			a := GetDefaultTestApp()
+			route := GetGameRoute("some-game", "/players/invalid-player")
+			res := Get(a, route, t)
+
+			g.Assert(res.Raw().StatusCode).Equal(http.StatusNotFound)
+
+			var playerDetails util.JSON
+			json.Unmarshal([]byte(res.Body().Raw()), &playerDetails)
+			g.Assert(playerDetails["success"]).IsFalse()
+			g.Assert(playerDetails["reason"]).Equal("Player was not found with id: invalid-player")
 		})
 	})
 
@@ -196,7 +245,7 @@ func TestPlayerHandler(t *testing.T) {
 			}
 			res := PostJSON(app, GetGameRoute(gameID, "/players"), t, payload)
 
-			res.Status(http.StatusOK)
+			g.Assert(res.Raw().StatusCode).Equal(http.StatusOK)
 			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsTrue()
@@ -233,7 +282,7 @@ func TestPlayerHandler(t *testing.T) {
 			}
 			res := PutJSON(app, GetGameRoute(gameID, fmt.Sprintf("/players/%s", player.PublicID)), t, payload)
 
-			res.Status(http.StatusOK)
+			g.Assert(res.Raw().StatusCode).Equal(http.StatusOK)
 			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsTrue()

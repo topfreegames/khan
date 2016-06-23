@@ -52,7 +52,7 @@ func TestMembershipHandler(t *testing.T) {
 			}
 			res := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "application"), t, payload)
 
-			res.Status(http.StatusOK)
+			g.Assert(res.Raw().StatusCode).Equal(http.StatusOK)
 			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsTrue()
@@ -71,7 +71,7 @@ func TestMembershipHandler(t *testing.T) {
 			a := GetDefaultTestApp()
 			res := PostJSON(a, CreateMembershipRoute("gameID", "clanPublicID", "application"), t, util.JSON{})
 
-			res.Status(http.StatusBadRequest)
+			g.Assert(res.Raw().StatusCode).Equal(http.StatusBadRequest)
 			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
@@ -85,7 +85,7 @@ func TestMembershipHandler(t *testing.T) {
 
 			res := PostBody(a, CreateMembershipRoute(gameID, clanPublicID, "application"), t, "invalid")
 
-			res.Status(http.StatusBadRequest)
+			g.Assert(res.Raw().StatusCode).Equal(http.StatusBadRequest)
 			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
@@ -109,7 +109,7 @@ func TestMembershipHandler(t *testing.T) {
 
 			res := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "application"), t, payload)
 
-			res.Status(http.StatusInternalServerError)
+			g.Assert(res.Raw().StatusCode).Equal(http.StatusInternalServerError)
 			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
@@ -137,7 +137,7 @@ func TestMembershipHandler(t *testing.T) {
 
 			res := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "application"), t, payload)
 
-			res.Status(http.StatusBadRequest)
+			g.Assert(res.Raw().StatusCode).Equal(http.StatusBadRequest)
 			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
@@ -168,7 +168,7 @@ func TestMembershipHandler(t *testing.T) {
 			}
 			res := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "invitation"), t, payload)
 
-			res.Status(http.StatusOK)
+			g.Assert(res.Raw().StatusCode).Equal(http.StatusOK)
 			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsTrue()
@@ -210,7 +210,7 @@ func TestMembershipHandler(t *testing.T) {
 			}
 			res := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "invitation"), t, payload)
 
-			res.Status(http.StatusOK)
+			g.Assert(res.Raw().StatusCode).Equal(http.StatusOK)
 			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsTrue()
@@ -230,7 +230,7 @@ func TestMembershipHandler(t *testing.T) {
 			a := GetDefaultTestApp()
 			res := PostJSON(a, CreateMembershipRoute("gameID", "clanPublicID", "invitation"), t, util.JSON{})
 
-			res.Status(http.StatusBadRequest)
+			g.Assert(res.Raw().StatusCode).Equal(http.StatusBadRequest)
 			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
@@ -244,7 +244,7 @@ func TestMembershipHandler(t *testing.T) {
 
 			res := PostBody(a, CreateMembershipRoute(gameID, clanPublicID, "invitation"), t, "invalid")
 
-			res.Status(http.StatusBadRequest)
+			g.Assert(res.Raw().StatusCode).Equal(http.StatusBadRequest)
 			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
@@ -269,7 +269,7 @@ func TestMembershipHandler(t *testing.T) {
 
 			res := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "invitation"), t, payload)
 
-			res.Status(http.StatusInternalServerError)
+			g.Assert(res.Raw().StatusCode).Equal(http.StatusInternalServerError)
 			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
@@ -298,7 +298,7 @@ func TestMembershipHandler(t *testing.T) {
 
 			res := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "invitation"), t, payload)
 
-			res.Status(http.StatusBadRequest)
+			g.Assert(res.Raw().StatusCode).Equal(http.StatusBadRequest)
 			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
@@ -320,7 +320,7 @@ func TestMembershipHandler(t *testing.T) {
 			}
 			res := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "invitation/approve"), t, payload)
 
-			res.Status(http.StatusOK)
+			g.Assert(res.Raw().StatusCode).Equal(http.StatusOK)
 			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsTrue()
@@ -346,7 +346,7 @@ func TestMembershipHandler(t *testing.T) {
 			}
 			res := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "invitation/deny"), t, payload)
 
-			res.Status(http.StatusOK)
+			g.Assert(res.Raw().StatusCode).Equal(http.StatusOK)
 			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsTrue()
@@ -363,7 +363,7 @@ func TestMembershipHandler(t *testing.T) {
 			a := GetDefaultTestApp()
 			res := PostJSON(a, CreateMembershipRoute("gameID", "clanPublicID", "invitation/approve"), t, util.JSON{})
 
-			res.Status(http.StatusBadRequest)
+			g.Assert(res.Raw().StatusCode).Equal(http.StatusBadRequest)
 			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
@@ -377,7 +377,7 @@ func TestMembershipHandler(t *testing.T) {
 
 			res := PostBody(a, CreateMembershipRoute(gameID, clanPublicID, "invitation/approve"), t, "invalid")
 
-			res.Status(http.StatusBadRequest)
+			g.Assert(res.Raw().StatusCode).Equal(http.StatusBadRequest)
 			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
@@ -399,7 +399,7 @@ func TestMembershipHandler(t *testing.T) {
 
 			res := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "invitation/approve"), t, payload)
 
-			res.Status(http.StatusInternalServerError)
+			g.Assert(res.Raw().StatusCode).Equal(http.StatusInternalServerError)
 			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
@@ -425,7 +425,7 @@ func TestMembershipHandler(t *testing.T) {
 			}
 			res := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "application/approve"), t, payload)
 
-			res.Status(http.StatusOK)
+			g.Assert(res.Raw().StatusCode).Equal(http.StatusOK)
 			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsTrue()
@@ -453,7 +453,7 @@ func TestMembershipHandler(t *testing.T) {
 			}
 			res := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "application/deny"), t, payload)
 
-			res.Status(http.StatusOK)
+			g.Assert(res.Raw().StatusCode).Equal(http.StatusOK)
 			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsTrue()
@@ -468,7 +468,7 @@ func TestMembershipHandler(t *testing.T) {
 			a := GetDefaultTestApp()
 			res := PostJSON(a, CreateMembershipRoute("gameID", "clanPublicID", "application/approve"), t, util.JSON{})
 
-			res.Status(http.StatusBadRequest)
+			g.Assert(res.Raw().StatusCode).Equal(http.StatusBadRequest)
 			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
@@ -482,7 +482,7 @@ func TestMembershipHandler(t *testing.T) {
 
 			res := PostBody(a, CreateMembershipRoute(gameID, clanPublicID, "application/approve"), t, "invalid")
 
-			res.Status(http.StatusBadRequest)
+			g.Assert(res.Raw().StatusCode).Equal(http.StatusBadRequest)
 			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
@@ -505,7 +505,7 @@ func TestMembershipHandler(t *testing.T) {
 
 			res := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "application/approve"), t, payload)
 
-			res.Status(http.StatusInternalServerError)
+			g.Assert(res.Raw().StatusCode).Equal(http.StatusInternalServerError)
 			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
@@ -531,7 +531,7 @@ func TestMembershipHandler(t *testing.T) {
 			}
 			res := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "promote"), t, payload)
 
-			res.Status(http.StatusOK)
+			g.Assert(res.Raw().StatusCode).Equal(http.StatusOK)
 			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsTrue()
@@ -560,7 +560,7 @@ func TestMembershipHandler(t *testing.T) {
 			}
 			res := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "demote"), t, payload)
 
-			res.Status(http.StatusOK)
+			g.Assert(res.Raw().StatusCode).Equal(http.StatusOK)
 			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsTrue()
@@ -575,7 +575,7 @@ func TestMembershipHandler(t *testing.T) {
 			a := GetDefaultTestApp()
 			res := PostJSON(a, CreateMembershipRoute("gameID", "clanPublicID", "promote"), t, util.JSON{})
 
-			res.Status(http.StatusBadRequest)
+			g.Assert(res.Raw().StatusCode).Equal(http.StatusBadRequest)
 			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
@@ -589,7 +589,7 @@ func TestMembershipHandler(t *testing.T) {
 
 			res := PostBody(a, CreateMembershipRoute(gameID, clanPublicID, "promote"), t, "invalid")
 
-			res.Status(http.StatusBadRequest)
+			g.Assert(res.Raw().StatusCode).Equal(http.StatusBadRequest)
 			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
@@ -612,7 +612,7 @@ func TestMembershipHandler(t *testing.T) {
 
 			res := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "promote"), t, payload)
 
-			res.Status(http.StatusInternalServerError)
+			g.Assert(res.Raw().StatusCode).Equal(http.StatusInternalServerError)
 			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
@@ -635,7 +635,7 @@ func TestMembershipHandler(t *testing.T) {
 			}
 			res := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "delete"), t, payload)
 
-			res.Status(http.StatusOK)
+			g.Assert(res.Raw().StatusCode).Equal(http.StatusOK)
 			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsTrue()
@@ -649,7 +649,7 @@ func TestMembershipHandler(t *testing.T) {
 			a := GetDefaultTestApp()
 			res := PostJSON(a, CreateMembershipRoute("gameID", "clanPublicID", "delete"), t, util.JSON{})
 
-			res.Status(http.StatusBadRequest)
+			g.Assert(res.Raw().StatusCode).Equal(http.StatusBadRequest)
 			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
@@ -663,7 +663,7 @@ func TestMembershipHandler(t *testing.T) {
 
 			res := PostBody(a, CreateMembershipRoute(gameID, clanPublicID, "delete"), t, "invalid")
 
-			res.Status(http.StatusBadRequest)
+			g.Assert(res.Raw().StatusCode).Equal(http.StatusBadRequest)
 			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
@@ -686,7 +686,7 @@ func TestMembershipHandler(t *testing.T) {
 
 			res := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "delete"), t, payload)
 
-			res.Status(http.StatusInternalServerError)
+			g.Assert(res.Raw().StatusCode).Equal(http.StatusInternalServerError)
 			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()

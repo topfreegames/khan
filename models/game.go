@@ -8,6 +8,7 @@
 package models
 
 import (
+	"fmt"
 	"time"
 
 	"gopkg.in/gorp.v1"
@@ -98,11 +99,14 @@ func UpdateGame(db DB, publicID, name, metadata string,
 	game, err := GetGameByPublicID(db, publicID)
 
 	if err != nil {
-		return CreateGame(
-			db, publicID, name, metadata, minLevel, maxLevel, minLevelAccept,
-			minLevelCreate, minLevelRemove, minOffsetRemove, minOffsetPromote,
-			minOffsetDemote, maxMembers,
-		)
+		if err.Error() == fmt.Sprintf("Game was not found with id: %s", publicID) {
+			return CreateGame(
+				db, publicID, name, metadata, minLevel, maxLevel, minLevelAccept,
+				minLevelCreate, minLevelRemove, minOffsetRemove, minOffsetPromote,
+				minOffsetDemote, maxMembers,
+			)
+		}
+		return nil, err
 	}
 
 	game.Name = name
