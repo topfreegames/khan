@@ -19,7 +19,9 @@ import (
 
 // GetDefaultTestApp returns a new Khan API Application bound to 0.0.0.0:8888 for test
 func GetDefaultTestApp() *App {
-	return GetApp("0.0.0.0", 8888, "../config/test.yaml", true)
+	app := GetApp("0.0.0.0", 8888, "../config/test.yaml", true)
+	app.Configure()
+	return app
 }
 
 // Get returns a test request against specified URL

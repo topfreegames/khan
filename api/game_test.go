@@ -46,7 +46,6 @@ func getGamePayload(publicID, name string) util.JSON {
 }
 
 func TestGameHandler(t *testing.T) {
-	t.Parallel()
 	g := Goblin(t)
 
 	testDb, err := models.GetTestDB()

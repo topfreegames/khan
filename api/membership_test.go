@@ -21,7 +21,6 @@ import (
 )
 
 func TestMembershipHandler(t *testing.T) {
-	t.Parallel()
 	g := Goblin(t)
 	testDb, err := models.GetTestDB()
 	g.Assert(err == nil).IsTrue()
@@ -50,7 +49,6 @@ func TestMembershipHandler(t *testing.T) {
 				"playerPublicID": player.PublicID,
 			}
 			a := GetDefaultTestApp()
-			a.Games = LoadGames(a)
 			res := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "application"), t, payload)
 
 			g.Assert(res.Raw().StatusCode).Equal(http.StatusOK)
@@ -70,7 +68,7 @@ func TestMembershipHandler(t *testing.T) {
 
 		g.It("Should not create membership application if missing parameters", func() {
 			a := GetDefaultTestApp()
-			a.Games = LoadGames(a)
+			//a.Games = LoadGames(a)
 			res := PostJSON(a, CreateMembershipRoute("gameID", "clanPublicID", "application"), t, util.JSON{})
 
 			g.Assert(res.Raw().StatusCode).Equal(http.StatusBadRequest)
@@ -85,7 +83,7 @@ func TestMembershipHandler(t *testing.T) {
 			clanPublicID := randomdata.FullName(randomdata.RandomGender)
 
 			a := GetDefaultTestApp()
-			a.Games = LoadGames(a)
+			//a.Games = LoadGames(a)
 			res := PostBody(a, CreateMembershipRoute(gameID, clanPublicID, "application"), t, "invalid")
 
 			g.Assert(res.Raw().StatusCode).Equal(http.StatusBadRequest)
@@ -110,7 +108,7 @@ func TestMembershipHandler(t *testing.T) {
 			}
 
 			a := GetDefaultTestApp()
-			a.Games = LoadGames(a)
+			//a.Games = LoadGames(a)
 			res := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "application"), t, payload)
 
 			g.Assert(res.Raw().StatusCode).Equal(http.StatusInternalServerError)
@@ -139,7 +137,7 @@ func TestMembershipHandler(t *testing.T) {
 			}
 
 			a := GetDefaultTestApp()
-			a.Games = LoadGames(a)
+			//a.Games = LoadGames(a)
 			res := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "application"), t, payload)
 
 			g.Assert(res.Raw().StatusCode).Equal(http.StatusBadRequest)
@@ -171,7 +169,7 @@ func TestMembershipHandler(t *testing.T) {
 				"requestorPublicID": owner.PublicID,
 			}
 			a := GetDefaultTestApp()
-			a.Games = LoadGames(a)
+			//a.Games = LoadGames(a)
 			res := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "invitation"), t, payload)
 
 			g.Assert(res.Raw().StatusCode).Equal(http.StatusOK)
@@ -214,7 +212,7 @@ func TestMembershipHandler(t *testing.T) {
 				"requestorPublicID": players[0].PublicID,
 			}
 			a := GetDefaultTestApp()
-			a.Games = LoadGames(a)
+			//a.Games = LoadGames(a)
 			res := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "invitation"), t, payload)
 
 			g.Assert(res.Raw().StatusCode).Equal(http.StatusOK)
@@ -235,7 +233,7 @@ func TestMembershipHandler(t *testing.T) {
 
 		g.It("Should not create membership invitation if missing parameters", func() {
 			a := GetDefaultTestApp()
-			a.Games = LoadGames(a)
+			//a.Games = LoadGames(a)
 			res := PostJSON(a, CreateMembershipRoute("gameID", "clanPublicID", "invitation"), t, util.JSON{})
 
 			g.Assert(res.Raw().StatusCode).Equal(http.StatusBadRequest)
@@ -250,7 +248,7 @@ func TestMembershipHandler(t *testing.T) {
 			clanPublicID := randomdata.FullName(randomdata.RandomGender)
 
 			a := GetDefaultTestApp()
-			a.Games = LoadGames(a)
+			//a.Games = LoadGames(a)
 			res := PostBody(a, CreateMembershipRoute(gameID, clanPublicID, "invitation"), t, "invalid")
 
 			g.Assert(res.Raw().StatusCode).Equal(http.StatusBadRequest)
@@ -276,7 +274,7 @@ func TestMembershipHandler(t *testing.T) {
 			}
 
 			a := GetDefaultTestApp()
-			a.Games = LoadGames(a)
+			//a.Games = LoadGames(a)
 			res := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "invitation"), t, payload)
 
 			g.Assert(res.Raw().StatusCode).Equal(http.StatusInternalServerError)
@@ -306,7 +304,7 @@ func TestMembershipHandler(t *testing.T) {
 			}
 
 			a := GetDefaultTestApp()
-			a.Games = LoadGames(a)
+			//a.Games = LoadGames(a)
 			res := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "invitation"), t, payload)
 
 			g.Assert(res.Raw().StatusCode).Equal(http.StatusBadRequest)
@@ -329,7 +327,7 @@ func TestMembershipHandler(t *testing.T) {
 				"playerPublicID": players[0].PublicID,
 			}
 			a := GetDefaultTestApp()
-			a.Games = LoadGames(a)
+			//a.Games = LoadGames(a)
 			res := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "invitation/approve"), t, payload)
 
 			g.Assert(res.Raw().StatusCode).Equal(http.StatusOK)
@@ -356,7 +354,7 @@ func TestMembershipHandler(t *testing.T) {
 				"playerPublicID": players[0].PublicID,
 			}
 			a := GetDefaultTestApp()
-			a.Games = LoadGames(a)
+			//a.Games = LoadGames(a)
 			res := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "invitation/deny"), t, payload)
 
 			g.Assert(res.Raw().StatusCode).Equal(http.StatusOK)
@@ -374,7 +372,7 @@ func TestMembershipHandler(t *testing.T) {
 
 		g.It("Should not approve membership invitation if missing parameters", func() {
 			a := GetDefaultTestApp()
-			a.Games = LoadGames(a)
+			//a.Games = LoadGames(a)
 			res := PostJSON(a, CreateMembershipRoute("gameID", "clanPublicID", "invitation/approve"), t, util.JSON{})
 
 			g.Assert(res.Raw().StatusCode).Equal(http.StatusBadRequest)
@@ -389,7 +387,7 @@ func TestMembershipHandler(t *testing.T) {
 			clanPublicID := randomdata.FullName(randomdata.RandomGender)
 
 			a := GetDefaultTestApp()
-			a.Games = LoadGames(a)
+			//a.Games = LoadGames(a)
 			res := PostBody(a, CreateMembershipRoute(gameID, clanPublicID, "invitation/approve"), t, "invalid")
 
 			g.Assert(res.Raw().StatusCode).Equal(http.StatusBadRequest)
@@ -412,7 +410,7 @@ func TestMembershipHandler(t *testing.T) {
 			}
 
 			a := GetDefaultTestApp()
-			a.Games = LoadGames(a)
+			//a.Games = LoadGames(a)
 			res := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "invitation/approve"), t, payload)
 
 			g.Assert(res.Raw().StatusCode).Equal(http.StatusInternalServerError)
@@ -439,7 +437,7 @@ func TestMembershipHandler(t *testing.T) {
 				"requestorPublicID": owner.PublicID,
 			}
 			a := GetDefaultTestApp()
-			a.Games = LoadGames(a)
+			//a.Games = LoadGames(a)
 			res := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "application/approve"), t, payload)
 
 			g.Assert(res.Raw().StatusCode).Equal(http.StatusOK)
@@ -468,7 +466,7 @@ func TestMembershipHandler(t *testing.T) {
 				"requestorPublicID": owner.PublicID,
 			}
 			a := GetDefaultTestApp()
-			a.Games = LoadGames(a)
+			//a.Games = LoadGames(a)
 			res := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "application/deny"), t, payload)
 
 			g.Assert(res.Raw().StatusCode).Equal(http.StatusOK)
@@ -484,7 +482,7 @@ func TestMembershipHandler(t *testing.T) {
 
 		g.It("Should not approve membership application if missing parameters", func() {
 			a := GetDefaultTestApp()
-			a.Games = LoadGames(a)
+			//a.Games = LoadGames(a)
 			res := PostJSON(a, CreateMembershipRoute("gameID", "clanPublicID", "application/approve"), t, util.JSON{})
 
 			g.Assert(res.Raw().StatusCode).Equal(http.StatusBadRequest)
@@ -499,7 +497,7 @@ func TestMembershipHandler(t *testing.T) {
 			clanPublicID := randomdata.FullName(randomdata.RandomGender)
 
 			a := GetDefaultTestApp()
-			a.Games = LoadGames(a)
+			//a.Games = LoadGames(a)
 			res := PostBody(a, CreateMembershipRoute(gameID, clanPublicID, "application/approve"), t, "invalid")
 
 			g.Assert(res.Raw().StatusCode).Equal(http.StatusBadRequest)
@@ -523,7 +521,7 @@ func TestMembershipHandler(t *testing.T) {
 			}
 
 			a := GetDefaultTestApp()
-			a.Games = LoadGames(a)
+			//a.Games = LoadGames(a)
 			res := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "application/approve"), t, payload)
 
 			g.Assert(res.Raw().StatusCode).Equal(http.StatusInternalServerError)
@@ -546,7 +544,7 @@ func TestMembershipHandler(t *testing.T) {
 			clanPublicID := clan.PublicID
 
 			a := GetDefaultTestApp()
-			a.Games = LoadGames(a)
+			//a.Games = LoadGames(a)
 			payload := util.JSON{
 				"playerPublicID":    players[0].PublicID,
 				"requestorPublicID": owner.PublicID,
@@ -576,7 +574,7 @@ func TestMembershipHandler(t *testing.T) {
 			clanPublicID := clan.PublicID
 
 			a := GetDefaultTestApp()
-			a.Games = LoadGames(a)
+			//a.Games = LoadGames(a)
 			payload := util.JSON{
 				"playerPublicID":    players[0].PublicID,
 				"requestorPublicID": owner.PublicID,
@@ -596,7 +594,7 @@ func TestMembershipHandler(t *testing.T) {
 
 		g.It("Should not promote member if missing parameters", func() {
 			a := GetDefaultTestApp()
-			a.Games = LoadGames(a)
+			//a.Games = LoadGames(a)
 			res := PostJSON(a, CreateMembershipRoute("gameID", "clanPublicID", "promote"), t, util.JSON{})
 
 			g.Assert(res.Raw().StatusCode).Equal(http.StatusBadRequest)
@@ -608,7 +606,7 @@ func TestMembershipHandler(t *testing.T) {
 
 		g.It("Should not promote member if invalid payload", func() {
 			a := GetDefaultTestApp()
-			a.Games = LoadGames(a)
+			//a.Games = LoadGames(a)
 			gameID := "gameID"
 			clanPublicID := randomdata.FullName(randomdata.RandomGender)
 
@@ -630,7 +628,7 @@ func TestMembershipHandler(t *testing.T) {
 			clanPublicID := clan.PublicID
 
 			a := GetDefaultTestApp()
-			a.Games = LoadGames(a)
+			//a.Games = LoadGames(a)
 			payload := util.JSON{
 				"playerPublicID":    playerPublicID,
 				"requestorPublicID": owner.PublicID,
@@ -655,7 +653,7 @@ func TestMembershipHandler(t *testing.T) {
 			clanPublicID := clan.PublicID
 
 			a := GetDefaultTestApp()
-			a.Games = LoadGames(a)
+			//a.Games = LoadGames(a)
 			payload := util.JSON{
 				"playerPublicID":    players[0].PublicID,
 				"requestorPublicID": owner.PublicID,
@@ -674,7 +672,7 @@ func TestMembershipHandler(t *testing.T) {
 
 		g.It("Should not delete member if missing parameters", func() {
 			a := GetDefaultTestApp()
-			a.Games = LoadGames(a)
+			//a.Games = LoadGames(a)
 			res := PostJSON(a, CreateMembershipRoute("gameID", "clanPublicID", "delete"), t, util.JSON{})
 
 			g.Assert(res.Raw().StatusCode).Equal(http.StatusBadRequest)
@@ -686,7 +684,7 @@ func TestMembershipHandler(t *testing.T) {
 
 		g.It("Should not delete member if invalid payload", func() {
 			a := GetDefaultTestApp()
-			a.Games = LoadGames(a)
+			//a.Games = LoadGames(a)
 			gameID := "gameID"
 			clanPublicID := randomdata.FullName(randomdata.RandomGender)
 
@@ -708,7 +706,7 @@ func TestMembershipHandler(t *testing.T) {
 			clanPublicID := clan.PublicID
 
 			a := GetDefaultTestApp()
-			a.Games = LoadGames(a)
+			//a.Games = LoadGames(a)
 			payload := util.JSON{
 				"playerPublicID":    playerPublicID,
 				"requestorPublicID": owner.PublicID,

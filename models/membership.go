@@ -140,14 +140,7 @@ func clanReachedMaxMemberships(db DB, gameID, clanPublicID string) error {
 }
 
 // ApproveOrDenyMembershipInvitation sets Membership.Approved to true or Membership.Denied to true
-func ApproveOrDenyMembershipInvitation(db DB, games map[string]*Game, gameID, playerPublicID, clanPublicID, action string) (*Membership, error) {
-	var game *Game
-	var gameValid bool
-
-	if game, gameValid = games[gameID]; !gameValid {
-		return nil, &ModelNotFoundError{"Game", gameID}
-	}
-
+func ApproveOrDenyMembershipInvitation(db DB, game *Game, gameID, playerPublicID, clanPublicID, action string) (*Membership, error) {
 	membership, err := GetMembershipByClanAndPlayerPublicID(db, gameID, clanPublicID, playerPublicID)
 	if err != nil {
 		return nil, err
@@ -179,16 +172,9 @@ func ApproveOrDenyMembershipInvitation(db DB, games map[string]*Game, gameID, pl
 }
 
 // ApproveOrDenyMembershipApplication sets Membership.Approved to true or Membership.Denied to true
-func ApproveOrDenyMembershipApplication(db DB, games map[string]*Game, gameID, playerPublicID, clanPublicID, requestorPublicID, action string) (*Membership, error) {
+func ApproveOrDenyMembershipApplication(db DB, game *Game, gameID, playerPublicID, clanPublicID, requestorPublicID, action string) (*Membership, error) {
 	if playerPublicID == requestorPublicID {
 		return nil, &PlayerCannotPerformMembershipActionError{action, playerPublicID, clanPublicID, requestorPublicID}
-	}
-
-	var game *Game
-	var gameValid bool
-
-	if game, gameValid = games[gameID]; !gameValid {
-		return nil, &ModelNotFoundError{"Game", gameID}
 	}
 
 	membership, err := GetMembershipByClanAndPlayerPublicID(db, gameID, clanPublicID, playerPublicID)
@@ -235,17 +221,11 @@ func ApproveOrDenyMembershipApplication(db DB, games map[string]*Game, gameID, p
 }
 
 // CreateMembership creates a new membership
-func CreateMembership(db DB, games map[string]*Game, gameID, level, playerPublicID, clanPublicID, requestorPublicID string) (*Membership, error) {
+func CreateMembership(db DB, game *Game, gameID, level, playerPublicID, clanPublicID, requestorPublicID string) (*Membership, error) {
 	previousMembership := false
 	var playerID int
 
-	var game *Game
-	var gameValid bool
-
-	if game, gameValid = games[gameID]; !gameValid {
-		return nil, &ModelNotFoundError{"Game", gameID}
-	}
-	if _, levelValid := games[gameID].MembershipLevels[level]; !levelValid {
+	if _, levelValid := game.MembershipLevels[level]; !levelValid {
 		return nil, &InvalidLevelForGameError{gameID, level}
 	}
 
@@ -321,16 +301,9 @@ func CreateMembership(db DB, games map[string]*Game, gameID, level, playerPublic
 }
 
 // PromoteOrDemoteMember increments or decrements Membership.LevelInt by one
-func PromoteOrDemoteMember(db DB, games map[string]*Game, gameID, playerPublicID, clanPublicID, requestorPublicID, action string) (*Membership, error) {
+func PromoteOrDemoteMember(db DB, game *Game, gameID, playerPublicID, clanPublicID, requestorPublicID, action string) (*Membership, error) {
 	demote := action == "demote"
 	promote := action == "promote"
-
-	var game *Game
-	var gameValid bool
-
-	if game, gameValid = games[gameID]; !gameValid {
-		return nil, &ModelNotFoundError{"Game", gameID}
-	}
 
 	levelOffset := game.MinLevelOffsetToDemoteMember
 	if promote {
@@ -371,14 +344,7 @@ func PromoteOrDemoteMember(db DB, games map[string]*Game, gameID, playerPublicID
 }
 
 // DeleteMembership soft deletes a membership
-func DeleteMembership(db DB, games map[string]*Game, gameID, playerPublicID, clanPublicID, requestorPublicID string) error {
-	var game *Game
-	var gameValid bool
-
-	if game, gameValid = games[gameID]; !gameValid {
-		return &ModelNotFoundError{"Game", gameID}
-	}
-
+func DeleteMembership(db DB, game *Game, gameID, playerPublicID, clanPublicID, requestorPublicID string) error {
 	membership, err := GetMembershipByClanAndPlayerPublicID(db, gameID, clanPublicID, playerPublicID)
 	if err != nil {
 		return err

@@ -19,7 +19,6 @@ import (
 )
 
 func TestMembershipModel(t *testing.T) {
-	t.Parallel()
 	g := Goblin(t)
 	testDb, _error := GetTestDB()
 	g.Assert(_error == nil).IsTrue()
@@ -198,10 +197,9 @@ func TestMembershipModel(t *testing.T) {
 				err = testDb.Insert(player)
 				g.Assert(err == nil).IsTrue()
 
-				games := map[string]*Game{game.PublicID: game}
 				membership, err := CreateMembership(
 					testDb,
-					games,
+					game,
 					player.GameID,
 					"Member",
 					player.PublicID,
@@ -238,10 +236,9 @@ func TestMembershipModel(t *testing.T) {
 				err = testDb.Insert(player)
 				g.Assert(err == nil).IsTrue()
 
-				games := map[string]*Game{game.PublicID: game}
 				membership, err := CreateMembership(
 					testDb,
-					games,
+					game,
 					player.GameID,
 					"Member",
 					player.PublicID,
@@ -273,10 +270,9 @@ func TestMembershipModel(t *testing.T) {
 				err = testDb.Insert(player)
 				g.Assert(err == nil).IsTrue()
 
-				games := map[string]*Game{game.PublicID: game}
 				membership, err := CreateMembership(
 					testDb,
-					games,
+					game,
 					player.GameID,
 					"Member",
 					player.PublicID,
@@ -314,11 +310,9 @@ func TestMembershipModel(t *testing.T) {
 				_, err = testDb.Update(memberships[0])
 				g.Assert(err == nil).IsTrue()
 
-				games := map[string]*Game{game.PublicID: game}
-
 				membership, err := CreateMembership(
 					testDb,
-					games,
+					game,
 					player.GameID,
 					"Member",
 					player.PublicID,
@@ -351,11 +345,9 @@ func TestMembershipModel(t *testing.T) {
 				_, err = testDb.Update(memberships[0])
 				g.Assert(err == nil).IsTrue()
 
-				games := map[string]*Game{game.PublicID: game}
-
 				membership, err := CreateMembership(
 					testDb,
-					games,
+					game,
 					players[0].GameID,
 					"Member",
 					players[0].PublicID,
@@ -389,11 +381,9 @@ func TestMembershipModel(t *testing.T) {
 				err = testDb.Insert(player)
 				g.Assert(err == nil).IsTrue()
 
-				games := map[string]*Game{game.PublicID: game}
-
 				_, err = CreateMembership(
 					testDb,
-					games,
+					game,
 					player.GameID,
 					"Member",
 					player.PublicID,
@@ -424,11 +414,9 @@ func TestMembershipModel(t *testing.T) {
 				err = testDb.Insert(anotherClan)
 				g.Assert(err == nil).IsTrue()
 
-				games := map[string]*Game{game.PublicID: game}
-
 				_, err = CreateMembership(
 					testDb,
-					games,
+					game,
 					game.PublicID,
 					"Member",
 					player.PublicID,
@@ -453,11 +441,9 @@ func TestMembershipModel(t *testing.T) {
 				err = testDb.Insert(anotherClan)
 				g.Assert(err == nil).IsTrue()
 
-				games := map[string]*Game{game.PublicID: game}
-
 				_, err = CreateMembership(
 					testDb,
-					games,
+					game,
 					game.PublicID,
 					"Member",
 					players[0].PublicID,
@@ -479,11 +465,9 @@ func TestMembershipModel(t *testing.T) {
 				err = testDb.Insert(player)
 				g.Assert(err == nil).IsTrue()
 
-				games := map[string]*Game{game.PublicID: game}
-
 				_, err = CreateMembership(
 					testDb,
-					games,
+					game,
 					player.GameID,
 					"Member",
 					player.PublicID,
@@ -502,10 +486,9 @@ func TestMembershipModel(t *testing.T) {
 
 				playerPublicID := randomdata.FullName(randomdata.RandomGender)
 
-				games := map[string]*Game{game.PublicID: game}
 				_, err = CreateMembership(
 					testDb,
-					games,
+					game,
 					owner.GameID,
 					"Member",
 					playerPublicID,
@@ -521,12 +504,10 @@ func TestMembershipModel(t *testing.T) {
 				game, player, err := CreatePlayerFactory(testDb, "")
 				g.Assert(err == nil).IsTrue()
 
-				games := map[string]*Game{game.PublicID: game}
-
 				clanPublicID := randomdata.FullName(randomdata.RandomGender)
 				_, err = CreateMembership(
 					testDb,
-					games,
+					game,
 					player.GameID,
 					"Member",
 					player.PublicID,
@@ -549,12 +530,10 @@ func TestMembershipModel(t *testing.T) {
 				err = testDb.Insert(player)
 				g.Assert(err == nil).IsTrue()
 
-				games := map[string]*Game{game.PublicID: game}
-
 				requestorPublicID := randomdata.FullName(randomdata.RandomGender)
 				_, err = CreateMembership(
 					testDb,
-					games,
+					game,
 					player.GameID,
 					"Member",
 					player.PublicID,
@@ -570,8 +549,6 @@ func TestMembershipModel(t *testing.T) {
 				game, clan, _, players, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				g.Assert(err == nil).IsTrue()
 
-				games := map[string]*Game{game.PublicID: game}
-
 				player := PlayerFactory.MustCreateWithOption(util.JSON{
 					"GameID": clan.GameID,
 				}).(*Player)
@@ -580,7 +557,7 @@ func TestMembershipModel(t *testing.T) {
 
 				_, err = CreateMembership(
 					testDb,
-					games,
+					game,
 					player.GameID,
 					"Member",
 					player.PublicID,
@@ -596,11 +573,9 @@ func TestMembershipModel(t *testing.T) {
 				game, clan, owner, players, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				g.Assert(err == nil).IsTrue()
 
-				games := map[string]*Game{game.PublicID: game}
-
 				membership, err := CreateMembership(
 					testDb,
-					games,
+					game,
 					clan.GameID,
 					"Member",
 					players[0].PublicID,
@@ -620,10 +595,9 @@ func TestMembershipModel(t *testing.T) {
 				game, clan, _, players, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				g.Assert(err == nil).IsTrue()
 
-				games := map[string]*Game{game.PublicID: game}
 				updatedMembership, err := ApproveOrDenyMembershipInvitation(
 					testDb,
-					games,
+					game,
 					players[0].GameID,
 					players[0].PublicID,
 					clan.PublicID,
@@ -648,10 +622,9 @@ func TestMembershipModel(t *testing.T) {
 				game, clan, _, players, _, err := GetClanReachedMaxMemberships(testDb)
 				g.Assert(err == nil).IsTrue()
 
-				games := map[string]*Game{game.PublicID: game}
 				_, err = ApproveOrDenyMembershipInvitation(
 					testDb,
-					games,
+					game,
 					players[1].GameID,
 					players[1].PublicID,
 					clan.PublicID,
@@ -688,10 +661,9 @@ func TestMembershipModel(t *testing.T) {
 				err = testDb.Insert(membership)
 				g.Assert(err == nil).IsTrue()
 
-				games := map[string]*Game{game.PublicID: game}
 				_, err = ApproveOrDenyMembershipInvitation(
 					testDb,
-					games,
+					game,
 					players[0].GameID,
 					players[0].PublicID,
 					clan.PublicID,
@@ -711,10 +683,9 @@ func TestMembershipModel(t *testing.T) {
 				_, err = testDb.Update(memberships[0])
 				g.Assert(err == nil).IsTrue()
 
-				games := map[string]*Game{game.PublicID: game}
 				_, err = ApproveOrDenyMembershipInvitation(
 					testDb,
-					games,
+					game,
 					players[0].GameID,
 					players[0].PublicID,
 					clan.PublicID,
@@ -736,10 +707,9 @@ func TestMembershipModel(t *testing.T) {
 				err = testDb.Insert(player)
 				g.Assert(err == nil).IsTrue()
 
-				games := map[string]*Game{game.PublicID: game}
 				_, err = ApproveOrDenyMembershipInvitation(
 					testDb,
-					games,
+					game,
 					player.GameID,
 					player.PublicID,
 					clan.PublicID,
@@ -760,10 +730,9 @@ func TestMembershipModel(t *testing.T) {
 				_, err = testDb.Update(memberships[0])
 				g.Assert(err == nil).IsTrue()
 
-				games := map[string]*Game{game.PublicID: game}
 				_, err = ApproveOrDenyMembershipInvitation(
 					testDb,
-					games,
+					game,
 					players[0].GameID,
 					players[0].PublicID,
 					clan.PublicID,
@@ -783,10 +752,9 @@ func TestMembershipModel(t *testing.T) {
 				_, err = testDb.Update(memberships[0])
 				g.Assert(err == nil).IsTrue()
 
-				games := map[string]*Game{game.PublicID: game}
 				_, err = ApproveOrDenyMembershipInvitation(
 					testDb,
-					games,
+					game,
 					players[0].GameID,
 					players[0].PublicID,
 					clan.PublicID,
@@ -806,10 +774,9 @@ func TestMembershipModel(t *testing.T) {
 				_, err = testDb.Update(memberships[0])
 				g.Assert(err == nil).IsTrue()
 
-				games := map[string]*Game{game.PublicID: game}
 				_, err = ApproveOrDenyMembershipInvitation(
 					testDb,
-					games,
+					game,
 					players[0].GameID,
 					players[0].PublicID,
 					clan.PublicID,
@@ -827,10 +794,9 @@ func TestMembershipModel(t *testing.T) {
 				game, clan, _, players, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				g.Assert(err == nil).IsTrue()
 
-				games := map[string]*Game{game.PublicID: game}
 				updatedMembership, err := ApproveOrDenyMembershipInvitation(
 					testDb,
-					games,
+					game,
 					players[0].GameID,
 					players[0].PublicID,
 					clan.PublicID,
@@ -854,10 +820,9 @@ func TestMembershipModel(t *testing.T) {
 				game, clan, _, players, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				g.Assert(err == nil).IsTrue()
 
-				games := map[string]*Game{game.PublicID: game}
 				_, err = ApproveOrDenyMembershipInvitation(
 					testDb,
-					games,
+					game,
 					players[0].GameID,
 					players[0].PublicID,
 					clan.PublicID,
@@ -878,11 +843,9 @@ func TestMembershipModel(t *testing.T) {
 				memberships[0].RequestorID = memberships[0].PlayerID
 				_, err = testDb.Update(memberships[0])
 
-				games := map[string]*Game{game.PublicID: game}
-
 				updatedMembership, err := ApproveOrDenyMembershipApplication(
 					testDb,
-					games,
+					game,
 					players[0].GameID,
 					players[0].PublicID,
 					clan.PublicID,
@@ -914,11 +877,9 @@ func TestMembershipModel(t *testing.T) {
 				_, err = testDb.Update(memberships[1])
 				g.Assert(err == nil).IsTrue()
 
-				games := map[string]*Game{game.PublicID: game}
-
 				updatedMembership, err := ApproveOrDenyMembershipApplication(
 					testDb,
-					games,
+					game,
 					players[0].GameID,
 					players[0].PublicID,
 					clan.PublicID,
@@ -948,11 +909,9 @@ func TestMembershipModel(t *testing.T) {
 				_, err = testDb.Update(memberships[1])
 				g.Assert(err == nil).IsTrue()
 
-				games := map[string]*Game{game.PublicID: game}
-
 				_, err = ApproveOrDenyMembershipApplication(
 					testDb,
-					games,
+					game,
 					players[1].GameID,
 					players[1].PublicID,
 					clan.PublicID,
@@ -993,10 +952,9 @@ func TestMembershipModel(t *testing.T) {
 				err = testDb.Insert(membership)
 				g.Assert(err == nil).IsTrue()
 
-				games := map[string]*Game{game.PublicID: game}
 				_, err = ApproveOrDenyMembershipApplication(
 					testDb,
-					games,
+					game,
 					players[0].GameID,
 					players[0].PublicID,
 					clan.PublicID,
@@ -1022,11 +980,9 @@ func TestMembershipModel(t *testing.T) {
 				_, err = testDb.Update(memberships[1])
 				g.Assert(err == nil).IsTrue()
 
-				games := map[string]*Game{game.PublicID: game}
-
 				_, err = ApproveOrDenyMembershipApplication(
 					testDb,
-					games,
+					game,
 					players[0].GameID,
 					players[0].PublicID,
 					clan.PublicID,
@@ -1052,11 +1008,9 @@ func TestMembershipModel(t *testing.T) {
 				_, err = testDb.Update(memberships[1])
 				g.Assert(err == nil).IsTrue()
 
-				games := map[string]*Game{game.PublicID: game}
-
 				_, err = ApproveOrDenyMembershipApplication(
 					testDb,
-					games,
+					game,
 					players[0].GameID,
 					players[0].PublicID,
 					clan.PublicID,
@@ -1083,11 +1037,9 @@ func TestMembershipModel(t *testing.T) {
 				err = testDb.Insert(requestor)
 				g.Assert(err == nil).IsTrue()
 
-				games := map[string]*Game{game.PublicID: game}
-
 				_, err = ApproveOrDenyMembershipApplication(
 					testDb,
-					games,
+					game,
 					clan.GameID,
 					players[0].PublicID,
 					clan.PublicID,
@@ -1113,11 +1065,9 @@ func TestMembershipModel(t *testing.T) {
 				_, err = testDb.Update(memberships[1])
 				g.Assert(err == nil).IsTrue()
 
-				games := map[string]*Game{game.PublicID: game}
-
 				_, err = ApproveOrDenyMembershipApplication(
 					testDb,
-					games,
+					game,
 					clan.GameID,
 					players[0].PublicID,
 					clan.PublicID,
@@ -1138,11 +1088,9 @@ func TestMembershipModel(t *testing.T) {
 				_, err = testDb.Update(memberships[0])
 				g.Assert(err == nil).IsTrue()
 
-				games := map[string]*Game{game.PublicID: game}
-
 				_, err = ApproveOrDenyMembershipApplication(
 					testDb,
-					games,
+					game,
 					clan.GameID,
 					players[0].PublicID,
 					clan.PublicID,
@@ -1159,11 +1107,9 @@ func TestMembershipModel(t *testing.T) {
 				game, clan, owner, players, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				g.Assert(err == nil).IsTrue()
 
-				games := map[string]*Game{game.PublicID: game}
-
 				_, err = ApproveOrDenyMembershipApplication(
 					testDb,
-					games,
+					game,
 					clan.GameID,
 					players[0].PublicID,
 					clan.PublicID,
@@ -1186,11 +1132,9 @@ func TestMembershipModel(t *testing.T) {
 				err = testDb.Insert(player)
 				g.Assert(err == nil).IsTrue()
 
-				games := map[string]*Game{game.PublicID: game}
-
 				_, err = ApproveOrDenyMembershipApplication(
 					testDb,
-					games,
+					game,
 					clan.GameID,
 					player.PublicID,
 					clan.PublicID,
@@ -1212,11 +1156,9 @@ func TestMembershipModel(t *testing.T) {
 				_, err = testDb.Update(memberships[0])
 				g.Assert(err == nil).IsTrue()
 
-				games := map[string]*Game{game.PublicID: game}
-
 				_, err = ApproveOrDenyMembershipApplication(
 					testDb,
-					games,
+					game,
 					clan.GameID,
 					players[0].PublicID,
 					clan.PublicID,
@@ -1238,11 +1180,9 @@ func TestMembershipModel(t *testing.T) {
 				_, err = testDb.Update(memberships[0])
 				g.Assert(err == nil).IsTrue()
 
-				games := map[string]*Game{game.PublicID: game}
-
 				_, err = ApproveOrDenyMembershipApplication(
 					testDb,
-					games,
+					game,
 					clan.GameID,
 					players[0].PublicID,
 					clan.PublicID,
@@ -1265,11 +1205,9 @@ func TestMembershipModel(t *testing.T) {
 				_, err = testDb.Update(memberships[0])
 				g.Assert(err == nil).IsTrue()
 
-				games := map[string]*Game{game.PublicID: game}
-
 				updatedMembership, err := ApproveOrDenyMembershipApplication(
 					testDb,
-					games,
+					game,
 					players[0].GameID,
 					players[0].PublicID,
 					clan.PublicID,
@@ -1297,11 +1235,9 @@ func TestMembershipModel(t *testing.T) {
 				_, err = testDb.Update(memberships[0])
 				g.Assert(err == nil).IsTrue()
 
-				games := map[string]*Game{game.PublicID: game}
-
 				_, err = ApproveOrDenyMembershipApplication(
 					testDb,
-					games,
+					game,
 					players[0].GameID,
 					players[0].PublicID,
 					clan.PublicID,
@@ -1324,11 +1260,9 @@ func TestMembershipModel(t *testing.T) {
 				_, err = testDb.Update(memberships[0])
 				g.Assert(err == nil).IsTrue()
 
-				games := map[string]*Game{game.PublicID: game}
-
 				updatedMembership, err := PromoteOrDemoteMember(
 					testDb,
-					games,
+					game,
 					clan.GameID,
 					players[0].PublicID,
 					clan.PublicID,
@@ -1359,11 +1293,9 @@ func TestMembershipModel(t *testing.T) {
 				_, err = testDb.Update(memberships[1])
 				g.Assert(err == nil).IsTrue()
 
-				games := map[string]*Game{game.PublicID: game}
-
 				updatedMembership, err := PromoteOrDemoteMember(
 					testDb,
-					games,
+					game,
 					clan.GameID,
 					players[0].PublicID,
 					clan.PublicID,
@@ -1391,11 +1323,9 @@ func TestMembershipModel(t *testing.T) {
 				_, err = testDb.Update(memberships[0])
 				g.Assert(err == nil).IsTrue()
 
-				games := map[string]*Game{game.PublicID: game}
-
 				_, err = PromoteOrDemoteMember(
 					testDb,
-					games,
+					game,
 					clan.GameID,
 					players[0].PublicID,
 					clan.PublicID,
@@ -1421,11 +1351,9 @@ func TestMembershipModel(t *testing.T) {
 				_, err = testDb.Update(memberships[1])
 				g.Assert(err == nil).IsTrue()
 
-				games := map[string]*Game{game.PublicID: game}
-
 				_, err = PromoteOrDemoteMember(
 					testDb,
-					games,
+					game,
 					clan.GameID,
 					players[0].PublicID,
 					clan.PublicID,
@@ -1446,12 +1374,10 @@ func TestMembershipModel(t *testing.T) {
 				_, err = testDb.Update(memberships[0])
 				g.Assert(err == nil).IsTrue()
 
-				games := map[string]*Game{game.PublicID: game}
-
 				requestorPublicID := randomdata.FullName(randomdata.RandomGender)
 				_, err = PromoteOrDemoteMember(
 					testDb,
-					games,
+					game,
 					clan.GameID,
 					players[0].PublicID,
 					clan.PublicID,
@@ -1476,11 +1402,9 @@ func TestMembershipModel(t *testing.T) {
 				_, err = testDb.Update(memberships[1])
 				g.Assert(err == nil).IsTrue()
 
-				games := map[string]*Game{game.PublicID: game}
-
 				_, err = PromoteOrDemoteMember(
 					testDb,
-					games,
+					game,
 					clan.GameID,
 					players[0].PublicID,
 					clan.PublicID,
@@ -1503,11 +1427,9 @@ func TestMembershipModel(t *testing.T) {
 				err = testDb.Insert(player)
 				g.Assert(err == nil).IsTrue()
 
-				games := map[string]*Game{game.PublicID: game}
-
 				_, err = PromoteOrDemoteMember(
 					testDb,
-					games,
+					game,
 					clan.GameID,
 					player.PublicID,
 					clan.PublicID,
@@ -1524,11 +1446,9 @@ func TestMembershipModel(t *testing.T) {
 				game, clan, owner, players, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				g.Assert(err == nil).IsTrue()
 
-				games := map[string]*Game{game.PublicID: game}
-
 				_, err = PromoteOrDemoteMember(
 					testDb,
-					games,
+					game,
 					clan.GameID,
 					players[0].PublicID,
 					clan.PublicID,
@@ -1549,11 +1469,9 @@ func TestMembershipModel(t *testing.T) {
 				_, err = testDb.Update(memberships[0])
 				g.Assert(err == nil).IsTrue()
 
-				games := map[string]*Game{game.PublicID: game}
-
 				_, err = PromoteOrDemoteMember(
 					testDb,
-					games,
+					game,
 					clan.GameID,
 					players[0].PublicID,
 					clan.PublicID,
@@ -1573,10 +1491,9 @@ func TestMembershipModel(t *testing.T) {
 				memberships[0].Approved = true
 				_, err = testDb.Update(memberships[0])
 
-				games := map[string]*Game{game.PublicID: game}
 				_, err = PromoteOrDemoteMember(
 					testDb,
-					games,
+					game,
 					clan.GameID,
 					players[0].PublicID,
 					clan.PublicID,
@@ -1598,10 +1515,9 @@ func TestMembershipModel(t *testing.T) {
 				_, err = testDb.Update(memberships[0])
 				g.Assert(err == nil).IsTrue()
 
-				games := map[string]*Game{game.PublicID: game}
 				_, err = PromoteOrDemoteMember(
 					testDb,
-					games,
+					game,
 					clan.GameID,
 					players[0].PublicID,
 					clan.PublicID,
@@ -1624,11 +1540,9 @@ func TestMembershipModel(t *testing.T) {
 				memberships[0].Approved = true
 				_, err = testDb.Update(memberships[0])
 
-				games := map[string]*Game{game.PublicID: game}
-
 				updatedMembership, err := PromoteOrDemoteMember(
 					testDb,
-					games,
+					game,
 					clan.GameID,
 					players[0].PublicID,
 					clan.PublicID,
@@ -1657,10 +1571,9 @@ func TestMembershipModel(t *testing.T) {
 				_, err = testDb.Update(memberships[0])
 				g.Assert(err == nil).IsTrue()
 
-				games := map[string]*Game{game.PublicID: game}
 				_, err = PromoteOrDemoteMember(
 					testDb,
-					games,
+					game,
 					clan.GameID,
 					players[0].PublicID,
 					clan.PublicID,
@@ -1682,11 +1595,9 @@ func TestMembershipModel(t *testing.T) {
 				_, err = testDb.Update(memberships[0])
 				g.Assert(err == nil).IsTrue()
 
-				games := map[string]*Game{game.PublicID: game}
-
 				_, err = PromoteOrDemoteMember(
 					testDb,
-					games,
+					game,
 					clan.GameID,
 					players[0].PublicID,
 					clan.PublicID,
@@ -1704,11 +1615,9 @@ func TestMembershipModel(t *testing.T) {
 				game, clan, owner, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				g.Assert(err == nil).IsTrue()
 
-				games := map[string]*Game{game.PublicID: game}
-
 				err = DeleteMembership(
 					testDb,
-					games,
+					game,
 					clan.GameID,
 					players[0].PublicID,
 					clan.PublicID,
@@ -1729,11 +1638,9 @@ func TestMembershipModel(t *testing.T) {
 				game, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				g.Assert(err == nil).IsTrue()
 
-				games := map[string]*Game{game.PublicID: game}
-
 				err = DeleteMembership(
 					testDb,
-					games,
+					game,
 					clan.GameID,
 					players[0].PublicID,
 					clan.PublicID,
@@ -1759,11 +1666,9 @@ func TestMembershipModel(t *testing.T) {
 				_, err = testDb.Update(memberships[1])
 				g.Assert(err == nil).IsTrue()
 
-				games := map[string]*Game{game.PublicID: game}
-
 				err = DeleteMembership(
 					testDb,
-					games,
+					game,
 					clan.GameID,
 					players[0].PublicID,
 					clan.PublicID,
@@ -1790,11 +1695,9 @@ func TestMembershipModel(t *testing.T) {
 				_, err = testDb.Update(memberships[1])
 				g.Assert(err == nil).IsTrue()
 
-				games := map[string]*Game{game.PublicID: game}
-
 				err = DeleteMembership(
 					testDb,
-					games,
+					game,
 					clan.GameID,
 					players[0].PublicID,
 					clan.PublicID,
@@ -1808,11 +1711,9 @@ func TestMembershipModel(t *testing.T) {
 				game, clan, _, players, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 2, "", "")
 				g.Assert(err == nil).IsTrue()
 
-				games := map[string]*Game{game.PublicID: game}
-
 				err = DeleteMembership(
 					testDb,
-					games,
+					game,
 					clan.GameID,
 					players[0].PublicID,
 					clan.PublicID,
@@ -1832,11 +1733,9 @@ func TestMembershipModel(t *testing.T) {
 				err = testDb.Insert(requestor)
 				g.Assert(err == nil).IsTrue()
 
-				games := map[string]*Game{game.PublicID: game}
-
 				err = DeleteMembership(
 					testDb,
-					games,
+					game,
 					clan.GameID,
 					players[0].PublicID,
 					clan.PublicID,
@@ -1856,11 +1755,9 @@ func TestMembershipModel(t *testing.T) {
 				_, err = testDb.Update(memberships[1])
 				g.Assert(err == nil).IsTrue()
 
-				games := map[string]*Game{game.PublicID: game}
-
 				err = DeleteMembership(
 					testDb,
-					games,
+					game,
 					clan.GameID,
 					players[0].PublicID,
 					clan.PublicID,
@@ -1879,11 +1776,9 @@ func TestMembershipModel(t *testing.T) {
 				_, err = testDb.Update(memberships[1])
 				g.Assert(err == nil).IsTrue()
 
-				games := map[string]*Game{game.PublicID: game}
-
 				err = DeleteMembership(
 					testDb,
-					games,
+					game,
 					clan.GameID,
 					players[0].PublicID,
 					clan.PublicID,

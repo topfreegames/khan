@@ -34,7 +34,6 @@ func AssertNotError(g *G, err error) {
 }
 
 func TestClanHandler(t *testing.T) {
-	t.Parallel()
 	g := Goblin(t)
 	testDb, err := models.GetTestDB()
 	AssertNotError(g, err)
@@ -54,7 +53,6 @@ func TestClanHandler(t *testing.T) {
 				"autoJoin":         true,
 			}
 			a := GetDefaultTestApp()
-			a.Games = LoadGames(a)
 			res := PostJSON(a, GetGameRoute(player.GameID, "/clans"), t, payload)
 
 			g.Assert(res.Raw().StatusCode).Equal(http.StatusOK)
@@ -85,7 +83,6 @@ func TestClanHandler(t *testing.T) {
 				"autoJoin":         true,
 			}
 			a := GetDefaultTestApp()
-			a.Games = LoadGames(a)
 			res := PostJSON(a, GetGameRoute(player.GameID, "/clans"), t, payload)
 
 			g.Assert(res.Raw().StatusCode).Equal(http.StatusBadRequest)
@@ -98,7 +95,6 @@ func TestClanHandler(t *testing.T) {
 		g.It("Should not create clan if invalid payload", func() {
 			gameID := "gameID"
 			a := GetDefaultTestApp()
-			a.Games = LoadGames(a)
 			res := PostBody(a, GetGameRoute(gameID, "/clans"), t, "invalid")
 
 			g.Assert(res.Raw().StatusCode).Equal(http.StatusBadRequest)
@@ -121,7 +117,6 @@ func TestClanHandler(t *testing.T) {
 				"autoJoin":         true,
 			}
 			a := GetDefaultTestApp()
-			a.Games = LoadGames(a)
 			res := PostJSON(a, GetGameRoute(game.PublicID, "/clans"), t, payload)
 
 			g.Assert(res.Raw().StatusCode).Equal(http.StatusInternalServerError)
@@ -144,7 +139,6 @@ func TestClanHandler(t *testing.T) {
 				"autoJoin":         true,
 			}
 			a := GetDefaultTestApp()
-			a.Games = LoadGames(a)
 			res := PostJSON(a, GetGameRoute(player.GameID, "/clans"), t, payload)
 
 			g.Assert(res.Raw().StatusCode).Equal(http.StatusInternalServerError)
@@ -166,7 +160,6 @@ func TestClanHandler(t *testing.T) {
 			}
 			route := GetGameRoute(clan.GameID, fmt.Sprintf("clans/%s/leave", clan.PublicID))
 			a := GetDefaultTestApp()
-			a.Games = LoadGames(a)
 			res := PostJSON(a, route, t, payload)
 
 			g.Assert(res.Raw().StatusCode).Equal(http.StatusOK)
@@ -182,7 +175,6 @@ func TestClanHandler(t *testing.T) {
 		g.It("Should not leave a clan if missing parameters", func() {
 			route := GetGameRoute("game-id", fmt.Sprintf("clans/%s/leave", "random-id"))
 			a := GetDefaultTestApp()
-			a.Games = LoadGames(a)
 			res := PostJSON(a, route, t, util.JSON{})
 
 			g.Assert(res.Raw().StatusCode).Equal(http.StatusBadRequest)
@@ -195,7 +187,6 @@ func TestClanHandler(t *testing.T) {
 		g.It("Should not leave a clan if invalid payload", func() {
 			route := GetGameRoute("game-id", fmt.Sprintf("clans/%s/leave", "random-id"))
 			a := GetDefaultTestApp()
-			a.Games = LoadGames(a)
 			res := PostBody(a, route, t, "invalid")
 
 			g.Assert(res.Raw().StatusCode).Equal(http.StatusBadRequest)
@@ -214,7 +205,6 @@ func TestClanHandler(t *testing.T) {
 			}
 			route := GetGameRoute(clan.GameID, fmt.Sprintf("clans/%s/leave", clan.PublicID))
 			a := GetDefaultTestApp()
-			a.Games = LoadGames(a)
 			res := PostJSON(a, route, t, payload)
 
 			g.Assert(res.Raw().StatusCode).Equal(http.StatusInternalServerError)
@@ -238,7 +228,6 @@ func TestClanHandler(t *testing.T) {
 			}
 			route := GetGameRoute(clan.GameID, fmt.Sprintf("clans/%s/transfer-ownership", clan.PublicID))
 			a := GetDefaultTestApp()
-			a.Games = LoadGames(a)
 			res := PostJSON(a, route, t, payload)
 
 			g.Assert(res.Raw().StatusCode).Equal(http.StatusOK)
@@ -254,7 +243,6 @@ func TestClanHandler(t *testing.T) {
 		g.It("Should not transfer a clan ownership if missing parameters", func() {
 			route := GetGameRoute("game-id", fmt.Sprintf("clans/%s/transfer-ownership", "public-id"))
 			a := GetDefaultTestApp()
-			a.Games = LoadGames(a)
 			res := PostJSON(a, route, t, util.JSON{})
 
 			g.Assert(res.Raw().StatusCode).Equal(http.StatusBadRequest)
@@ -268,7 +256,6 @@ func TestClanHandler(t *testing.T) {
 		g.It("Should not transfer a clan ownership if invalid payload", func() {
 			route := GetGameRoute("game-id", fmt.Sprintf("clans/%s/transfer-ownership", "random-id"))
 			a := GetDefaultTestApp()
-			a.Games = LoadGames(a)
 			res := PostBody(a, route, t, "invalid")
 
 			g.Assert(res.Raw().StatusCode).Equal(http.StatusBadRequest)
@@ -287,7 +274,6 @@ func TestClanHandler(t *testing.T) {
 			}
 			route := GetGameRoute(clan.GameID, fmt.Sprintf("clans/%s/transfer-ownership", clan.PublicID))
 			a := GetDefaultTestApp()
-			a.Games = LoadGames(a)
 			res := PostJSON(a, route, t, payload)
 
 			g.Assert(res.Raw().StatusCode).Equal(http.StatusInternalServerError)
@@ -318,7 +304,6 @@ func TestClanHandler(t *testing.T) {
 			}
 			route := GetGameRoute(gameID, fmt.Sprintf("/clans/%s", publicID))
 			a := GetDefaultTestApp()
-			a.Games = LoadGames(a)
 			res := PutJSON(a, route, t, payload)
 
 			g.Assert(res.Raw().StatusCode).Equal(http.StatusOK)
@@ -338,7 +323,6 @@ func TestClanHandler(t *testing.T) {
 		g.It("Should not update clan if missing parameters", func() {
 			route := GetGameRoute("gameID", fmt.Sprintf("/clans/%s", "publicID"))
 			a := GetDefaultTestApp()
-			a.Games = LoadGames(a)
 			res := PutJSON(a, route, t, util.JSON{})
 
 			g.Assert(res.Raw().StatusCode).Equal(http.StatusBadRequest)
@@ -351,7 +335,7 @@ func TestClanHandler(t *testing.T) {
 		g.It("Should not update clan if invalid payload", func() {
 			route := GetGameRoute("game-id", fmt.Sprintf("/clans/%s", "random-id"))
 			a := GetDefaultTestApp()
-			a.Games = LoadGames(a)
+
 			res := PutBody(a, route, t, "invalid")
 
 			g.Assert(res.Raw().StatusCode).Equal(http.StatusBadRequest)
@@ -378,7 +362,7 @@ func TestClanHandler(t *testing.T) {
 			}
 			route := GetGameRoute(gameID, fmt.Sprintf("/clans/%s", publicID))
 			a := GetDefaultTestApp()
-			a.Games = LoadGames(a)
+
 			res := PutJSON(a, route, t, payload)
 
 			g.Assert(res.Raw().StatusCode).Equal(http.StatusInternalServerError)
@@ -404,7 +388,7 @@ func TestClanHandler(t *testing.T) {
 			}
 			route := GetGameRoute(gameID, fmt.Sprintf("/clans/%s", publicID))
 			a := GetDefaultTestApp()
-			a.Games = LoadGames(a)
+
 			res := PutJSON(a, route, t, payload)
 
 			g.Assert(res.Raw().StatusCode).Equal(http.StatusInternalServerError)
@@ -422,7 +406,7 @@ func TestClanHandler(t *testing.T) {
 			sort.Sort(models.ClanByName(expectedClans))
 
 			a := GetDefaultTestApp()
-			a.Games = LoadGames(a)
+
 			res := Get(a, GetGameRoute(player.GameID, "/clans"), t)
 
 			g.Assert(res.Raw().StatusCode).Equal(http.StatusOK)
@@ -444,7 +428,7 @@ func TestClanHandler(t *testing.T) {
 
 		g.It("Should return empty list if invalid game query", func() {
 			a := GetDefaultTestApp()
-			a.Games = LoadGames(a)
+
 			res := Get(a, GetGameRoute("invalid-query-game-id", "/clans"), t)
 
 			g.Assert(res.Raw().StatusCode).Equal(http.StatusOK)
@@ -461,7 +445,7 @@ func TestClanHandler(t *testing.T) {
 			AssertNotError(g, err)
 
 			a := GetDefaultTestApp()
-			a.Games = LoadGames(a)
+
 			res := Get(a, GetGameRoute(clan.GameID, fmt.Sprintf("/clans/%s", clan.PublicID)), t)
 
 			g.Assert(res.Raw().StatusCode).Equal(http.StatusOK)
@@ -485,7 +469,7 @@ func TestClanHandler(t *testing.T) {
 			AssertNotError(g, err)
 
 			a := GetDefaultTestApp()
-			a.Games = LoadGames(a)
+
 			res := Get(a, GetGameRoute(clan.GameID, fmt.Sprintf("/clans/%s", clan.PublicID)), t)
 
 			g.Assert(res.Raw().StatusCode).Equal(http.StatusOK)
@@ -505,7 +489,7 @@ func TestClanHandler(t *testing.T) {
 			g.Assert(err == nil).IsTrue()
 
 			a := GetDefaultTestApp()
-			a.Games = LoadGames(a)
+
 			res := Get(a, GetGameRoute(player.GameID, "clan-search?term=APISEARCH"), t)
 
 			g.Assert(res.Raw().StatusCode).Equal(http.StatusOK)
