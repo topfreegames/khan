@@ -20,8 +20,6 @@ import (
 // GameFactory is responsible for constructing test game instances
 var GameFactory = factory.NewFactory(
 	&Game{
-		MinMembershipLevel:            1,
-		MaxMembershipLevel:            3,
 		MinLevelToAcceptApplication:   2,
 		MinLevelToCreateInvitation:    2,
 		MinLevelToRemoveMember:        2,
