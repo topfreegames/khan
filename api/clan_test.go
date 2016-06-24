@@ -109,7 +109,9 @@ func TestClanHandler(t *testing.T) {
 		})
 
 		g.It("Should not create clan if owner does not exist", func() {
-			gameID := randomdata.FullName(randomdata.RandomGender)
+			game, _, err := models.CreatePlayerFactory(testDb, "")
+			AssertNotError(g, err)
+
 			payload := util.JSON{
 				"publicID":         randomdata.FullName(randomdata.RandomGender),
 				"name":             randomdata.FullName(randomdata.RandomGender),
@@ -120,7 +122,7 @@ func TestClanHandler(t *testing.T) {
 			}
 			a := GetDefaultTestApp()
 			a.Games = LoadGames(a)
-			res := PostJSON(a, GetGameRoute(gameID, "/clans"), t, payload)
+			res := PostJSON(a, GetGameRoute(game.PublicID, "/clans"), t, payload)
 
 			g.Assert(res.Raw().StatusCode).Equal(http.StatusInternalServerError)
 			var result util.JSON
