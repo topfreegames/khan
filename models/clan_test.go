@@ -138,7 +138,7 @@ func TestClanModel(t *testing.T) {
 
 		g.Describe("Create Clan", func() {
 			g.It("Should create a new Clan with CreateClan", func() {
-				_, player, err := CreatePlayerFactory(testDb, "")
+				game, player, err := CreatePlayerFactory(testDb, "")
 				g.Assert(err == nil).IsTrue()
 
 				clan, err := CreateClan(
@@ -150,6 +150,7 @@ func TestClanModel(t *testing.T) {
 					util.JSON{},
 					true,
 					false,
+					game.MaxClansPerPlayer,
 				)
 
 				g.Assert(err == nil).IsTrue()
@@ -163,7 +164,7 @@ func TestClanModel(t *testing.T) {
 			})
 
 			g.It("Should not create a new Clan with CreateClan if invalid data", func() {
-				_, player, err := CreatePlayerFactory(testDb, "")
+				game, player, err := CreatePlayerFactory(testDb, "")
 				g.Assert(err == nil).IsTrue()
 
 				_, err = CreateClan(
@@ -175,15 +176,37 @@ func TestClanModel(t *testing.T) {
 					util.JSON{},
 					true,
 					false,
+					game.MaxClansPerPlayer,
 				)
 
 				g.Assert(err != nil).IsTrue()
 				g.Assert(err.Error()).Equal("pq: value too long for type character varying(255)")
 			})
 
+			g.It("Should not create a new Clan with CreateClan if reached MaxClansPerPlayer", func() {
+				game, _, owner, _, _, err := GetClanWithMemberships(testDb, 1, "", "")
+				g.Assert(err == nil).IsTrue()
+
+				_, err = CreateClan(
+					testDb,
+					owner.GameID,
+					"create-1",
+					randomdata.FullName(randomdata.RandomGender),
+					owner.PublicID,
+					util.JSON{},
+					true,
+					false,
+					game.MaxClansPerPlayer,
+				)
+
+				g.Assert(err != nil).IsTrue()
+				g.Assert(err.Error()).Equal(fmt.Sprintf("Player %s reached max clans", owner.PublicID))
+			})
+
 			g.It("Should not create a new Clan with CreateClan if unexistent player", func() {
+				game, _, err := CreatePlayerFactory(testDb, "")
 				playerPublicID := randomdata.FullName(randomdata.RandomGender)
-				_, err := CreateClan(
+				_, err = CreateClan(
 					testDb,
 					"create-1",
 					randomdata.FullName(randomdata.RandomGender),
@@ -192,6 +215,7 @@ func TestClanModel(t *testing.T) {
 					util.JSON{},
 					true,
 					false,
+					game.MaxClansPerPlayer,
 				)
 
 				g.Assert(err != nil).IsTrue()

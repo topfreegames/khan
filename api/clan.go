@@ -54,6 +54,14 @@ func CreateClanHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
+		var game *models.Game
+		var gameValid bool
+
+		if game, gameValid = app.Games[gameID]; !gameValid {
+			FailWith(404, (&models.ModelNotFoundError{Type: "Game", ID: gameID}).Error(), c)
+			return
+		}
+
 		db := GetCtxDB(c)
 
 		clan, err := models.CreateClan(
@@ -65,6 +73,7 @@ func CreateClanHandler(app *App) func(c *iris.Context) {
 			payload.Metadata,
 			payload.AllowApplication,
 			payload.AutoJoin,
+			game.MaxClansPerPlayer,
 		)
 
 		if err != nil {

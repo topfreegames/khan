@@ -14,14 +14,15 @@ import (
 
 	"github.com/Pallinder/go-randomdata"
 	. "github.com/franela/goblin"
+	"github.com/satori/go.uuid"
 	"github.com/topfreegames/khan/util"
 )
 
 func TestMembershipModel(t *testing.T) {
 	t.Parallel()
 	g := Goblin(t)
-	testDb, err := GetTestDB()
-	g.Assert(err == nil).IsTrue()
+	testDb, _error := GetTestDB()
+	g.Assert(_error == nil).IsTrue()
 
 	g.Describe("Membership Model", func() {
 		g.It("Should create a new Membership", func() {
@@ -63,7 +64,7 @@ func TestMembershipModel(t *testing.T) {
 		})
 
 		g.It("Should not get non-existing Membership", func() {
-			_, err = GetMembershipByID(testDb, -1)
+			_, err := GetMembershipByID(testDb, -1)
 			g.Assert(err != nil).IsTrue()
 			g.Assert(err.Error()).Equal("Membership was not found with id: -1")
 		})
@@ -404,6 +405,70 @@ func TestMembershipModel(t *testing.T) {
 				g.Assert(err.Error()).Equal(fmt.Sprintf("Clan %s reached max members", clan.PublicID))
 			})
 
+			g.It("If player reached the game's MaxClansPerPlayer (member of another clans)", func() {
+				game, clan, owner, _, _, err := GetClanWithMemberships(testDb, 0, "", "")
+				g.Assert(err == nil).IsTrue()
+
+				player := PlayerFactory.MustCreateWithOption(util.JSON{
+					"GameID": game.PublicID,
+				}).(*Player)
+				err = testDb.Insert(player)
+				g.Assert(err == nil).IsTrue()
+
+				anotherClan := ClanFactory.MustCreateWithOption(util.JSON{
+					"GameID":   player.GameID,
+					"PublicID": uuid.NewV4().String(),
+					"OwnerID":  player.ID,
+					"Metadata": util.JSON{"x": "a"},
+				}).(*Clan)
+				err = testDb.Insert(anotherClan)
+				g.Assert(err == nil).IsTrue()
+
+				games := map[string]*Game{game.PublicID: game}
+
+				_, err = CreateMembership(
+					testDb,
+					games,
+					game.PublicID,
+					"Member",
+					player.PublicID,
+					clan.PublicID,
+					owner.PublicID,
+				)
+
+				g.Assert(err != nil).IsTrue()
+				g.Assert(err.Error()).Equal(fmt.Sprintf("Player %s reached max clans", player.PublicID))
+			})
+
+			g.It("If player reached the game's MaxClansPerPlayer (owner of another clan)", func() {
+				game, _, owner, players, _, err := GetClanWithMemberships(testDb, 1, "", "")
+				g.Assert(err == nil).IsTrue()
+
+				anotherClan := ClanFactory.MustCreateWithOption(util.JSON{
+					"GameID":   players[0].GameID,
+					"PublicID": uuid.NewV4().String(),
+					"OwnerID":  players[0].ID,
+					"Metadata": util.JSON{"x": "a"},
+				}).(*Clan)
+				err = testDb.Insert(anotherClan)
+				g.Assert(err == nil).IsTrue()
+
+				games := map[string]*Game{game.PublicID: game}
+
+				_, err = CreateMembership(
+					testDb,
+					games,
+					game.PublicID,
+					"Member",
+					players[0].PublicID,
+					anotherClan.PublicID,
+					owner.PublicID,
+				)
+
+				g.Assert(err != nil).IsTrue()
+				g.Assert(err.Error()).Equal(fmt.Sprintf("Player %s reached max clans", players[0].PublicID))
+			})
+
 			g.It("If requestor is the player and clan.AllowApplication = false", func() {
 				game, clan, _, _, _, err := GetClanWithMemberships(testDb, 1, "", "")
 				g.Assert(err == nil).IsTrue()
@@ -552,11 +617,13 @@ func TestMembershipModel(t *testing.T) {
 		g.Describe("Should approve a Membership invitation with ApproveOrDenyMembershipInvitation if", func() {
 			g.It("Player is not the membership requestor", func() {
 				action := "approve"
-				_, clan, _, players, _, err := GetClanWithMemberships(testDb, 1, "", "")
+				game, clan, _, players, _, err := GetClanWithMemberships(testDb, 1, "", "")
 				g.Assert(err == nil).IsTrue()
 
+				games := map[string]*Game{game.PublicID: game}
 				updatedMembership, err := ApproveOrDenyMembershipInvitation(
 					testDb,
+					games,
 					players[0].GameID,
 					players[0].PublicID,
 					clan.PublicID,
@@ -578,11 +645,13 @@ func TestMembershipModel(t *testing.T) {
 		g.Describe("Should not approve a Membership invitation with ApproveOrDenyMembershipInvitation if", func() {
 			g.It("If clan reached the game's MaxMembers", func() {
 				action := "approve"
-				_, clan, _, players, _, err := GetClanReachedMaxMemberships(testDb)
+				game, clan, _, players, _, err := GetClanReachedMaxMemberships(testDb)
 				g.Assert(err == nil).IsTrue()
 
+				games := map[string]*Game{game.PublicID: game}
 				_, err = ApproveOrDenyMembershipInvitation(
 					testDb,
+					games,
 					players[1].GameID,
 					players[1].PublicID,
 					clan.PublicID,
@@ -593,17 +662,59 @@ func TestMembershipModel(t *testing.T) {
 				g.Assert(err.Error()).Equal(fmt.Sprintf("Clan %s reached max members", clan.PublicID))
 			})
 
+			g.It("If player reached the game's MaxClansPerPlayer", func() {
+				action := "approve"
+				game, clan, owner, players, _, err := GetClanWithMemberships(testDb, 1, "", "")
+				g.Assert(err == nil).IsTrue()
+
+				anotherClan := ClanFactory.MustCreateWithOption(util.JSON{
+					"GameID":   owner.GameID,
+					"PublicID": uuid.NewV4().String(),
+					"OwnerID":  owner.ID,
+					"Metadata": util.JSON{"x": "a"},
+				}).(*Clan)
+				err = testDb.Insert(anotherClan)
+				g.Assert(err == nil).IsTrue()
+
+				membership := MembershipFactory.MustCreateWithOption(util.JSON{
+					"GameID":      game.PublicID,
+					"PlayerID":    players[0].ID,
+					"ClanID":      anotherClan.ID,
+					"RequestorID": owner.ID,
+					"Metadata":    util.JSON{"x": "a"},
+					"Level":       "Member",
+					"Approved":    true,
+				}).(*Membership)
+				err = testDb.Insert(membership)
+				g.Assert(err == nil).IsTrue()
+
+				games := map[string]*Game{game.PublicID: game}
+				_, err = ApproveOrDenyMembershipInvitation(
+					testDb,
+					games,
+					players[0].GameID,
+					players[0].PublicID,
+					clan.PublicID,
+					action,
+				)
+
+				g.Assert(err != nil).IsTrue()
+				g.Assert(err.Error()).Equal(fmt.Sprintf("Player %s reached max clans", players[0].PublicID))
+			})
+
 			g.It("Player is the membership requestor", func() {
 				action := "approve"
-				_, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 1, "", "")
+				game, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 1, "", "")
 				g.Assert(err == nil).IsTrue()
 
 				memberships[0].RequestorID = players[0].ID
 				_, err = testDb.Update(memberships[0])
 				g.Assert(err == nil).IsTrue()
 
+				games := map[string]*Game{game.PublicID: game}
 				_, err = ApproveOrDenyMembershipInvitation(
 					testDb,
+					games,
 					players[0].GameID,
 					players[0].PublicID,
 					clan.PublicID,
@@ -616,7 +727,7 @@ func TestMembershipModel(t *testing.T) {
 
 			g.It("Membership does not exist", func() {
 				action := "approve"
-				_, clan, _, _, _, err := GetClanWithMemberships(testDb, 1, "", "")
+				game, clan, _, _, _, err := GetClanWithMemberships(testDb, 1, "", "")
 				g.Assert(err == nil).IsTrue()
 
 				player := PlayerFactory.MustCreateWithOption(util.JSON{
@@ -625,8 +736,10 @@ func TestMembershipModel(t *testing.T) {
 				err = testDb.Insert(player)
 				g.Assert(err == nil).IsTrue()
 
+				games := map[string]*Game{game.PublicID: game}
 				_, err = ApproveOrDenyMembershipInvitation(
 					testDb,
+					games,
 					player.GameID,
 					player.PublicID,
 					clan.PublicID,
@@ -639,7 +752,7 @@ func TestMembershipModel(t *testing.T) {
 
 			g.It("Membership is deleted", func() {
 				action := "approve"
-				_, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 1, "", "")
+				game, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 1, "", "")
 				g.Assert(err == nil).IsTrue()
 
 				memberships[0].DeletedAt = time.Now().UnixNano() / 1000000
@@ -647,8 +760,10 @@ func TestMembershipModel(t *testing.T) {
 				_, err = testDb.Update(memberships[0])
 				g.Assert(err == nil).IsTrue()
 
+				games := map[string]*Game{game.PublicID: game}
 				_, err = ApproveOrDenyMembershipInvitation(
 					testDb,
+					games,
 					players[0].GameID,
 					players[0].PublicID,
 					clan.PublicID,
@@ -661,15 +776,17 @@ func TestMembershipModel(t *testing.T) {
 
 			g.It("Membership is already approved", func() {
 				action := "approve"
-				_, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 1, "", "")
+				game, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 1, "", "")
 				g.Assert(err == nil).IsTrue()
 
 				memberships[0].Approved = true
 				_, err = testDb.Update(memberships[0])
 				g.Assert(err == nil).IsTrue()
 
+				games := map[string]*Game{game.PublicID: game}
 				_, err = ApproveOrDenyMembershipInvitation(
 					testDb,
+					games,
 					players[0].GameID,
 					players[0].PublicID,
 					clan.PublicID,
@@ -682,15 +799,17 @@ func TestMembershipModel(t *testing.T) {
 
 			g.It("Membership is already denied", func() {
 				action := "approve"
-				_, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 1, "", "")
+				game, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 1, "", "")
 				g.Assert(err == nil).IsTrue()
 
 				memberships[0].Denied = true
 				_, err = testDb.Update(memberships[0])
 				g.Assert(err == nil).IsTrue()
 
+				games := map[string]*Game{game.PublicID: game}
 				_, err = ApproveOrDenyMembershipInvitation(
 					testDb,
+					games,
 					players[0].GameID,
 					players[0].PublicID,
 					clan.PublicID,
@@ -705,11 +824,13 @@ func TestMembershipModel(t *testing.T) {
 		g.Describe("Should deny a Membership invitation with ApproveOrDenyMembershipInvitation if", func() {
 			g.It("Player is not the membership requestor", func() {
 				action := "deny"
-				_, clan, _, players, _, err := GetClanWithMemberships(testDb, 1, "", "")
+				game, clan, _, players, _, err := GetClanWithMemberships(testDb, 1, "", "")
 				g.Assert(err == nil).IsTrue()
 
+				games := map[string]*Game{game.PublicID: game}
 				updatedMembership, err := ApproveOrDenyMembershipInvitation(
 					testDb,
+					games,
 					players[0].GameID,
 					players[0].PublicID,
 					clan.PublicID,
@@ -730,11 +851,13 @@ func TestMembershipModel(t *testing.T) {
 
 		g.Describe("Should not ApproveOrDenyMembershipInvitation if", func() {
 			g.It("Invalid action", func() {
-				_, clan, _, players, _, err := GetClanWithMemberships(testDb, 1, "", "")
+				game, clan, _, players, _, err := GetClanWithMemberships(testDb, 1, "", "")
 				g.Assert(err == nil).IsTrue()
 
+				games := map[string]*Game{game.PublicID: game}
 				_, err = ApproveOrDenyMembershipInvitation(
 					testDb,
+					games,
 					players[0].GameID,
 					players[0].PublicID,
 					clan.PublicID,
@@ -839,6 +962,50 @@ func TestMembershipModel(t *testing.T) {
 
 				g.Assert(err != nil).IsTrue()
 				g.Assert(err.Error()).Equal(fmt.Sprintf("Clan %s reached max members", clan.PublicID))
+			})
+
+			g.It("If player reached the game's MaxClansPerPlayer", func() {
+				action := "approve"
+				game, clan, owner, players, memberships, err := GetClanWithMemberships(testDb, 1, "", "")
+				g.Assert(err == nil).IsTrue()
+
+				memberships[0].RequestorID = memberships[0].PlayerID
+				_, err = testDb.Update(memberships[0])
+
+				anotherClan := ClanFactory.MustCreateWithOption(util.JSON{
+					"GameID":   owner.GameID,
+					"PublicID": uuid.NewV4().String(),
+					"OwnerID":  owner.ID,
+					"Metadata": util.JSON{"x": "a"},
+				}).(*Clan)
+				err = testDb.Insert(anotherClan)
+				g.Assert(err == nil).IsTrue()
+
+				membership := MembershipFactory.MustCreateWithOption(util.JSON{
+					"GameID":      game.PublicID,
+					"PlayerID":    players[0].ID,
+					"ClanID":      anotherClan.ID,
+					"RequestorID": owner.ID,
+					"Metadata":    util.JSON{"x": "a"},
+					"Level":       "Member",
+					"Approved":    true,
+				}).(*Membership)
+				err = testDb.Insert(membership)
+				g.Assert(err == nil).IsTrue()
+
+				games := map[string]*Game{game.PublicID: game}
+				_, err = ApproveOrDenyMembershipApplication(
+					testDb,
+					games,
+					players[0].GameID,
+					players[0].PublicID,
+					clan.PublicID,
+					owner.PublicID,
+					action,
+				)
+
+				g.Assert(err != nil).IsTrue()
+				g.Assert(err.Error()).Equal(fmt.Sprintf("Player %s reached max clans", players[0].PublicID))
 			})
 
 			g.It("Requestor is member of the clan with level < minLevel", func() {

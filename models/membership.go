@@ -115,8 +115,7 @@ func GetOldestMemberWithHighestLevel(db DB, gameID, clanPublicID string) (*Membe
 	return &membership, nil
 }
 
-// ClanReachedMaxMemberships returns a bool indicating if the clan reached the max number of members (non deleted and approved)
-func ClanReachedMaxMemberships(db DB, gameID, clanPublicID string) error {
+func clanReachedMaxMemberships(db DB, gameID, clanPublicID string) error {
 	var reachedMaxMembers []bool
 	query := `
 	SELECT
@@ -141,7 +140,14 @@ func ClanReachedMaxMemberships(db DB, gameID, clanPublicID string) error {
 }
 
 // ApproveOrDenyMembershipInvitation sets Membership.Approved to true or Membership.Denied to true
-func ApproveOrDenyMembershipInvitation(db DB, gameID, playerPublicID, clanPublicID, action string) (*Membership, error) {
+func ApproveOrDenyMembershipInvitation(db DB, games map[string]*Game, gameID, playerPublicID, clanPublicID, action string) (*Membership, error) {
+	var game *Game
+	var gameValid bool
+
+	if game, gameValid = games[gameID]; !gameValid {
+		return nil, &ModelNotFoundError{"Game", gameID}
+	}
+
 	membership, err := GetMembershipByClanAndPlayerPublicID(db, gameID, clanPublicID, playerPublicID)
 	if err != nil {
 		return nil, err
@@ -157,7 +163,14 @@ func ApproveOrDenyMembershipInvitation(db DB, gameID, playerPublicID, clanPublic
 	}
 
 	if action == "approve" {
-		reachedMaxMembersError := ClanReachedMaxMemberships(db, gameID, clanPublicID)
+		clansCount, err := GetPlayerClansCount(db, gameID, playerPublicID)
+		if err != nil {
+			return nil, err
+		}
+		if clansCount >= game.MaxClansPerPlayer {
+			return nil, &PlayerReachedMaxClansError{playerPublicID}
+		}
+		reachedMaxMembersError := clanReachedMaxMemberships(db, gameID, clanPublicID)
 		if reachedMaxMembersError != nil {
 			return nil, reachedMaxMembersError
 		}
@@ -192,7 +205,14 @@ func ApproveOrDenyMembershipApplication(db DB, games map[string]*Game, gameID, p
 	}
 
 	if action == "approve" {
-		reachedMaxMembersError := ClanReachedMaxMemberships(db, gameID, clanPublicID)
+		clansCount, err := GetPlayerClansCount(db, gameID, playerPublicID)
+		if err != nil {
+			return nil, err
+		}
+		if clansCount >= game.MaxClansPerPlayer {
+			return nil, &PlayerReachedMaxClansError{playerPublicID}
+		}
+		reachedMaxMembersError := clanReachedMaxMemberships(db, gameID, clanPublicID)
 		if reachedMaxMembersError != nil {
 			return nil, reachedMaxMembersError
 		}
@@ -229,6 +249,14 @@ func CreateMembership(db DB, games map[string]*Game, gameID, level, playerPublic
 		return nil, &InvalidLevelForGameError{gameID, level}
 	}
 
+	clansCount, err := GetPlayerClansCount(db, gameID, playerPublicID)
+	if err != nil {
+		return nil, err
+	}
+	if clansCount >= game.MaxClansPerPlayer {
+		return nil, &PlayerReachedMaxClansError{playerPublicID}
+	}
+
 	membership, _ := GetDeletedMembershipByClanAndPlayerPublicID(db, gameID, clanPublicID, playerPublicID)
 	if membership != nil {
 		previousMembership = true
@@ -250,7 +278,7 @@ func CreateMembership(db DB, games map[string]*Game, gameID, level, playerPublic
 			return nil, &PlayerCannotCreateMembershipError{requestorPublicID, clanPublicID}
 		}
 
-		reachedMaxMembersError := ClanReachedMaxMemberships(db, gameID, clanPublicID)
+		reachedMaxMembersError := clanReachedMaxMemberships(db, gameID, clanPublicID)
 		if reachedMaxMembersError != nil {
 			return nil, reachedMaxMembersError
 		}
@@ -266,7 +294,7 @@ func CreateMembership(db DB, games map[string]*Game, gameID, level, playerPublic
 		if clanErr != nil {
 			return nil, &PlayerCannotCreateMembershipError{requestorPublicID, clanPublicID}
 		}
-		reachedMaxMembersError := ClanReachedMaxMemberships(db, gameID, clanPublicID)
+		reachedMaxMembersError := clanReachedMaxMemberships(db, gameID, clanPublicID)
 		if reachedMaxMembersError != nil {
 			return nil, reachedMaxMembersError
 		}
@@ -276,7 +304,7 @@ func CreateMembership(db DB, games map[string]*Game, gameID, level, playerPublic
 		return createMembershipHelper(db, gameID, level, playerID, clan.ID, clan.OwnerID, false)
 	}
 
-	reachedMaxMembersError := ClanReachedMaxMemberships(db, gameID, clanPublicID)
+	reachedMaxMembersError := clanReachedMaxMemberships(db, gameID, clanPublicID)
 	if reachedMaxMembersError != nil {
 		return nil, reachedMaxMembersError
 	}

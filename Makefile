@@ -62,7 +62,7 @@ run-docker:
 	@docker run -i -t --rm -e "KHAN_POSTGRES_HOST=10.0.20.81" -p 8080:8080 khan
 
 test: assets drop-test db-test
-	@go test $(PACKAGES)
+	@go test $(PACKAGES) -run TestMembershipModel
 
 coverage: drop-test db-test
 	@echo "mode: count" > coverage-all.out
