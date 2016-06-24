@@ -147,7 +147,7 @@ func migrations20160608182307_createmembershiptableSql() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "migrations/20160608182307_CreateMembershipTable.sql", size: 1018, mode: os.FileMode(420), modTime: time.Unix(1466715169, 0)}
+	info := bindataFileInfo{name: "migrations/20160608182307_CreateMembershipTable.sql", size: 1018, mode: os.FileMode(420), modTime: time.Unix(1466787722, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
