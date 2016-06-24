@@ -28,3 +28,4 @@ vendor/
 docs/_build
 /docs/_build
 /bin
+khan-perf.dump
