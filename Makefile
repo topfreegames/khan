@@ -7,6 +7,7 @@
 PACKAGES = $(shell glide novendor)
 GODIRS = $(shell go list ./... | grep -v /vendor/ | sed s@github.com/topfreegames/khan@.@g | egrep -v "^[.]$$")
 PMD = "pmd-bin-5.3.3"
+OS = "$(shell uname | awk '{ print tolower($$0) }')"
 
 setup:
 	@go get -u github.com/Masterminds/glide/...
@@ -86,6 +87,26 @@ db-test migrate-test:
 drop-test:
 	@psql -d postgres -f db/drop-test.sql > /dev/null
 	@echo "Test database created successfully!"
+
+run-test-khan: build kill-test-khan
+	@rm -rf /tmp/khan-bench.log
+	@./khan start -p 8888 -v3 -c ./config/perf.yaml 2>&1 > /tmp/khan-bench.log &
+
+kill-test-khan:
+	@-ps aux | egrep './khan.+perf.yaml' | egrep -v egrep | awk ' { print $$2 } ' | xargs kill -9
+
+run-perf:
+	@go test -bench . -benchtime 20s ./bench/...
+
+db-perf: drop-perf migrate-perf 
+	@go run perf/main.go
+
+drop-perf:
+	@psql -d postgres -f db/drop-perf.sql > /dev/null
+	@echo "Perf database created successfully!"
+
+migrate-perf:
+	@go run main.go migrate -c ./config/perf.yaml
 
 static:
 	@go vet $(PACKAGES)
