@@ -189,6 +189,16 @@ func (app *App) loadGames() {
 	})(app)
 }
 
+func (app *App) GetGame(gameID string) (*models.Game, error) {
+	var game *models.Game
+	var gameValid bool
+
+	if game, gameValid = app.Games[gameID]; !gameValid {
+		return nil, &models.ModelNotFoundError{Type: "Game", ID: gameID}
+	}
+	return game, nil
+}
+
 //HookNotFoundError means that hooks for the specified game and event type were not found
 type HookNotFoundError struct {
 	GameID    string

@@ -54,11 +54,9 @@ func CreateClanHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
-		var game *models.Game
-		var gameValid bool
-
-		if game, gameValid = app.Games[gameID]; !gameValid {
-			FailWith(404, (&models.ModelNotFoundError{Type: "Game", ID: gameID}).Error(), c)
+		game, err := app.GetGame(gameID)
+		if err != nil {
+			FailWith(404, err.Error(), c)
 			return
 		}
 
