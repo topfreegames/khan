@@ -27,6 +27,7 @@ type gamePayload struct {
 	MinLevelOffsetToPromoteMember int
 	MinLevelOffsetToDemoteMember  int
 	MaxMembers                    int
+	MaxClansPerPlayer             int
 }
 
 type createGamePayload struct {
@@ -41,6 +42,7 @@ type createGamePayload struct {
 	MinLevelOffsetToPromoteMember int
 	MinLevelOffsetToDemoteMember  int
 	MaxMembers                    int
+	MaxClansPerPlayer             int
 }
 
 func getAsInt(field string, payload interface{}) int {
@@ -101,6 +103,7 @@ func CreateGameHandler(app *App) func(c *iris.Context) {
 			payload.MinLevelOffsetToPromoteMember,
 			payload.MinLevelOffsetToDemoteMember,
 			payload.MaxMembers,
+			payload.MaxClansPerPlayer,
 		)
 
 		if err != nil {
@@ -145,6 +148,7 @@ func UpdateGameHandler(app *App) func(c *iris.Context) {
 			payload.MinLevelOffsetToPromoteMember,
 			payload.MinLevelOffsetToDemoteMember,
 			payload.MaxMembers,
+			payload.MaxClansPerPlayer,
 		)
 
 		if err != nil {
@@ -165,6 +169,7 @@ func UpdateGameHandler(app *App) func(c *iris.Context) {
 			"minLevelOffsetToPromoteMember": payload.MinLevelOffsetToPromoteMember,
 			"minLevelOffsetToDemoteMember":  payload.MinLevelOffsetToDemoteMember,
 			"maxMembers":                    payload.MaxMembers,
+			"maxClansPerPlayer":             payload.MaxClansPerPlayer,
 		}
 		app.DispatchHooks(gameID, models.GameUpdatedHook, successPayload)
 

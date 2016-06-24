@@ -30,6 +30,7 @@ type Game struct {
 	MinLevelOffsetToPromoteMember int       `db:"min_level_offset_to_promote_member"`
 	MinLevelOffsetToDemoteMember  int       `db:"min_level_offset_to_demote_member"`
 	MaxMembers                    int       `db:"max_members"`
+	MaxClansPerPlayer             int       `db:"max_clans_per_player"`
 	MembershipLevels              util.JSON `db:"membership_levels"`
 	Metadata                      util.JSON `db:"metadata"`
 	CreatedAt                     int64     `db:"created_at"`
@@ -89,7 +90,7 @@ func GetAllGames(db DB) ([]*Game, error) {
 
 // CreateGame creates a new game
 func CreateGame(db DB, publicID, name string, levels, metadata util.JSON,
-	minLevelAccept, minLevelCreate, minLevelRemove, minOffsetRemove, minOffsetPromote, minOffsetDemote, maxMembers int,
+	minLevelAccept, minLevelCreate, minLevelRemove, minOffsetRemove, minOffsetPromote, minOffsetDemote, maxMembers, maxClans int,
 ) (*Game, error) {
 	game := &Game{
 		PublicID: publicID,
@@ -101,6 +102,7 @@ func CreateGame(db DB, publicID, name string, levels, metadata util.JSON,
 		MinLevelOffsetToPromoteMember: minOffsetPromote,
 		MinLevelOffsetToDemoteMember:  minOffsetDemote,
 		MaxMembers:                    maxMembers,
+		MaxClansPerPlayer:             maxClans,
 		MembershipLevels:              levels,
 		Metadata:                      metadata,
 	}
@@ -113,7 +115,7 @@ func CreateGame(db DB, publicID, name string, levels, metadata util.JSON,
 
 // UpdateGame updates an existing game
 func UpdateGame(db DB, publicID, name string, levels, metadata util.JSON,
-	minLevelAccept, minLevelCreate, minLevelRemove, minOffsetRemove, minOffsetPromote, minOffsetDemote, maxMembers int,
+	minLevelAccept, minLevelCreate, minLevelRemove, minOffsetRemove, minOffsetPromote, minOffsetDemote, maxMembers, maxClans int,
 ) (*Game, error) {
 	game, err := GetGameByPublicID(db, publicID)
 
@@ -122,7 +124,7 @@ func UpdateGame(db DB, publicID, name string, levels, metadata util.JSON,
 			return CreateGame(
 				db, publicID, name, levels, metadata, minLevelAccept,
 				minLevelCreate, minLevelRemove, minOffsetRemove, minOffsetPromote,
-				minOffsetDemote, maxMembers,
+				minOffsetDemote, maxMembers, maxClans,
 			)
 		}
 		return nil, err
@@ -136,6 +138,7 @@ func UpdateGame(db DB, publicID, name string, levels, metadata util.JSON,
 	game.MinLevelOffsetToPromoteMember = minOffsetPromote
 	game.MinLevelOffsetToDemoteMember = minOffsetDemote
 	game.MaxMembers = maxMembers
+	game.MaxClansPerPlayer = maxClans
 	game.MembershipLevels = levels
 	game.Metadata = metadata
 
