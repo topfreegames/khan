@@ -53,7 +53,8 @@ Khan API
       "minLevelOffsetToRemoveMember":  [int],
       "minLevelOffsetToPromoteMember": [int],
       "minLevelOffsetToDemoteMember":  [int],
-      "maxMembers":                    [int]
+      "maxMembers":                    [int],
+      "maxClansPerPlayer":             [int]
     }
     ```
 
@@ -82,6 +83,8 @@ Khan API
       **minLevelOffsetToDemoteMember**: A member cannot demote another member unless their level is at least `minLevelOffsetToDemoteMember` levels greater than the level of the member they wish to demote.
 
       **maxMembers**: Maximum number of members a clan of this game can have.
+
+      **maxClansPerPlayer**: Maximum number of clans a player can be member of.
 
   * Success Response
     * Code: `200`
@@ -143,7 +146,8 @@ Khan API
       "minLevelToRemoveMember":        [int],
       "minLevelOffsetToPromoteMember": [int],
       "minLevelOffsetToDemoteMember":  [int],
-      "maxMembers":                    [int]
+      "maxMembers":                    [int],
+      "maxClansPerPlayer":             [int]
     }
     ```
 

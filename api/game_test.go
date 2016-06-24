@@ -41,6 +41,7 @@ func getGamePayload(publicID, name string) util.JSON {
 		"minLevelOffsetToPromoteMember": 1,
 		"minLevelOffsetToDemoteMember":  1,
 		"maxMembers":                    100,
+		"maxClansPerPlayer":             1,
 	}
 }
 
@@ -80,6 +81,7 @@ func TestGameHandler(t *testing.T) {
 			g.Assert(dbGame.MinLevelOffsetToPromoteMember).Equal(payload["minLevelOffsetToPromoteMember"])
 			g.Assert(dbGame.MinLevelOffsetToDemoteMember).Equal(payload["minLevelOffsetToDemoteMember"])
 			g.Assert(dbGame.MaxMembers).Equal(payload["maxMembers"])
+			g.Assert(dbGame.MaxClansPerPlayer).Equal(payload["maxClansPerPlayer"])
 		})
 
 		g.It("Should not create game if missing parameters", func() {
@@ -166,6 +168,7 @@ func TestGameHandler(t *testing.T) {
 			g.Assert(dbGame.MinLevelOffsetToPromoteMember).Equal(payload["minLevelOffsetToPromoteMember"])
 			g.Assert(dbGame.MinLevelOffsetToDemoteMember).Equal(payload["minLevelOffsetToDemoteMember"])
 			g.Assert(dbGame.MaxMembers).Equal(payload["maxMembers"])
+			g.Assert(dbGame.MaxClansPerPlayer).Equal(payload["maxClansPerPlayer"])
 		})
 
 		g.It("Should insert if game does not exist", func() {

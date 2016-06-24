@@ -45,6 +45,7 @@ func TestGameModel(t *testing.T) {
 				g.Assert(dbGame.MinLevelOffsetToPromoteMember).Equal(game.MinLevelOffsetToPromoteMember)
 				g.Assert(dbGame.MinLevelOffsetToDemoteMember).Equal(game.MinLevelOffsetToDemoteMember)
 				g.Assert(dbGame.MaxMembers).Equal(game.MaxMembers)
+				g.Assert(dbGame.MaxClansPerPlayer).Equal(game.MaxClansPerPlayer)
 				for k, v := range dbGame.MembershipLevels {
 					g.Assert(int(v.(float64))).Equal(game.MembershipLevels[k].(int))
 				}
@@ -111,7 +112,7 @@ func TestGameModel(t *testing.T) {
 					"game-name",
 					util.JSON{"Member": 1, "Elder": 2, "CoLeader": 3},
 					util.JSON{},
-					8, 7, 8, 1, 2, 3, 100,
+					8, 7, 8, 1, 2, 3, 100, 1,
 				)
 				g.Assert(err == nil).IsTrue()
 				g.Assert(game.ID != 0).IsTrue()
@@ -149,7 +150,7 @@ func TestGameModel(t *testing.T) {
 					"game-new-name",
 					util.JSON{"Member": 1, "Elder": 2, "CoLeader": 3},
 					util.JSON{"x": 1},
-					5, 4, 7, 1, 1, 1, 100,
+					5, 4, 7, 1, 1, 1, 100, 1,
 				)
 
 				g.Assert(err == nil).IsTrue()
@@ -168,6 +169,7 @@ func TestGameModel(t *testing.T) {
 				g.Assert(dbGame.MinLevelOffsetToPromoteMember).Equal(updGame.MinLevelOffsetToPromoteMember)
 				g.Assert(dbGame.MinLevelOffsetToDemoteMember).Equal(updGame.MinLevelOffsetToDemoteMember)
 				g.Assert(dbGame.MaxMembers).Equal(updGame.MaxMembers)
+				g.Assert(dbGame.MaxClansPerPlayer).Equal(updGame.MaxClansPerPlayer)
 				for k, v := range dbGame.MembershipLevels {
 					g.Assert(int(v.(float64))).Equal(updGame.MembershipLevels[k].(int))
 				}
@@ -182,7 +184,7 @@ func TestGameModel(t *testing.T) {
 					gameID,
 					util.JSON{"Member": 1, "Elder": 2, "CoLeader": 3},
 					util.JSON{"x": 1},
-					5, 4, 7, 1, 1, 1, 100,
+					5, 4, 7, 1, 1, 1, 100, 1,
 				)
 
 				g.Assert(err == nil).IsTrue()
@@ -217,7 +219,7 @@ func TestGameModel(t *testing.T) {
 					strings.Repeat("a", 256),
 					util.JSON{"Member": 1, "Elder": 2, "CoLeader": 3},
 					util.JSON{"x": 1},
-					5, 4, 7, 1, 1, 0, 100,
+					5, 4, 7, 1, 1, 0, 100, 1,
 				)
 
 				g.Assert(err == nil).IsFalse()

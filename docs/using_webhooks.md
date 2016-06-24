@@ -53,7 +53,9 @@ Payload:
                                                     // higher than the player being promoted.
         "minLevelOffsetToDemoteMember": [int],      // A player must be at least this offset
                                                     // higher than the player being demoted.
-        "maxMembers": [int]                         // Maximum number of players in the clan.
+        "maxMembers": [int],                        // Maximum number of players in the clan.
+        "maxClansPerPlayer": [int]                  // Maximum number of clans the player can be
+                                                    // member of.
     }
 
 ### Player Created
