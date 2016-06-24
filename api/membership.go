@@ -151,6 +151,7 @@ func ApproveOrDenyMembershipInvitationHandler(app *App) func(c *iris.Context) {
 
 		_, err := models.ApproveOrDenyMembershipInvitation(
 			db,
+			app.Games,
 			gameID,
 			payload.PlayerPublicID,
 			clanPublicID,
