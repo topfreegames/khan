@@ -77,7 +77,7 @@ func BenchmarkRetrieveClan(b *testing.B) {
 	}
 
 	gameID := uuid.NewV4().String()
-	clan, _, _, _, err := models.GetClanWithMemberships(
+	_, clan, _, _, _, err := models.GetClanWithMemberships(
 		db, 50, gameID, uuid.NewV4().String(),
 	)
 
