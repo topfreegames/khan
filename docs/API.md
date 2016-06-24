@@ -43,28 +43,33 @@ Khan API
 
     ```
     {
-    	"publicID":                      [string],  // 36 characters max, must be unique
-    	"name":                          [string],  // 2000 characters max
-    	"metadata":                      [JSON],
-    	"minMembershipLevel":            [int],
-    	"maxMembershipLevel":            [int],
-    	"minLevelToAcceptApplication":   [int],
-    	"minLevelToCreateInvitation":    [int],
-    	"minLevelToRemoveMember":        [int],
-      "MinLevelOffsetToRemoveMember":  [int],
-    	"minLevelOffsetToPromoteMember": [int],
-    	"minLevelOffsetToDemoteMember":  [int],
-    	"maxMembers":                    [int]
-  	}
+      "publicID":                      [string],  // 36 characters max, must be unique
+      "name":                          [string],  // 2000 characters max
+      "metadata":                      [JSON],
+      "membershipLevels":              [JSON],
+      "minLevelToAcceptApplication":   [int],
+      "minLevelToCreateInvitation":    [int],
+      "minLevelToRemoveMember":        [int],
+      "minLevelOffsetToRemoveMember":  [int],
+      "minLevelOffsetToPromoteMember": [int],
+      "minLevelOffsetToDemoteMember":  [int],
+      "maxMembers":                    [int]
+    }
     ```
 
     Metadata is intended to include all game specific configuration that is not directly related to the khan's clan management. For example, clank ranking, clan trophies, clan description, etc.
 
     * Some parameters require special attention:
 
-      **minMembershipLevel**: Lowest membership level a clan member can have, if the member reaches this level they cannot be demoted.
-
-      **maxMembershipLevel**: Highest membership level a clan member can have, if the member reaches this level they cannot be promoted.
+      **membershipLevels**: Should be a JSON mapping levels (strings) to integers:
+      ```
+      {
+        "Member": 1,
+        "Elder": 2,
+        "CoLeader": 3
+      }
+      ```
+      The integer part of the level will be used to compare with `minLevel...` and `minLevelOffset...` when performing membership operations.
 
       **minLevelToAcceptApplication**: A member cannot accept a player's application to join the clan unless their level is greater or equal to this parameter.
 
@@ -130,17 +135,16 @@ Khan API
 
     ```
     {
-    	"name":                          [string],  // 2000 characters max
-    	"metadata":                      [JSON],
-    	"minMembershipLevel":            [int],
-    	"maxMembershipLevel":            [int],
-    	"minLevelToAcceptApplication":   [int],
-    	"minLevelToCreateInvitation":    [int],
-    	"minLevelToRemoveMember":        [int],
-    	"minLevelOffsetToPromoteMember": [int],
-    	"minLevelOffsetToDemoteMember":  [int],
-    	"maxMembers":                    [int]
-  	}
+      "name":                          [string],  // 2000 characters max
+      "metadata":                      [JSON],
+      "membershipLevels":              [JSON],
+      "minLevelToAcceptApplication":   [int],
+      "minLevelToCreateInvitation":    [int],
+      "minLevelToRemoveMember":        [int],
+      "minLevelOffsetToPromoteMember": [int],
+      "minLevelOffsetToDemoteMember":  [int],
+      "maxMembers":                    [int]
+    }
     ```
 
   * Success Response
@@ -207,7 +211,7 @@ More about web hooks can be found in [Using WebHooks](using_webhooks.html).
       "type": [int],             // Event Type
       "hookURL": [string]        // the URL to call with the payload
                                  // for the specified event.
-  	}
+    }
     ```
 
   * Success Response
@@ -281,9 +285,9 @@ More about web hooks can be found in [Using WebHooks](using_webhooks.html).
     ```
     {
       "publicID":                      [string],  // 255 characters max, must be unique for a given game
-    	"name":                          [string],  // 2000 characters max
-    	"metadata":                      [JSON]
-  	}
+      "name":                          [string],  // 2000 characters max
+      "metadata":                      [JSON]
+    }
     ```
 
     Metadata is intended to include all the player's game specific informations that are not directly related to the khan's clan management. For example, player ranking, player trophies, player level, etc.
@@ -341,9 +345,9 @@ More about web hooks can be found in [Using WebHooks](using_webhooks.html).
 
     ```
     {
-    	"name":                          [string],  // 2000 characters max
-    	"metadata":                      [JSON]
-  	}
+      "name":                          [string],  // 2000 characters max
+      "metadata":                      [JSON]
+    }
     ```
 
   * Success Response
@@ -406,30 +410,30 @@ More about web hooks can be found in [Using WebHooks](using_webhooks.html).
         "metadata": [JSON], // Player Metadata
         "createdAt": [int64], // timestamp in milliseconds of when the user was created
         "updatedAt": [int64]  // timestamp in milliseconds of when the user was last updated
-        
+
         //All clans the user is involved with show here
         "clans":{
           // Clans the player has been approved and is currently a member of
           "approved":[
             { "name": [string], "publicID": [string] }, // clan name and publicID
           ],
-  
+
           // Clans the player has been banned from
           "banned":[
             { "name": [string], "publicID": [string] }, // clan name and publicID
           ],
-  
+
           // Clans the player has been rejected from
           "denied":[   
             { "name": [string], "publicID": [string] }, // clan name and publicID
           ],
-  
+
           // Clans the player has pending applications to
           "pending":[
             { "name": [string], "publicID": [string] }, // clan name and publicID
           ]
         },
-  
+
         // All memberships this player has with details
         "memberships":[
           {
@@ -437,7 +441,7 @@ More about web hooks can be found in [Using WebHooks](using_webhooks.html).
             "approved": [bool],
             "denied": [bool],
             "banned": [bool],
-  
+
             //clan the user applied to
             "clan":{
               "metadata": [JSON],
@@ -447,8 +451,8 @@ More about web hooks can be found in [Using WebHooks](using_webhooks.html).
             "createdAt": [int64], // timestamp the user applied to a clan
             "updatedAt": [int64], // timestamp that the membership was last updated
             "deletedAt": [int64], // timestamp that the user was banned
-            "level": [int], // level of the user in this clan
-  
+            "level": [string],    // level of the user in this clan
+
             // User that requested membership
             // If the user was invited, this should be another player.
             // Otherwise, this is the same as the player.
@@ -565,7 +569,7 @@ More about web hooks can be found in [Using WebHooks](using_webhooks.html).
       "ownerPublicID":                 [string],  // must reference an existing player
       "allowApplication":              [boolean],
       "autoJoin":                      [boolean]
-  	}
+    }
     ```
 
     Metadata is intended to include all the clan's game specific informations that are not directly related to the khan's clan management.
@@ -619,12 +623,12 @@ More about web hooks can be found in [Using WebHooks](using_webhooks.html).
 
     ```
     {
-    	"name":                          [string],  // 2000 characters max
-    	"metadata":                      [JSON],
+      "name":                          [string],  // 2000 characters max
+      "metadata":                      [JSON],
       "ownerPublicID":                 [string],  // must match the clan owner's public id
       "AllowApplication":              [boolean],
       "AutoJoin":                      [boolean]
-  	}
+    }
     ```
 
     All parameters but the `ownerPublicID` will be updated.
@@ -682,7 +686,7 @@ More about web hooks can be found in [Using WebHooks](using_webhooks.html).
         ],
         "members": [
           {
-            "membershipLevel":     [int],
+            "membershipLevel":     [string],
             "membershipApproved":  [boolean],
             "membershipDenied":    [boolean],
             "membershipCreatedAt": [int],     // milliseconds since epoch
@@ -717,7 +721,7 @@ More about web hooks can be found in [Using WebHooks](using_webhooks.html).
     ```
     {
       "ownerPublicID": [string]  // must match the clan owner's public id
-  	}
+    }
     ```
 
   * Success Response
@@ -762,7 +766,7 @@ More about web hooks can be found in [Using WebHooks](using_webhooks.html).
     {
       "ownerPublicID": [string],  // must match the clan owner's public id
       "playerPublicID": [string]  // must match a clan member's public id
-  	}
+    }
     ```
 
   * Success Response
@@ -808,9 +812,9 @@ More about web hooks can be found in [Using WebHooks](using_webhooks.html).
 
     ```
     {
-      "level": [int],            // the level of the membership
+      "level": [string],         // the level of the membership
       "playerPublicID": [string] // the player's public id
-  	}
+    }
     ```
 
   * Success Response
@@ -856,10 +860,10 @@ More about web hooks can be found in [Using WebHooks](using_webhooks.html).
 
     ```
     {
-      "level": [int],               // the level of the membership
+      "level": [string],            // the level of the membership
       "playerPublicID": [string]    // the public id of player who made the application
       "RequestorPublicID": [string] // the public id of the clan member or the owner who will approve or deny the application
-  	}
+    }
     ```
 
   * Success Response
@@ -903,10 +907,10 @@ More about web hooks can be found in [Using WebHooks](using_webhooks.html).
 
     ```
     {
-      "level": [int],               // the level of the membership
+      "level": [string],            // the level of the membership
       "playerPublicID": [string],   // the public id player being invited
       "requestorPublicID": [string] // the public id of the member or the clan owner who is inviting
-  	}
+    }
     ```
 
   * Success Response
@@ -953,7 +957,7 @@ More about web hooks can be found in [Using WebHooks](using_webhooks.html).
     ```
     {
       "playerPublicID": [string] // the public id of player who was invited
-  	}
+    }
     ```
 
   * Success Response
@@ -1001,7 +1005,7 @@ More about web hooks can be found in [Using WebHooks](using_webhooks.html).
     {
       "playerPublicID": [string],   // the public id player being promoted or demoted
       "requestorPublicID": [string] // the public id of the member or the clan owner who is promoting or demoting
-  	}
+    }
     ```
 
   * Success Response
@@ -1047,7 +1051,7 @@ More about web hooks can be found in [Using WebHooks](using_webhooks.html).
     {
       "playerPublicID": [string],   // the public id player being deleted
       "requestorPublicID": [string] // the public id of the member or the clan owner who is deleting the membership
-  	}
+    }
     ```
 
   * Success Response

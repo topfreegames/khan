@@ -1,7 +1,7 @@
 Using Web Hooks
 ===============
 
-You can use khan's web hooks to send detailed event information to other servers. The use cases for this are plenty, since the need for integrating micro-services is very common. 
+You can use khan's web hooks to send detailed event information to other servers. The use cases for this are plenty, since the need for integrating micro-services is very common.
 
 One possible use case would be to notify the chat channel for your game with information about people joining/leaving the clan or for new applications.
 
@@ -33,15 +33,14 @@ So what types of events can you create Web Hooks for?
 
 Event Type: `0`
 
-Payload: 
+Payload:
 
     {
         "success": true,
         "publicID": [string],                       // Game ID.
         "name": [string],                           // Game Name.
         "metadata": [JSON],                         // JSON Object containing game metadata.
-        "minMembershipLevel": [int],                // Minimum level of membership.
-        "maxMembershipLevel": [int],                // Maximum level of membership.
+        "membershipLevels": [JSON],                 // JSON Object mapping membership levels
         "minLevelToAcceptApplication": [int],       // Minimum level of membership required
                                                     // to accept players into clan.
         "minLevelToCreateInvitation": [int],        // Minimum level of membership required
@@ -67,7 +66,7 @@ Payload:
         "success": true,
         "gameID":  [string],                        // Game ID
         "publicID": [string],                       // Created Player PublicID. This id should
-                                                    // be used when referring to the player in 
+                                                    // be used when referring to the player in
                                                     // future operations.
         "name": [string],                           // Player Name
         "metadata": [JSON],                         // JSON Object containing player metadata
@@ -83,7 +82,7 @@ Payload:
         "success": true,
         "gameID":  [string],                        // Game ID
         "publicID": [string],                       // Created Player PublicID. This id should
-                                                    // be used when referring to the player in 
+                                                    // be used when referring to the player in
                                                     // future operations.
         "name": [string],                           // Player Name
         "metadata": [JSON],                         // JSON Object containing player metadata
