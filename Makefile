@@ -62,6 +62,7 @@ run-docker:
 	@docker run -i -t --rm -e "KHAN_POSTGRES_HOST=10.0.20.81" -p 8080:8080 khan
 
 test: assets drop-test db-test
+	#@go test $(PACKAGES) -run TestMembershipHandler
 	@go test $(PACKAGES)
 
 coverage: drop-test db-test
@@ -85,6 +86,7 @@ db-test migrate-test:
 	@go run main.go migrate -c ./config/test.yaml
 
 drop-test:
+	@psql -d postgres -c "SELECT pg_terminate_backend(pid.pid) FROM pg_stat_activity, (SELECT pid FROM pg_stat_activity where pid <> pg_backend_pid()) pid WHERE datname='khan_test';"
 	@psql -d postgres -f db/drop-test.sql > /dev/null
 	@echo "Test database created successfully!"
 

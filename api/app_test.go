@@ -62,7 +62,7 @@ func Test(t *testing.T) {
 		})
 	})
 
-	g.Describe("App Load Games", func() {
+	g.Describe("App Games", func() {
 		g.It("should load all games", func() {
 			game := models.GameFactory.MustCreate().(*models.Game)
 			err := testDb.Insert(game)
@@ -74,6 +74,22 @@ func Test(t *testing.T) {
 			time.Sleep(time.Second)
 
 			g.Assert(app.Games[game.PublicID].ID).Equal(game.ID)
+		})
+
+		g.It("should get game by Public ID", func() {
+			game := models.GameFactory.MustCreate().(*models.Game)
+			err := testDb.Insert(game)
+			g.Assert(err == nil).IsTrue()
+
+			app := GetDefaultTestApp()
+
+			app.loadGames()
+			time.Sleep(time.Second)
+
+			appGame, err := app.GetGame(game.PublicID)
+			g.Assert(err == nil).IsTrue()
+
+			g.Assert(appGame.ID).Equal(game.ID)
 		})
 	})
 

@@ -26,7 +26,7 @@ func TestMembershipModel(t *testing.T) {
 
 	g.Describe("Membership Model", func() {
 		g.It("Should create a new Membership", func() {
-			_, _, _, _, memberships, err := GetClanWithMemberships(testDb, 1, "", "")
+			_, _, _, _, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 			g.Assert(err == nil).IsTrue()
 
 			membership := memberships[0]
@@ -42,7 +42,7 @@ func TestMembershipModel(t *testing.T) {
 		})
 
 		g.It("Should update a Membership", func() {
-			_, _, _, _, memberships, err := GetClanWithMemberships(testDb, 1, "", "")
+			_, _, _, _, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 			g.Assert(err == nil).IsTrue()
 			dt := memberships[0].UpdatedAt
 
@@ -55,7 +55,7 @@ func TestMembershipModel(t *testing.T) {
 		})
 
 		g.It("Should get existing Membership", func() {
-			_, _, _, _, memberships, err := GetClanWithMemberships(testDb, 1, "", "")
+			_, _, _, _, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 			g.Assert(err == nil).IsTrue()
 
 			dbMembership, err := GetMembershipByID(testDb, memberships[0].ID)
@@ -70,7 +70,7 @@ func TestMembershipModel(t *testing.T) {
 		})
 
 		g.It("Should get an existing Membership by the player public ID", func() {
-			_, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 1, "", "")
+			_, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 			g.Assert(err == nil).IsTrue()
 
 			dbMembership, err := GetMembershipByClanAndPlayerPublicID(testDb, players[0].GameID, clan.PublicID, players[0].PublicID)
@@ -98,7 +98,7 @@ func TestMembershipModel(t *testing.T) {
 			})
 
 			g.It("If Membership was deleted", func() {
-				_, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 1, "", "")
+				_, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				g.Assert(err == nil).IsTrue()
 
 				memberships[0].DeletedAt = time.Now().UnixNano() / 1000000
@@ -113,7 +113,7 @@ func TestMembershipModel(t *testing.T) {
 		})
 
 		g.It("Should get a deleted Membership by the player public ID using GetDeletedMembershipByClanAndPlayerPublicID", func() {
-			_, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 1, "", "")
+			_, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 			g.Assert(err == nil).IsTrue()
 
 			memberships[0].DeletedAt = time.Now().UnixNano() / 1000000
@@ -129,7 +129,7 @@ func TestMembershipModel(t *testing.T) {
 		})
 
 		g.It("Should not get a not deleted Membership by the player public ID using GetDeletedMembershipByClanAndPlayerPublicID", func() {
-			_, clan, _, players, _, err := GetClanWithMemberships(testDb, 1, "", "")
+			_, clan, _, players, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 			g.Assert(err == nil).IsTrue()
 
 			dbMembership, err := GetDeletedMembershipByClanAndPlayerPublicID(testDb, clan.GameID, clan.PublicID, players[0].PublicID)
@@ -139,7 +139,7 @@ func TestMembershipModel(t *testing.T) {
 
 		g.Describe("GetOldestMemberWithHighestLevel", func() {
 			g.It("Should get the member with the highest level", func() {
-				_, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 2, "", "")
+				_, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 2, "", "")
 				g.Assert(err == nil).IsTrue()
 
 				memberships[0].Level = "CoLeader"
@@ -152,7 +152,7 @@ func TestMembershipModel(t *testing.T) {
 			})
 
 			g.It("Should get the oldest member", func() {
-				_, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 2, "", "")
+				_, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 2, "", "")
 				g.Assert(err == nil).IsTrue()
 
 				memberships[0].CreatedAt -= 100000
@@ -166,7 +166,7 @@ func TestMembershipModel(t *testing.T) {
 			})
 
 			g.It("Should return an error if clan has no members", func() {
-				_, clan, _, _, _, err := GetClanWithMemberships(testDb, 0, "", "")
+				_, clan, _, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
 				g.Assert(err == nil).IsTrue()
 
 				dbMembership, err := GetOldestMemberWithHighestLevel(testDb, clan.GameID, clan.PublicID)
@@ -185,7 +185,7 @@ func TestMembershipModel(t *testing.T) {
 
 		g.Describe("Should create a new Membership with CreateMembership", func() {
 			g.It("If requestor is the player and clan.AllowApplication = true", func() {
-				game, clan, _, _, _, err := GetClanWithMemberships(testDb, 1, "", "")
+				game, clan, _, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				g.Assert(err == nil).IsTrue()
 
 				clan.AllowApplication = true
@@ -224,7 +224,7 @@ func TestMembershipModel(t *testing.T) {
 			})
 
 			g.It("And approve it automatically if requestor is the player, clan.AllowApplication=true and clan.AutoJoin=true", func() {
-				game, clan, _, _, _, err := GetClanWithMemberships(testDb, 1, "", "")
+				game, clan, _, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				g.Assert(err == nil).IsTrue()
 
 				clan.AllowApplication = true
@@ -264,7 +264,7 @@ func TestMembershipModel(t *testing.T) {
 			})
 
 			g.It("If requestor is the clan owner", func() {
-				game, clan, owner, _, _, err := GetClanWithMemberships(testDb, 1, "", "")
+				game, clan, owner, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				g.Assert(err == nil).IsTrue()
 
 				player := PlayerFactory.MustCreateWithOption(util.JSON{
@@ -299,7 +299,7 @@ func TestMembershipModel(t *testing.T) {
 			})
 
 			g.It("If requestor is a member of the clan with level greater than the min level", func() {
-				game, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 1, "", "")
+				game, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				g.Assert(err == nil).IsTrue()
 
 				player := PlayerFactory.MustCreateWithOption(util.JSON{
@@ -341,7 +341,7 @@ func TestMembershipModel(t *testing.T) {
 			})
 
 			g.It("If deleted previous membership", func() {
-				game, clan, owner, players, memberships, err := GetClanWithMemberships(testDb, 1, "", "")
+				game, clan, owner, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				g.Assert(err == nil).IsTrue()
 
 				memberships[0].DeletedAt = time.Now().UnixNano() / 1000000
@@ -406,7 +406,7 @@ func TestMembershipModel(t *testing.T) {
 			})
 
 			g.It("If player reached the game's MaxClansPerPlayer (member of another clans)", func() {
-				game, clan, owner, _, _, err := GetClanWithMemberships(testDb, 0, "", "")
+				game, clan, owner, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
 				g.Assert(err == nil).IsTrue()
 
 				player := PlayerFactory.MustCreateWithOption(util.JSON{
@@ -441,7 +441,7 @@ func TestMembershipModel(t *testing.T) {
 			})
 
 			g.It("If player reached the game's MaxClansPerPlayer (owner of another clan)", func() {
-				game, _, owner, players, _, err := GetClanWithMemberships(testDb, 1, "", "")
+				game, _, owner, players, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				g.Assert(err == nil).IsTrue()
 
 				anotherClan := ClanFactory.MustCreateWithOption(util.JSON{
@@ -470,7 +470,7 @@ func TestMembershipModel(t *testing.T) {
 			})
 
 			g.It("If requestor is the player and clan.AllowApplication = false", func() {
-				game, clan, _, _, _, err := GetClanWithMemberships(testDb, 1, "", "")
+				game, clan, _, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				g.Assert(err == nil).IsTrue()
 
 				player := PlayerFactory.MustCreateWithOption(util.JSON{
@@ -497,7 +497,7 @@ func TestMembershipModel(t *testing.T) {
 			})
 
 			g.It("Unexistent player", func() {
-				game, clan, owner, _, _, err := GetClanWithMemberships(testDb, 1, "", "")
+				game, clan, owner, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				g.Assert(err == nil).IsTrue()
 
 				playerPublicID := randomdata.FullName(randomdata.RandomGender)
@@ -540,7 +540,7 @@ func TestMembershipModel(t *testing.T) {
 			})
 
 			g.It("Unexistent requestor", func() {
-				game, clan, _, _, _, err := GetClanWithMemberships(testDb, 0, "", "")
+				game, clan, _, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
 				g.Assert(err == nil).IsTrue()
 
 				player := PlayerFactory.MustCreateWithOption(util.JSON{
@@ -567,7 +567,7 @@ func TestMembershipModel(t *testing.T) {
 			})
 
 			g.It("Requestor's level is less than min level", func() {
-				game, clan, _, players, _, err := GetClanWithMemberships(testDb, 1, "", "")
+				game, clan, _, players, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				g.Assert(err == nil).IsTrue()
 
 				games := map[string]*Game{game.PublicID: game}
@@ -593,7 +593,7 @@ func TestMembershipModel(t *testing.T) {
 			})
 
 			g.It("Membership already exists", func() {
-				game, clan, owner, players, _, err := GetClanWithMemberships(testDb, 1, "", "")
+				game, clan, owner, players, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				g.Assert(err == nil).IsTrue()
 
 				games := map[string]*Game{game.PublicID: game}
@@ -617,7 +617,7 @@ func TestMembershipModel(t *testing.T) {
 		g.Describe("Should approve a Membership invitation with ApproveOrDenyMembershipInvitation if", func() {
 			g.It("Player is not the membership requestor", func() {
 				action := "approve"
-				game, clan, _, players, _, err := GetClanWithMemberships(testDb, 1, "", "")
+				game, clan, _, players, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				g.Assert(err == nil).IsTrue()
 
 				games := map[string]*Game{game.PublicID: game}
@@ -664,7 +664,7 @@ func TestMembershipModel(t *testing.T) {
 
 			g.It("If player reached the game's MaxClansPerPlayer", func() {
 				action := "approve"
-				game, clan, owner, players, _, err := GetClanWithMemberships(testDb, 1, "", "")
+				game, clan, owner, players, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				g.Assert(err == nil).IsTrue()
 
 				anotherClan := ClanFactory.MustCreateWithOption(util.JSON{
@@ -704,7 +704,7 @@ func TestMembershipModel(t *testing.T) {
 
 			g.It("Player is the membership requestor", func() {
 				action := "approve"
-				game, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 1, "", "")
+				game, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				g.Assert(err == nil).IsTrue()
 
 				memberships[0].RequestorID = players[0].ID
@@ -727,7 +727,7 @@ func TestMembershipModel(t *testing.T) {
 
 			g.It("Membership does not exist", func() {
 				action := "approve"
-				game, clan, _, _, _, err := GetClanWithMemberships(testDb, 1, "", "")
+				game, clan, _, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				g.Assert(err == nil).IsTrue()
 
 				player := PlayerFactory.MustCreateWithOption(util.JSON{
@@ -752,7 +752,7 @@ func TestMembershipModel(t *testing.T) {
 
 			g.It("Membership is deleted", func() {
 				action := "approve"
-				game, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 1, "", "")
+				game, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				g.Assert(err == nil).IsTrue()
 
 				memberships[0].DeletedAt = time.Now().UnixNano() / 1000000
@@ -776,7 +776,7 @@ func TestMembershipModel(t *testing.T) {
 
 			g.It("Membership is already approved", func() {
 				action := "approve"
-				game, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 1, "", "")
+				game, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				g.Assert(err == nil).IsTrue()
 
 				memberships[0].Approved = true
@@ -799,7 +799,7 @@ func TestMembershipModel(t *testing.T) {
 
 			g.It("Membership is already denied", func() {
 				action := "approve"
-				game, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 1, "", "")
+				game, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				g.Assert(err == nil).IsTrue()
 
 				memberships[0].Denied = true
@@ -824,7 +824,7 @@ func TestMembershipModel(t *testing.T) {
 		g.Describe("Should deny a Membership invitation with ApproveOrDenyMembershipInvitation if", func() {
 			g.It("Player is not the membership requestor", func() {
 				action := "deny"
-				game, clan, _, players, _, err := GetClanWithMemberships(testDb, 1, "", "")
+				game, clan, _, players, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				g.Assert(err == nil).IsTrue()
 
 				games := map[string]*Game{game.PublicID: game}
@@ -851,7 +851,7 @@ func TestMembershipModel(t *testing.T) {
 
 		g.Describe("Should not ApproveOrDenyMembershipInvitation if", func() {
 			g.It("Invalid action", func() {
-				game, clan, _, players, _, err := GetClanWithMemberships(testDb, 1, "", "")
+				game, clan, _, players, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				g.Assert(err == nil).IsTrue()
 
 				games := map[string]*Game{game.PublicID: game}
@@ -872,7 +872,7 @@ func TestMembershipModel(t *testing.T) {
 		g.Describe("Should approve a Membership application with ApproveOrDenyMembershipApplication if", func() {
 			g.It("Owner", func() {
 				action := "approve"
-				game, clan, owner, players, memberships, err := GetClanWithMemberships(testDb, 1, "", "")
+				game, clan, owner, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				g.Assert(err == nil).IsTrue()
 
 				memberships[0].RequestorID = memberships[0].PlayerID
@@ -902,7 +902,7 @@ func TestMembershipModel(t *testing.T) {
 
 			g.It("Requestor is member of the clan with level > minLevel", func() {
 				action := "approve"
-				game, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 2, "", "")
+				game, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 2, "", "")
 				g.Assert(err == nil).IsTrue()
 
 				memberships[0].RequestorID = memberships[0].PlayerID
@@ -966,7 +966,7 @@ func TestMembershipModel(t *testing.T) {
 
 			g.It("If player reached the game's MaxClansPerPlayer", func() {
 				action := "approve"
-				game, clan, owner, players, memberships, err := GetClanWithMemberships(testDb, 1, "", "")
+				game, clan, owner, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				g.Assert(err == nil).IsTrue()
 
 				memberships[0].RequestorID = memberships[0].PlayerID
@@ -1010,7 +1010,7 @@ func TestMembershipModel(t *testing.T) {
 
 			g.It("Requestor is member of the clan with level < minLevel", func() {
 				action := "approve"
-				game, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 2, "", "")
+				game, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 2, "", "")
 				g.Assert(err == nil).IsTrue()
 
 				memberships[0].RequestorID = memberships[0].PlayerID
@@ -1040,7 +1040,7 @@ func TestMembershipModel(t *testing.T) {
 
 			g.It("Requestor is not approved member of the clan", func() {
 				action := "approve"
-				game, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 2, "", "")
+				game, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 2, "", "")
 				g.Assert(err == nil).IsTrue()
 
 				memberships[0].RequestorID = memberships[0].PlayerID
@@ -1070,7 +1070,7 @@ func TestMembershipModel(t *testing.T) {
 
 			g.It("Requestor is not member of the clan", func() {
 				action := "approve"
-				game, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 1, "", "")
+				game, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				g.Assert(err == nil).IsTrue()
 
 				memberships[0].RequestorID = memberships[0].PlayerID
@@ -1101,7 +1101,7 @@ func TestMembershipModel(t *testing.T) {
 
 			g.It("Requestor membership is deleted", func() {
 				action := "approve"
-				game, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 2, "", "")
+				game, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 2, "", "")
 				g.Assert(err == nil).IsTrue()
 
 				memberships[0].RequestorID = memberships[0].PlayerID
@@ -1131,7 +1131,7 @@ func TestMembershipModel(t *testing.T) {
 
 			g.It("Requestor is the player of the membership", func() {
 				action := "approve"
-				game, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 1, "", "")
+				game, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				g.Assert(err == nil).IsTrue()
 
 				memberships[0].RequestorID = memberships[0].PlayerID
@@ -1156,7 +1156,7 @@ func TestMembershipModel(t *testing.T) {
 
 			g.It("Player was not the membership requestor", func() {
 				action := "approve"
-				game, clan, owner, players, _, err := GetClanWithMemberships(testDb, 1, "", "")
+				game, clan, owner, players, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				g.Assert(err == nil).IsTrue()
 
 				games := map[string]*Game{game.PublicID: game}
@@ -1177,7 +1177,7 @@ func TestMembershipModel(t *testing.T) {
 
 			g.It("Membership does not exist", func() {
 				action := "approve"
-				game, clan, owner, _, _, err := GetClanWithMemberships(testDb, 0, "", "")
+				game, clan, owner, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
 				g.Assert(err == nil).IsTrue()
 
 				player := PlayerFactory.MustCreateWithOption(util.JSON{
@@ -1204,7 +1204,7 @@ func TestMembershipModel(t *testing.T) {
 
 			g.It("Membership is already approved", func() {
 				action := "approve"
-				game, clan, owner, players, memberships, err := GetClanWithMemberships(testDb, 1, "", "")
+				game, clan, owner, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				g.Assert(err == nil).IsTrue()
 
 				memberships[0].RequestorID = memberships[0].PlayerID
@@ -1230,7 +1230,7 @@ func TestMembershipModel(t *testing.T) {
 
 			g.It("Membership is already denied", func() {
 				action := "approve"
-				game, clan, owner, players, memberships, err := GetClanWithMemberships(testDb, 1, "", "")
+				game, clan, owner, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				g.Assert(err == nil).IsTrue()
 
 				memberships[0].RequestorID = memberships[0].PlayerID
@@ -1258,7 +1258,7 @@ func TestMembershipModel(t *testing.T) {
 		g.Describe("Should deny a Membership application with ApproveOrDenyMembershipApplication if", func() {
 			g.It("Owner", func() {
 				action := "deny"
-				game, clan, owner, players, memberships, err := GetClanWithMemberships(testDb, 1, "", "")
+				game, clan, owner, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				g.Assert(err == nil).IsTrue()
 
 				memberships[0].RequestorID = memberships[0].PlayerID
@@ -1290,7 +1290,7 @@ func TestMembershipModel(t *testing.T) {
 
 		g.Describe("Should not ApproveOrDenyMembershipApplication if", func() {
 			g.It("Invalid action", func() {
-				game, clan, owner, players, memberships, err := GetClanWithMemberships(testDb, 1, "", "")
+				game, clan, owner, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				g.Assert(err == nil).IsTrue()
 
 				memberships[0].RequestorID = memberships[0].PlayerID
@@ -1317,7 +1317,7 @@ func TestMembershipModel(t *testing.T) {
 		g.Describe("Should promote a member with PromoteOrDemoteMember", func() {
 			g.It("If requestor is the owner", func() {
 				action := "promote"
-				game, clan, owner, players, memberships, err := GetClanWithMemberships(testDb, 1, "", "")
+				game, clan, owner, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				g.Assert(err == nil).IsTrue()
 
 				memberships[0].Approved = true
@@ -1347,7 +1347,7 @@ func TestMembershipModel(t *testing.T) {
 
 			g.It("If requestor has enough level", func() {
 				action := "promote"
-				game, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 2, "", "")
+				game, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 2, "", "")
 				g.Assert(err == nil).IsTrue()
 
 				memberships[0].Approved = true
@@ -1384,7 +1384,7 @@ func TestMembershipModel(t *testing.T) {
 		g.Describe("Should not promote a member with PromoteOrDemoteMember", func() {
 			g.It("If requestor is the player", func() {
 				action := "promote"
-				game, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 1, "", "")
+				game, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				g.Assert(err == nil).IsTrue()
 
 				memberships[0].Approved = true
@@ -1409,7 +1409,7 @@ func TestMembershipModel(t *testing.T) {
 
 			g.It("If requestor does not have enough level", func() {
 				action := "promote"
-				game, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 2, "", "")
+				game, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 2, "", "")
 				g.Assert(err == nil).IsTrue()
 
 				memberships[0].Approved = true
@@ -1439,7 +1439,7 @@ func TestMembershipModel(t *testing.T) {
 
 			g.It("If requestor is not a clan member", func() {
 				action := "promote"
-				game, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 1, "", "")
+				game, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				g.Assert(err == nil).IsTrue()
 
 				memberships[0].Approved = true
@@ -1465,7 +1465,7 @@ func TestMembershipModel(t *testing.T) {
 
 			g.It("Requestor membership is deleted", func() {
 				action := "promote"
-				game, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 2, "", "")
+				game, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 2, "", "")
 				g.Assert(err == nil).IsTrue()
 
 				memberships[0].Approved = true
@@ -1494,7 +1494,7 @@ func TestMembershipModel(t *testing.T) {
 
 			g.It("If player is not a clan member", func() {
 				action := "promote"
-				game, clan, owner, _, _, err := GetClanWithMemberships(testDb, 1, "", "")
+				game, clan, owner, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				g.Assert(err == nil).IsTrue()
 
 				player := PlayerFactory.MustCreateWithOption(util.JSON{
@@ -1521,7 +1521,7 @@ func TestMembershipModel(t *testing.T) {
 
 			g.It("If player membership is not approved", func() {
 				action := "promote"
-				game, clan, owner, players, _, err := GetClanWithMemberships(testDb, 1, "", "")
+				game, clan, owner, players, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				g.Assert(err == nil).IsTrue()
 
 				games := map[string]*Game{game.PublicID: game}
@@ -1542,7 +1542,7 @@ func TestMembershipModel(t *testing.T) {
 
 			g.It("If player membership is denied", func() {
 				action := "promote"
-				game, clan, owner, players, memberships, err := GetClanWithMemberships(testDb, 1, "", "")
+				game, clan, owner, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				g.Assert(err == nil).IsTrue()
 
 				memberships[0].Denied = true
@@ -1567,7 +1567,7 @@ func TestMembershipModel(t *testing.T) {
 
 			g.It("If requestor membership is not approved", func() {
 				action := "promote"
-				game, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 2, "", "")
+				game, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 2, "", "")
 				g.Assert(err == nil).IsTrue()
 
 				memberships[0].Approved = true
@@ -1590,7 +1590,7 @@ func TestMembershipModel(t *testing.T) {
 
 			g.It("Player is already max level", func() {
 				action := "promote"
-				game, clan, owner, players, memberships, err := GetClanWithMemberships(testDb, 2, "", "")
+				game, clan, owner, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 2, "", "")
 				g.Assert(err == nil).IsTrue()
 
 				memberships[0].Approved = true
@@ -1617,7 +1617,7 @@ func TestMembershipModel(t *testing.T) {
 		g.Describe("Should demote a member with PromoteOrDemoteMember", func() {
 			g.It("If requestor is the owner", func() {
 				action := "demote"
-				game, clan, owner, players, memberships, err := GetClanWithMemberships(testDb, 1, "", "")
+				game, clan, owner, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				g.Assert(err == nil).IsTrue()
 
 				memberships[0].Level = "CoLeader"
@@ -1649,7 +1649,7 @@ func TestMembershipModel(t *testing.T) {
 		g.Describe("Should not demote a member with PromoteOrDemoteMember if", func() {
 			g.It("Player is already min level", func() {
 				action := "demote"
-				game, clan, owner, players, memberships, err := GetClanWithMemberships(testDb, 2, "", "")
+				game, clan, owner, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 2, "", "")
 				g.Assert(err == nil).IsTrue()
 
 				memberships[0].Approved = true
@@ -1675,7 +1675,7 @@ func TestMembershipModel(t *testing.T) {
 
 		g.Describe("Should not PromoteOrDemoteMember", func() {
 			g.It("Invalid action", func() {
-				game, clan, owner, players, memberships, err := GetClanWithMemberships(testDb, 1, "", "")
+				game, clan, owner, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				g.Assert(err == nil).IsTrue()
 
 				memberships[0].Approved = true
@@ -1701,7 +1701,7 @@ func TestMembershipModel(t *testing.T) {
 
 		g.Describe("Should delete a membership with DeleteMembership", func() {
 			g.It("If requestor is the owner", func() {
-				game, clan, owner, players, memberships, err := GetClanWithMemberships(testDb, 1, "", "")
+				game, clan, owner, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				g.Assert(err == nil).IsTrue()
 
 				games := map[string]*Game{game.PublicID: game}
@@ -1726,7 +1726,7 @@ func TestMembershipModel(t *testing.T) {
 			})
 
 			g.It("If requestor is the player", func() {
-				game, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 1, "", "")
+				game, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				g.Assert(err == nil).IsTrue()
 
 				games := map[string]*Game{game.PublicID: game}
@@ -1751,7 +1751,7 @@ func TestMembershipModel(t *testing.T) {
 			})
 
 			g.It("If requestor has enough level and offset", func() {
-				game, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 2, "", "")
+				game, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 2, "", "")
 				g.Assert(err == nil).IsTrue()
 
 				memberships[1].Level = "CoLeader"
@@ -1782,7 +1782,7 @@ func TestMembershipModel(t *testing.T) {
 
 		g.Describe("Should not delete a membership with DeleteMembership", func() {
 			g.It("If requestor does not have enough level", func() {
-				game, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 2, "", "")
+				game, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 2, "", "")
 				g.Assert(err == nil).IsTrue()
 
 				memberships[1].Level = "Member"
@@ -1805,7 +1805,7 @@ func TestMembershipModel(t *testing.T) {
 			})
 
 			g.It("If requestor has enough level but not enough offset", func() {
-				game, clan, _, players, _, err := GetClanWithMemberships(testDb, 2, "", "")
+				game, clan, _, players, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 2, "", "")
 				g.Assert(err == nil).IsTrue()
 
 				games := map[string]*Game{game.PublicID: game}
@@ -1823,7 +1823,7 @@ func TestMembershipModel(t *testing.T) {
 			})
 
 			g.It("If requestor is not a clan member", func() {
-				game, clan, _, players, _, err := GetClanWithMemberships(testDb, 1, "", "")
+				game, clan, _, players, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				g.Assert(err == nil).IsTrue()
 
 				requestor := PlayerFactory.MustCreateWithOption(util.JSON{
@@ -1848,7 +1848,7 @@ func TestMembershipModel(t *testing.T) {
 			})
 
 			g.It("If requestor membership is denied", func() {
-				game, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 2, "", "")
+				game, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 2, "", "")
 				g.Assert(err == nil).IsTrue()
 
 				memberships[1].Level = "CoLeader"
@@ -1871,7 +1871,7 @@ func TestMembershipModel(t *testing.T) {
 			})
 
 			g.It("If requestor membership is not approved", func() {
-				game, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 2, "", "")
+				game, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 2, "", "")
 				g.Assert(err == nil).IsTrue()
 
 				memberships[1].Level = "CoLeader"
