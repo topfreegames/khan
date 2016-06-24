@@ -1,5 +1,5 @@
-hash: 8af91584de43a44cd938d8fb768226ac4c794e56a813f8ff337ddecb446375d7
-updated: 2016-06-16T18:24:31.415725957-03:00
+hash: 946780c6fc68dcca207251365e0983665fff26475a7731f87cba21a6d80324d4
+updated: 2016-06-24T10:48:53.819231799-03:00
 imports:
 - name: github.com/ajg/form
   version: e7b99d6ea9c58e7bb6b2c1059b9ba748cdff22b0
@@ -46,6 +46,12 @@ imports:
   version: 9235644dd9e52eeae6fa48efd539fdc351a0af53
   subpackages:
   - query
+- name: github.com/gosuri/uilive
+  version: efb88ccd059957c48f24f9d351d33a0eb00ede41
+- name: github.com/gosuri/uiprogress
+  version: a9f819bfc744fe70043abcc5a6cd0137a678e3d8
+  subpackages:
+  - util/strutil
 - name: github.com/hashicorp/hcl
   version: d7400db7143f8e869812e50a53acd6c8d92af3b8
   subpackages:
@@ -108,7 +114,6 @@ imports:
 - name: github.com/lib/pq
   version: ee1442bda7bd1b6a84e913bdb421cb1874ec629d
   subpackages:
-  - hstore
   - oid
 - name: github.com/magiconair/properties
   version: c265cfa48dda6474e208715ca93e987829f572f8
