@@ -47,9 +47,15 @@ func ApplyForMembershipHandler(app *App) func(c *iris.Context) {
 
 		db := GetCtxDB(c)
 
-		_, err := models.CreateMembership(
+		game, err := app.GetGame(gameID)
+		if err != nil {
+			FailWith(404, err.Error(), c)
+			return
+		}
+
+		_, err = models.CreateMembership(
 			db,
-			app.Games,
+			game,
 			gameID,
 			payload.Level,
 			payload.PlayerPublicID,
@@ -80,9 +86,15 @@ func InviteForMembershipHandler(app *App) func(c *iris.Context) {
 
 		db := GetCtxDB(c)
 
-		_, err := models.CreateMembership(
+		game, err := app.GetGame(gameID)
+		if err != nil {
+			FailWith(404, err.Error(), c)
+			return
+		}
+
+		_, err = models.CreateMembership(
 			db,
-			app.Games,
+			game,
 			gameID,
 			payload.Level,
 			payload.PlayerPublicID,
@@ -115,9 +127,15 @@ func ApproveOrDenyMembershipApplicationHandler(app *App) func(c *iris.Context) {
 
 		db := GetCtxDB(c)
 
-		_, err := models.ApproveOrDenyMembershipApplication(
+		game, err := app.GetGame(gameID)
+		if err != nil {
+			FailWith(404, err.Error(), c)
+			return
+		}
+
+		_, err = models.ApproveOrDenyMembershipApplication(
 			db,
-			app.Games,
+			game,
 			gameID,
 			payload.PlayerPublicID,
 			clanPublicID,
@@ -149,9 +167,15 @@ func ApproveOrDenyMembershipInvitationHandler(app *App) func(c *iris.Context) {
 
 		db := GetCtxDB(c)
 
-		_, err := models.ApproveOrDenyMembershipInvitation(
+		game, err := app.GetGame(gameID)
+		if err != nil {
+			FailWith(404, err.Error(), c)
+			return
+		}
+
+		_, err = models.ApproveOrDenyMembershipInvitation(
 			db,
-			app.Games,
+			game,
 			gameID,
 			payload.PlayerPublicID,
 			clanPublicID,
@@ -181,9 +205,15 @@ func DeleteMembershipHandler(app *App) func(c *iris.Context) {
 
 		db := GetCtxDB(c)
 
-		err := models.DeleteMembership(
+		game, err := app.GetGame(gameID)
+		if err != nil {
+			FailWith(404, err.Error(), c)
+			return
+		}
+
+		err = models.DeleteMembership(
 			db,
-			app.Games,
+			game,
 			gameID,
 			payload.PlayerPublicID,
 			clanPublicID,
@@ -213,9 +243,15 @@ func PromoteOrDemoteMembershipHandler(app *App, action string) func(c *iris.Cont
 
 		db := GetCtxDB(c)
 
+		game, err := app.GetGame(gameID)
+		if err != nil {
+			FailWith(404, err.Error(), c)
+			return
+		}
+
 		membership, err := models.PromoteOrDemoteMember(
 			db,
-			app.Games,
+			game,
 			gameID,
 			payload.PlayerPublicID,
 			clanPublicID,

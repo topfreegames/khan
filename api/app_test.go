@@ -16,6 +16,7 @@ import (
 	"time"
 
 	. "github.com/franela/goblin"
+	"github.com/satori/go.uuid"
 	"github.com/topfreegames/khan/models"
 	"github.com/topfreegames/khan/util"
 )
@@ -47,7 +48,6 @@ func startRouteHandler(routes []string, port int) *[]util.JSON {
 }
 
 func Test(t *testing.T) {
-	t.Parallel()
 	g := Goblin(t)
 
 	testDb, err := models.GetTestDB()
@@ -70,10 +70,9 @@ func Test(t *testing.T) {
 
 			app := GetDefaultTestApp()
 
-			app.loadGames()
-			time.Sleep(time.Second)
-
-			g.Assert(app.Games[game.PublicID].ID).Equal(game.ID)
+			appGame, err := app.GetGame(game.PublicID)
+			g.Assert(err == nil).IsTrue()
+			g.Assert(appGame.ID).Equal(game.ID)
 		})
 
 		g.It("should get game by Public ID", func() {
@@ -82,9 +81,6 @@ func Test(t *testing.T) {
 			g.Assert(err == nil).IsTrue()
 
 			app := GetDefaultTestApp()
-
-			app.loadGames()
-			time.Sleep(time.Second)
 
 			appGame, err := app.GetGame(game.PublicID)
 			g.Assert(err == nil).IsTrue()
@@ -95,17 +91,17 @@ func Test(t *testing.T) {
 
 	g.Describe("App Load Hooks", func() {
 		g.It("should load all hooks", func() {
-			app := GetDefaultTestApp()
-
-			_, err := models.GetTestHooks(testDb, "app-game-id", 2)
+			gameID := uuid.NewV4().String()
+			_, err := models.GetTestHooks(testDb, gameID, 2)
 			g.Assert(err == nil).IsTrue()
 
-			app.loadHooks()
-			time.Sleep(time.Second)
+			app := GetDefaultTestApp()
 
-			g.Assert(len(app.Hooks["app-game-id"])).Equal(2)
-			g.Assert(len(app.Hooks["app-game-id"][0])).Equal(2)
-			g.Assert(len(app.Hooks["app-game-id"][1])).Equal(2)
+			hooks := app.GetHooks()
+			fmt.Println(gameID, hooks)
+			g.Assert(len(hooks[gameID])).Equal(2)
+			g.Assert(len(hooks[gameID][0])).Equal(2)
+			g.Assert(len(hooks[gameID][1])).Equal(2)
 		})
 	})
 

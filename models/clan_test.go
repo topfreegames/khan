@@ -20,7 +20,6 @@ import (
 )
 
 func TestClanModel(t *testing.T) {
-	t.Parallel()
 	g := Goblin(t)
 	testDb, _err := GetTestDB()
 	g.Assert(_err == nil).IsTrue()

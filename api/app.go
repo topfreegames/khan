@@ -33,8 +33,8 @@ type App struct {
 	App        *iris.Framework
 	Db         models.DB
 	Config     *viper.Viper
-	Hooks      map[string]map[int][]*models.Hook
-	Games      map[string]*models.Game
+	//hooks      map[string]map[int][]*models.Hook
+	//games      map[string]*models.Game
 }
 
 // GetApp returns a new Khan API Application
@@ -56,8 +56,8 @@ func (app *App) Configure() {
 	app.loadConfiguration()
 	app.connectDatabase()
 	app.configureApplication()
-	app.loadGames()
-	app.loadHooks()
+	//app.loadGames()
+	//app.loadHooks()
 }
 
 func (app *App) setConfigurationDefaults() {
@@ -147,56 +147,33 @@ func (app *App) configureApplication() {
 	a.Post("/games/:gameID/clans/:clanPublicID/memberships/demote", PromoteOrDemoteMembershipHandler(app, "demote"))
 }
 
-func (app *App) loadHooks() {
-	app.Hooks = make(map[string]map[int][]*models.Hook)
-
-	go (func(a *App) {
-		hooks, err := models.GetAllHooks(a.Db)
-		if err != nil {
-			glog.Fatalf(
-				"Failed to retrieve hooks: %s", err.Error(),
-			)
-		}
-		for _, hook := range hooks {
-			if app.Hooks[hook.GameID] == nil {
-				app.Hooks[hook.GameID] = make(map[int][]*models.Hook)
-			}
-			app.Hooks[hook.GameID][hook.EventType] = append(
-				app.Hooks[hook.GameID][hook.EventType],
-				hook,
-			)
-		}
-
-		time.Sleep(time.Minute)
-	})(app)
-}
-
-func (app *App) loadGames() {
-	app.Games = make(map[string]*models.Game)
-
-	go (func(a *App) {
-		games, err := models.GetAllGames(a.Db)
-		if err != nil {
-			glog.Fatalf(
-				"Failed to retrieve games: %s", err.Error(),
-			)
-		}
-		for _, game := range games {
-			app.Games[game.PublicID] = game
-		}
-
-		time.Sleep(time.Minute)
-	})(app)
-}
-
-func (app *App) GetGame(gameID string) (*models.Game, error) {
-	var game *models.Game
-	var gameValid bool
-
-	if game, gameValid = app.Games[gameID]; !gameValid {
-		return nil, &models.ModelNotFoundError{Type: "Game", ID: gameID}
+//GetHooks returns all available hooks
+func (app *App) GetHooks() map[string]map[int][]*models.Hook {
+	dbHooks, err := models.GetAllHooks(app.Db)
+	if err != nil {
+		glog.Fatalf(
+			"Failed to retrieve hooks: %s", err.Error(),
+		)
+		return nil
 	}
-	return game, nil
+
+	hooks := make(map[string]map[int][]*models.Hook)
+	for _, hook := range dbHooks {
+		if hooks[hook.GameID] == nil {
+			hooks[hook.GameID] = make(map[int][]*models.Hook)
+		}
+		hooks[hook.GameID][hook.EventType] = append(
+			hooks[hook.GameID][hook.EventType],
+			hook,
+		)
+	}
+
+	return hooks
+}
+
+//GetGame returns a game by Public ID
+func (app *App) GetGame(gameID string) (*models.Game, error) {
+	return models.GetGameByPublicID(app.Db, gameID)
 }
 
 //HookNotFoundError means that hooks for the specified game and event type were not found
@@ -211,10 +188,11 @@ func (hook *HookNotFoundError) Error() string {
 
 // DispatchHooks dispatches web hooks for a specific game and event type
 func (app *App) DispatchHooks(gameID string, eventType int, payload util.JSON) error {
-	if _, ok := app.Hooks[gameID]; !ok {
+	hooks := app.GetHooks()
+	if _, ok := hooks[gameID]; !ok {
 		return &HookNotFoundError{GameID: gameID, EventType: eventType}
 	}
-	if _, ok := app.Hooks[gameID][eventType]; !ok {
+	if _, ok := hooks[gameID][eventType]; !ok {
 		return &HookNotFoundError{GameID: gameID, EventType: eventType}
 	}
 
@@ -225,7 +203,7 @@ func (app *App) DispatchHooks(gameID string, eventType int, payload util.JSON) e
 	}
 
 	var errors []error
-	for _, hook := range app.Hooks[gameID][eventType] {
+	for _, hook := range hooks[gameID][eventType] {
 		glog.Infof("Sending webhook to %s", hook.URL)
 
 		client := fasthttp.Client{

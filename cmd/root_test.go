@@ -19,7 +19,6 @@ import (
 var out io.Writer = os.Stdout
 
 func Test(t *testing.T) {
-	t.Parallel()
 	g := Goblin(t)
 
 	g.Describe("Root Cmd", func() {

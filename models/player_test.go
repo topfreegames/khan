@@ -18,7 +18,6 @@ import (
 )
 
 func TestPlayerModel(t *testing.T) {
-	t.Parallel()
 	g := Goblin(t)
 	testDb, err := GetTestDB()
 
