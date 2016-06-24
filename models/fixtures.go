@@ -153,7 +153,7 @@ var MembershipFactory = factory.NewFactory(
 
 // GetClanWithMemberships returns a clan filled with the number of memberships specified
 func GetClanWithMemberships(
-	db DB, numberOfMemberships int, gameID string, clanPublicID string,
+	db DB, approvedMemberships, deniedMemberships, bannedMemberships, pendingMemberships int, gameID string, clanPublicID string,
 ) (*Game, *Clan, *Player, []*Player, []*Membership, error) {
 	if gameID == "" {
 		gameID = uuid.NewV4().String()
@@ -178,19 +178,6 @@ func GetClanWithMemberships(
 		return nil, nil, nil, nil, nil, err
 	}
 
-	var players []*Player
-
-	for i := 0; i < numberOfMemberships; i++ {
-		player := PlayerFactory.MustCreateWithOption(util.JSON{
-			"GameID": owner.GameID,
-		}).(*Player)
-		err = db.Insert(player)
-		if err != nil {
-			return nil, nil, nil, nil, nil, err
-		}
-		players = append(players, player)
-	}
-
 	clan := ClanFactory.MustCreateWithOption(util.JSON{
 		"GameID":   owner.GameID,
 		"PublicID": clanPublicID,
@@ -202,24 +189,71 @@ func GetClanWithMemberships(
 		return nil, nil, nil, nil, nil, err
 	}
 
+	testData := []util.JSON{
+		util.JSON{
+			"approved": true,
+			"denied":   false,
+			"banned":   false,
+			"count":    approvedMemberships,
+		},
+		util.JSON{
+			"approved": false,
+			"denied":   true,
+			"banned":   false,
+			"count":    deniedMemberships,
+		},
+		util.JSON{
+			"approved": false,
+			"denied":   false,
+			"banned":   true,
+			"count":    bannedMemberships,
+		},
+		util.JSON{
+			"approved": false,
+			"denied":   false,
+			"banned":   false,
+			"count":    pendingMemberships,
+		},
+	}
+
+	var players []*Player
 	var memberships []*Membership
 
-	for i := 0; i < numberOfMemberships; i++ {
-		membership := MembershipFactory.MustCreateWithOption(util.JSON{
-			"GameID":      owner.GameID,
-			"PlayerID":    players[i].ID,
-			"ClanID":      clan.ID,
-			"RequestorID": owner.ID,
-			"Metadata":    util.JSON{"x": "a"},
-			"Level":       "Member",
-		}).(*Membership)
+	for _, data := range testData {
+		approved := data["approved"].(bool)
+		denied := data["denied"].(bool)
+		banned := data["banned"].(bool)
+		count := data["count"].(int)
 
-		err = db.Insert(membership)
-		if err != nil {
-			return nil, nil, nil, nil, nil, err
+		for i := 0; i < count; i++ {
+			player := PlayerFactory.MustCreateWithOption(util.JSON{
+				"GameID": owner.GameID,
+			}).(*Player)
+			err = db.Insert(player)
+			if err != nil {
+				return nil, nil, nil, nil, nil, err
+			}
+			players = append(players, player)
+
+			membership := MembershipFactory.MustCreateWithOption(util.JSON{
+				"GameID":      owner.GameID,
+				"PlayerID":    player.ID,
+				"ClanID":      clan.ID,
+				"RequestorID": owner.ID,
+				"Metadata":    util.JSON{"x": "a"},
+				"Level":       "Member",
+				"Approved":    approved,
+				"Denied":      denied,
+				"Banned":      banned,
+			}).(*Membership)
+
+			err = db.Insert(membership)
+			if err != nil {
+				return nil, nil, nil, nil, nil, err
+			}
+
+			memberships = append(memberships, membership)
 		}
-
-		memberships = append(memberships, membership)
 	}
 
 	return game, clan, owner, players, memberships, nil

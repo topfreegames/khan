@@ -28,7 +28,7 @@ func TestMembershipHandler(t *testing.T) {
 
 	g.Describe("Apply For Membership Handler", func() {
 		g.It("Should create membership application", func() {
-			_, clan, _, _, _, err := models.GetClanWithMemberships(testDb, 0, "", "")
+			_, clan, _, _, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
 			g.Assert(err == nil).IsTrue()
 
 			clan.AllowApplication = true
@@ -97,7 +97,7 @@ func TestMembershipHandler(t *testing.T) {
 
 		g.It("Should not create membership application if player does not exist", func() {
 			playerPublicID := randomdata.FullName(randomdata.RandomGender)
-			_, clan, _, _, _, err := models.GetClanWithMemberships(testDb, 0, "", "")
+			_, clan, _, _, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
 			g.Assert(err == nil).IsTrue()
 
 			gameID := clan.GameID
@@ -121,7 +121,7 @@ func TestMembershipHandler(t *testing.T) {
 		})
 
 		g.It("Should not create membership application if invalid data", func() {
-			_, clan, _, _, _, err := models.GetClanWithMemberships(testDb, 0, "", "")
+			_, clan, _, _, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
 			g.Assert(err == nil).IsTrue()
 
 			player := models.PlayerFactory.MustCreateWithOption(util.JSON{
@@ -152,7 +152,7 @@ func TestMembershipHandler(t *testing.T) {
 
 	g.Describe("Invite For Membership Handler", func() {
 		g.It("Should create membership invitation if clan owner", func() {
-			_, clan, owner, _, _, err := models.GetClanWithMemberships(testDb, 0, "", "")
+			_, clan, owner, _, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
 			g.Assert(err == nil).IsTrue()
 
 			player := models.PlayerFactory.MustCreateWithOption(util.JSON{
@@ -190,7 +190,7 @@ func TestMembershipHandler(t *testing.T) {
 		})
 
 		g.It("Should create membership invitation if requestor has level greater than min level", func() {
-			_, clan, _, players, memberships, err := models.GetClanWithMemberships(testDb, 1, "", "")
+			_, clan, _, players, memberships, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 			g.Assert(err == nil).IsTrue()
 
 			memberships[0].Level = "CoLeader"
@@ -262,7 +262,7 @@ func TestMembershipHandler(t *testing.T) {
 
 		g.It("Should not create membership invitation if player does not exist", func() {
 			playerPublicID := randomdata.FullName(randomdata.RandomGender)
-			_, clan, owner, _, _, err := models.GetClanWithMemberships(testDb, 0, "", "")
+			_, clan, owner, _, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
 			g.Assert(err == nil).IsTrue()
 
 			gameID := owner.GameID
@@ -287,7 +287,7 @@ func TestMembershipHandler(t *testing.T) {
 		})
 
 		g.It("Should not create membership invitation if invalid data", func() {
-			_, clan, owner, _, _, err := models.GetClanWithMemberships(testDb, 0, "", "")
+			_, clan, owner, _, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
 			g.Assert(err == nil).IsTrue()
 
 			player := models.PlayerFactory.MustCreateWithOption(util.JSON{
@@ -319,7 +319,7 @@ func TestMembershipHandler(t *testing.T) {
 
 	g.Describe("Approve Or Deny Membership Invitation Handler", func() {
 		g.It("Should approve membership invitation", func() {
-			_, clan, _, players, _, err := models.GetClanWithMemberships(testDb, 1, "", "")
+			_, clan, _, players, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 			g.Assert(err == nil).IsTrue()
 
 			gameID := clan.GameID
@@ -346,7 +346,7 @@ func TestMembershipHandler(t *testing.T) {
 		})
 
 		g.It("Should deny membership invitation", func() {
-			_, clan, _, players, _, err := models.GetClanWithMemberships(testDb, 1, "", "")
+			_, clan, _, players, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 			g.Assert(err == nil).IsTrue()
 
 			gameID := clan.GameID
@@ -401,7 +401,7 @@ func TestMembershipHandler(t *testing.T) {
 
 		g.It("Should not approve membership invitation if player does not exist", func() {
 			playerPublicID := randomdata.FullName(randomdata.RandomGender)
-			_, clan, owner, _, _, err := models.GetClanWithMemberships(testDb, 0, "", "")
+			_, clan, owner, _, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
 			g.Assert(err == nil).IsTrue()
 
 			gameID := owner.GameID
@@ -425,7 +425,7 @@ func TestMembershipHandler(t *testing.T) {
 
 	g.Describe("Approve Or Deny Membership Application Handler", func() {
 		g.It("Should approve membership application", func() {
-			_, clan, owner, players, memberships, err := models.GetClanWithMemberships(testDb, 1, "", "")
+			_, clan, owner, players, memberships, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 			g.Assert(err == nil).IsTrue()
 
 			memberships[0].RequestorID = memberships[0].PlayerID
@@ -454,7 +454,7 @@ func TestMembershipHandler(t *testing.T) {
 		})
 
 		g.It("Should deny membership application", func() {
-			_, clan, owner, players, memberships, err := models.GetClanWithMemberships(testDb, 1, "", "")
+			_, clan, owner, players, memberships, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 			g.Assert(err == nil).IsTrue()
 
 			memberships[0].RequestorID = memberships[0].PlayerID
@@ -511,7 +511,7 @@ func TestMembershipHandler(t *testing.T) {
 
 		g.It("Should not approve membership application if player does not exist", func() {
 			playerPublicID := randomdata.FullName(randomdata.RandomGender)
-			_, clan, owner, _, _, err := models.GetClanWithMemberships(testDb, 0, "", "")
+			_, clan, owner, _, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
 			g.Assert(err == nil).IsTrue()
 
 			gameID := owner.GameID
@@ -536,7 +536,7 @@ func TestMembershipHandler(t *testing.T) {
 
 	g.Describe("Promote Or Demote Member Handler", func() {
 		g.It("Should promote member", func() {
-			_, clan, owner, players, memberships, err := models.GetClanWithMemberships(testDb, 1, "", "")
+			_, clan, owner, players, memberships, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 			g.Assert(err == nil).IsTrue()
 
 			memberships[0].Approved = true
@@ -565,7 +565,7 @@ func TestMembershipHandler(t *testing.T) {
 		})
 
 		g.It("Should demote member", func() {
-			_, clan, owner, players, memberships, err := models.GetClanWithMemberships(testDb, 1, "", "")
+			_, clan, owner, players, memberships, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 			g.Assert(err == nil).IsTrue()
 
 			memberships[0].Approved = true
@@ -623,7 +623,7 @@ func TestMembershipHandler(t *testing.T) {
 
 		g.It("Should not promote member if player does not exist", func() {
 			playerPublicID := randomdata.FullName(randomdata.RandomGender)
-			_, clan, owner, _, _, err := models.GetClanWithMemberships(testDb, 0, "", "")
+			_, clan, owner, _, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
 			g.Assert(err == nil).IsTrue()
 
 			gameID := owner.GameID
@@ -648,7 +648,7 @@ func TestMembershipHandler(t *testing.T) {
 
 	g.Describe("Delete Member Handler", func() {
 		g.It("Should delete member", func() {
-			_, clan, owner, players, _, err := models.GetClanWithMemberships(testDb, 1, "", "")
+			_, clan, owner, players, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 			g.Assert(err == nil).IsTrue()
 
 			gameID := clan.GameID
@@ -701,7 +701,7 @@ func TestMembershipHandler(t *testing.T) {
 
 		g.It("Should not delete member if player does not exist", func() {
 			playerPublicID := randomdata.FullName(randomdata.RandomGender)
-			_, clan, owner, _, _, err := models.GetClanWithMemberships(testDb, 0, "", "")
+			_, clan, owner, _, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
 			g.Assert(err == nil).IsTrue()
 
 			gameID := owner.GameID

@@ -273,7 +273,7 @@ func GetAllClans(db DB, gameID string) ([]Clan, error) {
 }
 
 // GetClanDetails returns all details for a given clan by its game id and public id
-func GetClanDetails(db DB, gameID, publicID string) (util.JSON, error) {
+func GetClanDetails(db DB, gameID, publicID string, maxClansPerPlayer int) (util.JSON, error) {
 	query := `
 	SELECT
 		c.game_id GameID,
@@ -283,12 +283,27 @@ func GetClanDetails(db DB, gameID, publicID string) (util.JSON, error) {
 		m.created_at MembershipCreatedAt, m.updated_at MembershipUpdatedAt,
 		o.public_id OwnerPublicID, o.name OwnerName, o.metadata OwnerMetadata,
 		p.public_id PlayerPublicID, p.name PlayerName, p.metadata DBPlayerMetadata,
-		r.public_id RequestorPublicID, r.name RequestorName
+		r.public_id RequestorPublicID, r.name RequestorName,
+		Coalesce(apm.membership_count, 0) MembershipCount,
+		Coalesce(com.ownership_count, 0) OwnershipCount
 	FROM clans c
 		INNER JOIN players o ON c.owner_id=o.id
 		LEFT OUTER JOIN memberships m ON m.clan_id=c.id AND m.deleted_at=0
 		LEFT OUTER JOIN players r ON m.requestor_id=r.id
 		LEFT OUTER JOIN players p ON m.player_id=p.id
+		LEFT OUTER JOIN (
+			SELECT 
+				memberships.clan_id, memberships.player_id, count(*) membership_count 
+			FROM memberships
+			WHERE memberships.approved=true
+			GROUP BY memberships.clan_id, memberships.player_id
+		) apm ON apm.clan_id=c.id AND apm.player_id=p.id
+		LEFT OUTER JOIN (
+			SELECT 
+				clans.owner_id, count(*) ownership_count 
+			FROM clans
+			GROUP BY clans.owner_id
+		) com ON com.owner_id=p.id
 	WHERE
 		c.game_id=$1 AND c.public_id=$2
 	`
@@ -316,16 +331,45 @@ func GetClanDetails(db DB, gameID, publicID string) (util.JSON, error) {
 
 	if details[0].PlayerPublicID.Valid {
 		// First row player public id is not null, meaning we found players!
+		player := details[0]
 
-		result["members"] = make([]util.JSON, len(details))
-		memberList := result["members"].([]util.JSON)
+		result["roster"] = make([]util.JSON, 0)
+		result["memberships"] = util.JSON{
+			"pending": []util.JSON{},
+			"banned":  []util.JSON{},
+			"denied":  []util.JSON{},
+		}
+		memberships := result["memberships"].(util.JSON)
 
-		for index, member := range details {
-			memberList[index] = member.Serialize()
+		for _, member := range details {
+			approved := nullOrBool(player.MembershipApproved)
+			denied := nullOrBool(player.MembershipDenied)
+			banned := nullOrBool(player.MembershipBanned)
+			pending := !approved && !denied && !banned
+
+			memberData := member.Serialize()
+
+			switch {
+			case pending:
+				if member.MembershipCount+member.OwnershipCount < maxClansPerPlayer {
+					memberships["pending"] = append(memberships["pending"].([]util.JSON), memberData)
+				}
+			case banned:
+				memberships["banned"] = append(memberships["banned"].([]util.JSON), memberData)
+			case denied:
+				memberships["denied"] = append(memberships["denied"].([]util.JSON), memberData)
+			case approved:
+				result["roster"] = append(result["roster"].([]util.JSON), memberData)
+			}
 		}
 	} else {
 		//Otherwise return empty array of object
-		result["members"] = []util.JSON{}
+		result["roster"] = []util.JSON{}
+		result["memberships"] = util.JSON{
+			"pending": []util.JSON{},
+			"banned":  []util.JSON{},
+			"denied":  []util.JSON{},
+		}
 	}
 
 	return result, nil

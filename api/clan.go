@@ -248,10 +248,16 @@ func RetrieveClanHandler(app *App) func(c *iris.Context) {
 		gameID := c.Param("gameID")
 		publicID := c.Param("clanPublicID")
 
+		game, err := app.GetGame(gameID)
+		if err != nil {
+			FailWith(404, err.Error(), c)
+		}
+
 		clan, err := models.GetClanDetails(
 			db,
 			gameID,
 			publicID,
+			game.MaxClansPerPlayer,
 		)
 
 		if err != nil {

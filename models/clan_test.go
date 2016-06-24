@@ -184,7 +184,7 @@ func TestClanModel(t *testing.T) {
 			})
 
 			g.It("Should not create a new Clan with CreateClan if reached MaxClansPerPlayer", func() {
-				game, _, owner, _, _, err := GetClanWithMemberships(testDb, 1, "", "")
+				game, _, owner, _, _, err := GetClanWithMemberships(testDb, 1, 0, 0, 0, "", "")
 				g.Assert(err == nil).IsTrue()
 
 				_, err = CreateClan(
@@ -299,7 +299,7 @@ func TestClanModel(t *testing.T) {
 		g.Describe("Leave Clan", func() {
 			g.Describe("Should leave a Clan with LeaveClan if clan owner", func() {
 				g.It("And clan has memberships", func() {
-					_, clan, owner, _, memberships, err := GetClanWithMemberships(testDb, 1, "", "")
+					_, clan, owner, _, memberships, err := GetClanWithMemberships(testDb, 1, 0, 0, 0, "", "")
 					g.Assert(err == nil).IsTrue()
 
 					err = LeaveClan(testDb, clan.GameID, clan.PublicID, owner.PublicID)
@@ -315,7 +315,7 @@ func TestClanModel(t *testing.T) {
 				})
 
 				g.It("And clan has no memberships", func() {
-					_, clan, owner, _, _, err := GetClanWithMemberships(testDb, 0, "", "")
+					_, clan, owner, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
 					g.Assert(err == nil).IsTrue()
 
 					err = LeaveClan(testDb, clan.GameID, clan.PublicID, owner.PublicID)
@@ -328,7 +328,7 @@ func TestClanModel(t *testing.T) {
 
 			g.Describe("Should not leave a Clan with LeaveClan if", func() {
 				g.It("Not clan owner", func() {
-					_, clan, _, players, _, err := GetClanWithMemberships(testDb, 1, "", "")
+					_, clan, _, players, _, err := GetClanWithMemberships(testDb, 1, 0, 0, 0, "", "")
 					g.Assert(err == nil).IsTrue()
 
 					err = LeaveClan(testDb, clan.GameID, clan.PublicID, players[0].PublicID)
@@ -337,7 +337,7 @@ func TestClanModel(t *testing.T) {
 				})
 
 				g.It("Clan does not exist", func() {
-					_, clan, _, players, _, err := GetClanWithMemberships(testDb, 1, "", "")
+					_, clan, _, players, _, err := GetClanWithMemberships(testDb, 1, 0, 0, 0, "", "")
 					g.Assert(err == nil).IsTrue()
 
 					err = LeaveClan(testDb, clan.GameID, "-1", players[0].PublicID)
@@ -350,7 +350,7 @@ func TestClanModel(t *testing.T) {
 		g.Describe("Transfer Clan Ownership", func() {
 			g.Describe("Should transfer the Clan ownership with TransferClanOwnership if clan owner", func() {
 				g.It("And first clan owner and next owner memberhip exists", func() {
-					game, clan, owner, players, memberships, err := GetClanWithMemberships(testDb, 1, "", "")
+					game, clan, owner, players, memberships, err := GetClanWithMemberships(testDb, 1, 0, 0, 0, "", "")
 					g.Assert(err == nil).IsTrue()
 					err = TransferClanOwnership(
 						testDb,
@@ -379,7 +379,7 @@ func TestClanModel(t *testing.T) {
 				})
 
 				g.It("And not first clan owner and next owner membership exists", func() {
-					game, clan, owner, players, memberships, err := GetClanWithMemberships(testDb, 2, "", "")
+					game, clan, owner, players, memberships, err := GetClanWithMemberships(testDb, 2, 0, 0, 0, "", "")
 					g.Assert(err == nil).IsTrue()
 
 					err = TransferClanOwnership(
@@ -427,7 +427,7 @@ func TestClanModel(t *testing.T) {
 
 			g.Describe("Should not transfer the Clan ownership with TransferClanOwnership if", func() {
 				g.It("Not clan owner", func() {
-					game, clan, _, players, _, err := GetClanWithMemberships(testDb, 1, "", "")
+					game, clan, _, players, _, err := GetClanWithMemberships(testDb, 1, 0, 0, 0, "", "")
 					g.Assert(err == nil).IsTrue()
 
 					err = TransferClanOwnership(
@@ -444,7 +444,7 @@ func TestClanModel(t *testing.T) {
 				})
 
 				g.It("Clan does not exist", func() {
-					game, clan, owner, players, _, err := GetClanWithMemberships(testDb, 1, "", "")
+					game, clan, owner, players, _, err := GetClanWithMemberships(testDb, 1, 0, 0, 0, "", "")
 					g.Assert(err == nil).IsTrue()
 
 					err = TransferClanOwnership(
@@ -461,7 +461,7 @@ func TestClanModel(t *testing.T) {
 				})
 
 				g.It("Membership does not exist", func() {
-					game, clan, owner, _, _, err := GetClanWithMemberships(testDb, 1, "", "")
+					game, clan, owner, _, _, err := GetClanWithMemberships(testDb, 1, 0, 0, 0, "", "")
 					g.Assert(err == nil).IsTrue()
 
 					err = TransferClanOwnership(
@@ -507,19 +507,19 @@ func TestClanModel(t *testing.T) {
 		g.Describe("Get Clan Details", func() {
 			g.It("Should get clan members", func() {
 				_, clan, owner, players, _, err := GetClanWithMemberships(
-					testDb, 10, "clan-details", "clan-details-clan",
+					testDb, 10, 0, 0, 0, "clan-details", "clan-details-clan",
 				)
 				g.Assert(err == nil).IsTrue()
 
-				clanData, err := GetClanDetails(testDb, clan.GameID, clan.PublicID)
+				clanData, err := GetClanDetails(testDb, clan.GameID, clan.PublicID, 1)
 				g.Assert(err == nil).IsTrue()
 				g.Assert(clanData["name"]).Equal(clan.Name)
 				g.Assert(clanData["metadata"]).Equal(clan.Metadata)
 
 				g.Assert(clanData["owner"].(util.JSON)["publicID"]).Equal(owner.PublicID)
 
-				members := clanData["members"].([]util.JSON)
-				g.Assert(len(members)).Equal(10)
+				roster := clanData["roster"].([]util.JSON)
+				g.Assert(len(roster)).Equal(10)
 
 				playerDict := map[string]*Player{}
 				for i := 0; i < 10; i++ {
@@ -527,14 +527,16 @@ func TestClanModel(t *testing.T) {
 				}
 
 				for i := 0; i < 10; i++ {
-					pid := members[i]["playerPublicID"].(string)
-					g.Assert(members[i]["playerName"]).Equal(playerDict[pid].Name)
+					player := roster[i]["player"].(util.JSON)
+					pid := player["publicID"].(string)
+					name := player["name"].(string)
+					g.Assert(name).Equal(playerDict[pid].Name)
 				}
 			})
 
 			g.It("Should not get deleted clan members", func() {
 				_, clan, _, players, memberships, err := GetClanWithMemberships(
-					testDb, 10, "more-clan-details", "more-clan-details-clan",
+					testDb, 10, 0, 0, 0, "more-clan-details", "more-clan-details-clan",
 				)
 				g.Assert(err == nil).IsTrue()
 
@@ -543,40 +545,43 @@ func TestClanModel(t *testing.T) {
 				_, err = testDb.Update(memberships[9])
 				g.Assert(err == nil).IsTrue()
 
-				clanData, err := GetClanDetails(testDb, clan.GameID, clan.PublicID)
+				clanData, err := GetClanDetails(testDb, clan.GameID, clan.PublicID, 1)
 				g.Assert(err == nil).IsTrue()
 				g.Assert(clanData["name"]).Equal(clan.Name)
 				g.Assert(clanData["metadata"]).Equal(clan.Metadata)
-				members := clanData["members"].([]util.JSON)
-				g.Assert(len(members)).Equal(9)
+
+				roster := clanData["roster"].([]util.JSON)
+				g.Assert(len(roster)).Equal(9)
 
 				playerDict := map[string]*Player{}
-				for i := 0; i < len(members); i++ {
+				for i := 0; i < len(roster); i++ {
 					playerDict[players[i].PublicID] = players[i]
 				}
 
-				for i := 0; i < len(members); i++ {
-					pid := members[i]["playerPublicID"].(string)
-					g.Assert(members[i]["playerName"]).Equal(playerDict[pid].Name)
+				for i := 0; i < len(roster); i++ {
+					player := roster[i]["player"].(util.JSON)
+					pid := player["publicID"].(string)
+					name := player["name"].(string)
+					g.Assert(name).Equal(playerDict[pid].Name)
 				}
 			})
 
 			g.It("Should get clan details even if no members", func() {
 				_, clan, _, _, _, err := GetClanWithMemberships(
-					testDb, 0, "clan-details-2", "clan-details-2-clan",
+					testDb, 0, 0, 0, 0, "clan-details-2", "clan-details-2-clan",
 				)
 				g.Assert(err == nil).IsTrue()
 
-				clanData, err := GetClanDetails(testDb, clan.GameID, clan.PublicID)
+				clanData, err := GetClanDetails(testDb, clan.GameID, clan.PublicID, 1)
 				g.Assert(err == nil).IsTrue()
 				g.Assert(clanData["name"]).Equal(clan.Name)
 				g.Assert(clanData["metadata"]).Equal(clan.Metadata)
-				members := clanData["members"].([]util.JSON)
-				g.Assert(len(members)).Equal(0)
+				roster := clanData["roster"].([]util.JSON)
+				g.Assert(len(roster)).Equal(0)
 			})
 
 			g.It("Should fail if clan does not exist", func() {
-				clanData, err := GetClanDetails(testDb, "fake-game-id", "fake-public-id")
+				clanData, err := GetClanDetails(testDb, "fake-game-id", "fake-public-id", 1)
 				g.Assert(clanData == nil).IsTrue()
 				g.Assert(err != nil).IsTrue()
 				g.Assert(err.Error()).Equal("Clan was not found with id: fake-public-id")

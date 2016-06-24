@@ -41,6 +41,8 @@ type clanDetailsDAO struct {
 	PlayerName       sql.NullString
 	DBPlayerMetadata sql.NullString
 	PlayerMetadata   util.JSON
+	MembershipCount  int
+	OwnershipCount   int
 
 	// Requestor Information
 	RequestorPublicID sql.NullString
@@ -50,23 +52,31 @@ type clanDetailsDAO struct {
 func (member *clanDetailsDAO) Serialize() util.JSON {
 	result := util.JSON{
 		// No need to include clan information as that will be available in the payload already
-		"membershipLevel":     nullOrString(member.MembershipLevel),
-		"membershipApproved":  nullOrBool(member.MembershipApproved),
-		"membershipDenied":    nullOrBool(member.MembershipDenied),
-		"membershipBanned":    nullOrBool(member.MembershipBanned),
-		"membershipCreatedAt": nullOrInt(member.MembershipCreatedAt),
-		"membershipUpdatedAt": nullOrInt(member.MembershipUpdatedAt),
-		"playerPublicID":      nullOrString(member.PlayerPublicID),
-		"playerName":          nullOrString(member.PlayerName),
-		"requestorPublicID":   nullOrString(member.RequestorPublicID),
-		"requestorName":       nullOrString(member.RequestorName),
+		"membership": util.JSON{
+			"level":     nullOrString(member.MembershipLevel),
+			"approved":  nullOrBool(member.MembershipApproved),
+			"denied":    nullOrBool(member.MembershipDenied),
+			"banned":    nullOrBool(member.MembershipBanned),
+			"createdAt": nullOrInt(member.MembershipCreatedAt),
+			"updatedAt": nullOrInt(member.MembershipUpdatedAt),
+		},
+		"player": util.JSON{
+			"publicID":        nullOrString(member.PlayerPublicID),
+			"name":            nullOrString(member.PlayerName),
+			"membershipCount": member.MembershipCount,
+			"ownershipCount":  member.OwnershipCount,
+		},
+		"requestor": util.JSON{
+			"publicID": nullOrString(member.RequestorPublicID),
+			"name":     nullOrString(member.RequestorName),
+		},
 	}
 	if member.DBPlayerMetadata.Valid {
 		json.Unmarshal([]byte(nullOrString(member.DBPlayerMetadata)), &member.PlayerMetadata)
 	} else {
 		member.PlayerMetadata = util.JSON{}
 	}
-	result["playerMetadata"] = member.PlayerMetadata
+	result["player"].(util.JSON)["metadata"] = member.PlayerMetadata
 	return result
 }
 

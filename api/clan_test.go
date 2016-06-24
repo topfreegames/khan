@@ -157,7 +157,7 @@ func TestClanHandler(t *testing.T) {
 
 	g.Describe("Leave Clan Handler", func() {
 		g.It("Should leave a clan and transfer ownership", func() {
-			_, clan, owner, _, memberships, err := models.GetClanWithMemberships(testDb, 1, "", "")
+			_, clan, owner, _, memberships, err := models.GetClanWithMemberships(testDb, 1, 0, 0, 0, "", "")
 			g.Assert(err == nil).IsTrue()
 			ownerPublicID := owner.PublicID
 
@@ -206,7 +206,7 @@ func TestClanHandler(t *testing.T) {
 		})
 
 		g.It("Should not leave a clan if player is not the owner", func() {
-			_, clan, _, players, _, err := models.GetClanWithMemberships(testDb, 1, "", "")
+			_, clan, _, players, _, err := models.GetClanWithMemberships(testDb, 1, 0, 0, 0, "", "")
 			g.Assert(err == nil).IsTrue()
 
 			payload := util.JSON{
@@ -227,7 +227,7 @@ func TestClanHandler(t *testing.T) {
 
 	g.Describe("Transfer Clan Ownership Handler", func() {
 		g.It("Should transfer a clan ownership", func() {
-			_, clan, owner, players, _, err := models.GetClanWithMemberships(testDb, 1, "", "")
+			_, clan, owner, players, _, err := models.GetClanWithMemberships(testDb, 1, 0, 0, 0, "", "")
 			g.Assert(err == nil).IsTrue()
 			ownerPublicID := owner.PublicID
 			playerPublicID := players[0].PublicID
@@ -279,7 +279,7 @@ func TestClanHandler(t *testing.T) {
 		})
 
 		g.It("Should not transfer a clan ownership if player is not the owner", func() {
-			_, clan, _, players, _, err := models.GetClanWithMemberships(testDb, 2, "", "")
+			_, clan, _, players, _, err := models.GetClanWithMemberships(testDb, 2, 0, 0, 0, "", "")
 			g.Assert(err == nil).IsTrue()
 			payload := util.JSON{
 				"ownerPublicID":  players[0].PublicID,
@@ -300,7 +300,7 @@ func TestClanHandler(t *testing.T) {
 
 	g.Describe("Update Clan Handler", func() {
 		g.It("Should update clan", func() {
-			_, clan, owner, _, _, err := models.GetClanWithMemberships(testDb, 0, "", "")
+			_, clan, owner, _, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
 			AssertNotError(g, err)
 
 			gameID := clan.GameID
@@ -362,7 +362,7 @@ func TestClanHandler(t *testing.T) {
 		})
 
 		g.It("Should not update clan if player is not the owner", func() {
-			_, clan, _, _, _, err := models.GetClanWithMemberships(testDb, 0, "", "")
+			_, clan, _, _, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
 			AssertNotError(g, err)
 
 			gameID := clan.GameID
@@ -389,7 +389,7 @@ func TestClanHandler(t *testing.T) {
 		})
 
 		g.It("Should not update clan if invalid data", func() {
-			_, clan, owner, _, _, err := models.GetClanWithMemberships(testDb, 0, "", "")
+			_, clan, owner, _, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
 			AssertNotError(g, err)
 
 			gameID := clan.GameID
@@ -457,7 +457,7 @@ func TestClanHandler(t *testing.T) {
 	})
 	g.Describe("Retrieve Clan Handler", func() {
 		g.It("Should get details for clan", func() {
-			_, clan, _, _, _, err := models.GetClanWithMemberships(testDb, 0, "", "")
+			_, clan, _, _, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
 			AssertNotError(g, err)
 
 			a := GetDefaultTestApp()
@@ -480,7 +480,7 @@ func TestClanHandler(t *testing.T) {
 
 		g.It("Should get clan members", func() {
 			_, clan, _, _, _, err := models.GetClanWithMemberships(
-				testDb, 10, "clan-details-api", "clan-details-api-clan",
+				testDb, 10, 0, 0, 0, "clan-details-api", "clan-details-api-clan",
 			)
 			AssertNotError(g, err)
 
@@ -494,7 +494,7 @@ func TestClanHandler(t *testing.T) {
 
 			g.Assert(result["success"]).IsTrue()
 
-			g.Assert(result["members"] == nil).IsFalse()
+			g.Assert(result["roster"] == nil).IsFalse()
 		})
 	})
 	g.Describe("Search Clan Handler", func() {
