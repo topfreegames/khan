@@ -161,15 +161,22 @@ func TransferOwnershipHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
+		game, err := app.GetGame(gameID)
+		if err != nil {
+			FailWith(404, err.Error(), c)
+			return
+		}
+
 		db := GetCtxDB(c)
 
-		err := models.TransferClanOwnership(
+		err = models.TransferClanOwnership(
 			db,
-			app.Games,
 			gameID,
 			publicID,
 			payload.OwnerPublicID,
 			payload.PlayerPublicID,
+			game.MembershipLevels,
+			game.MaxMembershipLevel,
 		)
 
 		if err != nil {
