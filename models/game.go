@@ -37,17 +37,22 @@ type Game struct {
 }
 
 // PreInsert populates fields before inserting a new game
-func (p *Game) PreInsert(s gorp.SqlExecutor) error {
+func (g *Game) PreInsert(s gorp.SqlExecutor) error {
 	// Handle JSON fields
-
-	p.CreatedAt = time.Now().UnixNano() / 1000000
-	p.UpdatedAt = p.CreatedAt
+	sortedLevels := util.SortLevels(g.MembershipLevels)
+	g.MinMembershipLevel = sortedLevels[0].Value
+	g.MaxMembershipLevel = sortedLevels[len(sortedLevels)-1].Value
+	g.CreatedAt = time.Now().UnixNano() / 1000000
+	g.UpdatedAt = g.CreatedAt
 	return nil
 }
 
 // PreUpdate populates fields before updating a game
-func (p *Game) PreUpdate(s gorp.SqlExecutor) error {
-	p.UpdatedAt = time.Now().UnixNano() / 1000000
+func (g *Game) PreUpdate(s gorp.SqlExecutor) error {
+	sortedLevels := util.SortLevels(g.MembershipLevels)
+	g.MinMembershipLevel = sortedLevels[0].Value
+	g.MaxMembershipLevel = sortedLevels[len(sortedLevels)-1].Value
+	g.UpdatedAt = time.Now().UnixNano() / 1000000
 	return nil
 }
 
@@ -84,13 +89,11 @@ func GetAllGames(db DB) ([]*Game, error) {
 
 // CreateGame creates a new game
 func CreateGame(db DB, publicID, name string, levels, metadata util.JSON,
-	minLevel, maxLevel, minLevelAccept, minLevelCreate, minLevelRemove, minOffsetRemove, minOffsetPromote, minOffsetDemote, maxMembers int,
+	minLevelAccept, minLevelCreate, minLevelRemove, minOffsetRemove, minOffsetPromote, minOffsetDemote, maxMembers int,
 ) (*Game, error) {
 	game := &Game{
-		PublicID:                      publicID,
-		Name:                          name,
-		MinMembershipLevel:            minLevel,
-		MaxMembershipLevel:            maxLevel,
+		PublicID: publicID,
+		Name:     name,
 		MinLevelToAcceptApplication:   minLevelAccept,
 		MinLevelToCreateInvitation:    minLevelCreate,
 		MinLevelToRemoveMember:        minLevelRemove,
@@ -110,14 +113,14 @@ func CreateGame(db DB, publicID, name string, levels, metadata util.JSON,
 
 // UpdateGame updates an existing game
 func UpdateGame(db DB, publicID, name string, levels, metadata util.JSON,
-	minLevel, maxLevel, minLevelAccept, minLevelCreate, minLevelRemove, minOffsetRemove, minOffsetPromote, minOffsetDemote, maxMembers int,
+	minLevelAccept, minLevelCreate, minLevelRemove, minOffsetRemove, minOffsetPromote, minOffsetDemote, maxMembers int,
 ) (*Game, error) {
 	game, err := GetGameByPublicID(db, publicID)
 
 	if err != nil {
 		if err.Error() == fmt.Sprintf("Game was not found with id: %s", publicID) {
 			return CreateGame(
-				db, publicID, name, levels, metadata, minLevel, maxLevel, minLevelAccept,
+				db, publicID, name, levels, metadata, minLevelAccept,
 				minLevelCreate, minLevelRemove, minOffsetRemove, minOffsetPromote,
 				minOffsetDemote, maxMembers,
 			)
@@ -126,8 +129,6 @@ func UpdateGame(db DB, publicID, name string, levels, metadata util.JSON,
 	}
 
 	game.Name = name
-	game.MinMembershipLevel = minLevel
-	game.MaxMembershipLevel = maxLevel
 	game.MinLevelToAcceptApplication = minLevelAccept
 	game.MinLevelToCreateInvitation = minLevelCreate
 	game.MinLevelToRemoveMember = minLevelRemove

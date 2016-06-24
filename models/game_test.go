@@ -36,8 +36,8 @@ func TestGameModel(t *testing.T) {
 				g.Assert(err == nil).IsTrue()
 				g.Assert(dbGame.PublicID).Equal(game.PublicID)
 				g.Assert(dbGame.Name).Equal(game.Name)
-				g.Assert(dbGame.MinMembershipLevel).Equal(game.MinMembershipLevel)
-				g.Assert(dbGame.MaxMembershipLevel).Equal(game.MaxMembershipLevel)
+				g.Assert(dbGame.MinMembershipLevel).Equal(game.MembershipLevels["Member"])
+				g.Assert(dbGame.MaxMembershipLevel).Equal(game.MembershipLevels["CoLeader"])
 				g.Assert(dbGame.MinLevelToAcceptApplication).Equal(game.MinLevelToAcceptApplication)
 				g.Assert(dbGame.MinLevelToCreateInvitation).Equal(game.MinLevelToCreateInvitation)
 				g.Assert(dbGame.MinLevelToRemoveMember).Equal(game.MinLevelToRemoveMember)
@@ -111,7 +111,7 @@ func TestGameModel(t *testing.T) {
 					"game-name",
 					util.JSON{"Member": 1, "Elder": 2, "CoLeader": 3},
 					util.JSON{},
-					5, 10, 8, 7, 8, 1, 2, 3, 100,
+					8, 7, 8, 1, 2, 3, 100,
 				)
 				g.Assert(err == nil).IsTrue()
 				g.Assert(game.ID != 0).IsTrue()
@@ -149,7 +149,7 @@ func TestGameModel(t *testing.T) {
 					"game-new-name",
 					util.JSON{"Member": 1, "Elder": 2, "CoLeader": 3},
 					util.JSON{"x": 1},
-					2, 12, 5, 4, 7, 1, 1, 1, 100,
+					5, 4, 7, 1, 1, 1, 100,
 				)
 
 				g.Assert(err == nil).IsTrue()
@@ -182,7 +182,7 @@ func TestGameModel(t *testing.T) {
 					gameID,
 					util.JSON{"Member": 1, "Elder": 2, "CoLeader": 3},
 					util.JSON{"x": 1},
-					2, 12, 5, 4, 7, 1, 1, 1, 100,
+					5, 4, 7, 1, 1, 1, 100,
 				)
 
 				g.Assert(err == nil).IsTrue()
@@ -217,7 +217,7 @@ func TestGameModel(t *testing.T) {
 					strings.Repeat("a", 256),
 					util.JSON{"Member": 1, "Elder": 2, "CoLeader": 3},
 					util.JSON{"x": 1},
-					2, 12, 5, 4, 7, 1, 1, 0, 100,
+					5, 4, 7, 1, 1, 0, 100,
 				)
 
 				g.Assert(err == nil).IsFalse()

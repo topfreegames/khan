@@ -20,8 +20,6 @@ type gamePayload struct {
 	Name                          string
 	MembershipLevels              util.JSON
 	Metadata                      util.JSON
-	MinMembershipLevel            int
-	MaxMembershipLevel            int
 	MinLevelToAcceptApplication   int
 	MinLevelToCreateInvitation    int
 	MinLevelToRemoveMember        int
@@ -36,8 +34,6 @@ type createGamePayload struct {
 	Name                          string
 	MembershipLevels              util.JSON
 	Metadata                      util.JSON
-	MinMembershipLevel            int
-	MaxMembershipLevel            int
 	MinLevelToAcceptApplication   int
 	MinLevelToCreateInvitation    int
 	MinLevelToRemoveMember        int
@@ -53,18 +49,24 @@ func getAsInt(field string, payload interface{}) int {
 	return fieldValue.(int)
 }
 
+func getAsJSON(field string, payload interface{}) util.JSON {
+	v := reflect.ValueOf(payload)
+	fieldValue := v.FieldByName(field).Interface()
+	return fieldValue.(util.JSON)
+}
+
 func validateGamePayload(payload interface{}) []string {
+	sortedLevels := util.SortLevels(getAsJSON("MembershipLevels", payload))
+	minMembershipLevel := sortedLevels[0].Value
+
 	var errors []string
-	if getAsInt("MaxMembershipLevel", payload) < getAsInt("MinMembershipLevel", payload) {
-		errors = append(errors, "maxMembershipLevel should be greater or equal to minMembershipLevel")
-	}
-	if getAsInt("MinLevelToAcceptApplication", payload) < getAsInt("MinMembershipLevel", payload) {
+	if getAsInt("MinLevelToAcceptApplication", payload) < minMembershipLevel {
 		errors = append(errors, "minLevelToAcceptApplication should be greater or equal to minMembershipLevel")
 	}
-	if getAsInt("MinLevelToCreateInvitation", payload) < getAsInt("MinMembershipLevel", payload) {
+	if getAsInt("MinLevelToCreateInvitation", payload) < minMembershipLevel {
 		errors = append(errors, "minLevelToCreateInvitation should be greater or equal to minMembershipLevel")
 	}
-	if getAsInt("MinLevelToRemoveMember", payload) < getAsInt("MinMembershipLevel", payload) {
+	if getAsInt("MinLevelToRemoveMember", payload) < minMembershipLevel {
 		errors = append(errors, "minLevelToRemoveMember should be greater or equal to minMembershipLevel")
 	}
 	return errors
@@ -92,8 +94,6 @@ func CreateGameHandler(app *App) func(c *iris.Context) {
 			payload.Name,
 			payload.MembershipLevels,
 			payload.Metadata,
-			payload.MinMembershipLevel,
-			payload.MaxMembershipLevel,
 			payload.MinLevelToRemoveMember,
 			payload.MinLevelToCreateInvitation,
 			payload.MinLevelToRemoveMember,
@@ -138,8 +138,6 @@ func UpdateGameHandler(app *App) func(c *iris.Context) {
 			payload.Name,
 			payload.MembershipLevels,
 			payload.Metadata,
-			payload.MinMembershipLevel,
-			payload.MaxMembershipLevel,
 			payload.MinLevelToAcceptApplication,
 			payload.MinLevelToCreateInvitation,
 			payload.MinLevelToRemoveMember,
@@ -160,8 +158,6 @@ func UpdateGameHandler(app *App) func(c *iris.Context) {
 			"name":                          payload.Name,
 			"membershipLevels":              payload.MembershipLevels,
 			"metadata":                      payload.Metadata,
-			"minMembershipLevel":            payload.MinMembershipLevel,
-			"maxMembershipLevel":            payload.MaxMembershipLevel,
 			"minLevelToAcceptApplication":   payload.MinLevelToAcceptApplication,
 			"minLevelToCreateInvitation":    payload.MinLevelToCreateInvitation,
 			"minLevelToRemoveMember":        payload.MinLevelToRemoveMember,

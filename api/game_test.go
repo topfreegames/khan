@@ -34,8 +34,6 @@ func getGamePayload(publicID, name string) util.JSON {
 		"name":                          name,
 		"membershipLevels":              util.JSON{"Member": 1, "Elder": 2, "CoLeader": 3},
 		"metadata":                      util.JSON{"x": "a"},
-		"minMembershipLevel":            1,
-		"maxMembershipLevel":            10,
 		"minLevelToAcceptApplication":   1,
 		"minLevelToCreateInvitation":    1,
 		"minLevelToRemoveMember":        1,
@@ -75,8 +73,8 @@ func TestGameHandler(t *testing.T) {
 				g.Assert(v.(int)).Equal(int(dbGame.MembershipLevels[k].(float64)))
 			}
 			g.Assert(dbGame.Metadata).Equal(payload["metadata"])
-			g.Assert(dbGame.MinMembershipLevel).Equal(payload["minMembershipLevel"])
-			g.Assert(dbGame.MaxMembershipLevel).Equal(payload["maxMembershipLevel"])
+			g.Assert(dbGame.MinMembershipLevel).Equal(1)
+			g.Assert(dbGame.MaxMembershipLevel).Equal(3)
 			g.Assert(dbGame.MinLevelToAcceptApplication).Equal(payload["minLevelToAcceptApplication"])
 			g.Assert(dbGame.MinLevelToCreateInvitation).Equal(payload["minLevelToCreateInvitation"])
 			g.Assert(dbGame.MinLevelOffsetToPromoteMember).Equal(payload["minLevelOffsetToPromoteMember"])
@@ -100,14 +98,14 @@ func TestGameHandler(t *testing.T) {
 		g.It("Should not create game if bad payload", func() {
 			a := GetDefaultTestApp()
 			payload := getGamePayload("", "")
-			payload["minMembershipLevel"] = payload["maxMembershipLevel"].(int) + 1
+			payload["minLevelToCreateInvitation"] = 0
 			res := PostJSON(a, "/games", t, payload)
 
 			g.Assert(res.Raw().StatusCode).Equal(422)
 			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
-			g.Assert(result["reason"]).Equal("maxMembershipLevel should be greater or equal to minMembershipLevel, minLevelToAcceptApplication should be greater or equal to minMembershipLevel, minLevelToCreateInvitation should be greater or equal to minMembershipLevel, minLevelToRemoveMember should be greater or equal to minMembershipLevel")
+			g.Assert(result["reason"]).Equal("minLevelToCreateInvitation should be greater or equal to minMembershipLevel")
 		})
 
 		g.It("Should not create game if invalid payload", func() {
@@ -161,8 +159,8 @@ func TestGameHandler(t *testing.T) {
 			}
 			g.Assert(dbGame.PublicID).Equal(game.PublicID)
 			g.Assert(dbGame.Name).Equal(game.Name)
-			g.Assert(dbGame.MinMembershipLevel).Equal(payload["minMembershipLevel"])
-			g.Assert(dbGame.MaxMembershipLevel).Equal(payload["maxMembershipLevel"])
+			g.Assert(dbGame.MinMembershipLevel).Equal(1)
+			g.Assert(dbGame.MaxMembershipLevel).Equal(3)
 			g.Assert(dbGame.MinLevelToAcceptApplication).Equal(payload["minLevelToAcceptApplication"])
 			g.Assert(dbGame.MinLevelToCreateInvitation).Equal(payload["minLevelToCreateInvitation"])
 			g.Assert(dbGame.MinLevelOffsetToPromoteMember).Equal(payload["minLevelOffsetToPromoteMember"])
@@ -219,7 +217,7 @@ func TestGameHandler(t *testing.T) {
 			AssertNotError(g, err)
 
 			payload := getGamePayload(game.PublicID, game.Name)
-			payload["minMembershipLevel"] = payload["maxMembershipLevel"].(int) + 1
+			payload["minLevelToCreateInvitation"] = 0
 
 			route := fmt.Sprintf("/games/%s", game.PublicID)
 			res := PutJSON(a, route, t, payload)
@@ -228,7 +226,7 @@ func TestGameHandler(t *testing.T) {
 			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
-			g.Assert(result["reason"]).Equal("maxMembershipLevel should be greater or equal to minMembershipLevel, minLevelToAcceptApplication should be greater or equal to minMembershipLevel, minLevelToCreateInvitation should be greater or equal to minMembershipLevel, minLevelToRemoveMember should be greater or equal to minMembershipLevel")
+			g.Assert(result["reason"]).Equal("minLevelToCreateInvitation should be greater or equal to minMembershipLevel")
 		})
 
 		g.It("Should not update game if invalid payload", func() {
