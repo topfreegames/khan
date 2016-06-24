@@ -101,6 +101,9 @@ run-perf:
 db-perf:
 	@go run perf/main.go
 
+dump-perf:
+	@pg_dump khan_perf > khan-perf.dump
+
 drop-perf:
 	@psql -d postgres -f db/drop-perf.sql > /dev/null
 	@echo "Perf database created successfully!"
