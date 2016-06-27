@@ -103,7 +103,7 @@ func validateResp(res *http.Response, err error) {
 	}
 	if res.StatusCode != 200 {
 		bts, _ := ioutil.ReadAll(res.Body)
-		fmt.Printf("Request failed with status code", res.StatusCode)
+		fmt.Printf("Request failed with status code %d\n", res.StatusCode)
 		panic(string(bts))
 	}
 }

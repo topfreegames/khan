@@ -47,7 +47,7 @@ func startRouteHandler(routes []string, port int) *[]util.JSON {
 	return &responses
 }
 
-func Test(t *testing.T) {
+func TestApp(t *testing.T) {
 	g := Goblin(t)
 
 	testDb, err := models.GetTestDB()
@@ -123,8 +123,9 @@ func Test(t *testing.T) {
 			}
 			err = app.DispatchHooks(hooks[0].GameID, models.GameUpdatedHook, resultingPayload)
 			g.Assert(err == nil).IsTrue()
-
+			app.Dispatcher.Wait()
 			g.Assert(len(*responses)).Equal(2)
+			g.Assert(app.Errors.Rate()).Equal(0.0)
 		})
 	})
 }

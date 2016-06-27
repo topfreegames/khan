@@ -29,6 +29,5 @@ func HealthCheckHandler(app *App) func(c *iris.Context) {
 		c.SetStatusCode(iris.StatusOK)
 		workingString = strings.TrimSpace(workingString)
 		c.Write(workingString)
-		c.SetHeader("KHAN-VERSION", VERSION)
 	}
 }
