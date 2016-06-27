@@ -16,7 +16,6 @@ import (
 
 	"gopkg.in/gorp.v1"
 
-	"github.com/golang/glog"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/topfreegames/goose/lib/goose"
@@ -29,7 +28,7 @@ var migrationVersion int64
 func createTempDbDir() (string, error) {
 	dir, err := ioutil.TempDir("", "migrations")
 	if err != nil {
-		glog.Fatal(err)
+		fmt.Println(err.Error())
 		return "", err
 	}
 

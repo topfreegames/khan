@@ -14,13 +14,13 @@ import (
 
 	"gopkg.in/gorp.v1"
 
-	"github.com/golang/glog"
 	"github.com/kataras/iris"
 	"github.com/kataras/iris/middleware/logger"
 	"github.com/rcrowley/go-metrics"
 	"github.com/spf13/viper"
 	"github.com/topfreegames/khan/models"
 	"github.com/topfreegames/khan/util"
+	"github.com/uber-go/zap"
 )
 
 // App is a struct that represents a Khan API Application
@@ -34,6 +34,7 @@ type App struct {
 	Db         models.DB
 	Config     *viper.Viper
 	Dispatcher *Dispatcher
+	Logger     zap.Logger
 }
 
 // GetApp returns a new Khan API Application
@@ -51,6 +52,8 @@ func GetApp(host string, port int, configPath string, debug bool) *App {
 
 // Configure instantiates the required dependencies for Khan Api Application
 func (app *App) Configure() {
+	app.Logger = zap.NewJSON(zap.WarnLevel)
+
 	app.setConfigurationDefaults()
 	app.loadConfiguration()
 	app.connectDatabase()
@@ -75,7 +78,7 @@ func (app *App) loadConfiguration() {
 	app.Config.AutomaticEnv()
 
 	if err := app.Config.ReadInConfig(); err == nil {
-		glog.Infof("Using config file: %s", app.Config.ConfigFileUsed())
+		app.Logger.Info("Loaded config file.", zap.String("configFile", app.Config.ConfigFileUsed()))
 	} else {
 		panic(fmt.Sprintf("Could not load configuration file from: %s", app.ConfigPath))
 	}
@@ -92,9 +95,13 @@ func (app *App) connectDatabase() {
 	db, err := models.GetDB(host, user, port, sslMode, dbName, password)
 
 	if err != nil {
-		glog.Errorf(
-			"Could not connect to Postgres at %s:%d with user %s and db %s with password %s (%s)\n",
-			host, port, user, dbName, password, err,
+		app.Logger.Error(
+			"Could not connect to postgres...",
+			zap.String("host", host),
+			zap.Int("port", port),
+			zap.String("user", user),
+			zap.String("dbName", dbName),
+			zap.String("error", err.Error()),
 		)
 		panic(err)
 	}
@@ -162,8 +169,9 @@ func (app *App) addError() {
 func (app *App) GetHooks() map[string]map[int][]*models.Hook {
 	dbHooks, err := models.GetAllHooks(app.Db)
 	if err != nil {
-		glog.Fatalf(
-			"Failed to retrieve hooks: %s", err.Error(),
+		app.Logger.Error(
+			"Failed to retrieve hooks!",
+			zap.String("error", err.Error()),
 		)
 		return nil
 	}

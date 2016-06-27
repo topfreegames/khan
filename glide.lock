@@ -1,5 +1,5 @@
-hash: 1f98198bba299f890ebfa68015c8efeb9ba625f2667641a45a2a1ecf03c4122a
-updated: 2016-06-26T23:11:44.953333641-03:00
+hash: d08b42e0337161afc3404002696df541db065ff00f099046c4265fc73340d483
+updated: 2016-06-27T16:37:31.043413528-03:00
 imports:
 - name: github.com/ajg/form
   version: e7b99d6ea9c58e7bb6b2c1059b9ba748cdff22b0
@@ -129,6 +129,17 @@ imports:
   version: b1479103caacaa39319f75e7f57fc545287fca0d
 - name: github.com/onsi/gomega
   version: 4dfabf7db2e4147ec99a86db32b2f2a3484cfee8
+  subpackages:
+  - internal/assertion
+  - internal/asyncassertion
+  - internal/testingtsupport
+  - matchers
+  - types
+  - format
+  - matchers/support/goraph/bipartitegraph
+  - matchers/support/goraph/edge
+  - matchers/support/goraph/node
+  - matchers/support/goraph/util
 - name: github.com/Pallinder/go-randomdata
   version: 104cc800bd6434e70cb0c3ad08c4541f4f2eb48b
 - name: github.com/pmezard/go-difflib
@@ -167,6 +178,10 @@ imports:
   subpackages:
   - cmd/goose
   - lib/goose
+- name: github.com/uber-go/atomic
+  version: e682c1008ac17bf26d2e4b5ad6cdd08520ed0b22
+- name: github.com/uber-go/zap
+  version: 37b4c8e1b781c2af1f1dba8d7d38a415b683fe18
 - name: github.com/valyala/fasthttp
   version: 83a24c301bb683e450cd0304a3eb69556c48678c
   subpackages:
@@ -193,4 +208,4 @@ imports:
   version: c87af80f3cc5036b55b83d77171e156791085e2e
 - name: gopkg.in/yaml.v2
   version: a83829b6f1293c91addabc89d0571c246397bbf4
-devImports: []
+testImports: []

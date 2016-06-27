@@ -12,8 +12,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/golang/glog"
 	"github.com/topfreegames/khan/util"
+	"github.com/uber-go/zap"
 	"github.com/valyala/fasthttp"
 )
 
@@ -63,11 +63,11 @@ func (d *Dispatcher) Start() {
 		for {
 			select {
 			case work := <-d.workQueue:
-				glog.Info("Received work request")
+				d.app.Logger.Info("Received work request")
 				go func() {
 					worker := <-d.workerQueue
 
-					glog.Info("Dispatching work request")
+					d.app.Logger.Info("Dispatching work request")
 					worker <- work
 				}()
 			}
@@ -127,7 +127,12 @@ func (w *Worker) Start() {
 			select {
 			case work := <-w.Work:
 				// Receive a work request.
-				glog.Info("worker%d: Received work request for game %s event %d with payload %v \n", w.ID, work.gameID, work.eventType, string(work.payload))
+				w.Dispatcher.app.Logger.Info(
+					fmt.Sprintf("worker%d: Received work request for game\n", w.ID),
+					zap.String("GameID", work.gameID),
+					zap.Int("EventType", work.eventType),
+					zap.String("Payload", string(work.payload)),
+				)
 				w.handleJob(work)
 			}
 		}
@@ -148,7 +153,7 @@ func (w *Worker) DispatchHook(d Dispatch) error {
 	timeout := time.Duration(app.Config.GetInt("webhooks.timeout")) * time.Second
 
 	for _, hook := range hooks[d.gameID][d.eventType] {
-		glog.Infof("Sending webhook to %s", hook.URL)
+		w.Dispatcher.app.Logger.Info("Sending webhook...", zap.String("url", hook.URL))
 
 		client := fasthttp.Client{
 			Name: fmt.Sprintf("khan-%s", VERSION),
@@ -162,17 +167,17 @@ func (w *Worker) DispatchHook(d Dispatch) error {
 		err := client.DoTimeout(req, resp, timeout)
 		if err != nil {
 			w.App.addError()
-			glog.Error(fmt.Sprintf("Could not request webhook %s: %s", hook.URL, err.Error()))
+			w.App.Logger.Error(fmt.Sprintf("Could not request webhook %s: %s", hook.URL, err.Error()))
 			continue
 		}
 		if resp.StatusCode() > 399 {
 			w.App.addError()
-			glog.Error(fmt.Sprintf(
-				"Could not request webhook %s (status code: %d): %s",
-				hook.URL,
-				resp.StatusCode(),
-				resp.Body(),
-			))
+			w.App.Logger.Error(
+				"Could not request webhook!",
+				zap.String("url", hook.URL),
+				zap.Int("statusCode", resp.StatusCode()),
+				zap.String("body", string(resp.Body())),
+			)
 			continue
 		}
 	}
