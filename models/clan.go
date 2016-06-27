@@ -121,11 +121,7 @@ func CreateClan(db DB, gameID, publicID, name, ownerPublicID string, metadata ut
 		return nil, err
 	}
 
-	clansCount, err := GetPlayerClansCount(db, gameID, ownerPublicID)
-	if err != nil {
-		return nil, err
-	}
-	if clansCount >= maxClansPerPlayer {
+	if player.MembershipCount+player.OwnershipCount >= maxClansPerPlayer {
 		return nil, &PlayerReachedMaxClansError{ownerPublicID}
 	}
 
@@ -140,6 +136,11 @@ func CreateClan(db DB, gameID, publicID, name, ownerPublicID string, metadata ut
 	}
 
 	err = db.Insert(clan)
+	if err != nil {
+		return nil, err
+	}
+
+	err = IncrementPlayerOwnershipCount(db, player.ID, 1)
 	if err != nil {
 		return nil, err
 	}
@@ -292,15 +293,15 @@ func GetClanDetails(db DB, gameID, publicID string, maxClansPerPlayer int) (util
 		LEFT OUTER JOIN players r ON m.requestor_id=r.id
 		LEFT OUTER JOIN players p ON m.player_id=p.id
 		LEFT OUTER JOIN (
-			SELECT 
-				memberships.clan_id, memberships.player_id, count(*) membership_count 
+			SELECT
+				memberships.clan_id, memberships.player_id, count(*) membership_count
 			FROM memberships
 			WHERE memberships.approved=true
 			GROUP BY memberships.clan_id, memberships.player_id
 		) apm ON apm.clan_id=c.id AND apm.player_id=p.id
 		LEFT OUTER JOIN (
-			SELECT 
-				clans.owner_id, count(*) ownership_count 
+			SELECT
+				clans.owner_id, count(*) ownership_count
 			FROM clans
 			GROUP BY clans.owner_id
 		) com ON com.owner_id=p.id

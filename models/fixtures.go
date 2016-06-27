@@ -171,7 +171,8 @@ func GetClanWithMemberships(
 	}
 
 	owner := PlayerFactory.MustCreateWithOption(util.JSON{
-		"GameID": gameID,
+		"GameID":         gameID,
+		"OwnershipCount": 1,
 	}).(*Player)
 	err = db.Insert(owner)
 	if err != nil {
@@ -226,8 +227,13 @@ func GetClanWithMemberships(
 		count := data["count"].(int)
 
 		for i := 0; i < count; i++ {
+			membershipCount := 0
+			if approved {
+				membershipCount = 1
+			}
 			player := PlayerFactory.MustCreateWithOption(util.JSON{
-				"GameID": owner.GameID,
+				"GameID":          owner.GameID,
+				"MembershipCount": membershipCount,
 			}).(*Player)
 			err = db.Insert(player)
 			if err != nil {
@@ -274,7 +280,8 @@ func GetClanReachedMaxMemberships(db DB) (*Game, *Clan, *Player, []*Player, []*M
 	}
 
 	owner := PlayerFactory.MustCreateWithOption(util.JSON{
-		"GameID": gameID,
+		"GameID":         gameID,
+		"OwnershipCount": 1,
 	}).(*Player)
 	err = db.Insert(owner)
 	if err != nil {
@@ -284,8 +291,13 @@ func GetClanReachedMaxMemberships(db DB) (*Game, *Clan, *Player, []*Player, []*M
 	var players []*Player
 
 	for i := 0; i < 2; i++ {
+		membershipCount := 0
+		if i == 0 {
+			membershipCount = 1
+		}
 		player := PlayerFactory.MustCreateWithOption(util.JSON{
-			"GameID": owner.GameID,
+			"GameID":          owner.GameID,
+			"MembershipCount": membershipCount,
 		}).(*Player)
 		err = db.Insert(player)
 		if err != nil {
@@ -354,7 +366,8 @@ func GetTestClans(db DB, gameID string, publicIDTemplate string, numberOfClans i
 	}
 
 	player := PlayerFactory.MustCreateWithOption(util.JSON{
-		"GameID": gameID,
+		"GameID":         gameID,
+		"OwnershipCount": numberOfClans,
 	}).(*Player)
 	err = db.Insert(player)
 	if err != nil {
@@ -425,7 +438,8 @@ func GetTestPlayerWithMemberships(db DB, gameID string, approvedMemberships, rej
 	}
 
 	owner := PlayerFactory.MustCreateWithOption(util.JSON{
-		"GameID": gameID,
+		"GameID":         gameID,
+		"OwnershipCount": 1,
 	}).(*Player)
 	err = db.Insert(owner)
 	if err != nil {
@@ -433,7 +447,8 @@ func GetTestPlayerWithMemberships(db DB, gameID string, approvedMemberships, rej
 	}
 
 	player := PlayerFactory.MustCreateWithOption(util.JSON{
-		"GameID": owner.GameID,
+		"GameID":          owner.GameID,
+		"MembershipCount": approvedMemberships,
 	}).(*Player)
 	err = db.Insert(player)
 	if err != nil {
