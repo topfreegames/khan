@@ -6,6 +6,7 @@
 // migrations/20160608182307_CreateMembershipTable.sql
 // migrations/20160621161411_CreateHooksTable.sql
 // migrations/20160627110742_LoadUUIDModule.sql
+// migrations/20160627153918_CreateRetrieveClanIndexes.sql
 // DO NOT EDIT!
 
 package db
@@ -193,6 +194,26 @@ func migrations20160627110742_loaduuidmoduleSql() (*asset, error) {
 	return a, nil
 }
 
+var _migrations20160627153918_createretrieveclanindexesSql = []byte("\x1f\x8b\x08\x00\x00\x09\x6e\x88\x00\xff\x8c\x91\xc1\x4e\xc3\x30\x10\x44\xef\xfe\x8a\xbd\x15\x44\xfb\x05\x39\x21\x12\xa4\x48\xa8\x85\xa6\x95\x7a\xab\x9c\x64\x95\xac\x70\xd6\x96\x1d\x28\x9f\x8f\x8d\x5b\x54\x51\xda\xf8\xb8\x2f\x33\x93\xf5\xac\x58\x2c\xe0\xa1\xd3\xda\x21\x6c\x4d\x18\xaa\xb7\x17\x20\x06\x87\xcd\x48\x9a\x61\xb6\x35\x33\x20\x07\xf8\x85\xcd\xc7\x88\x2d\x1c\x7a\x64\x18\x7b\x8f\x06\xea\xac\xfc\x11\xf9\x41\x1a\xa3\x08\x5b\xf1\xb4\x2e\x1e\x37\x05\x94\xcb\xbc\xd8\xc1\x80\x43\x8d\xd6\xf5\x64\xdc\xde\x0b\xac\xfe\xf4\x01\xab\xe5\x39\xbf\x3b\xf1\xfb\xec\xba\xb7\x96\xcc\x97\xce\x48\x6f\xf9\x5a\x64\xba\xf4\x45\x7a\xcb\x67\x90\x5b\xe2\xee\xda\xaa\x73\x88\xbf\x9e\xc3\x74\x54\xa3\x24\xff\xcd\x09\x6c\x4f\xc1\x26\xce\xea\xcf\xf5\x81\x4f\x07\xf8\x6d\x3f\xc0\xa4\xfe\xad\x56\xca\x7f\xad\x65\xf3\x2e\xf2\xf5\xea\xf5\xb8\x4a\xf9\x0c\xc5\xae\xac\x36\xd5\xbf\xb7\xc8\xa6\xa5\xf1\xa5\x09\xc2\x58\x45\x82\xf0\x58\x6e\x82\x32\xf4\x94\x89\xef\x00\x00\x00\xff\xff\xad\x5b\xe0\x06\xa2\x02\x00\x00")
+
+func migrations20160627153918_createretrieveclanindexesSqlBytes() ([]byte, error) {
+	return bindataRead(
+		_migrations20160627153918_createretrieveclanindexesSql,
+		"migrations/20160627153918_CreateRetrieveClanIndexes.sql",
+	)
+}
+
+func migrations20160627153918_createretrieveclanindexesSql() (*asset, error) {
+	bytes, err := migrations20160627153918_createretrieveclanindexesSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "migrations/20160627153918_CreateRetrieveClanIndexes.sql", size: 674, mode: os.FileMode(420), modTime: time.Unix(1467054354, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
 // Asset loads and returns the asset for the given name.
 // It returns an error if the asset could not be found or
 // could not be loaded.
@@ -251,6 +272,7 @@ var _bindata = map[string]func() (*asset, error){
 	"migrations/20160608182307_CreateMembershipTable.sql": migrations20160608182307_createmembershiptableSql,
 	"migrations/20160621161411_CreateHooksTable.sql": migrations20160621161411_createhookstableSql,
 	"migrations/20160627110742_LoadUUIDModule.sql": migrations20160627110742_loaduuidmoduleSql,
+	"migrations/20160627153918_CreateRetrieveClanIndexes.sql": migrations20160627153918_createretrieveclanindexesSql,
 }
 
 // AssetDir returns the file names below a certain
@@ -300,6 +322,7 @@ var _bintree = &bintree{nil, map[string]*bintree{
 		"20160608182307_CreateMembershipTable.sql": &bintree{migrations20160608182307_createmembershiptableSql, map[string]*bintree{}},
 		"20160621161411_CreateHooksTable.sql": &bintree{migrations20160621161411_createhookstableSql, map[string]*bintree{}},
 		"20160627110742_LoadUUIDModule.sql": &bintree{migrations20160627110742_loaduuidmoduleSql, map[string]*bintree{}},
+		"20160627153918_CreateRetrieveClanIndexes.sql": &bintree{migrations20160627153918_createretrieveclanindexesSql, map[string]*bintree{}},
 	}},
 }}
 
