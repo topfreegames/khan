@@ -393,6 +393,16 @@ func TestClanModel(t *testing.T) {
 					g.Assert(err == nil).IsTrue()
 					g.Assert(newOwnerMembership.DeletedBy).Equal(owner.ID)
 					g.Assert(newOwnerMembership.DeletedAt > time.Now().UnixNano()/1000000-1000).IsTrue()
+
+					dbPlayer, err := GetPlayerByID(testDb, owner.ID)
+					g.Assert(err == nil).IsTrue()
+					g.Assert(dbPlayer.OwnershipCount).Equal(0)
+					g.Assert(dbPlayer.MembershipCount).Equal(1)
+
+					dbPlayer, err = GetPlayerByID(testDb, newOwnerMembership.PlayerID)
+					g.Assert(err == nil).IsTrue()
+					g.Assert(dbPlayer.OwnershipCount).Equal(1)
+					g.Assert(dbPlayer.MembershipCount).Equal(0)
 				})
 
 				g.It("And not first clan owner and next owner membership exists", func() {
@@ -439,6 +449,21 @@ func TestClanModel(t *testing.T) {
 					g.Assert(err == nil).IsTrue()
 					g.Assert(newOwnerMembership.DeletedBy).Equal(players[0].ID)
 					g.Assert(newOwnerMembership.DeletedAt > time.Now().UnixNano()/1000000-1000).IsTrue()
+
+					dbPlayer, err := GetPlayerByID(testDb, firstOwnerMembership.PlayerID)
+					g.Assert(err == nil).IsTrue()
+					g.Assert(dbPlayer.OwnershipCount).Equal(0)
+					g.Assert(dbPlayer.MembershipCount).Equal(1)
+
+					dbPlayer, err = GetPlayerByID(testDb, previousOwnerMembership.PlayerID)
+					g.Assert(err == nil).IsTrue()
+					g.Assert(dbPlayer.OwnershipCount).Equal(0)
+					g.Assert(dbPlayer.MembershipCount).Equal(1)
+
+					dbPlayer, err = GetPlayerByID(testDb, newOwnerMembership.PlayerID)
+					g.Assert(err == nil).IsTrue()
+					g.Assert(dbPlayer.OwnershipCount).Equal(1)
+					g.Assert(dbPlayer.MembershipCount).Equal(0)
 				})
 			})
 
