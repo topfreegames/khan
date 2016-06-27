@@ -32,6 +32,29 @@ Khan API
         "Error connecting to database: <error-details>"
       ```
 
+## Status Routes
+
+  ### Status
+
+  `GET /status`
+
+  Returns statistics on the health of khan.
+
+  * Success Response
+    * Code: `200`
+    * Content:
+
+      ```
+    {
+      "app": {
+        "errorRate": [float]        // Exponentially Weighted Moving Average Error Rate
+      },
+      "dispatch": {
+        "pendingJobs": [int]        // Pending hook jobs to be sent
+      }
+    }
+      ```
+
 ## Game Routes
 
   ### Create Game
