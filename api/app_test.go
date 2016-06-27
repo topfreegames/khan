@@ -98,7 +98,6 @@ func TestApp(t *testing.T) {
 			app := GetDefaultTestApp()
 
 			hooks := app.GetHooks()
-			fmt.Println(gameID, hooks)
 			g.Assert(len(hooks[gameID])).Equal(2)
 			g.Assert(len(hooks[gameID][0])).Equal(2)
 			g.Assert(len(hooks[gameID][1])).Equal(2)

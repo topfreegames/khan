@@ -156,11 +156,11 @@ func ApproveOrDenyMembershipInvitation(db DB, game *Game, gameID, playerPublicID
 	}
 
 	if action == "approve" {
-		clansCount, err := GetPlayerClansCount(db, gameID, playerPublicID)
+		player, err := GetPlayerByID(db, membership.PlayerID)
 		if err != nil {
 			return nil, err
 		}
-		if clansCount >= game.MaxClansPerPlayer {
+		if player.MembershipCount+player.OwnershipCount >= game.MaxClansPerPlayer {
 			return nil, &PlayerReachedMaxClansError{playerPublicID}
 		}
 		reachedMaxMembersError := clanReachedMaxMemberships(db, gameID, clanPublicID)
@@ -191,11 +191,11 @@ func ApproveOrDenyMembershipApplication(db DB, game *Game, gameID, playerPublicI
 	}
 
 	if action == "approve" {
-		clansCount, err := GetPlayerClansCount(db, gameID, playerPublicID)
+		player, err := GetPlayerByID(db, membership.PlayerID)
 		if err != nil {
 			return nil, err
 		}
-		if clansCount >= game.MaxClansPerPlayer {
+		if player.MembershipCount+player.OwnershipCount >= game.MaxClansPerPlayer {
 			return nil, &PlayerReachedMaxClansError{playerPublicID}
 		}
 		reachedMaxMembersError := clanReachedMaxMemberships(db, gameID, clanPublicID)
@@ -374,7 +374,8 @@ func isValidMember(membership *Membership) bool {
 }
 
 func approveOrDenyMembershipHelper(db DB, membership *Membership, action string) (*Membership, error) {
-	if action == "approve" {
+	approve := action == "approve"
+	if approve {
 		membership.Approved = true
 	} else if action == "deny" {
 		membership.Denied = true
@@ -384,6 +385,12 @@ func approveOrDenyMembershipHelper(db DB, membership *Membership, action string)
 	_, err := db.Update(membership)
 	if err != nil {
 		return nil, err
+	}
+	if approve {
+		err = IncrementPlayerMembershipCount(db, membership.PlayerID, 1)
+		if err != nil {
+			return nil, err
+		}
 	}
 	return membership, nil
 }

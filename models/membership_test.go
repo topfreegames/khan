@@ -429,7 +429,7 @@ func TestMembershipModel(t *testing.T) {
 			})
 
 			g.It("If player reached the game's MaxClansPerPlayer (owner of another clan)", func() {
-				game, _, owner, players, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
+				game, _, owner, players, _, err := GetClanWithMemberships(testDb, 1, 0, 0, 0, "", "")
 				g.Assert(err == nil).IsTrue()
 
 				anotherClan := ClanFactory.MustCreateWithOption(util.JSON{
@@ -613,6 +613,10 @@ func TestMembershipModel(t *testing.T) {
 				g.Assert(err == nil).IsTrue()
 				g.Assert(dbMembership.Approved).Equal(true)
 				g.Assert(dbMembership.Denied).Equal(false)
+
+				dbPlayer, err := GetPlayerByID(testDb, players[0].ID)
+				g.Assert(err == nil).IsTrue()
+				g.Assert(dbPlayer.MembershipCount).Equal(1)
 			})
 		})
 
@@ -637,7 +641,7 @@ func TestMembershipModel(t *testing.T) {
 
 			g.It("If player reached the game's MaxClansPerPlayer", func() {
 				action := "approve"
-				game, clan, owner, players, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
+				game, _, owner, players, _, err := GetClanWithMemberships(testDb, 1, 0, 0, 0, "", "")
 				g.Assert(err == nil).IsTrue()
 
 				anotherClan := ClanFactory.MustCreateWithOption(util.JSON{
@@ -656,7 +660,6 @@ func TestMembershipModel(t *testing.T) {
 					"RequestorID": owner.ID,
 					"Metadata":    util.JSON{"x": "a"},
 					"Level":       "Member",
-					"Approved":    true,
 				}).(*Membership)
 				err = testDb.Insert(membership)
 				g.Assert(err == nil).IsTrue()
@@ -666,7 +669,7 @@ func TestMembershipModel(t *testing.T) {
 					game,
 					players[0].GameID,
 					players[0].PublicID,
-					clan.PublicID,
+					anotherClan.PublicID,
 					action,
 				)
 
@@ -861,6 +864,10 @@ func TestMembershipModel(t *testing.T) {
 
 				g.Assert(dbMembership.Approved).Equal(true)
 				g.Assert(dbMembership.Denied).Equal(false)
+
+				dbPlayer, err := GetPlayerByID(testDb, players[0].ID)
+				g.Assert(err == nil).IsTrue()
+				g.Assert(dbPlayer.MembershipCount).Equal(1)
 			})
 
 			g.It("Requestor is member of the clan with level > minLevel", func() {
@@ -896,6 +903,10 @@ func TestMembershipModel(t *testing.T) {
 				g.Assert(err == nil).IsTrue()
 				g.Assert(dbMembership.Approved).Equal(true)
 				g.Assert(dbMembership.Denied).Equal(false)
+
+				dbPlayer, err := GetPlayerByID(testDb, players[0].ID)
+				g.Assert(err == nil).IsTrue()
+				g.Assert(dbPlayer.MembershipCount).Equal(1)
 			})
 		})
 
@@ -925,11 +936,8 @@ func TestMembershipModel(t *testing.T) {
 
 			g.It("If player reached the game's MaxClansPerPlayer", func() {
 				action := "approve"
-				game, clan, owner, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
+				game, _, owner, players, _, err := GetClanWithMemberships(testDb, 1, 0, 0, 0, "", "")
 				g.Assert(err == nil).IsTrue()
-
-				memberships[0].RequestorID = memberships[0].PlayerID
-				_, err = testDb.Update(memberships[0])
 
 				anotherClan := ClanFactory.MustCreateWithOption(util.JSON{
 					"GameID":   owner.GameID,
@@ -944,10 +952,9 @@ func TestMembershipModel(t *testing.T) {
 					"GameID":      game.PublicID,
 					"PlayerID":    players[0].ID,
 					"ClanID":      anotherClan.ID,
-					"RequestorID": owner.ID,
+					"RequestorID": players[0].ID,
 					"Metadata":    util.JSON{"x": "a"},
 					"Level":       "Member",
-					"Approved":    true,
 				}).(*Membership)
 				err = testDb.Insert(membership)
 				g.Assert(err == nil).IsTrue()
@@ -957,7 +964,7 @@ func TestMembershipModel(t *testing.T) {
 					game,
 					players[0].GameID,
 					players[0].PublicID,
-					clan.PublicID,
+					anotherClan.PublicID,
 					owner.PublicID,
 					action,
 				)
