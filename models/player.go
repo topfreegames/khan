@@ -66,7 +66,7 @@ func IncrementPlayerMembershipCount(db DB, id, by int) error {
 // IncrementPlayerOwnershipCount increments the player ownership count
 func IncrementPlayerOwnershipCount(db DB, id, by int) error {
 	query := `
-	UPDATE players SET ownership_count=membership_count+$1
+	UPDATE players SET ownership_count=ownership_count+$1
 	WHERE players.id=$2
 	`
 	res, err := db.Exec(query, by, id)
