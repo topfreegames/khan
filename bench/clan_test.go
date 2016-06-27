@@ -109,3 +109,31 @@ func BenchmarkRetrieveClan(b *testing.B) {
 		result = res
 	}
 }
+
+func BenchmarkSearchClan(b *testing.B) {
+	db, err := models.GetPerfDB()
+	if err != nil {
+		panic(err.Error())
+	}
+
+	game, owner, err := getGameAndPlayer(db)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	clans, err := createClans(db, game, owner, b.N)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		route := getRoute(fmt.Sprintf("/games/%s/clan-search?term=%s", game.Name, clans[0].PublicID))
+		res, err := get(route)
+		validateResp(res, err)
+		res.Body.Close()
+
+		result = res
+	}
+}
