@@ -165,3 +165,68 @@ func BenchmarkListClans(b *testing.B) {
 		result = res
 	}
 }
+
+func BenchmarkLeaveClan(b *testing.B) {
+	db, err := models.GetPerfDB()
+	if err != nil {
+		panic(err.Error())
+	}
+
+	game, owner, err := getGameAndPlayer(db)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	clans, err := createClans(db, game, owner, b.N)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		route := getRoute(fmt.Sprintf("/games/%s/clans/%s/leave", game.PublicID, clans[i].PublicID))
+		res, err := postTo(route, util.JSON{
+			"ownerPublicID": owner.PublicID,
+		})
+		validateResp(res, err)
+		res.Body.Close()
+
+		result = res
+	}
+}
+
+func BenchmarkTransferOwnership(b *testing.B) {
+	db, err := models.GetPerfDB()
+	if err != nil {
+		panic(err.Error())
+	}
+
+	game, clan, owner, members, _, err := models.GetClanWithMemberships(
+		db, 20, 0, 0, 0, "", "",
+	)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	player1 := owner.PublicID
+	player2 := members[0].PublicID
+
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		route := getRoute(fmt.Sprintf("/games/%s/clans/%s/transfer-ownership", game.PublicID, clan.PublicID))
+		res, err := postTo(route, util.JSON{
+			"ownerPublicID":  player1,
+			"playerPublicID": player2,
+		})
+		validateResp(res, err)
+		res.Body.Close()
+
+		altPlayer := player1
+		player1 = player2
+		player2 = altPlayer
+
+		result = res
+	}
+}
