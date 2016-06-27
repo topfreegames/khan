@@ -52,39 +52,6 @@ func (c *Clan) PreUpdate(s gorp.SqlExecutor) error {
 	return nil
 }
 
-// GetPlayerClansCount returns the count of clans the player is the owner or a member.
-func GetPlayerClansCount(db DB, gameID, playerPublicID string) (int, error) {
-	query := `
-	SELECT
-		Coalesce(m.count, 0) + Coalesce(c.count, 0) AS count
-	FROM players p
-		LEFT OUTER JOIN (
-			SELECT
-				COUNT(*) AS count, m.player_id
-			FROM memberships m
-			WHERE
-				m.deleted_at=0 AND m.approved=true AND m.game_id=$1
-			GROUP BY m.player_id
-		) m ON m.player_id=p.id
-
-	  LEFT OUTER JOIN (
-			SELECT
-			  COUNT(*) count, c.owner_id
-			FROM clans c
-			WHERE
-				c.game_id=$1
-			GROUP BY c.owner_id
-		) c ON c.owner_id=p.id
-	WHERE
-		p.public_id=$2`
-
-	count, err := db.SelectInt(query, gameID, playerPublicID)
-	if err != nil {
-		return 0, err
-	}
-	return int(count), nil
-}
-
 // GetClanByID returns a clan by id
 func GetClanByID(db DB, id int) (*Clan, error) {
 	obj, err := db.Get(Clan{}, id)
