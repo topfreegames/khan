@@ -18,13 +18,15 @@ import (
 
 // Player identifies uniquely one player in a given game
 type Player struct {
-	ID        int       `db:"id"`
-	GameID    string    `db:"game_id"`
-	PublicID  string    `db:"public_id"`
-	Name      string    `db:"name"`
-	Metadata  util.JSON `db:"metadata"`
-	CreatedAt int64     `db:"created_at"`
-	UpdatedAt int64     `db:"updated_at"`
+	ID              int       `db:"id"`
+	GameID          string    `db:"game_id"`
+	PublicID        string    `db:"public_id"`
+	Name            string    `db:"name"`
+	Metadata        util.JSON `db:"metadata"`
+	MembershipCount int       `db:"membership_count"`
+	OwnershipCount  int       `db:"ownership_count"`
+	CreatedAt       int64     `db:"created_at"`
+	UpdatedAt       int64     `db:"updated_at"`
 }
 
 // PreInsert populates fields before inserting a new player
@@ -37,6 +39,48 @@ func (p *Player) PreInsert(s gorp.SqlExecutor) error {
 // PreUpdate populates fields before updating a player
 func (p *Player) PreUpdate(s gorp.SqlExecutor) error {
 	p.UpdatedAt = time.Now().UnixNano() / 1000000
+	return nil
+}
+
+// IncrementPlayerMembershipCount increments the player membership count
+func IncrementPlayerMembershipCount(db DB, id, by int) error {
+	query := `
+	UPDATE players SET membership_count=membership_count+$1
+	WHERE players.id=$2
+	`
+	res, err := db.Exec(query, by, id)
+	if err != nil {
+		return err
+	}
+
+	rows, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rows != 1 {
+		return &ModelNotFoundError{"Player", id}
+	}
+	return nil
+}
+
+// IncrementPlayerOwnershipCount increments the player ownership count
+func IncrementPlayerOwnershipCount(db DB, id, by int) error {
+	query := `
+	UPDATE players SET ownership_count=membership_count+$1
+	WHERE players.id=$2
+	`
+	res, err := db.Exec(query, by, id)
+	if err != nil {
+		return err
+	}
+
+	rows, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rows != 1 {
+		return &ModelNotFoundError{"Player", id}
+	}
 	return nil
 }
 

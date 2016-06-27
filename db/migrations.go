@@ -7,6 +7,7 @@
 // migrations/20160621161411_CreateHooksTable.sql
 // migrations/20160627110742_LoadUUIDModule.sql
 // migrations/20160627153918_CreateRetrieveClanIndexes.sql
+// migrations/20160627155249_CreatePlayerMembershipAndOwnershipCount.sql
 // DO NOT EDIT!
 
 package db
@@ -89,7 +90,7 @@ func migrations20160608133902_creategametableSql() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "migrations/20160608133902_CreateGameTable.sql", size: 1193, mode: os.FileMode(420), modTime: time.Unix(1466798697, 0)}
+	info := bindataFileInfo{name: "migrations/20160608133902_CreateGameTable.sql", size: 1193, mode: os.FileMode(420), modTime: time.Unix(1466797802, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -109,7 +110,7 @@ func migrations20160608150958_createplayertableSql() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "migrations/20160608150958_CreatePlayerTable.sql", size: 730, mode: os.FileMode(420), modTime: time.Unix(1466707272, 0)}
+	info := bindataFileInfo{name: "migrations/20160608150958_CreatePlayerTable.sql", size: 730, mode: os.FileMode(420), modTime: time.Unix(1466707165, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -129,7 +130,7 @@ func migrations20160608174439_createclantableSql() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "migrations/20160608174439_CreateClanTable.sql", size: 906, mode: os.FileMode(420), modTime: time.Unix(1466707272, 0)}
+	info := bindataFileInfo{name: "migrations/20160608174439_CreateClanTable.sql", size: 906, mode: os.FileMode(420), modTime: time.Unix(1466707165, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -149,7 +150,7 @@ func migrations20160608182307_createmembershiptableSql() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "migrations/20160608182307_CreateMembershipTable.sql", size: 1018, mode: os.FileMode(420), modTime: time.Unix(1466792887, 0)}
+	info := bindataFileInfo{name: "migrations/20160608182307_CreateMembershipTable.sql", size: 1018, mode: os.FileMode(420), modTime: time.Unix(1466787920, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -169,7 +170,7 @@ func migrations20160621161411_createhookstableSql() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "migrations/20160621161411_CreateHooksTable.sql", size: 700, mode: os.FileMode(420), modTime: time.Unix(1466538319, 0)}
+	info := bindataFileInfo{name: "migrations/20160621161411_CreateHooksTable.sql", size: 700, mode: os.FileMode(420), modTime: time.Unix(1466601889, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -189,7 +190,7 @@ func migrations20160627110742_loaduuidmoduleSql() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "migrations/20160627110742_LoadUUIDModule.sql", size: 75, mode: os.FileMode(420), modTime: time.Unix(1467036481, 0)}
+	info := bindataFileInfo{name: "migrations/20160627110742_LoadUUIDModule.sql", size: 75, mode: os.FileMode(420), modTime: time.Unix(1467060502, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -209,7 +210,27 @@ func migrations20160627153918_createretrieveclanindexesSql() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "migrations/20160627153918_CreateRetrieveClanIndexes.sql", size: 674, mode: os.FileMode(420), modTime: time.Unix(1467054354, 0)}
+	info := bindataFileInfo{name: "migrations/20160627153918_CreateRetrieveClanIndexes.sql", size: 674, mode: os.FileMode(420), modTime: time.Unix(1467060534, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _migrations20160627155249_createplayermembershipandownershipcountSql = []byte("\x1f\x8b\x08\x00\x00\x09\x6e\x88\x00\xff\x8c\x8f\x41\x4f\xc4\x20\x10\x85\xef\xfd\x15\xef\xb6\x07\xb3\x89\xf7\x3d\xa1\xd4\x13\xb6\xba\xc2\xd9\xb0\xec\xa4\x25\x52\x20\xc0\x66\xf5\xdf\x4b\x4d\x34\x8d\xa9\xb1\xc7\xf7\x66\xde\x9b\xf9\x9a\xfd\x1e\x37\x43\x08\x99\xa0\xe2\x2c\x5e\x9e\x05\xac\x47\x26\x53\x6c\xf0\xd8\xa9\xb8\x83\xcd\xa0\x77\x32\x97\x42\x67\x5c\x47\xf2\x28\x63\xb5\x26\x3b\x24\xfd\xb5\x54\x85\x8e\xd1\x59\x3a\x37\x4c\xc8\xf6\x08\xc9\xee\x44\x8b\xe8\xf4\x07\xa5\x0c\xc6\x39\xee\x7b\xa1\x1e\x3b\x4c\x34\x9d\xaa\x35\xda\xf8\x6a\xc2\xc5\x97\x7a\xaa\xd0\x40\x09\x5d\x2f\xd1\x29\x21\xc0\xdb\x07\xa6\x84\xc4\xed\xe1\xbf\xae\x70\xf5\x9b\xab\x16\x98\xbc\xe6\xbe\x41\x7f\x28\x67\x73\x13\x67\x0a\xce\xd5\xe9\x49\x9b\xb7\xd5\xff\xf8\xb1\x7f\xfa\x0b\x76\x9d\x68\x99\xf8\x85\x74\x68\x3e\x03\x00\x00\xff\xff\x47\x2a\x44\xfc\x9f\x01\x00\x00")
+
+func migrations20160627155249_createplayermembershipandownershipcountSqlBytes() ([]byte, error) {
+	return bindataRead(
+		_migrations20160627155249_createplayermembershipandownershipcountSql,
+		"migrations/20160627155249_CreatePlayerMembershipAndOwnershipCount.sql",
+	)
+}
+
+func migrations20160627155249_createplayermembershipandownershipcountSql() (*asset, error) {
+	bytes, err := migrations20160627155249_createplayermembershipandownershipcountSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "migrations/20160627155249_CreatePlayerMembershipAndOwnershipCount.sql", size: 415, mode: os.FileMode(420), modTime: time.Unix(1467060534, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -273,6 +294,7 @@ var _bindata = map[string]func() (*asset, error){
 	"migrations/20160621161411_CreateHooksTable.sql": migrations20160621161411_createhookstableSql,
 	"migrations/20160627110742_LoadUUIDModule.sql": migrations20160627110742_loaduuidmoduleSql,
 	"migrations/20160627153918_CreateRetrieveClanIndexes.sql": migrations20160627153918_createretrieveclanindexesSql,
+	"migrations/20160627155249_CreatePlayerMembershipAndOwnershipCount.sql": migrations20160627155249_createplayermembershipandownershipcountSql,
 }
 
 // AssetDir returns the file names below a certain
@@ -323,6 +345,7 @@ var _bintree = &bintree{nil, map[string]*bintree{
 		"20160621161411_CreateHooksTable.sql": &bintree{migrations20160621161411_createhookstableSql, map[string]*bintree{}},
 		"20160627110742_LoadUUIDModule.sql": &bintree{migrations20160627110742_loaduuidmoduleSql, map[string]*bintree{}},
 		"20160627153918_CreateRetrieveClanIndexes.sql": &bintree{migrations20160627153918_createretrieveclanindexesSql, map[string]*bintree{}},
+		"20160627155249_CreatePlayerMembershipAndOwnershipCount.sql": &bintree{migrations20160627155249_createplayermembershipandownershipcountSql, map[string]*bintree{}},
 	}},
 }}
 
