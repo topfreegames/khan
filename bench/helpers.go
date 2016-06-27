@@ -77,6 +77,14 @@ func getClanPayload(ownerID, clanPublicID string) util.JSON {
 	}
 }
 
+func getPlayerPayload(playerPublicID string) util.JSON {
+	return util.JSON{
+		"publicID": playerPublicID,
+		"name":     playerPublicID,
+		"metadata": util.JSON{"x": 1},
+	}
+}
+
 func getGameAndPlayer(db models.DB) (*models.Game, *models.Player, error) {
 	game := models.GameFactory.MustCreateWithOption(util.JSON{
 		"PublicID":          uuid.NewV4().String(),
