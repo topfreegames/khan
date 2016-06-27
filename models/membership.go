@@ -461,6 +461,13 @@ func promoteOrDemoteMemberHelper(db DB, membership *Membership, action string, l
 }
 
 func deleteMembershipHelper(db DB, membership *Membership, deletedBy int) error {
+	if membership.Approved {
+		err := IncrementPlayerMembershipCount(db, membership.PlayerID, -1)
+		if err != nil {
+			return err
+		}
+	}
+
 	membership.DeletedAt = time.Now().UnixNano() / 1000000
 	membership.DeletedBy = deletedBy
 	membership.Approved = false
