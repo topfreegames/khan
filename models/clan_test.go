@@ -160,6 +160,11 @@ func TestClanModel(t *testing.T) {
 
 				g.Assert(dbClan.GameID).Equal(clan.GameID)
 				g.Assert(dbClan.PublicID).Equal(clan.PublicID)
+
+				dbPlayer, err := GetPlayerByID(testDb, player.ID)
+				g.Assert(err == nil).IsTrue()
+
+				g.Assert(dbPlayer.OwnershipCount).Equal(1)
 			})
 
 			g.It("Should not create a new Clan with CreateClan if invalid data", func() {
