@@ -8,7 +8,6 @@
 package api
 
 import (
-	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -18,10 +17,10 @@ import (
 	"github.com/golang/glog"
 	"github.com/kataras/iris"
 	"github.com/kataras/iris/middleware/logger"
+	"github.com/rcrowley/go-metrics"
 	"github.com/spf13/viper"
 	"github.com/topfreegames/khan/models"
 	"github.com/topfreegames/khan/util"
-	"github.com/valyala/fasthttp"
 )
 
 // App is a struct that represents a Khan API Application
@@ -30,11 +29,11 @@ type App struct {
 	Port       int
 	Host       string
 	ConfigPath string
+	Errors     metrics.EWMA
 	App        *iris.Framework
 	Db         models.DB
 	Config     *viper.Viper
-	//hooks      map[string]map[int][]*models.Hook
-	//games      map[string]*models.Game
+	Dispatcher *Dispatcher
 }
 
 // GetApp returns a new Khan API Application
@@ -56,8 +55,7 @@ func (app *App) Configure() {
 	app.loadConfiguration()
 	app.connectDatabase()
 	app.configureApplication()
-	//app.loadGames()
-	//app.loadHooks()
+	app.initDispatcher()
 }
 
 func (app *App) setConfigurationDefaults() {
@@ -112,8 +110,10 @@ func (app *App) configureApplication() {
 	}
 	// a.Use(recovery.New(os.Stderr))
 	a.Use(&TransactionMiddleware{App: app})
+	a.Use(&VersionMiddleware{App: app})
 
 	a.Get("/healthcheck", HealthCheckHandler(app))
+	a.Get("/status", StatusHandler(app))
 
 	// Game Routes
 	a.Post("/games", CreateGameHandler(app))
@@ -145,6 +145,17 @@ func (app *App) configureApplication() {
 	a.Post("/games/:gameID/clans/:clanPublicID/memberships/delete", DeleteMembershipHandler(app))
 	a.Post("/games/:gameID/clans/:clanPublicID/memberships/promote", PromoteOrDemoteMembershipHandler(app, "promote"))
 	a.Post("/games/:gameID/clans/:clanPublicID/memberships/demote", PromoteOrDemoteMembershipHandler(app, "demote"))
+
+	app.Errors = metrics.NewEWMA15()
+
+	go func() {
+		app.Errors.Tick()
+		time.Sleep(5 * time.Second)
+	}()
+}
+
+func (app *App) addError() {
+	app.Errors.Update(1)
 }
 
 //GetHooks returns all available hooks
@@ -176,62 +187,18 @@ func (app *App) GetGame(gameID string) (*models.Game, error) {
 	return models.GetGameByPublicID(app.Db, gameID)
 }
 
-//HookNotFoundError means that hooks for the specified game and event type were not found
-type HookNotFoundError struct {
-	GameID    string
-	EventType int
-}
-
-func (hook *HookNotFoundError) Error() string {
-	return fmt.Sprintf("Hook not found for game %s with event type %d...", hook.GameID, hook.EventType)
+func (app *App) initDispatcher() {
+	disp, err := NewDispatcher(app, 5, 100)
+	if err != nil {
+		panic(fmt.Sprintf("Could not initialize dispatcher: %s", err.Error()))
+	}
+	app.Dispatcher = disp
+	app.Dispatcher.Start()
 }
 
 // DispatchHooks dispatches web hooks for a specific game and event type
 func (app *App) DispatchHooks(gameID string, eventType int, payload util.JSON) error {
-	hooks := app.GetHooks()
-	if _, ok := hooks[gameID]; !ok {
-		return &HookNotFoundError{GameID: gameID, EventType: eventType}
-	}
-	if _, ok := hooks[gameID][eventType]; !ok {
-		return &HookNotFoundError{GameID: gameID, EventType: eventType}
-	}
-
-	timeout := time.Duration(app.Config.GetInt("webhooks.timeout")) * time.Second
-	payloadJSON, err := json.Marshal(payload)
-	if err != nil {
-		return err
-	}
-
-	var errors []error
-	for _, hook := range hooks[gameID][eventType] {
-		glog.Infof("Sending webhook to %s", hook.URL)
-
-		client := fasthttp.Client{
-			Name: fmt.Sprintf("khan-%s", VERSION),
-		}
-
-		req := fasthttp.AcquireRequest()
-		req.Header.SetMethod("POST")
-		req.SetRequestURI(hook.URL)
-		req.AppendBody(payloadJSON)
-		resp := fasthttp.AcquireResponse()
-		err := client.DoTimeout(req, resp, timeout)
-		if err != nil {
-			glog.Error(fmt.Sprintf("Could not request webhook %s: %s", hook.URL, err.Error()))
-			errors = append(errors, err)
-			continue
-		}
-		if resp.StatusCode() > 399 {
-			glog.Error(fmt.Sprintf(
-				"Could not request webhook %s (status code: %d): %s",
-				hook.URL,
-				resp.StatusCode(),
-				resp.Body(),
-			))
-			continue
-		}
-	}
-
+	app.Dispatcher.DispatchHook(gameID, eventType, payload)
 	return nil
 }
 

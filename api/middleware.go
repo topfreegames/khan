@@ -41,3 +41,14 @@ func (m *TransactionMiddleware) Serve(c *iris.Context) {
 func GetCtxDB(ctx *iris.Context) models.DB {
 	return ctx.Get("db").(models.DB)
 }
+
+//VersionMiddleware automatically adds a version header to response
+type VersionMiddleware struct {
+	App *App
+}
+
+// Serve automatically adds a version header to response
+func (m *VersionMiddleware) Serve(c *iris.Context) {
+	c.SetHeader("KHAN-VERSION", VERSION)
+	c.Next()
+}
