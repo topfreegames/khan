@@ -102,6 +102,9 @@ run-perf:
 db-perf:
 	@go run perf/main.go
 
+restore-perf:
+	@psql -d postgres khan_perf < khan-perf.dump
+
 dump-perf:
 	@pg_dump khan_perf > khan-perf.dump
 
