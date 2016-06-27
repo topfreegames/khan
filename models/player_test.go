@@ -252,4 +252,68 @@ func TestPlayerModel(t *testing.T) {
 			})
 		})
 	})
+
+	g.Describe("Increment Player Membership Count", func() {
+		g.It("Should work if positive value", func() {
+			amount := 1
+			_, player, err := CreatePlayerFactory(testDb, "")
+			g.Assert(err == nil).IsTrue()
+
+			err = IncrementPlayerMembershipCount(testDb, player.ID, amount)
+			g.Assert(err == nil).IsTrue()
+			dbPlayer, err := GetPlayerByID(testDb, player.ID)
+			g.Assert(err == nil).IsTrue()
+			g.Assert(dbPlayer.MembershipCount).Equal(player.MembershipCount + amount)
+		})
+
+		g.It("Should work if negative value", func() {
+			amount := -1
+			_, player, err := CreatePlayerFactory(testDb, "")
+			g.Assert(err == nil).IsTrue()
+
+			err = IncrementPlayerMembershipCount(testDb, player.ID, amount)
+			g.Assert(err == nil).IsTrue()
+			dbPlayer, err := GetPlayerByID(testDb, player.ID)
+			g.Assert(err == nil).IsTrue()
+			g.Assert(dbPlayer.MembershipCount).Equal(player.MembershipCount + amount)
+		})
+
+		g.It("Should not work if non-existing Player", func() {
+			err := IncrementPlayerMembershipCount(testDb, -1, 1)
+			g.Assert(err != nil).IsTrue()
+			g.Assert(err.Error()).Equal("Player was not found with id: -1")
+		})
+	})
+
+	g.Describe("Increment Player Ownership Count", func() {
+		g.It("Should work if positive value", func() {
+			amount := 1
+			_, player, err := CreatePlayerFactory(testDb, "")
+			g.Assert(err == nil).IsTrue()
+
+			err = IncrementPlayerOwnershipCount(testDb, player.ID, amount)
+			g.Assert(err == nil).IsTrue()
+			dbPlayer, err := GetPlayerByID(testDb, player.ID)
+			g.Assert(err == nil).IsTrue()
+			g.Assert(dbPlayer.OwnershipCount).Equal(player.OwnershipCount + amount)
+		})
+
+		g.It("Should work if negative value", func() {
+			amount := -1
+			_, player, err := CreatePlayerFactory(testDb, "")
+			g.Assert(err == nil).IsTrue()
+
+			err = IncrementPlayerOwnershipCount(testDb, player.ID, amount)
+			g.Assert(err == nil).IsTrue()
+			dbPlayer, err := GetPlayerByID(testDb, player.ID)
+			g.Assert(err == nil).IsTrue()
+			g.Assert(dbPlayer.OwnershipCount).Equal(player.OwnershipCount + amount)
+		})
+
+		g.It("Should not work if non-existing Player", func() {
+			err := IncrementPlayerOwnershipCount(testDb, -1, 1)
+			g.Assert(err != nil).IsTrue()
+			g.Assert(err.Error()).Equal("Player was not found with id: -1")
+		})
+	})
 }
