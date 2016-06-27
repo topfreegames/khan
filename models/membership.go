@@ -63,13 +63,13 @@ func GetMembershipByClanAndPlayerPublicID(db DB, gameID, clanPublicID, playerPub
 	SELECT
 		m.*
 	FROM memberships m
-		INNER JOIN games g ON g.public_id=$1 AND g.public_id=m.game_id
-		INNER JOIN clans c ON c.public_id=$2 AND c.id=m.clan_id
-		INNER JOIN players p ON p.public_id=$3 AND p.id=m.player_id
+		INNER JOIN clans c ON c.public_id=$1 AND c.id=m.clan_id
+		INNER JOIN players p ON p.public_id=$2 AND p.id=m.player_id
 	WHERE
+		m.game_id=$3 AND
 		m.deleted_at=0`
 
-	err := db.SelectOne(&membership, query, gameID, clanPublicID, playerPublicID)
+	err := db.SelectOne(&membership, query, clanPublicID, playerPublicID, gameID)
 	if err != nil || &membership == nil {
 		return nil, &ModelNotFoundError{"Membership", playerPublicID}
 	}

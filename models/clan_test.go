@@ -390,7 +390,8 @@ func TestClanModel(t *testing.T) {
 
 					newOwnerMembership, err := GetMembershipByID(testDb, memberships[0].ID)
 					g.Assert(err == nil).IsTrue()
-					g.Assert(newOwnerMembership.DeletedBy).Equal(owner.ID)
+					g.Assert(newOwnerMembership.Banned).IsFalse()
+					g.Assert(newOwnerMembership.DeletedBy).Equal(newOwnerMembership.PlayerID)
 					g.Assert(newOwnerMembership.DeletedAt > time.Now().UnixNano()/1000000-1000).IsTrue()
 
 					dbPlayer, err := GetPlayerByID(testDb, owner.ID)
@@ -446,7 +447,8 @@ func TestClanModel(t *testing.T) {
 
 					newOwnerMembership, err := GetMembershipByID(testDb, memberships[1].ID)
 					g.Assert(err == nil).IsTrue()
-					g.Assert(newOwnerMembership.DeletedBy).Equal(players[0].ID)
+					g.Assert(newOwnerMembership.Banned).IsFalse()
+					g.Assert(newOwnerMembership.DeletedBy).Equal(newOwnerMembership.PlayerID)
 					g.Assert(newOwnerMembership.DeletedAt > time.Now().UnixNano()/1000000-1000).IsTrue()
 
 					dbPlayer, err := GetPlayerByID(testDb, firstOwnerMembership.PlayerID)

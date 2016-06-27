@@ -190,6 +190,7 @@ func TransferClanOwnership(db DB, gameID, clanPublicID, ownerPublicID, playerPub
 			Level:       level,
 			Approved:    true,
 			Denied:      false,
+			Banned:      false,
 			CreatedAt:   clan.CreatedAt,
 			UpdatedAt:   time.Now().UnixNano() / 1000000,
 		})
@@ -199,12 +200,16 @@ func TransferClanOwnership(db DB, gameID, clanPublicID, ownerPublicID, playerPub
 	} else {
 		oldOwnerMembership.Approved = true
 		oldOwnerMembership.Denied = false
+		oldOwnerMembership.Banned = false
+		oldOwnerMembership.DeletedBy = 0
+		oldOwnerMembership.DeletedAt = 0
 		oldOwnerMembership.Level = level
 		oldOwnerMembership.RequestorID = oldOwnerID
+
 		_, err = db.Update(oldOwnerMembership)
 	}
 
-	err = deleteMembershipHelper(db, newOwnerMembership, oldOwnerID)
+	err = deleteMembershipHelper(db, newOwnerMembership, newOwnerMembership.PlayerID)
 	if err != nil {
 		return err
 	}
