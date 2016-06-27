@@ -97,7 +97,7 @@ kill-test-khan:
 	@-ps aux | egrep './khan.+perf.yaml' | egrep -v egrep | awk ' { print $$2 } ' | xargs kill -9
 
 run-perf:
-	@go test -bench . -benchtime 5s ./bench/...
+	@go test -bench . -benchtime 3s ./bench/...
 
 db-perf:
 	@go run perf/main.go
