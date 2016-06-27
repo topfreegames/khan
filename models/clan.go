@@ -274,8 +274,8 @@ func GetClanDetails(db DB, gameID, publicID string, maxClansPerPlayer int) (util
 		o.public_id OwnerPublicID, o.name OwnerName, o.metadata OwnerMetadata,
 		p.public_id PlayerPublicID, p.name PlayerName, p.metadata DBPlayerMetadata,
 		r.public_id RequestorPublicID, r.name RequestorName,
-		Coalesce(apm.membership_count, 0) MembershipCount,
-		Coalesce(com.ownership_count, 0) OwnershipCount
+		Coalesce(p.membership_count, 0) MembershipCount,
+		Coalesce(p.ownership_count, 0) OwnershipCount
 	FROM clans c
 		INNER JOIN players o ON c.owner_id=o.id
 		LEFT OUTER JOIN memberships m ON m.clan_id=c.id AND m.deleted_at=0
