@@ -163,7 +163,6 @@ func TestClanModel(t *testing.T) {
 
 				dbPlayer, err := GetPlayerByID(testDb, player.ID)
 				g.Assert(err == nil).IsTrue()
-
 				g.Assert(dbPlayer.OwnershipCount).Equal(1)
 			})
 
@@ -305,6 +304,7 @@ func TestClanModel(t *testing.T) {
 				g.It("And clan has memberships", func() {
 					_, clan, owner, _, memberships, err := GetClanWithMemberships(testDb, 1, 0, 0, 0, "", "")
 					g.Assert(err == nil).IsTrue()
+					fmt.Println("*******", owner.MembershipCount, owner.OwnershipCount)
 
 					err = LeaveClan(testDb, clan.GameID, clan.PublicID, owner.PublicID)
 					g.Assert(err == nil).IsTrue()
@@ -316,6 +316,15 @@ func TestClanModel(t *testing.T) {
 					g.Assert(err == nil).IsTrue()
 					g.Assert(dbDeletedMembership.DeletedBy).Equal(owner.ID)
 					g.Assert(dbDeletedMembership.DeletedAt > time.Now().UnixNano()/1000000-1000).IsTrue()
+
+					dbPlayer, err := GetPlayerByID(testDb, owner.ID)
+					g.Assert(err == nil).IsTrue()
+					g.Assert(dbPlayer.OwnershipCount).Equal(0)
+
+					dbPlayer, err = GetPlayerByID(testDb, memberships[0].PlayerID)
+					g.Assert(err == nil).IsTrue()
+					g.Assert(dbPlayer.OwnershipCount).Equal(1)
+					g.Assert(dbPlayer.MembershipCount).Equal(0)
 				})
 
 				g.It("And clan has no memberships", func() {
@@ -327,6 +336,10 @@ func TestClanModel(t *testing.T) {
 					_, err = GetClanByPublicID(testDb, clan.GameID, clan.PublicID)
 					g.Assert(err != nil).IsTrue()
 					g.Assert(err.Error()).Equal(fmt.Sprintf("Clan was not found with id: %s", clan.PublicID))
+
+					dbPlayer, err := GetPlayerByID(testDb, owner.ID)
+					g.Assert(err == nil).IsTrue()
+					g.Assert(dbPlayer.OwnershipCount).Equal(0)
 				})
 			})
 
