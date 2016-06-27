@@ -428,7 +428,7 @@ More about web hooks can be found in [Using WebHooks](using_webhooks.html).
           ],
 
           // Clans the player has been rejected from
-          "denied":[   
+          "denied":[
             { "name": [string], "publicID": [string] }, // clan name and publicID
           ],
 
@@ -673,6 +673,28 @@ More about web hooks can be found in [Using WebHooks](using_webhooks.html).
 
   Retrieves the clan with the given publicID. It will list all the clan information and its members.
 
+  The roster, as well as the memberships return a list of players, following this structure:
+
+        "membership": {
+			"level":     [int],
+			"approved":  [bool],
+			"denied":    [bool],
+			"banned":    [bool],
+			"createdAt": [timestamp],
+			"updatedAt": [timestamp],
+		},
+		"player": {
+			"publicID":        [string],
+			"name":            [string],
+			"membershipCount": [int],       // number of clans player is member of
+			"ownershipCount":  [int],       // number of clans player is owner of
+		},
+		"requestor": {  // player who requested this membership
+			"publicID": [string],
+			"name":     [string],
+		}
+
+
   * Success Response
     * Code: `200`
     * Content:
@@ -688,19 +710,19 @@ More about web hooks can be found in [Using WebHooks](using_webhooks.html).
             "name":     [string],
             "metadata": [JSON],
         ],
-        "members": [
-          {
-            "membershipLevel":     [string],
-            "membershipApproved":  [boolean],
-            "membershipDenied":    [boolean],
-            "membershipCreatedAt": [int],     // milliseconds since epoch
-            "membershipUpdatedAt": [int],     // milliseconds since epoch
-            "playerPublicID":      [string],
-            "playerName":          [string],
-            "playerMetadata":      [JSON],
-            "requestorPublicID":   [string],
-            "requestorName":       [string],
-          }
+        "roster": [
+          [membership],     //a list of the above membership structure
+        ],
+        "memberships": [
+          "pending": [
+            [membership],   //a list of all the pending memberships in this clan
+          ],
+          "denied": [
+            [membership],   //a list of all the denied memberships in this clan
+          ],
+          "banned": [
+            [membership],   //a list of all the banned memberships in this clan
+          ],
         ]
       }
 
