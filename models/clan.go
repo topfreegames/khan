@@ -281,19 +281,6 @@ func GetClanDetails(db DB, gameID, publicID string, maxClansPerPlayer int) (util
 		LEFT OUTER JOIN memberships m ON m.clan_id=c.id AND m.deleted_at=0
 		LEFT OUTER JOIN players r ON m.requestor_id=r.id
 		LEFT OUTER JOIN players p ON m.player_id=p.id
-		LEFT OUTER JOIN (
-			SELECT
-				memberships.clan_id, memberships.player_id, count(*) membership_count
-			FROM memberships
-			WHERE memberships.approved=true
-			GROUP BY memberships.clan_id, memberships.player_id
-		) apm ON apm.clan_id=c.id AND apm.player_id=p.id
-		LEFT OUTER JOIN (
-			SELECT
-				clans.owner_id, count(*) ownership_count
-			FROM clans
-			GROUP BY clans.owner_id
-		) com ON com.owner_id=p.id
 	WHERE
 		c.game_id=$1 AND c.public_id=$2
 	`
