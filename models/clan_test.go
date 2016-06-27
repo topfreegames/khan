@@ -304,7 +304,6 @@ func TestClanModel(t *testing.T) {
 				g.It("And clan has memberships", func() {
 					_, clan, owner, _, memberships, err := GetClanWithMemberships(testDb, 1, 0, 0, 0, "", "")
 					g.Assert(err == nil).IsTrue()
-					fmt.Println("*******", owner.MembershipCount, owner.OwnershipCount)
 
 					err = LeaveClan(testDb, clan.GameID, clan.PublicID, owner.PublicID)
 					g.Assert(err == nil).IsTrue()

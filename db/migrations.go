@@ -230,7 +230,7 @@ func migrations20160627155249_createplayermembershipandownershipcountSql() (*ass
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "migrations/20160627155249_CreatePlayerMembershipAndOwnershipCount.sql", size: 415, mode: os.FileMode(420), modTime: time.Unix(1467060534, 0)}
+	info := bindataFileInfo{name: "migrations/20160627155249_CreatePlayerMembershipAndOwnershipCount.sql", size: 415, mode: os.FileMode(420), modTime: time.Unix(1467060707, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
