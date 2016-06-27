@@ -675,6 +675,7 @@ More about web hooks can be found in [Using WebHooks](using_webhooks.html).
 
   The roster, as well as the memberships return a list of players, following this structure:
 
+    {
         "membership": {
 			"level":     [int],
 			"approved":  [bool],
@@ -693,6 +694,7 @@ More about web hooks can be found in [Using WebHooks](using_webhooks.html).
 			"publicID": [string],
 			"name":     [string],
 		}
+    }
 
 
   * Success Response
