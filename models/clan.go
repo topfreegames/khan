@@ -214,6 +214,24 @@ func TransferClanOwnership(db DB, gameID, clanPublicID, ownerPublicID, playerPub
 		return err
 	}
 
+	err = IncrementPlayerOwnershipCount(db, oldOwnerID, -1)
+	if err != nil {
+		return err
+	}
+	err = IncrementPlayerMembershipCount(db, oldOwnerID, 1)
+	if err != nil {
+		return err
+	}
+
+	err = IncrementPlayerOwnershipCount(db, newOwnerMembership.PlayerID, 1)
+	if err != nil {
+		return err
+	}
+	err = IncrementPlayerMembershipCount(db, newOwnerMembership.PlayerID, -1)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
