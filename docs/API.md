@@ -44,6 +44,7 @@ Khan API
     * Code: `200`
     * Content:
 
+      ```
         {
           "app": {
             "errorRate": [float]        // Exponentially Weighted Moving Average Error Rate
@@ -52,6 +53,7 @@ Khan API
             "pendingJobs": [int]        // Pending hook jobs to be sent
           }
         }
+      ```
 
 ## Game Routes
 
