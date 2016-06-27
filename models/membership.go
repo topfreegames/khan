@@ -224,27 +224,28 @@ func ApproveOrDenyMembershipApplication(db DB, game *Game, gameID, playerPublicI
 func CreateMembership(db DB, game *Game, gameID, level, playerPublicID, clanPublicID, requestorPublicID string) (*Membership, error) {
 	previousMembership := false
 	var playerID int
-
 	if _, levelValid := game.MembershipLevels[level]; !levelValid {
 		return nil, &InvalidLevelForGameError{gameID, level}
-	}
-
-	clansCount, err := GetPlayerClansCount(db, gameID, playerPublicID)
-	if err != nil {
-		return nil, err
-	}
-	if clansCount >= game.MaxClansPerPlayer {
-		return nil, &PlayerReachedMaxClansError{playerPublicID}
 	}
 
 	membership, _ := GetDeletedMembershipByClanAndPlayerPublicID(db, gameID, clanPublicID, playerPublicID)
 	if membership != nil {
 		previousMembership = true
 		playerID = membership.PlayerID
+		player, err := GetPlayerByID(db, playerID)
+		if err != nil {
+			return nil, err
+		}
+		if player.MembershipCount+player.OwnershipCount >= game.MaxClansPerPlayer {
+			return nil, &PlayerReachedMaxClansError{playerPublicID}
+		}
 	} else {
 		player, err := GetPlayerByPublicID(db, gameID, playerPublicID)
 		if err != nil {
 			return nil, err
+		}
+		if player.MembershipCount+player.OwnershipCount >= game.MaxClansPerPlayer {
+			return nil, &PlayerReachedMaxClansError{playerPublicID}
 		}
 		playerID = player.ID
 	}
@@ -263,7 +264,7 @@ func CreateMembership(db DB, game *Game, gameID, level, playerPublicID, clanPubl
 			return nil, reachedMaxMembersError
 		}
 		if previousMembership {
-			return recreateDeletedMembershipHelper(db, membership, level, membership.PlayerID)
+			return recreateDeletedMembershipHelper(db, membership, level, membership.PlayerID, clan.AutoJoin)
 		}
 		return createMembershipHelper(db, gameID, level, playerID, clan.ID, playerID, clan.AutoJoin)
 	}
@@ -279,7 +280,7 @@ func CreateMembership(db DB, game *Game, gameID, level, playerPublicID, clanPubl
 			return nil, reachedMaxMembersError
 		}
 		if previousMembership {
-			return recreateDeletedMembershipHelper(db, membership, level, clan.OwnerID)
+			return recreateDeletedMembershipHelper(db, membership, level, clan.OwnerID, false)
 		}
 		return createMembershipHelper(db, gameID, level, playerID, clan.ID, clan.OwnerID, false)
 	}
@@ -293,7 +294,7 @@ func CreateMembership(db DB, game *Game, gameID, level, playerPublicID, clanPubl
 
 	if isValidMember(reqMembership) && levelInt >= game.MinLevelToCreateInvitation {
 		if previousMembership {
-			return recreateDeletedMembershipHelper(db, membership, level, reqMembership.PlayerID)
+			return recreateDeletedMembershipHelper(db, membership, level, reqMembership.PlayerID, false)
 		}
 		return createMembershipHelper(db, gameID, level, playerID, reqMembership.ClanID, reqMembership.PlayerID, false)
 	}
@@ -410,18 +411,30 @@ func createMembershipHelper(db DB, gameID, level string, playerID, clanID, reque
 	if err != nil {
 		return nil, err
 	}
+	if approved {
+		err = IncrementPlayerMembershipCount(db, membership.PlayerID, 1)
+		if err != nil {
+			return nil, err
+		}
+	}
 	return membership, nil
 }
 
-func recreateDeletedMembershipHelper(db DB, membership *Membership, level string, requestorID int) (*Membership, error) {
+func recreateDeletedMembershipHelper(db DB, membership *Membership, level string, requestorID int, approved bool) (*Membership, error) {
 	membership.RequestorID = requestorID
 	membership.Level = level
-	membership.Approved = false
+	membership.Approved = approved
 	membership.Denied = false
 
 	_, err := db.Update(membership)
 	if err != nil {
 		return nil, err
+	}
+	if approved {
+		err = IncrementPlayerMembershipCount(db, membership.PlayerID, 1)
+		if err != nil {
+			return nil, err
+		}
 	}
 	return membership, nil
 }
