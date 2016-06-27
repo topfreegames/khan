@@ -1625,7 +1625,7 @@ func TestMembershipModel(t *testing.T) {
 
 		g.Describe("Should delete a membership with DeleteMembership", func() {
 			g.It("If requestor is the owner", func() {
-				game, clan, owner, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
+				game, clan, owner, players, memberships, err := GetClanWithMemberships(testDb, 1, 0, 0, 0, "", "")
 				g.Assert(err == nil).IsTrue()
 
 				err = DeleteMembership(
@@ -1645,10 +1645,14 @@ func TestMembershipModel(t *testing.T) {
 				g.Assert(dbMembership.Approved).Equal(false)
 				g.Assert(dbMembership.Denied).Equal(false)
 				g.Assert(dbMembership.DeletedAt > time.Now().UnixNano()/1000000-1000).IsTrue()
+
+				dbPlayer, err := GetPlayerByID(testDb, memberships[0].PlayerID)
+				g.Assert(err == nil).IsTrue()
+				g.Assert(dbPlayer.MembershipCount).Equal(0)
 			})
 
 			g.It("If requestor is the player", func() {
-				game, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
+				game, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 1, 0, 0, 0, "", "")
 				g.Assert(err == nil).IsTrue()
 
 				err = DeleteMembership(
@@ -1668,14 +1672,17 @@ func TestMembershipModel(t *testing.T) {
 				g.Assert(dbMembership.Approved).Equal(false)
 				g.Assert(dbMembership.Denied).Equal(false)
 				g.Assert(dbMembership.DeletedAt > time.Now().UnixNano()/1000000-1000).IsTrue()
+
+				dbPlayer, err := GetPlayerByID(testDb, memberships[0].PlayerID)
+				g.Assert(err == nil).IsTrue()
+				g.Assert(dbPlayer.MembershipCount).Equal(0)
 			})
 
 			g.It("If requestor has enough level and offset", func() {
-				game, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 2, "", "")
+				game, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 2, 0, 0, 0, "", "")
 				g.Assert(err == nil).IsTrue()
 
 				memberships[1].Level = "CoLeader"
-				memberships[1].Approved = true
 				_, err = testDb.Update(memberships[1])
 				g.Assert(err == nil).IsTrue()
 
@@ -1695,6 +1702,10 @@ func TestMembershipModel(t *testing.T) {
 				g.Assert(dbMembership.Approved).Equal(false)
 				g.Assert(dbMembership.Denied).Equal(false)
 				g.Assert(dbMembership.DeletedAt > time.Now().UnixNano()/1000000-1000).IsTrue()
+
+				dbPlayer, err := GetPlayerByID(testDb, memberships[0].PlayerID)
+				g.Assert(err == nil).IsTrue()
+				g.Assert(dbPlayer.MembershipCount).Equal(0)
 			})
 		})
 
