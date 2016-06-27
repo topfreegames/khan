@@ -285,6 +285,8 @@ func TestGameHandler(t *testing.T) {
 				json.Unmarshal([]byte(res.Body().Raw()), &result)
 				g.Assert(result["success"]).IsTrue()
 
+				app.Dispatcher.Wait()
+
 				g.Assert(len(*responses)).Equal(1)
 			})
 		})

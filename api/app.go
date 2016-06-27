@@ -188,7 +188,7 @@ func (app *App) GetGame(gameID string) (*models.Game, error) {
 }
 
 func (app *App) initDispatcher() {
-	disp, err := NewDispatcher(app, 5, 100)
+	disp, err := NewDispatcher(app, 5, 1000)
 	if err != nil {
 		panic(fmt.Sprintf("Could not initialize dispatcher: %s", err.Error()))
 	}

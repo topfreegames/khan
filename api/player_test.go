@@ -248,6 +248,8 @@ func TestPlayerHandler(t *testing.T) {
 			g.Assert(result["success"]).IsTrue()
 			g.Assert(result["publicID"]).Equal(payload["publicID"].(string))
 
+			app.Dispatcher.Wait()
+
 			g.Assert(len(*responses)).Equal(1)
 
 			player := (*responses)[0]
@@ -288,6 +290,7 @@ func TestPlayerHandler(t *testing.T) {
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsTrue()
 
+			app.Dispatcher.Wait()
 			g.Assert(len(*responses)).Equal(1)
 
 			playerPayload := (*responses)[0]
