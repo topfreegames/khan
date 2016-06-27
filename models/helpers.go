@@ -26,6 +26,7 @@ type DB interface {
 	Insert(...interface{}) error
 	Update(...interface{}) (int64, error)
 	Delete(...interface{}) (int64, error)
+	Exec(string, ...interface{}) (sql.Result, error)
 }
 
 var _db DB

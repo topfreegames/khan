@@ -5,6 +5,7 @@
 // migrations/20160608174439_CreateClanTable.sql
 // migrations/20160608182307_CreateMembershipTable.sql
 // migrations/20160621161411_CreateHooksTable.sql
+// migrations/20160627110742_LoadUUIDModule.sql
 // DO NOT EDIT!
 
 package db
@@ -172,6 +173,26 @@ func migrations20160621161411_createhookstableSql() (*asset, error) {
 	return a, nil
 }
 
+var _migrations20160627110742_loaduuidmoduleSql = []byte("\x1f\x8b\x08\x00\x00\x09\x6e\x88\x00\xff\xe2\xd2\xd5\x55\xd0\x4e\xcf\xcf\x2f\x4e\x55\x08\x2d\xe0\x72\x0e\x72\x75\x0c\x71\x55\x70\x8d\x08\x71\xf5\x0b\xf6\xf4\xf7\x53\xf0\x74\x53\xf0\xf3\x0f\x01\x0a\x78\x06\x87\x04\x2b\x28\x95\x96\x66\xa6\xe8\xe6\x17\x17\x17\x28\x59\x73\x71\x21\x69\x75\xc9\x2f\xcf\xe3\x02\x04\x00\x00\xff\xff\xd3\x7c\xf3\xf6\x4b\x00\x00\x00")
+
+func migrations20160627110742_loaduuidmoduleSqlBytes() ([]byte, error) {
+	return bindataRead(
+		_migrations20160627110742_loaduuidmoduleSql,
+		"migrations/20160627110742_LoadUUIDModule.sql",
+	)
+}
+
+func migrations20160627110742_loaduuidmoduleSql() (*asset, error) {
+	bytes, err := migrations20160627110742_loaduuidmoduleSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "migrations/20160627110742_LoadUUIDModule.sql", size: 75, mode: os.FileMode(420), modTime: time.Unix(1467036481, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
 // Asset loads and returns the asset for the given name.
 // It returns an error if the asset could not be found or
 // could not be loaded.
@@ -229,6 +250,7 @@ var _bindata = map[string]func() (*asset, error){
 	"migrations/20160608174439_CreateClanTable.sql": migrations20160608174439_createclantableSql,
 	"migrations/20160608182307_CreateMembershipTable.sql": migrations20160608182307_createmembershiptableSql,
 	"migrations/20160621161411_CreateHooksTable.sql": migrations20160621161411_createhookstableSql,
+	"migrations/20160627110742_LoadUUIDModule.sql": migrations20160627110742_loaduuidmoduleSql,
 }
 
 // AssetDir returns the file names below a certain
@@ -277,6 +299,7 @@ var _bintree = &bintree{nil, map[string]*bintree{
 		"20160608174439_CreateClanTable.sql": &bintree{migrations20160608174439_createclantableSql, map[string]*bintree{}},
 		"20160608182307_CreateMembershipTable.sql": &bintree{migrations20160608182307_createmembershiptableSql, map[string]*bintree{}},
 		"20160621161411_CreateHooksTable.sql": &bintree{migrations20160621161411_createhookstableSql, map[string]*bintree{}},
+		"20160627110742_LoadUUIDModule.sql": &bintree{migrations20160627110742_loaduuidmoduleSql, map[string]*bintree{}},
 	}},
 }}
 
