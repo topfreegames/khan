@@ -14,6 +14,7 @@ import (
 
 	"github.com/satori/go.uuid"
 	"github.com/topfreegames/khan/models"
+	"github.com/topfreegames/khan/util"
 )
 
 var result *http.Response
@@ -24,16 +25,28 @@ func BenchmarkCreateClan(b *testing.B) {
 		panic(err.Error())
 	}
 
-	game, owner, err := getGameAndPlayer(db)
+	game, _, err := getGameAndPlayer(db)
 	if err != nil {
 		panic(err.Error())
+	}
+
+	var players []*models.Player
+	for i := 0; i < b.N; i++ {
+		player := models.PlayerFactory.MustCreateWithOption(util.JSON{
+			"GameID": game.PublicID,
+		}).(*models.Player)
+		err = db.Insert(player)
+		if err != nil {
+			panic(err.Error())
+		}
+		players = append(players, player)
 	}
 
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
 		route := getRoute(fmt.Sprintf("/games/%s/clans", game.PublicID))
-		res, err := postTo(route, getClanPayload(owner.PublicID, uuid.NewV4().String()))
+		res, err := postTo(route, getClanPayload(players[i].PublicID, uuid.NewV4().String()))
 		validateResp(res, err)
 		res.Body.Close()
 

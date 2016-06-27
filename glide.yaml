@@ -16,7 +16,8 @@ import:
   - factory
 - package: github.com/Pallinder/go-randomdata
 - package: github.com/satori/go.uuid
-- package: github.com/golang/glog
 - package: github.com/gosuri/uiprogress
 - package: github.com/gosuri/uilive
 - package: github.com/rcrowley/go-metrics
+- package: github.com/uber-go/zap
+- package: github.com/uber-go/atomic

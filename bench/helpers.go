@@ -79,7 +79,8 @@ func getClanPayload(ownerID, clanPublicID string) util.JSON {
 
 func getGameAndPlayer(db models.DB) (*models.Game, *models.Player, error) {
 	game := models.GameFactory.MustCreateWithOption(util.JSON{
-		"PublicID": uuid.NewV4().String(),
+		"PublicID":          uuid.NewV4().String(),
+		"MaxClansPerPlayer": 999999,
 	}).(*models.Game)
 	err := db.Insert(game)
 	if err != nil {

@@ -8,9 +8,9 @@
 package cmd
 
 import (
+	"fmt"
 	"os"
 
-	"github.com/golang/glog"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -31,7 +31,7 @@ var RootCmd = &cobra.Command{
 // Execute runs RootCmd to initialize khan CLI application
 func Execute(cmd *cobra.Command) {
 	if err := cmd.Execute(); err != nil {
-		glog.Fatal(err)
+		fmt.Println(err)
 		os.Exit(-1)
 	}
 }
@@ -61,6 +61,6 @@ func initConfig() {
 
 	// If a config file is found, read it in.
 	if err := viper.ReadInConfig(); err == nil {
-		glog.Infof("Using config file: %s", viper.ConfigFileUsed())
+		fmt.Println("Using config file: %s", viper.ConfigFileUsed())
 	}
 }
