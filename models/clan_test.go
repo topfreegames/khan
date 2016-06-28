@@ -614,11 +614,17 @@ func TestClanModel(t *testing.T) {
 					testDb, 0, 0, 0, 0, "clan-details-2", "clan-details-2-clan",
 				)
 				g.Assert(err == nil).IsTrue()
+				clan.AllowApplication = true
+				clan.AutoJoin = true
+				_, err = testDb.Update(clan)
+				g.Assert(err == nil).IsTrue()
 
 				clanData, err := GetClanDetails(testDb, clan.GameID, clan.PublicID, 1)
 				g.Assert(err == nil).IsTrue()
 				g.Assert(clanData["name"]).Equal(clan.Name)
 				g.Assert(clanData["metadata"]).Equal(clan.Metadata)
+				g.Assert(clanData["allowApplication"]).Equal(clan.AllowApplication)
+				g.Assert(clanData["autoJoin"]).Equal(clan.AutoJoin)
 				roster := clanData["roster"].([]util.JSON)
 				g.Assert(len(roster)).Equal(0)
 			})
