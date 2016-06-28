@@ -356,6 +356,10 @@ func TestClanModel(t *testing.T) {
 					g.Assert(err == nil).IsTrue()
 					g.Assert(dbPlayer.OwnershipCount).Equal(1)
 					g.Assert(dbPlayer.MembershipCount).Equal(0)
+
+					dbClan, err = GetClanByID(testDb, clan.ID)
+					g.Assert(err == nil).IsTrue()
+					g.Assert(dbClan.MembershipCount).Equal(1)
 				})
 
 				g.It("And clan has no memberships", func() {

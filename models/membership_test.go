@@ -223,6 +223,10 @@ func TestMembershipModel(t *testing.T) {
 				dbPlayer, err := GetPlayerByID(testDb, player.ID)
 				g.Assert(err == nil).IsTrue()
 				g.Assert(dbPlayer.MembershipCount).Equal(0)
+
+				dbClan, err := GetClanByID(testDb, clan.ID)
+				g.Assert(err == nil).IsTrue()
+				g.Assert(dbClan.MembershipCount).Equal(1)
 			})
 
 			g.It("And approve it automatically if requestor is the player, clan.AllowApplication=true and clan.AutoJoin=true", func() {
@@ -266,6 +270,10 @@ func TestMembershipModel(t *testing.T) {
 				dbPlayer, err := GetPlayerByID(testDb, player.ID)
 				g.Assert(err == nil).IsTrue()
 				g.Assert(dbPlayer.MembershipCount).Equal(1)
+
+				dbClan, err := GetClanByID(testDb, clan.ID)
+				g.Assert(err == nil).IsTrue()
+				g.Assert(dbClan.MembershipCount).Equal(2)
 			})
 
 			g.It("If requestor is the clan owner", func() {
@@ -379,6 +387,10 @@ func TestMembershipModel(t *testing.T) {
 				dbPlayer, err := GetPlayerByID(testDb, dbMembership.PlayerID)
 				g.Assert(err == nil).IsTrue()
 				g.Assert(dbPlayer.MembershipCount).Equal(0)
+
+				dbClan, err := GetClanByID(testDb, clan.ID)
+				g.Assert(err == nil).IsTrue()
+				g.Assert(dbClan.MembershipCount).Equal(1)
 			})
 		})
 
@@ -623,6 +635,10 @@ func TestMembershipModel(t *testing.T) {
 				dbPlayer, err := GetPlayerByID(testDb, players[0].ID)
 				g.Assert(err == nil).IsTrue()
 				g.Assert(dbPlayer.MembershipCount).Equal(1)
+
+				dbClan, err := GetClanByID(testDb, clan.ID)
+				g.Assert(err == nil).IsTrue()
+				g.Assert(dbClan.MembershipCount).Equal(2)
 			})
 		})
 
@@ -874,6 +890,10 @@ func TestMembershipModel(t *testing.T) {
 				dbPlayer, err := GetPlayerByID(testDb, players[0].ID)
 				g.Assert(err == nil).IsTrue()
 				g.Assert(dbPlayer.MembershipCount).Equal(1)
+
+				dbClan, err := GetClanByID(testDb, clan.ID)
+				g.Assert(err == nil).IsTrue()
+				g.Assert(dbClan.MembershipCount).Equal(2)
 			})
 
 			g.It("Requestor is member of the clan with level > minLevel", func() {
@@ -913,6 +933,10 @@ func TestMembershipModel(t *testing.T) {
 				dbPlayer, err := GetPlayerByID(testDb, players[0].ID)
 				g.Assert(err == nil).IsTrue()
 				g.Assert(dbPlayer.MembershipCount).Equal(1)
+
+				dbClan, err := GetClanByID(testDb, clan.ID)
+				g.Assert(err == nil).IsTrue()
+				g.Assert(dbClan.MembershipCount).Equal(2)
 			})
 		})
 
@@ -1649,6 +1673,10 @@ func TestMembershipModel(t *testing.T) {
 				dbPlayer, err := GetPlayerByID(testDb, memberships[0].PlayerID)
 				g.Assert(err == nil).IsTrue()
 				g.Assert(dbPlayer.MembershipCount).Equal(0)
+
+				dbClan, err := GetClanByID(testDb, clan.ID)
+				g.Assert(err == nil).IsTrue()
+				g.Assert(dbClan.MembershipCount).Equal(1)
 			})
 
 			g.It("If requestor is the player", func() {
@@ -1676,6 +1704,10 @@ func TestMembershipModel(t *testing.T) {
 				dbPlayer, err := GetPlayerByID(testDb, memberships[0].PlayerID)
 				g.Assert(err == nil).IsTrue()
 				g.Assert(dbPlayer.MembershipCount).Equal(0)
+
+				dbClan, err := GetClanByID(testDb, clan.ID)
+				g.Assert(err == nil).IsTrue()
+				g.Assert(dbClan.MembershipCount).Equal(1)
 			})
 
 			g.It("If requestor has enough level and offset", func() {
@@ -1706,6 +1738,10 @@ func TestMembershipModel(t *testing.T) {
 				dbPlayer, err := GetPlayerByID(testDb, memberships[0].PlayerID)
 				g.Assert(err == nil).IsTrue()
 				g.Assert(dbPlayer.MembershipCount).Equal(0)
+
+				dbClan, err := GetClanByID(testDb, clan.ID)
+				g.Assert(err == nil).IsTrue()
+				g.Assert(dbClan.MembershipCount).Equal(2)
 			})
 		})
 

@@ -115,26 +115,16 @@ func GetOldestMemberWithHighestLevel(db DB, gameID, clanPublicID string) (*Membe
 	return &membership, nil
 }
 
-func clanReachedMaxMemberships(db DB, gameID, clanPublicID string) error {
-	var reachedMaxMembers []bool
-	query := `
-	SELECT
-		COUNT(m.*) >= g.max_members
-	FROM memberships m
-		INNER JOIN games g ON g.public_id=$1 AND g.public_id=m.game_id
-		INNER JOIN clans c ON c.public_id=$2 AND c.id=m.clan_id
-	WHERE
-		m.deleted_at=0 AND m.approved=true
-	GROUP BY g.max_members`
-	_, err := db.Select(&reachedMaxMembers, query, gameID, clanPublicID)
-	if err != nil {
-		return err
+func clanReachedMaxMemberships(db DB, game *Game, clan *Clan, clanID int) error {
+	var err error
+	if clan == nil {
+		clan, err = GetClanByID(db, clanID)
+		if err != nil {
+			return err
+		}
 	}
-	if len(reachedMaxMembers) == 0 {
-		return nil
-	}
-	if reachedMaxMembers[0] {
-		return &ClanReachedMaxMembersError{clanPublicID}
+	if clan.MembershipCount >= game.MaxMembers {
+		return &ClanReachedMaxMembersError{clan.PublicID}
 	}
 	return nil
 }
@@ -163,7 +153,7 @@ func ApproveOrDenyMembershipInvitation(db DB, game *Game, gameID, playerPublicID
 		if player.MembershipCount+player.OwnershipCount >= game.MaxClansPerPlayer {
 			return nil, &PlayerReachedMaxClansError{playerPublicID}
 		}
-		reachedMaxMembersError := clanReachedMaxMemberships(db, gameID, clanPublicID)
+		reachedMaxMembersError := clanReachedMaxMemberships(db, game, nil, membership.ClanID)
 		if reachedMaxMembersError != nil {
 			return nil, reachedMaxMembersError
 		}
@@ -198,7 +188,7 @@ func ApproveOrDenyMembershipApplication(db DB, game *Game, gameID, playerPublicI
 		if player.MembershipCount+player.OwnershipCount >= game.MaxClansPerPlayer {
 			return nil, &PlayerReachedMaxClansError{playerPublicID}
 		}
-		reachedMaxMembersError := clanReachedMaxMemberships(db, gameID, clanPublicID)
+		reachedMaxMembersError := clanReachedMaxMemberships(db, game, nil, membership.ClanID)
 		if reachedMaxMembersError != nil {
 			return nil, reachedMaxMembersError
 		}
@@ -259,7 +249,7 @@ func CreateMembership(db DB, game *Game, gameID, level, playerPublicID, clanPubl
 			return nil, &PlayerCannotCreateMembershipError{requestorPublicID, clanPublicID}
 		}
 
-		reachedMaxMembersError := clanReachedMaxMemberships(db, gameID, clanPublicID)
+		reachedMaxMembersError := clanReachedMaxMemberships(db, game, clan, -1)
 		if reachedMaxMembersError != nil {
 			return nil, reachedMaxMembersError
 		}
@@ -275,7 +265,7 @@ func CreateMembership(db DB, game *Game, gameID, level, playerPublicID, clanPubl
 		if clanErr != nil {
 			return nil, &PlayerCannotCreateMembershipError{requestorPublicID, clanPublicID}
 		}
-		reachedMaxMembersError := clanReachedMaxMemberships(db, gameID, clanPublicID)
+		reachedMaxMembersError := clanReachedMaxMemberships(db, game, clan, -1)
 		if reachedMaxMembersError != nil {
 			return nil, reachedMaxMembersError
 		}
@@ -285,7 +275,7 @@ func CreateMembership(db DB, game *Game, gameID, level, playerPublicID, clanPubl
 		return createMembershipHelper(db, gameID, level, playerID, clan.ID, clan.OwnerID, false)
 	}
 
-	reachedMaxMembersError := clanReachedMaxMemberships(db, gameID, clanPublicID)
+	reachedMaxMembersError := clanReachedMaxMemberships(db, game, nil, reqMembership.ClanID)
 	if reachedMaxMembersError != nil {
 		return nil, reachedMaxMembersError
 	}
@@ -392,6 +382,10 @@ func approveOrDenyMembershipHelper(db DB, membership *Membership, action string)
 		if err != nil {
 			return nil, err
 		}
+		err = IncrementClanMembershipCount(db, membership.ClanID, 1)
+		if err != nil {
+			return nil, err
+		}
 	}
 	return membership, nil
 }
@@ -416,6 +410,10 @@ func createMembershipHelper(db DB, gameID, level string, playerID, clanID, reque
 		if err != nil {
 			return nil, err
 		}
+		err = IncrementClanMembershipCount(db, membership.ClanID, 1)
+		if err != nil {
+			return nil, err
+		}
 	}
 	return membership, nil
 }
@@ -432,6 +430,10 @@ func recreateDeletedMembershipHelper(db DB, membership *Membership, level string
 	}
 	if approved {
 		err = IncrementPlayerMembershipCount(db, membership.PlayerID, 1)
+		if err != nil {
+			return nil, err
+		}
+		err = IncrementClanMembershipCount(db, membership.ClanID, 1)
 		if err != nil {
 			return nil, err
 		}
@@ -463,6 +465,10 @@ func promoteOrDemoteMemberHelper(db DB, membership *Membership, action string, l
 func deleteMembershipHelper(db DB, membership *Membership, deletedBy int) error {
 	if membership.Approved {
 		err := IncrementPlayerMembershipCount(db, membership.PlayerID, -1)
+		if err != nil {
+			return err
+		}
+		err = IncrementClanMembershipCount(db, membership.ClanID, -1)
 		if err != nil {
 			return err
 		}
