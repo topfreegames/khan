@@ -700,23 +700,23 @@ More about web hooks can be found in [Using WebHooks](using_webhooks.html).
 
     {
         "membership": {
-			"level":     [int],
-			"approved":  [bool],
-			"denied":    [bool],
-			"banned":    [bool],
-			"createdAt": [timestamp],
-			"updatedAt": [timestamp],
-		},
-		"player": {
-			"publicID":        [string],
-			"name":            [string],
-			"membershipCount": [int],       // number of clans player is member of
-			"ownershipCount":  [int],       // number of clans player is owner of
-		},
-		"requestor": {  // player who requested this membership
-			"publicID": [string],
-			"name":     [string],
-		}
+          "level":     [int],
+          "approved":  [bool],
+          "denied":    [bool],
+          "banned":    [bool],
+          "createdAt": [timestamp],
+          "updatedAt": [timestamp],
+        },
+        "player": {
+          "publicID":        [string],
+          "name":            [string],
+          "membershipCount": [int],       // number of clans player is member of
+          "ownershipCount":  [int],       // number of clans player is owner of
+        },
+        "requestor": {  // player who requested this membership
+          "publicID": [string],
+          "name":     [string],
+        }
     }
 
 
@@ -730,6 +730,7 @@ More about web hooks can be found in [Using WebHooks](using_webhooks.html).
         "metadata": [JSON],
         "allowApplication": [bool],
         "autoJoin": [bool],
+        "membershipCount": [int],
         "owner": [
             "publicID": [string],
             "name":     [string],
