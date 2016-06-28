@@ -133,6 +133,38 @@ func TestClanModel(t *testing.T) {
 				g.Assert(err != nil).IsTrue()
 				g.Assert(err.Error()).Equal(fmt.Sprintf("Clan was not found with id: %s", clan.PublicID))
 			})
+
+			g.Describe("Increment Clan Membership Count", func() {
+				g.It("Should work if positive value", func() {
+					amount := 1
+					_, clans, err := GetTestClans(testDb, "", "", 1)
+					g.Assert(err == nil).IsTrue()
+
+					err = IncrementClanMembershipCount(testDb, clans[0].ID, amount)
+					g.Assert(err == nil).IsTrue()
+					dbClan, err := GetClanByID(testDb, clans[0].ID)
+					g.Assert(err == nil).IsTrue()
+					g.Assert(dbClan.MembershipCount).Equal(clans[0].MembershipCount + amount)
+				})
+
+				g.It("Should work if negative value", func() {
+					amount := -1
+					_, clans, err := GetTestClans(testDb, "", "", 1)
+					g.Assert(err == nil).IsTrue()
+
+					err = IncrementClanMembershipCount(testDb, clans[0].ID, amount)
+					g.Assert(err == nil).IsTrue()
+					dbClan, err := GetClanByID(testDb, clans[0].ID)
+					g.Assert(err == nil).IsTrue()
+					g.Assert(dbClan.MembershipCount).Equal(clans[0].MembershipCount + amount)
+				})
+
+				g.It("Should not work if non-existing Player", func() {
+					err := IncrementClanMembershipCount(testDb, -1, 1)
+					g.Assert(err != nil).IsTrue()
+					g.Assert(err.Error()).Equal("Clan was not found with id: -1")
+				})
+			})
 		})
 
 		g.Describe("Create Clan", func() {

@@ -22,6 +22,7 @@ type clanDetailsDAO struct {
 	ClanMetadata         util.JSON
 	ClanAllowApplication bool
 	ClanAutoJoin         bool
+	ClanMembershipCount  int
 
 	//Membership Information
 	MembershipLevel     sql.NullString
