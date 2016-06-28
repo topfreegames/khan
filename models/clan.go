@@ -31,6 +31,7 @@ type Clan struct {
 	PublicID         string    `db:"public_id"`
 	Name             string    `db:"name"`
 	OwnerID          int       `db:"owner_id"`
+	MembershipCount  int       `db:"membership_count"`
 	Metadata         util.JSON `db:"metadata"`
 	AllowApplication bool      `db:"allow_application"`
 	AutoJoin         bool      `db:"auto_join"`
@@ -49,6 +50,27 @@ func (c *Clan) PreInsert(s gorp.SqlExecutor) error {
 // PreUpdate populates fields before updating a clan
 func (c *Clan) PreUpdate(s gorp.SqlExecutor) error {
 	c.UpdatedAt = time.Now().UnixNano() / 1000000
+	return nil
+}
+
+// IncrementClanMembershipCount increments the clan membership count
+func IncrementClanMembershipCount(db DB, id, by int) error {
+	query := `
+	UPDATE clans SET membership_count=membership_count+$1
+	WHERE clans.id=$2
+	`
+	res, err := db.Exec(query, by, id)
+	if err != nil {
+		return err
+	}
+
+	rows, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rows != 1 {
+		return &ModelNotFoundError{"Clan", id}
+	}
 	return nil
 }
 
@@ -274,6 +296,7 @@ func GetClanDetails(db DB, gameID, publicID string, maxClansPerPlayer int) (util
 		c.game_id GameID,
 		c.public_id ClanPublicID, c.name ClanName, c.metadata ClanMetadata,
 		c.allow_application ClanAllowApplication, c.auto_join ClanAutoJoin,
+		c.membership_count ClanMembershipCount,
 		m.membership_level MembershipLevel, m.approved MembershipApproved, m.denied MembershipDenied,
 		m.Banned MembershipBanned,
 		m.created_at MembershipCreatedAt, m.updated_at MembershipUpdatedAt,
@@ -305,6 +328,7 @@ func GetClanDetails(db DB, gameID, publicID string, maxClansPerPlayer int) (util
 	result["metadata"] = details[0].ClanMetadata
 	result["allowApplication"] = details[0].ClanAllowApplication
 	result["autoJoin"] = details[0].ClanAutoJoin
+	result["membershipCount"] = details[0].ClanMembershipCount
 
 	result["owner"] = util.JSON{
 		"publicID": details[0].OwnerPublicID,
