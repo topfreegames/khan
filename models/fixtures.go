@@ -180,10 +180,11 @@ func GetClanWithMemberships(
 	}
 
 	clan := ClanFactory.MustCreateWithOption(util.JSON{
-		"GameID":   owner.GameID,
-		"PublicID": clanPublicID,
-		"OwnerID":  owner.ID,
-		"Metadata": util.JSON{"x": "a"},
+		"GameID":          owner.GameID,
+		"PublicID":        clanPublicID,
+		"OwnerID":         owner.ID,
+		"Metadata":        util.JSON{"x": "a"},
+		"MembershipCount": approvedMemberships + 1,
 	}).(*Clan)
 	err = db.Insert(clan)
 	if err != nil {
@@ -307,10 +308,11 @@ func GetClanReachedMaxMemberships(db DB) (*Game, *Clan, *Player, []*Player, []*M
 	}
 
 	clan := ClanFactory.MustCreateWithOption(util.JSON{
-		"GameID":   owner.GameID,
-		"PublicID": clanPublicID,
-		"OwnerID":  owner.ID,
-		"Metadata": util.JSON{"x": "a"},
+		"GameID":          owner.GameID,
+		"PublicID":        clanPublicID,
+		"OwnerID":         owner.ID,
+		"Metadata":        util.JSON{"x": "a"},
+		"MembershipCount": 2,
 	}).(*Clan)
 	err = db.Insert(clan)
 	if err != nil {
@@ -457,10 +459,11 @@ func GetTestPlayerWithMemberships(db DB, gameID string, approvedMemberships, rej
 
 	createClan := func() (*Clan, error) {
 		clan := ClanFactory.MustCreateWithOption(util.JSON{
-			"GameID":   owner.GameID,
-			"PublicID": uuid.NewV4().String(),
-			"OwnerID":  owner.ID,
-			"Metadata": util.JSON{"x": "a"},
+			"GameID":          owner.GameID,
+			"PublicID":        uuid.NewV4().String(),
+			"OwnerID":         owner.ID,
+			"Metadata":        util.JSON{"x": "a"},
+			"MembershipCount": approvedMemberships + 1,
 		}).(*Clan)
 		err = db.Insert(clan)
 		if err != nil {
