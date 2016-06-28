@@ -273,6 +273,7 @@ func GetClanDetails(db DB, gameID, publicID string, maxClansPerPlayer int) (util
 	SELECT
 		c.game_id GameID,
 		c.public_id ClanPublicID, c.name ClanName, c.metadata ClanMetadata,
+		c.allow_application ClanAllowApplication, c.auto_join ClanAutoJoin,
 		m.membership_level MembershipLevel, m.approved MembershipApproved, m.denied MembershipDenied,
 		m.Banned MembershipBanned,
 		m.created_at MembershipCreatedAt, m.updated_at MembershipUpdatedAt,
