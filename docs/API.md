@@ -750,6 +750,7 @@ More about web hooks can be found in [Using WebHooks](using_webhooks.html).
           ],
         ]
       }
+      ```
 
   * Error Response
 
@@ -911,9 +912,8 @@ More about web hooks can be found in [Using WebHooks](using_webhooks.html).
 
     ```
     {
-      "level": [string],            // the level of the membership
       "playerPublicID": [string]    // the public id of player who made the application
-      "RequestorPublicID": [string] // the public id of the clan member or the owner who will approve or deny the application
+      "requestorPublicID": [string] // the public id of the clan member or the owner who will approve or deny the application
     }
     ```
 
