@@ -527,11 +527,13 @@ More about web hooks can be found in [Using WebHooks](using_webhooks.html).
           {
             "name": [string],
             "metadata": [JSON],
-            "publicID": [string]
+            "membershipCount": [int],
+            "publicID": [string],
           },
           {
             "name": [string],
             "metadata": [JSON],
+            "membershipCount": [int],
             "publicID": [string]
           }
         ]
@@ -568,11 +570,13 @@ More about web hooks can be found in [Using WebHooks](using_webhooks.html).
           {
             "name": [string],
             "metadata": [JSON],
+            "membershipCount": [int],
             "publicID": [string]
           },
           {
             "name": [string],
             "metadata": [JSON],
+            "membershipCount": [int],
             "publicID": [string]
           }
         ]
