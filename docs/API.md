@@ -720,6 +720,10 @@ Khan API
 
   List all clans for the game with publicID=`gameID`.
 
+  **Warning**
+
+  Depending on the number of clans in your game this can be a **VERY** expensive operation! Be wary of using this. A better way of getting clans is using clan search.
+
   * Success Response
     * Code: `200`
     * Content:
