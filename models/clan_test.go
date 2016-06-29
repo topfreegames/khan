@@ -585,8 +585,8 @@ func TestClanModel(t *testing.T) {
 
 		g.Describe("Get Clan Details", func() {
 			g.It("Should get clan members", func() {
-				_, clan, owner, players, _, err := GetClanWithMemberships(
-					testDb, 10, 0, 0, 0, "clan-details", "clan-details-clan",
+				_, clan, owner, players, memberships, err := GetClanWithMemberships(
+					testDb, 10, 3, 4, 5, "clan-details", "clan-details-clan",
 				)
 				g.Assert(err == nil).IsTrue()
 
@@ -600,16 +600,60 @@ func TestClanModel(t *testing.T) {
 				roster := clanData["roster"].([]util.JSON)
 				g.Assert(len(roster)).Equal(10)
 
+				pendingApplications := clanData["memberships"].(util.JSON)["pendingApplications"].([]util.JSON)
+				g.Assert(len(pendingApplications)).Equal(0)
+
+				pendingInvites := clanData["memberships"].(util.JSON)["pendingInvites"].([]util.JSON)
+				g.Assert(len(pendingInvites)).Equal(5)
+
+				banned := clanData["memberships"].(util.JSON)["banned"].([]util.JSON)
+				g.Assert(len(banned)).Equal(4)
+
+				denied := clanData["memberships"].(util.JSON)["denied"].([]util.JSON)
+				g.Assert(len(denied)).Equal(3)
+
 				playerDict := map[string]*Player{}
-				for i := 0; i < 10; i++ {
+				for i := 0; i < 22; i++ {
 					playerDict[players[i].PublicID] = players[i]
 				}
 
-				for i := 0; i < 10; i++ {
-					player := roster[i]["player"].(util.JSON)
+				membershipDict := map[int]*Membership{}
+				for i := 0; i < 22; i++ {
+					membershipDict[memberships[i].PlayerID] = memberships[i]
+				}
+
+				for _, playerData := range roster {
+					player := playerData["player"].(util.JSON)
 					pid := player["publicID"].(string)
 					name := player["name"].(string)
 					g.Assert(name).Equal(playerDict[pid].Name)
+					membershipLevel := playerData["level"]
+					g.Assert(membershipLevel).Equal(membershipDict[playerDict[pid].ID].Level)
+				}
+
+				for _, playerData := range pendingInvites {
+					player := playerData["player"].(util.JSON)
+					pid := player["publicID"].(string)
+					name := player["name"].(string)
+					g.Assert(name).Equal(playerDict[pid].Name)
+					membershipLevel := playerData["level"]
+					g.Assert(membershipLevel).Equal(membershipDict[playerDict[pid].ID].Level)
+				}
+
+				for _, playerData := range banned {
+					player := playerData["player"].(util.JSON)
+					pid := player["publicID"].(string)
+					name := player["name"].(string)
+					g.Assert(name).Equal(playerDict[pid].Name)
+					g.Assert(playerData["level"]).Equal(nil)
+				}
+
+				for _, playerData := range denied {
+					player := playerData["player"].(util.JSON)
+					pid := player["publicID"].(string)
+					name := player["name"].(string)
+					g.Assert(name).Equal(playerDict[pid].Name)
+					g.Assert(playerData["level"]).Equal(nil)
 				}
 			})
 

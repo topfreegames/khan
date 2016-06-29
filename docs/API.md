@@ -703,26 +703,13 @@ More about web hooks can be found in [Using WebHooks](using_webhooks.html).
   The roster, as well as the memberships return a list of players, following this structure:
 
     {
-        "membership": {
-          "level":     [int],
-          "approved":  [bool],
-          "denied":    [bool],
-          "banned":    [bool],
-          "createdAt": [timestamp],
-          "updatedAt": [timestamp],
-        },
+        "level": [int],  // not returned for denied/banned memberships
         "player": {
-          "publicID":        [string],
-          "name":            [string],
-          "membershipCount": [int],       // number of clans player is member of
-          "ownershipCount":  [int],       // number of clans player is owner of
-        },
-        "requestor": {  // player who requested this membership
           "publicID": [string],
           "name":     [string],
+          "metadata": [JSON]      
         }
     }
-
 
   * Success Response
     * Code: `200`
@@ -744,8 +731,11 @@ More about web hooks can be found in [Using WebHooks](using_webhooks.html).
           [membership],     //a list of the above membership structure
         ],
         "memberships": [
-          "pending": [
-            [membership],   //a list of all the pending memberships in this clan
+          "pendingApplications": [
+            [membership],   //a list of all the pending applications in this clan
+          ],
+          "pendingInvites": [
+            [membership],   //a list of all the pending invites in this clan
           ],
           "denied": [
             [membership],   //a list of all the denied memberships in this clan

@@ -298,7 +298,7 @@ func GetClanDetails(db DB, gameID, publicID string, maxClansPerPlayer int) (util
 		c.allow_application ClanAllowApplication, c.auto_join ClanAutoJoin,
 		c.membership_count ClanMembershipCount,
 		m.membership_level MembershipLevel, m.approved MembershipApproved, m.denied MembershipDenied,
-		m.Banned MembershipBanned,
+		m.banned MembershipBanned,
 		m.created_at MembershipCreatedAt, m.updated_at MembershipUpdatedAt,
 		o.public_id OwnerPublicID, o.name OwnerName, o.metadata OwnerMetadata,
 		p.public_id PlayerPublicID, p.name PlayerName, p.metadata DBPlayerMetadata,
@@ -336,36 +336,42 @@ func GetClanDetails(db DB, gameID, publicID string, maxClansPerPlayer int) (util
 		"metadata": details[0].OwnerMetadata,
 	}
 
+	// First row player public id is not null, meaning we found players!
 	if details[0].PlayerPublicID.Valid {
-		// First row player public id is not null, meaning we found players!
-		player := details[0]
 
 		result["roster"] = make([]util.JSON, 0)
 		result["memberships"] = util.JSON{
-			"pending": []util.JSON{},
-			"banned":  []util.JSON{},
-			"denied":  []util.JSON{},
+			"pendingInvites":      []util.JSON{},
+			"pendingApplications": []util.JSON{},
+			"banned":              []util.JSON{},
+			"denied":              []util.JSON{},
 		}
 		memberships := result["memberships"].(util.JSON)
 
 		for _, member := range details {
-			approved := nullOrBool(player.MembershipApproved)
-			denied := nullOrBool(player.MembershipDenied)
-			banned := nullOrBool(player.MembershipBanned)
+			approved := nullOrBool(member.MembershipApproved)
+			denied := nullOrBool(member.MembershipDenied)
+			banned := nullOrBool(member.MembershipBanned)
 			pending := !approved && !denied && !banned
-
-			memberData := member.Serialize()
 
 			switch {
 			case pending:
+				memberData := member.Serialize(true)
 				if member.MembershipCount+member.OwnershipCount < maxClansPerPlayer {
-					memberships["pending"] = append(memberships["pending"].([]util.JSON), memberData)
+					if member.PlayerPublicID == member.RequestorPublicID {
+						memberships["pendingApplications"] = append(memberships["pendingApplications"].([]util.JSON), memberData)
+					} else {
+						memberships["pendingInvites"] = append(memberships["pendingInvites"].([]util.JSON), memberData)
+					}
 				}
 			case banned:
+				memberData := member.Serialize(false)
 				memberships["banned"] = append(memberships["banned"].([]util.JSON), memberData)
 			case denied:
+				memberData := member.Serialize(false)
 				memberships["denied"] = append(memberships["denied"].([]util.JSON), memberData)
 			case approved:
+				memberData := member.Serialize(true)
 				result["roster"] = append(result["roster"].([]util.JSON), memberData)
 			}
 		}

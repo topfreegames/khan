@@ -50,32 +50,20 @@ type clanDetailsDAO struct {
 	RequestorName     sql.NullString
 }
 
-func (member *clanDetailsDAO) Serialize() util.JSON {
+func (member *clanDetailsDAO) Serialize(includeMembershipLevel bool) util.JSON {
 	result := util.JSON{
-		// No need to include clan information as that will be available in the payload already
-		"membership": util.JSON{
-			"level":     nullOrString(member.MembershipLevel),
-			"approved":  nullOrBool(member.MembershipApproved),
-			"denied":    nullOrBool(member.MembershipDenied),
-			"banned":    nullOrBool(member.MembershipBanned),
-			"createdAt": nullOrInt(member.MembershipCreatedAt),
-			"updatedAt": nullOrInt(member.MembershipUpdatedAt),
-		},
 		"player": util.JSON{
-			"publicID":        nullOrString(member.PlayerPublicID),
-			"name":            nullOrString(member.PlayerName),
-			"membershipCount": member.MembershipCount,
-			"ownershipCount":  member.OwnershipCount,
-		},
-		"requestor": util.JSON{
-			"publicID": nullOrString(member.RequestorPublicID),
-			"name":     nullOrString(member.RequestorName),
+			"publicID": nullOrString(member.PlayerPublicID),
+			"name":     nullOrString(member.PlayerName),
 		},
 	}
 	if member.DBPlayerMetadata.Valid {
 		json.Unmarshal([]byte(nullOrString(member.DBPlayerMetadata)), &member.PlayerMetadata)
 	} else {
 		member.PlayerMetadata = util.JSON{}
+	}
+	if includeMembershipLevel {
+		result["level"] = nullOrString(member.MembershipLevel)
 	}
 	result["player"].(util.JSON)["metadata"] = member.PlayerMetadata
 	return result
