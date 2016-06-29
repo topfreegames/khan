@@ -218,7 +218,7 @@ Khan API
 
 ## Hook Routes
 
-More about web hooks can be found in [Using WebHooks](using_webhooks.html).
+  More about web hooks can be found in [Using WebHooks](using_webhooks.html).
 
   ### Supported Web Hook Event Types
 
@@ -511,85 +511,6 @@ More about web hooks can be found in [Using WebHooks](using_webhooks.html).
 
 ## Clan Routes
 
-  ### Search Clans
-  `GET /games/:gameID/clan-search`
-
-  Searches for clans of a given game where the name or the publicID include the term passed in the query string.
-
-  * URL Parameters
-
-    ```
-      term=[string]
-    ```
-
-  * Success Response
-    * Code: `200`
-    * Content:
-      ```
-      {
-        "success": true,
-        "clans": [
-          {
-            "name": [string],
-            "metadata": [JSON],
-            "membershipCount": [int],
-            "publicID": [string],
-          },
-          {
-            "name": [string],
-            "metadata": [JSON],
-            "membershipCount": [int],
-            "publicID": [string]
-          }
-        ]
-      }
-      ```
-
-      An empty list will be returned if no clans match the term.
-
-  * Error Response
-
-    It will return an error if an empty search term is sent.
-
-    * Code: `400`
-    * Content:
-      ```
-      {
-        "success": false,
-        "reason": "A search term was not provided to find a clan."
-      }
-      ```
-
-  ### List Clans
-  `GET /games/:gameID/clans`
-
-  List all clans for the game with publicID=`gameID`.
-
-  * Success Response
-    * Code: `200`
-    * Content:
-      ```
-      {
-        "success": true,
-        "clans": [
-          {
-            "name": [string],
-            "metadata": [JSON],
-            "membershipCount": [int],
-            "publicID": [string]
-          },
-          {
-            "name": [string],
-            "metadata": [JSON],
-            "membershipCount": [int],
-            "publicID": [string]
-          }
-        ]
-      }
-      ```
-
-      An empty list will be returned if there are no clans for the given game.
-
   ### Create Clan
   `POST /games/:gameID/clans`
 
@@ -791,6 +712,85 @@ More about web hooks can be found in [Using WebHooks](using_webhooks.html).
       {
         "success": false,
         "reason": [string]
+      }
+      ```
+
+  ### List Clans
+  `GET /games/:gameID/clans`
+
+  List all clans for the game with publicID=`gameID`.
+
+  * Success Response
+    * Code: `200`
+    * Content:
+      ```
+      {
+        "success": true,
+        "clans": [
+          {
+            "name": [string],
+            "metadata": [JSON],
+            "membershipCount": [int],
+            "publicID": [string]
+          },
+          {
+            "name": [string],
+            "metadata": [JSON],
+            "membershipCount": [int],
+            "publicID": [string]
+          }
+        ]
+      }
+      ```
+
+      An empty list will be returned if there are no clans for the given game.
+
+  ### Search Clans
+  `GET /games/:gameID/clan-search`
+
+  Searches for clans of a given game where the name or the publicID include the term passed in the query string.
+
+  * URL Parameters
+
+    ```
+      term=[string]
+    ```
+
+  * Success Response
+    * Code: `200`
+    * Content:
+      ```
+      {
+        "success": true,
+        "clans": [
+          {
+            "name": [string],
+            "metadata": [JSON],
+            "membershipCount": [int],
+            "publicID": [string],
+          },
+          {
+            "name": [string],
+            "metadata": [JSON],
+            "membershipCount": [int],
+            "publicID": [string]
+          }
+        ]
+      }
+      ```
+
+      An empty list will be returned if no clans match the term.
+
+  * Error Response
+
+    It will return an error if an empty search term is sent.
+
+    * Code: `400`
+    * Content:
+      ```
+      {
+        "success": false,
+        "reason": "A search term was not provided to find a clan."
       }
       ```
 
