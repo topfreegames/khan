@@ -456,7 +456,12 @@ More about web hooks can be found in [Using WebHooks](using_webhooks.html).
           ],
 
           // Clans the player has pending applications to
-          "pending":[
+          "pendingApplications":[
+            { "name": [string], "publicID": [string] }, // clan name and publicID
+          ],
+
+          // Clans the player has pending invites to
+          "pendingInvites":[
             { "name": [string], "publicID": [string] }, // clan name and publicID
           ]
         },
