@@ -190,7 +190,8 @@ func GetPlayerDetails(db DB, gameID, publicID string) (util.JSON, error) {
 		approved := []util.JSON{}
 		denied := []util.JSON{}
 		banned := []util.JSON{}
-		pending := []util.JSON{}
+		pendingApplications := []util.JSON{}
+		pendingInvites := []util.JSON{}
 
 		clanFromDetail := func(clanDetail playerDetailsDAO) util.JSON {
 			return util.JSON{
@@ -209,7 +210,11 @@ func GetPlayerDetails(db DB, gameID, publicID string) (util.JSON, error) {
 			clanDetail := clanFromDetail(detail)
 			switch {
 			case !ma && !md && !mb:
-				pending = append(pending, clanDetail)
+				if detail.RequestorPublicID.Valid && detail.RequestorPublicID.String == detail.PlayerPublicID {
+					pendingApplications = append(pendingApplications, clanDetail)
+				} else {
+					pendingInvites = append(pendingInvites, clanDetail)
+				}
 			case ma:
 				approved = append(approved, clanDetail)
 			case md:
@@ -220,10 +225,11 @@ func GetPlayerDetails(db DB, gameID, publicID string) (util.JSON, error) {
 		}
 
 		result["clans"] = util.JSON{
-			"approved": approved,
-			"denied":   denied,
-			"banned":   banned,
-			"pending":  pending,
+			"approved":            approved,
+			"denied":              denied,
+			"banned":              banned,
+			"pendingApplications": pendingApplications,
+			"pendingInvites":      pendingInvites,
 		}
 
 	} else {

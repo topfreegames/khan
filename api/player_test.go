@@ -202,12 +202,14 @@ func TestPlayerHandler(t *testing.T) {
 			approved := clans["approved"].([]interface{})
 			denied := clans["denied"].([]interface{})
 			banned := clans["banned"].([]interface{})
-			pending := clans["pending"].([]interface{})
+			pendingApplications := clans["pendingApplications"].([]interface{})
+			pendingInvites := clans["pendingInvites"].([]interface{})
 
 			g.Assert(len(approved)).Equal(5)
 			g.Assert(len(denied)).Equal(2)
 			g.Assert(len(banned)).Equal(3)
-			g.Assert(len(pending)).Equal(8)
+			g.Assert(len(pendingApplications)).Equal(0)
+			g.Assert(len(pendingInvites)).Equal(8)
 		})
 		g.It("Should return 404 for invalid player", func() {
 			a := GetDefaultTestApp()
