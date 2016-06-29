@@ -28,7 +28,7 @@ func BenchmarkApplyForMembership(b *testing.B) {
 	if err != nil {
 		panic(err.Error())
 	}
-	game.MaxMembers = 20 + b.N
+	game.MaxMembers = clan.MembershipCount + b.N
 	_, err = db.Update(game)
 	if err != nil {
 		panic(err.Error())
@@ -78,7 +78,7 @@ func BenchmarkInviteForMembership(b *testing.B) {
 	if err != nil {
 		panic(err.Error())
 	}
-	game.MaxMembers = 20 + b.N
+	game.MaxMembers = clan.MembershipCount + b.N
 	_, err = db.Update(game)
 	if err != nil {
 		panic(err.Error())
@@ -123,7 +123,7 @@ func BenchmarkApproveMembershipApplication(b *testing.B) {
 	if err != nil {
 		panic(err.Error())
 	}
-	game.MaxMembers = b.N
+	game.MaxMembers = clan.MembershipCount + b.N
 	_, err = db.Update(game)
 	if err != nil {
 		panic(err.Error())
@@ -163,7 +163,7 @@ func BenchmarkApproveMembershipInvitation(b *testing.B) {
 	if err != nil {
 		panic(err.Error())
 	}
-	game.MaxMembers = b.N
+	game.MaxMembers = clan.MembershipCount + b.N
 	_, err = db.Update(game)
 	if err != nil {
 		panic(err.Error())
