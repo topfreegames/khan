@@ -439,6 +439,7 @@ func TestClanHandler(t *testing.T) {
 			g.Assert(len(result["clans"].([]interface{}))).Equal(0)
 		})
 	})
+
 	g.Describe("Retrieve Clan Handler", func() {
 		g.It("Should get details for clan", func() {
 			_, clan, _, _, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
@@ -481,6 +482,45 @@ func TestClanHandler(t *testing.T) {
 			g.Assert(result["roster"] == nil).IsFalse()
 		})
 	})
+
+	g.Describe("Retrieve Clan Summary Handler", func() {
+		g.It("Should get details for clan", func() {
+			_, clan, _, _, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
+			AssertNotError(g, err)
+
+			a := GetDefaultTestApp()
+
+			res := Get(a, GetGameRoute(clan.GameID, fmt.Sprintf("/clans/%s/summary", clan.PublicID)), t)
+
+			g.Assert(res.Raw().StatusCode).Equal(http.StatusOK)
+			var result util.JSON
+			json.Unmarshal([]byte(res.Body().Raw()), &result)
+
+			g.Assert(result["success"]).IsTrue()
+
+			g.Assert(int(result["membershipCount"].(float64))).Equal(clan.MembershipCount)
+			g.Assert(result["publicID"]).Equal(clan.PublicID)
+			g.Assert(result["name"]).Equal(clan.Name)
+			g.Assert(result["allowApplication"]).Equal(clan.AllowApplication)
+			g.Assert(result["autoJoin"]).Equal(clan.AutoJoin)
+			resultMetadata := result["metadata"].(map[string]interface{})
+			for k, v := range resultMetadata {
+				g.Assert(v).Equal(clan.Metadata[k])
+			}
+		})
+
+		g.It("Should not get details for clan that does not exist", func() {
+			a := GetDefaultTestApp()
+
+			res := Get(a, GetGameRoute("game-id", "/clans/dont-exist/summary"), t)
+			g.Assert(res.Raw().StatusCode).Equal(http.StatusInternalServerError)
+			var result util.JSON
+			json.Unmarshal([]byte(res.Body().Raw()), &result)
+			g.Assert(result["success"]).IsFalse()
+			g.Assert(result["reason"]).Equal("Clan was not found with id: dont-exist")
+		})
+	})
+
 	g.Describe("Search Clan Handler", func() {
 		g.It("Should search for a clan", func() {
 			player, expectedClans, err := models.GetTestClans(

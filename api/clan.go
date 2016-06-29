@@ -269,6 +269,28 @@ func RetrieveClanHandler(app *App) func(c *iris.Context) {
 	}
 }
 
+// RetrieveClanSummaryHandler is the handler responsible for returning details summary for a given clan
+func RetrieveClanSummaryHandler(app *App) func(c *iris.Context) {
+	return func(c *iris.Context) {
+		db := GetCtxDB(c)
+		gameID := c.Param("gameID")
+		publicID := c.Param("clanPublicID")
+
+		clan, err := models.GetClanSummary(
+			db,
+			gameID,
+			publicID,
+		)
+
+		if err != nil {
+			FailWith(500, err.Error(), c)
+			return
+		}
+
+		SucceedWith(clan, c)
+	}
+}
+
 func serializeClans(clans []models.Clan, includePublicID bool) []util.JSON {
 	serializedClans := make([]util.JSON, len(clans))
 	for i, clan := range clans {
