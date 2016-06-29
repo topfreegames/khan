@@ -758,6 +758,37 @@ More about web hooks can be found in [Using WebHooks](using_webhooks.html).
       }
       ```
 
+  ### Clan Summary
+  `GET /games/:gameID/clans/:clanPublicID/summary`
+
+  Returns a summary of the details of the clan with the given publicID.
+
+  * Success Response
+    * Code: `200`
+    * Content:
+      ```
+      {
+        "success": true,
+        "publicID": [string],
+        "name": [string],
+        "metadata": [JSON],
+        "allowApplication": [bool],
+        "autoJoin": [bool],
+        "membershipCount": [int]
+      }
+      ```
+
+  * Error Response
+
+    * Code: `500`
+    * Content:
+      ```
+      {
+        "success": false,
+        "reason": [string]
+      }
+      ```
+
   ### Leave Clan
   `POST /games/:gameID/clans/:clanPublicID/leave`
 
