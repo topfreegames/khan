@@ -91,7 +91,7 @@ func BenchmarkRetrieveClan(b *testing.B) {
 
 	gameID := uuid.NewV4().String()
 	_, clan, _, _, _, err := models.GetClanWithMemberships(
-		db, 50, 0, 0, 0, gameID, uuid.NewV4().String(),
+		db, 50, 50, 50, 50, gameID, uuid.NewV4().String(),
 	)
 
 	if err != nil {
@@ -102,6 +102,33 @@ func BenchmarkRetrieveClan(b *testing.B) {
 
 	for i := 0; i < b.N; i++ {
 		route := getRoute(fmt.Sprintf("/games/%s/clans/%s", gameID, clan.PublicID))
+		res, err := get(route)
+		validateResp(res, err)
+		res.Body.Close()
+
+		result = res
+	}
+}
+
+func BenchmarkRetrieveClanSummary(b *testing.B) {
+	db, err := models.GetPerfDB()
+	if err != nil {
+		panic(err.Error())
+	}
+
+	gameID := uuid.NewV4().String()
+	_, clan, _, _, _, err := models.GetClanWithMemberships(
+		db, 50, 50, 50, 50, gameID, uuid.NewV4().String(),
+	)
+
+	if err != nil {
+		panic(err.Error())
+	}
+
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		route := getRoute(fmt.Sprintf("/games/%s/clans/%s/summary", gameID, clan.PublicID))
 		res, err := get(route)
 		validateResp(res, err)
 		res.Body.Close()
