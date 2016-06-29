@@ -718,6 +718,33 @@ func TestClanModel(t *testing.T) {
 
 		})
 
+		g.Describe("Get Clan Summary", func() {
+			g.It("Should get clan members", func() {
+				_, clan, _, _, _, err := GetClanWithMemberships(
+					testDb, 10, 3, 4, 5, "clan-summary", "clan-summary-clan",
+				)
+				g.Assert(err == nil).IsTrue()
+
+				clanData, err := GetClanSummary(testDb, clan.GameID, clan.PublicID)
+				g.Assert(err == nil).IsTrue()
+				g.Assert(clanData["membershipCount"]).Equal(clan.MembershipCount)
+				g.Assert(clanData["publicID"]).Equal(clan.PublicID)
+				g.Assert(clanData["metadata"]).Equal(clan.Metadata)
+				g.Assert(clanData["name"]).Equal(clan.Name)
+				g.Assert(clanData["allowApplication"]).Equal(clan.AllowApplication)
+				g.Assert(clanData["autoJoin"]).Equal(clan.AutoJoin)
+				g.Assert(len(clanData)).Equal(6)
+			})
+
+			g.It("Should fail if clan does not exist", func() {
+				clanData, err := GetClanDetails(testDb, "fake-game-id", "fake-public-id", 1)
+				g.Assert(clanData == nil).IsTrue()
+				g.Assert(err != nil).IsTrue()
+				g.Assert(err.Error()).Equal("Clan was not found with id: fake-public-id")
+			})
+
+		})
+
 		g.Describe("Clan Search", func() {
 			g.It("Should return clan by search term", func() {
 				player, _, err := GetTestClans(

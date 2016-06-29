@@ -388,6 +388,23 @@ func GetClanDetails(db DB, gameID, publicID string, maxClansPerPlayer int) (util
 	return result, nil
 }
 
+// GetClanSummary returns a summary of the clan details for a given clan by its game id and public id
+func GetClanSummary(db DB, gameID, publicID string) (util.JSON, error) {
+	clan, err := GetClanByPublicID(db, gameID, publicID)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make(util.JSON)
+	result["membershipCount"] = clan.MembershipCount
+	result["publicID"] = clan.PublicID
+	result["metadata"] = clan.Metadata
+	result["name"] = clan.Name
+	result["allowApplication"] = clan.AllowApplication
+	result["autoJoin"] = clan.AutoJoin
+	return result, nil
+}
+
 // SearchClan returns a list of clans for a given term (by name or publicID)
 func SearchClan(db DB, gameID, term string) ([]Clan, error) {
 	if term == "" {
