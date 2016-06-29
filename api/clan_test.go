@@ -504,6 +504,7 @@ func TestClanHandler(t *testing.T) {
 			for index, expectedClan := range expectedClans {
 				clan := clans[index].(map[string]interface{}) // Can't be util.JSON
 				g.Assert(clan["name"]).Equal(expectedClan.Name)
+				g.Assert(int(clan["membershipCount"].(float64))).Equal(expectedClan.MembershipCount)
 			}
 		})
 	})

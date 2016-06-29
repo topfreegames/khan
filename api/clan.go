@@ -280,8 +280,9 @@ func serializeClans(clans []models.Clan, includePublicID bool) []util.JSON {
 
 func serializeClan(clan *models.Clan, includePublicID bool) util.JSON {
 	serial := util.JSON{
-		"name":     clan.Name,
-		"metadata": clan.Metadata,
+		"name":            clan.Name,
+		"metadata":        clan.Metadata,
+		"membershipCount": clan.MembershipCount,
 	}
 
 	if includePublicID {
