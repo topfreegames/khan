@@ -41,13 +41,13 @@ assets:
 cross: assets
 	@mkdir -p ./bin
 	@echo "Building for linux-386..."
-	@env GOOS=linux GOARCH=386 go build -o ./bin/khan-linux-386
+	@env GOOS=linux GOARCH=386 go build -o ./bin/khan-linux-i386
 	@echo "Building for linux-amd64..."
-	@env GOOS=linux GOARCH=amd64 go build -o ./bin/khan-linux-amd64
+	@env GOOS=linux GOARCH=amd64 go build -o ./bin/khan-linux-x86_64
 	@echo "Building for darwin-386..."
-	@env GOOS=darwin GOARCH=386 go build -o ./bin/khan-darwin-386
+	@env GOOS=darwin GOARCH=386 go build -o ./bin/khan-darwin-i386
 	@echo "Building for darwin-amd64..."
-	@env GOOS=darwin GOARCH=amd64 go build -o ./bin/khan-darwin-amd64
+	@env GOOS=darwin GOARCH=amd64 go build -o ./bin/khan-darwin-x86_64
 
 install:
 	@go install
