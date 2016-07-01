@@ -2,6 +2,8 @@
 
 VERSION=$(cat ./api/version.go | grep "var VERSION" | awk ' { print $4 } ' | sed s/\"//g)
 
+cp ./config/default.yaml ./dev
+
 docker build -t khan .
 docker build -t khan-dev ./dev
 docker login -e="$DOCKER_EMAIL" -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
