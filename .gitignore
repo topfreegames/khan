@@ -29,3 +29,4 @@ docs/_build
 /docs/_build
 /bin
 khan-perf.dump
+/dev/default.yaml

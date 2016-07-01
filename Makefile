@@ -58,6 +58,10 @@ run:
 build-docker:
 	@docker build -t khan .
 
+build-dev-docker:
+	@cp ./config/default.yaml ./dev
+	@cd dev && docker build -t khan-dev .
+
 run-docker:
 	@docker run -i -t --rm -e "KHAN_POSTGRES_HOST=10.0.20.81" -p 8080:8080 khan
 
