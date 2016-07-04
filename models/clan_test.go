@@ -192,6 +192,7 @@ func TestClanModel(t *testing.T) {
 
 				g.Assert(dbClan.GameID).Equal(clan.GameID)
 				g.Assert(dbClan.PublicID).Equal(clan.PublicID)
+				g.Assert(dbClan.MembershipCount).Equal(1)
 
 				dbPlayer, err := GetPlayerByID(testDb, player.ID)
 				g.Assert(err == nil).IsTrue()
@@ -594,7 +595,7 @@ func TestClanModel(t *testing.T) {
 				g.Assert(err == nil).IsTrue()
 				g.Assert(clanData["name"]).Equal(clan.Name)
 				g.Assert(clanData["metadata"]).Equal(clan.Metadata)
-
+				g.Assert(clanData["membershipCount"]).Equal(11)
 				g.Assert(clanData["owner"].(util.JSON)["publicID"]).Equal(owner.PublicID)
 
 				roster := clanData["roster"].([]util.JSON)
@@ -705,6 +706,7 @@ func TestClanModel(t *testing.T) {
 				g.Assert(clanData["metadata"]).Equal(clan.Metadata)
 				g.Assert(clanData["allowApplication"]).Equal(clan.AllowApplication)
 				g.Assert(clanData["autoJoin"]).Equal(clan.AutoJoin)
+				g.Assert(clanData["membershipCount"]).Equal(1)
 				roster := clanData["roster"].([]util.JSON)
 				g.Assert(len(roster)).Equal(0)
 			})
@@ -715,7 +717,6 @@ func TestClanModel(t *testing.T) {
 				g.Assert(err != nil).IsTrue()
 				g.Assert(err.Error()).Equal("Clan was not found with id: fake-public-id")
 			})
-
 		})
 
 		g.Describe("Get Clan Summary", func() {
