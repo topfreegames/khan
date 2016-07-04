@@ -207,6 +207,66 @@ func TestPlayerModel(t *testing.T) {
 				g.Assert(len(pendingInvites)).Equal(8)
 			})
 
+			g.It("Should get Player Details including owned clans as approved", func() {
+				game, clan, _, players, _, err := GetClanWithMemberships(testDb, 1, 0, 0, 0, "", "")
+				g.Assert(err == nil).IsTrue()
+
+				game.MaxClansPerPlayer = 2
+				_, err = testDb.Update(game)
+				g.Assert(err == nil).IsTrue()
+
+				ownedClan := ClanFactory.MustCreateWithOption(util.JSON{
+					"GameID":          players[0].GameID,
+					"PublicID":        uuid.NewV4().String(),
+					"OwnerID":         players[0].ID,
+					"Metadata":        util.JSON{"x": "a"},
+					"MembershipCount": 1,
+				}).(*Clan)
+				err = testDb.Insert(ownedClan)
+				g.Assert(err == nil).IsTrue()
+
+				playerDetails, err := GetPlayerDetails(
+					testDb,
+					players[0].GameID,
+					players[0].PublicID,
+				)
+
+				g.Assert(err == nil).IsTrue()
+
+				// Player Details
+				g.Assert(playerDetails["publicID"]).Equal(players[0].PublicID)
+				g.Assert(playerDetails["name"]).Equal(players[0].Name)
+				g.Assert(playerDetails["metadata"]).Equal(players[0].Metadata)
+				g.Assert(playerDetails["createdAt"]).Equal(players[0].CreatedAt)
+				g.Assert(playerDetails["updatedAt"]).Equal(players[0].UpdatedAt)
+
+				//Memberships
+				g.Assert(len(playerDetails["memberships"].([]util.JSON))).Equal(2)
+				g.Assert(playerDetails["memberships"].([]util.JSON)[0]["level"]).Equal("Member")
+				g.Assert(playerDetails["memberships"].([]util.JSON)[0]["clan"].(util.JSON)["publicID"]).Equal(clan.PublicID)
+				g.Assert(playerDetails["memberships"].([]util.JSON)[1]["level"]).Equal("owner")
+				g.Assert(playerDetails["memberships"].([]util.JSON)[1]["clan"].(util.JSON)["publicID"]).Equal(ownedClan.PublicID)
+
+				clans := playerDetails["clans"].(util.JSON)
+				approved := clans["approved"].([]util.JSON)
+				denied := clans["denied"].([]util.JSON)
+				banned := clans["banned"].([]util.JSON)
+				pendingApplications := clans["pendingApplications"].([]util.JSON)
+				pendingInvites := clans["pendingInvites"].([]util.JSON)
+
+				g.Assert(len(approved)).Equal(2)
+				g.Assert(len(denied)).Equal(0)
+				g.Assert(len(banned)).Equal(0)
+				g.Assert(len(pendingApplications)).Equal(0)
+				g.Assert(len(pendingInvites)).Equal(0)
+
+				g.Assert(approved[0]["publicID"]).Equal(clan.PublicID)
+				g.Assert(approved[0]["name"]).Equal(clan.Name)
+
+				g.Assert(approved[1]["publicID"]).Equal(ownedClan.PublicID)
+				g.Assert(approved[1]["name"]).Equal(ownedClan.Name)
+			})
+
 			g.It("Should get Player Details when player has no affiliations", func() {
 				_, player, err := CreatePlayerFactory(testDb, "")
 				g.Assert(err == nil).IsTrue()
