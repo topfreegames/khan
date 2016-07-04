@@ -122,6 +122,7 @@ func CreateClan(db DB, gameID, publicID, name, ownerPublicID string, metadata ut
 		Metadata:         metadata,
 		AllowApplication: allowApplication,
 		AutoJoin:         autoJoin,
+		MembershipCount:  1,
 	}
 
 	err = db.Insert(clan)
