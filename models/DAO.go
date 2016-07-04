@@ -71,6 +71,7 @@ func (member *clanDetailsDAO) Serialize(includeMembershipLevel bool) util.JSON {
 
 type playerDetailsDAO struct {
 	// Player Details
+	PlayerID        int
 	PlayerName      string
 	PlayerMetadata  util.JSON
 	PlayerPublicID  string
@@ -91,6 +92,7 @@ type playerDetailsDAO struct {
 	ClanName       sql.NullString
 	DBClanMetadata sql.NullString
 	ClanMetadata   util.JSON
+	ClanOwnerID    sql.NullInt64
 
 	// Membership Requestor Details
 	RequestorName       sql.NullString

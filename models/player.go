@@ -147,11 +147,11 @@ func UpdatePlayer(db DB, gameID, publicID, name string, metadata util.JSON) (*Pl
 func GetPlayerDetails(db DB, gameID, publicID string) (util.JSON, error) {
 	query := `
 	SELECT
-		p.name PlayerName, p.metadata PlayerMetadata, p.public_id PlayerPublicID,
+		p.id PlayerID, p.name PlayerName, p.metadata PlayerMetadata, p.public_id PlayerPublicID,
 		p.created_at PlayerCreatedAt, p.updated_at PlayerUpdatedAt,
 		m.membership_level MembershipLevel,
 		m.approved MembershipApproved, m.denied MembershipDenied, m.banned MembershipBanned,
-		c.public_id ClanPublicID, c.name ClanName, c.metadata DBClanMetadata,
+		c.public_id ClanPublicID, c.name ClanName, c.metadata DBClanMetadata, c.owner_id ClanOwnerID,
 		r.name RequestorName, r.public_id RequestorPublicID, r.metadata DBRequestorMetadata,
 		m.created_at MembershipCreatedAt,
 		m.updated_at MembershipUpdatedAt,
@@ -159,7 +159,7 @@ func GetPlayerDetails(db DB, gameID, publicID string) (util.JSON, error) {
 		d.name DeletedByName, d.public_id DeletedByPublicID
 	FROM players p
 		LEFT OUTER JOIN memberships m on m.player_id = p.id
-		LEFT OUTER JOIN clans c on c.id=m.clan_id
+		LEFT OUTER JOIN clans c on c.id=m.clan_id OR c.owner_id=p.id
 		LEFT OUTER JOIN players d on d.id=m.deleted_by
 		LEFT OUTER JOIN players r on r.id=m.requestor_id
 	WHERE
@@ -183,7 +183,7 @@ func GetPlayerDetails(db DB, gameID, publicID string) (util.JSON, error) {
 	result["createdAt"] = details[0].PlayerCreatedAt
 	result["updatedAt"] = details[0].PlayerUpdatedAt
 
-	if details[0].MembershipLevel.Valid {
+	if details[0].MembershipLevel.Valid || details[0].ClanOwnerID.Valid && int(details[0].ClanOwnerID.Int64) == details[0].PlayerID {
 		// Player has memberships
 		result["memberships"] = make([]util.JSON, len(details))
 
@@ -206,15 +206,22 @@ func GetPlayerDetails(db DB, gameID, publicID string) (util.JSON, error) {
 			ma := nullOrBool(detail.MembershipApproved)
 			md := nullOrBool(detail.MembershipDenied)
 			mb := nullOrBool(detail.MembershipBanned)
+			owner := detail.ClanOwnerID.Valid && int(detail.ClanOwnerID.Int64) == detail.PlayerID
+
+			if owner {
+				result["memberships"].([]util.JSON)[index]["level"] = "owner"
+			}
 
 			clanDetail := clanFromDetail(detail)
 			switch {
-			case !ma && !md && !mb:
+			case !ma && !md && !mb && !owner:
 				if detail.RequestorPublicID.Valid && detail.RequestorPublicID.String == detail.PlayerPublicID {
 					pendingApplications = append(pendingApplications, clanDetail)
 				} else {
 					pendingInvites = append(pendingInvites, clanDetail)
 				}
+			case owner:
+				approved = append(approved, clanDetail)
 			case ma:
 				approved = append(approved, clanDetail)
 			case md:
