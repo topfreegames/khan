@@ -8,6 +8,8 @@
 package api
 
 import (
+	"strings"
+
 	"github.com/kataras/iris"
 	"github.com/topfreegames/khan/models"
 	"github.com/topfreegames/khan/util"
@@ -30,11 +32,6 @@ type updateClanPayload struct {
 	Metadata         util.JSON
 	AllowApplication bool
 	AutoJoin         bool
-}
-
-// leaveClanPayload maps the payload for the Leave Clan route
-type leaveClanPayload struct {
-	OwnerPublicID string
 }
 
 // transferClanOwnershipPayload maps the payload for the Transfer Clan Ownership route
@@ -125,23 +122,20 @@ func LeaveClanHandler(app *App) func(c *iris.Context) {
 		gameID := c.Param("gameID")
 		publicID := c.Param("clanPublicID")
 
-		var payload leaveClanPayload
-		if err := LoadJSONPayload(&payload, c); err != nil {
-			FailWith(400, err.Error(), c)
-			return
-		}
-
 		db := GetCtxDB(c)
 
 		err := models.LeaveClan(
 			db,
 			gameID,
 			publicID,
-			payload.OwnerPublicID,
 		)
 
 		if err != nil {
-			FailWith(500, err.Error(), c)
+			if strings.HasPrefix(err.Error(), "Clan was not found with id") {
+				FailWith(400, (&models.ModelNotFoundError{"Clan", publicID}).Error(), c)
+			} else {
+				FailWith(500, err.Error(), c)
+			}
 			return
 		}
 

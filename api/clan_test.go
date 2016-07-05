@@ -151,16 +151,12 @@ func TestClanHandler(t *testing.T) {
 
 	g.Describe("Leave Clan Handler", func() {
 		g.It("Should leave a clan and transfer ownership", func() {
-			_, clan, owner, _, memberships, err := models.GetClanWithMemberships(testDb, 1, 0, 0, 0, "", "")
+			_, clan, _, _, memberships, err := models.GetClanWithMemberships(testDb, 1, 0, 0, 0, "", "")
 			g.Assert(err == nil).IsTrue()
-			ownerPublicID := owner.PublicID
 
-			payload := util.JSON{
-				"ownerPublicID": ownerPublicID,
-			}
 			route := GetGameRoute(clan.GameID, fmt.Sprintf("clans/%s/leave", clan.PublicID))
 			a := GetDefaultTestApp()
-			res := PostJSON(a, route, t, payload)
+			res := PostJSON(a, route, t, util.JSON{})
 
 			g.Assert(res.Raw().StatusCode).Equal(http.StatusOK)
 			var result util.JSON
@@ -172,46 +168,16 @@ func TestClanHandler(t *testing.T) {
 			g.Assert(dbClan.OwnerID).Equal(memberships[0].PlayerID)
 		})
 
-		g.It("Should not leave a clan if missing parameters", func() {
+		g.It("Should not leave a clan if invalid clan", func() {
 			route := GetGameRoute("game-id", fmt.Sprintf("clans/%s/leave", "random-id"))
 			a := GetDefaultTestApp()
-			res := PostJSON(a, route, t, util.JSON{})
+			res := PostBody(a, route, t, "")
 
 			g.Assert(res.Raw().StatusCode).Equal(http.StatusBadRequest)
 			var result util.JSON
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
-			g.Assert(result["reason"]).Equal("ownerPublicID is required")
-		})
-
-		g.It("Should not leave a clan if invalid payload", func() {
-			route := GetGameRoute("game-id", fmt.Sprintf("clans/%s/leave", "random-id"))
-			a := GetDefaultTestApp()
-			res := PostBody(a, route, t, "invalid")
-
-			g.Assert(res.Raw().StatusCode).Equal(http.StatusBadRequest)
-			var result util.JSON
-			json.Unmarshal([]byte(res.Body().Raw()), &result)
-			g.Assert(result["success"]).IsFalse()
-			g.Assert(strings.Contains(result["reason"].(string), "While trying to read JSON")).IsTrue()
-		})
-
-		g.It("Should not leave a clan if player is not the owner", func() {
-			_, clan, _, players, _, err := models.GetClanWithMemberships(testDb, 1, 0, 0, 0, "", "")
-			g.Assert(err == nil).IsTrue()
-
-			payload := util.JSON{
-				"ownerPublicID": players[0].PublicID,
-			}
-			route := GetGameRoute(clan.GameID, fmt.Sprintf("clans/%s/leave", clan.PublicID))
-			a := GetDefaultTestApp()
-			res := PostJSON(a, route, t, payload)
-
-			g.Assert(res.Raw().StatusCode).Equal(http.StatusInternalServerError)
-			var result util.JSON
-			json.Unmarshal([]byte(res.Body().Raw()), &result)
-			g.Assert(result["success"]).IsFalse()
-			g.Assert(result["reason"]).Equal(fmt.Sprintf("Clan was not found with id: %s", clan.PublicID))
+			g.Assert(strings.Contains(result["reason"].(string), "Clan was not found with id: random-id")).IsTrue()
 		})
 	})
 

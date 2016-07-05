@@ -804,14 +804,6 @@ Khan API
 
   Allows the owner to leave the clan. If there are no clan members the clan will be deleted. Otherwise, the new clan owner will be the member with the highest level which has the oldest creation date.
 
-  * Payload
-
-    ```
-    {
-      "ownerPublicID": [string]  // must match the clan owner's public id
-    }
-    ```
-
   * Success Response
     * Code: `200`
     * Content:
@@ -823,7 +815,7 @@ Khan API
 
   * Error Response
 
-    It will return an error if an invalid payload is sent or if there are missing parameters.
+    It will return an error if clan is not found.
 
     * Code: `400`
     * Content:
