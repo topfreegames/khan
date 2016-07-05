@@ -338,7 +338,7 @@ func TestClanModel(t *testing.T) {
 					_, clan, owner, _, memberships, err := GetClanWithMemberships(testDb, 1, 0, 0, 0, "", "")
 					g.Assert(err == nil).IsTrue()
 
-					err = LeaveClan(testDb, clan.GameID, clan.PublicID, owner.PublicID)
+					err = LeaveClan(testDb, clan.GameID, clan.PublicID)
 					g.Assert(err == nil).IsTrue()
 
 					dbClan, err := GetClanByPublicID(testDb, clan.GameID, clan.PublicID)
@@ -367,7 +367,7 @@ func TestClanModel(t *testing.T) {
 					_, clan, owner, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
 					g.Assert(err == nil).IsTrue()
 
-					err = LeaveClan(testDb, clan.GameID, clan.PublicID, owner.PublicID)
+					err = LeaveClan(testDb, clan.GameID, clan.PublicID)
 					g.Assert(err == nil).IsTrue()
 					_, err = GetClanByPublicID(testDb, clan.GameID, clan.PublicID)
 					g.Assert(err != nil).IsTrue()
@@ -380,20 +380,11 @@ func TestClanModel(t *testing.T) {
 			})
 
 			g.Describe("Should not leave a Clan with LeaveClan if", func() {
-				g.It("Not clan owner", func() {
-					_, clan, _, players, _, err := GetClanWithMemberships(testDb, 1, 0, 0, 0, "", "")
-					g.Assert(err == nil).IsTrue()
-
-					err = LeaveClan(testDb, clan.GameID, clan.PublicID, players[0].PublicID)
-					g.Assert(err != nil).IsTrue()
-					g.Assert(err.Error()).Equal(fmt.Sprintf("Clan was not found with id: %s", clan.PublicID))
-				})
-
 				g.It("Clan does not exist", func() {
-					_, clan, _, players, _, err := GetClanWithMemberships(testDb, 1, 0, 0, 0, "", "")
+					_, clan, _, _, _, err := GetClanWithMemberships(testDb, 1, 0, 0, 0, "", "")
 					g.Assert(err == nil).IsTrue()
 
-					err = LeaveClan(testDb, clan.GameID, "-1", players[0].PublicID)
+					err = LeaveClan(testDb, clan.GameID, "-1")
 					g.Assert(err != nil).IsTrue()
 					g.Assert(err.Error()).Equal("Clan was not found with id: -1")
 				})

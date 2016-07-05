@@ -138,8 +138,8 @@ func CreateClan(db DB, gameID, publicID, name, ownerPublicID string, metadata ut
 }
 
 // LeaveClan allows the clan owner to leave the clan and transfer the clan ownership to the next player in line
-func LeaveClan(db DB, gameID, publicID, ownerPublicID string) error {
-	clan, err := GetClanByPublicIDAndOwnerPublicID(db, gameID, publicID, ownerPublicID)
+func LeaveClan(db DB, gameID, publicID string) error {
+	clan, err := GetClanByPublicID(db, gameID, publicID)
 
 	if err != nil {
 		return err
