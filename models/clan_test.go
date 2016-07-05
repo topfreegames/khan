@@ -400,7 +400,6 @@ func TestClanModel(t *testing.T) {
 						testDb,
 						clan.GameID,
 						clan.PublicID,
-						owner.PublicID,
 						players[0].PublicID,
 						game.MembershipLevels,
 						game.MaxMembershipLevel,
@@ -441,7 +440,6 @@ func TestClanModel(t *testing.T) {
 						testDb,
 						clan.GameID,
 						clan.PublicID,
-						owner.PublicID,
 						players[0].PublicID,
 						game.MembershipLevels,
 						game.MaxMembershipLevel,
@@ -452,7 +450,6 @@ func TestClanModel(t *testing.T) {
 						testDb,
 						clan.GameID,
 						clan.PublicID,
-						players[0].PublicID,
 						players[1].PublicID,
 						game.MembershipLevels,
 						game.MaxMembershipLevel,
@@ -497,32 +494,14 @@ func TestClanModel(t *testing.T) {
 			})
 
 			g.Describe("Should not transfer the Clan ownership with TransferClanOwnership if", func() {
-				g.It("Not clan owner", func() {
+				g.It("Clan does not exist", func() {
 					game, clan, _, players, _, err := GetClanWithMemberships(testDb, 1, 0, 0, 0, "", "")
 					g.Assert(err == nil).IsTrue()
 
 					err = TransferClanOwnership(
 						testDb,
 						clan.GameID,
-						clan.PublicID,
-						players[0].PublicID,
-						players[0].PublicID,
-						game.MembershipLevels,
-						game.MaxMembershipLevel,
-					)
-					g.Assert(err != nil).IsTrue()
-					g.Assert(err.Error()).Equal(fmt.Sprintf("Clan was not found with id: %s", clan.PublicID))
-				})
-
-				g.It("Clan does not exist", func() {
-					game, clan, owner, players, _, err := GetClanWithMemberships(testDb, 1, 0, 0, 0, "", "")
-					g.Assert(err == nil).IsTrue()
-
-					err = TransferClanOwnership(
-						testDb,
-						clan.GameID,
 						"-1",
-						owner.PublicID,
 						players[0].PublicID,
 						game.MembershipLevels,
 						game.MaxMembershipLevel,
@@ -532,14 +511,13 @@ func TestClanModel(t *testing.T) {
 				})
 
 				g.It("Membership does not exist", func() {
-					game, clan, owner, _, _, err := GetClanWithMemberships(testDb, 1, 0, 0, 0, "", "")
+					game, clan, _, _, _, err := GetClanWithMemberships(testDb, 1, 0, 0, 0, "", "")
 					g.Assert(err == nil).IsTrue()
 
 					err = TransferClanOwnership(
 						testDb,
 						clan.GameID,
 						clan.PublicID,
-						owner.PublicID,
 						"some-random-player",
 						game.MembershipLevels,
 						game.MaxMembershipLevel,

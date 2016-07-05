@@ -111,6 +111,22 @@ func TestMembershipModel(t *testing.T) {
 			})
 		})
 
+		g.It("Should get a deleted Membership by the player private ID using GetDeletedMembershipByPlayerID", func() {
+			_, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
+			g.Assert(err == nil).IsTrue()
+
+			memberships[0].DeletedAt = time.Now().UnixNano() / 1000000
+			memberships[0].DeletedBy = players[0].ID
+			_, err = testDb.Update(memberships[0])
+			g.Assert(err == nil).IsTrue()
+
+			dbMembership, err := GetDeletedMembershipByPlayerID(testDb, clan.GameID, players[0].ID)
+			g.Assert(err == nil).IsTrue()
+			g.Assert(dbMembership.ID).Equal(memberships[0].ID)
+			g.Assert(dbMembership.PlayerID).Equal(players[0].ID)
+			g.Assert(dbMembership.DeletedBy).Equal(players[0].ID)
+		})
+
 		g.It("Should get a deleted Membership by the player public ID using GetDeletedMembershipByClanAndPlayerPublicID", func() {
 			_, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 			g.Assert(err == nil).IsTrue()
