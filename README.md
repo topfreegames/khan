@@ -6,6 +6,7 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/topfreegames/khan)](https://goreportcard.com/report/github.com/topfreegames/khan)
 [![Docs](https://readthedocs.org/projects/khan-api/badge/?version=latest
 )](http://khan-api.readthedocs.io/en/latest/)
+[![](https://imagelayers.io/badge/tfgco/khan:latest.svg)](https://imagelayers.io/?images=tfgco/khan:latest 'Khan Image Layers')
 
 Khan will drive all your enemies to the sea (and also take care of your game's clans)!
 
