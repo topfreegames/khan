@@ -844,7 +844,6 @@ Khan API
 
     ```
     {
-      "ownerPublicID": [string],  // must match the clan owner's public id
       "playerPublicID": [string]  // must match a clan member's public id
     }
     ```

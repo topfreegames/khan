@@ -36,7 +36,6 @@ type updateClanPayload struct {
 
 // transferClanOwnershipPayload maps the payload for the Transfer Clan Ownership route
 type transferClanOwnershipPayload struct {
-	OwnerPublicID  string
 	PlayerPublicID string
 }
 
@@ -167,7 +166,6 @@ func TransferOwnershipHandler(app *App) func(c *iris.Context) {
 			db,
 			gameID,
 			publicID,
-			payload.OwnerPublicID,
 			payload.PlayerPublicID,
 			game.MembershipLevels,
 			game.MaxMembershipLevel,

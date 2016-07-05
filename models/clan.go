@@ -181,8 +181,8 @@ func LeaveClan(db DB, gameID, publicID string) error {
 }
 
 // TransferClanOwnership allows the clan owner to transfer the clan ownership to the a clan member
-func TransferClanOwnership(db DB, gameID, clanPublicID, ownerPublicID, playerPublicID string, levels util.JSON, maxLevel int) error {
-	clan, err := GetClanByPublicIDAndOwnerPublicID(db, gameID, clanPublicID, ownerPublicID)
+func TransferClanOwnership(db DB, gameID, clanPublicID, playerPublicID string, levels util.JSON, maxLevel int) error {
+	clan, err := GetClanByPublicID(db, gameID, clanPublicID)
 	if err != nil {
 		return err
 	}
@@ -203,7 +203,7 @@ func TransferClanOwnership(db DB, gameID, clanPublicID, ownerPublicID, playerPub
 	if level == "" {
 		return &InvalidLevelForGameError{gameID, level}
 	}
-	oldOwnerMembership, err := GetDeletedMembershipByClanAndPlayerPublicID(db, gameID, clanPublicID, ownerPublicID)
+	oldOwnerMembership, err := GetDeletedMembershipByPlayerID(db, gameID, oldOwnerID)
 	if err != nil {
 		err = db.Insert(&Membership{
 			GameID:      gameID,

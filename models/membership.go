@@ -95,6 +95,24 @@ func GetDeletedMembershipByClanAndPlayerPublicID(db DB, gameID, clanPublicID, pl
 	return &membership, nil
 }
 
+// GetDeletedMembershipByPlayerID returns a deleted membership for the player with the given ID
+func GetDeletedMembershipByPlayerID(db DB, gameID string, playerID int) (*Membership, error) {
+	var membership Membership
+	query := `
+	SELECT
+		m.*
+	FROM memberships m
+		INNER JOIN players p ON p.id=$1 AND p.id=m.player_id
+	WHERE
+		m.deleted_at!=0 AND m.game_id=$2`
+
+	err := db.SelectOne(&membership, query, playerID, gameID)
+	if err != nil || &membership == nil {
+		return nil, &ModelNotFoundError{"Membership", playerID}
+	}
+	return &membership, nil
+}
+
 // GetOldestMemberWithHighestLevel returns the member with highest level that has the oldest creation date
 func GetOldestMemberWithHighestLevel(db DB, gameID, clanPublicID string) (*Membership, error) {
 	var membership Membership
