@@ -15,6 +15,7 @@ import (
 	"gopkg.in/gorp.v1"
 
 	"github.com/kataras/iris"
+	"github.com/kataras/iris/config"
 	"github.com/kataras/iris/middleware/logger"
 	"github.com/rcrowley/go-metrics"
 	"github.com/spf13/viper"
@@ -117,7 +118,11 @@ func (app *App) onErrorHandler(err interface{}, stack []byte) {
 }
 
 func (app *App) configureApplication() {
-	app.App = iris.New()
+	c := config.Iris{
+		DisableBanner: !app.Debug,
+	}
+
+	app.App = iris.New(c)
 	a := app.App
 
 	if app.Debug {
