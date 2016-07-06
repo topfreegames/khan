@@ -276,7 +276,7 @@ Khan API
 
   ### Remove Hook
 
-  `POST /games/:gameID/hooks/:hookPublicID`
+  `DELETE /games/:gameID/hooks/:hookPublicID`
 
   Removes a web hook created with the Create Hook route. No payload is required for this route.
 
