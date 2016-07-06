@@ -108,6 +108,14 @@ func (app *App) connectDatabase() {
 	app.Db = db
 }
 
+func (app *App) onErrorHandler(err interface{}, stack []byte) {
+	app.Logger.Error(
+		"Panic occurred.",
+		zap.Object("panicText", err),
+		zap.String("stack", string(stack)),
+	)
+}
+
 func (app *App) configureApplication() {
 	app.App = iris.New()
 	a := app.App
@@ -115,7 +123,7 @@ func (app *App) configureApplication() {
 	if app.Debug {
 		a.Use(logger.New(iris.Logger))
 	}
-	// a.Use(recovery.New(os.Stderr))
+	a.Use(&RecoveryMiddleware{OnError: app.onErrorHandler})
 	a.Use(&TransactionMiddleware{App: app})
 	a.Use(&VersionMiddleware{App: app})
 
