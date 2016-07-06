@@ -8,6 +8,8 @@
 package api
 
 import (
+	"runtime/debug"
+
 	"github.com/kataras/iris"
 	"github.com/topfreegames/khan/models"
 	"gopkg.in/gorp.v1"
@@ -51,4 +53,22 @@ type VersionMiddleware struct {
 func (m *VersionMiddleware) Serve(c *iris.Context) {
 	c.SetHeader("KHAN-VERSION", VERSION)
 	c.Next()
+}
+
+//RecoveryMiddleware recovers from errors in Iris
+type RecoveryMiddleware struct {
+	OnError func(interface{}, []byte)
+}
+
+//Serve executes on error handler when errors happen
+func (r RecoveryMiddleware) Serve(ctx *iris.Context) {
+	defer func() {
+		if err := recover(); err != nil {
+			if r.OnError != nil {
+				r.OnError(err, debug.Stack())
+			}
+			ctx.Panic()
+		}
+	}()
+	ctx.Next()
 }
