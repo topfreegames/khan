@@ -172,22 +172,24 @@ Event Type: `5`
 
 Payload:
 
-    "gameID": [string],
-    "clan": {
-        "publicID": [string],                       // Updated Clan PublicID.
-        "name": [string],                           // Clan Name
-        "metadata": [JSON],                         // JSON Object containing clan's metadata
-        "allowApplication": [bool]                  // Indicates whether this clan acceps applications
-        "autoJoin": [bool],                         // Indicates whether this clan automatically
-                                                    // accepts applications
-        "membershipCount":  [int],                  // Number of members in clan
-    },
-    "newOwner": {                                   // After the owner left, this is the new owner
-        "publicID": [string],                       // New Owner PublicID.
-        "name": [string],                           // Player Name
-        "metadata": [JSON],                         // JSON Object containing player metadata
-		"membershipCount": [int],                   // Number of clans this player is a member of
-		"ownershipCount":  [int]                    // Number of clans this player is an owner of
+    {
+        "gameID": [string],
+        "clan": {
+            "publicID": [string],                       // Updated Clan PublicID.
+            "name": [string],                           // Clan Name
+            "metadata": [JSON],                         // JSON Object containing clan's metadata
+            "allowApplication": [bool]                  // Indicates whether this clan acceps applications
+            "autoJoin": [bool],                         // Indicates whether this clan automatically
+                                                        // accepts applications
+            "membershipCount":  [int],                  // Number of members in clan
+        },
+        "newOwner": {                                   // After the owner left, this is the new owner
+            "publicID": [string],                       // New Owner PublicID.
+            "name": [string],                           // Player Name
+            "metadata": [JSON],                         // JSON Object containing player metadata
+            "membershipCount": [int],                   // Number of clans this player is a member of
+            "ownershipCount":  [int]                    // Number of clans this player is an owner of
+        }
     }
 
 #### Transfer Clan Ownership
@@ -196,20 +198,22 @@ Event Type: `6`
 
 Payload:
 
-    "gameID": [string],
-    "clan": {
-        "publicID": [string],                       // Updated Clan PublicID.
-        "name": [string],                           // Clan Name
-        "metadata": [JSON],                         // JSON Object containing clan's metadata
-        "allowApplication": [bool]                  // Indicates whether this clan acceps applications
-        "autoJoin": [bool],                         // Indicates whether this clan automatically
-                                                    // accepts applications
-        "membershipCount":  [int],                  // Number of members in clan
-    },
-    "newOwner": {                                   // Player that the owner transferred ownership to
-        "publicID": [string],                       // New Owner PublicID.
-        "name": [string],                           // Player Name
-        "metadata": [JSON],                         // JSON Object containing player metadata
-		"membershipCount": [int],                   // Number of clans this player is a member of
-		"ownershipCount":  [int]                    // Number of clans this player is an owner of
+    {
+        "gameID": [string],
+        "clan": {
+            "publicID": [string],                       // Updated Clan PublicID.
+            "name": [string],                           // Clan Name
+            "metadata": [JSON],                         // JSON Object containing clan's metadata
+            "allowApplication": [bool]                  // Indicates whether this clan acceps applications
+            "autoJoin": [bool],                         // Indicates whether this clan automatically
+                                                        // accepts applications
+            "membershipCount":  [int],                  // Number of members in clan
+        },
+        "newOwner": {                                   // Player that the owner transferred ownership to
+            "publicID": [string],                       // New Owner PublicID.
+            "name": [string],                           // Player Name
+            "metadata": [JSON],                         // JSON Object containing player metadata
+            "membershipCount": [int],                   // Number of clans this player is a member of
+            "ownershipCount":  [int]                    // Number of clans this player is an owner of
+        }
     }
