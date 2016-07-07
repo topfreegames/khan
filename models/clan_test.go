@@ -746,5 +746,18 @@ func TestClanModel(t *testing.T) {
 				g.Assert(err.Error()).Equal("A search term was not provided to find a clan.")
 			})
 		})
+
+		g.Describe("Get Clan and Owner", func() {
+			g.It("Should return clan and owner", func() {
+				_, clan, owner, _, _, err := GetClanWithMemberships(
+					testDb, 10, 3, 4, 5, "", "",
+				)
+				g.Assert(err == nil).IsTrue()
+
+				dbClan, dbOwner, err := GetClanAndOwnerByPublicID(testDb, clan.GameID, clan.PublicID)
+				g.Assert(dbClan.ID).Equal(clan.ID)
+				g.Assert(dbOwner.ID).Equal(owner.ID)
+			})
+		})
 	})
 }

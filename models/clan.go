@@ -429,3 +429,17 @@ func SearchClan(db DB, gameID, term string) ([]Clan, error) {
 
 	return clans, nil
 }
+
+// GetClanAndOwnerByPublicID returns the clan as well as the owner of a clan by clan's public id
+func GetClanAndOwnerByPublicID(db DB, gameID, publicID string) (*Clan, *Player, error) {
+	clan, err := GetClanByPublicID(db, gameID, publicID)
+	if err != nil {
+		return nil, nil, err
+	}
+	newOwner, err := GetPlayerByID(db, clan.OwnerID)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return clan, newOwner, nil
+}

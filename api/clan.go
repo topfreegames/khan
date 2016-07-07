@@ -8,7 +8,6 @@
 package api
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/kataras/iris"
@@ -163,14 +162,9 @@ func LeaveClanHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
-		clan, err := models.GetClanByPublicID(db, gameID, publicID)
+		clan, newOwner, err := models.GetClanAndOwnerByPublicID(db, gameID, publicID)
 		if err != nil {
 			FailWith(500, (&models.ModelNotFoundError{"Clan", publicID}).Error(), c)
-			return
-		}
-		newOwner, err := models.GetPlayerByID(db, clan.OwnerID)
-		if err != nil {
-			FailWith(500, fmt.Sprintf("Could not find new owner for clan %s.", clan.Name), c)
 			return
 		}
 
