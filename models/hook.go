@@ -30,6 +30,9 @@ const (
 
 	//ClanUpdatedHook happens when a clan is updated
 	ClanUpdatedHook
+
+	//ClanLeaveHook happens when a clan owner rage quits
+	ClanLeaveHook
 )
 
 // Hook identifies a webhook for a given event

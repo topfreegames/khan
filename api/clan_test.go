@@ -22,6 +22,10 @@ import (
 	"github.com/topfreegames/khan/util"
 )
 
+func str(value interface{}) string {
+	return fmt.Sprintf("%v", value)
+}
+
 // AssertError asserts that the specified error is not nil
 func AssertError(g *G, err error) {
 	g.Assert(err == nil).IsFalse("Expected error to exist, but it was nil")
@@ -539,13 +543,13 @@ func TestClanHandler(t *testing.T) {
 			g.Assert(clan["gameID"]).Equal(player.GameID)
 			g.Assert(clan["publicID"]).Equal(payload["publicID"])
 			g.Assert(clan["name"]).Equal(payload["name"])
-			g.Assert(fmt.Sprintf("%v", clan["membershipCount"])).Equal("1")
+			g.Assert(str(clan["membershipCount"])).Equal("1")
 			g.Assert(clan["allowApplication"]).Equal(payload["allowApplication"])
 			g.Assert(clan["autoJoin"]).Equal(payload["autoJoin"])
 			clanMetadata := clan["metadata"].(map[string]interface{})
 			metadata := payload["metadata"].(util.JSON)
 			for k, v := range clanMetadata {
-				g.Assert(fmt.Sprintf("%v", v)).Equal(fmt.Sprintf("%v", metadata[k]))
+				g.Assert(str(v)).Equal(str(metadata[k]))
 			}
 		})
 
@@ -589,14 +593,59 @@ func TestClanHandler(t *testing.T) {
 			g.Assert(rClan["gameID"]).Equal(hooks[0].GameID)
 			g.Assert(rClan["publicID"]).Equal(publicID)
 			g.Assert(rClan["name"]).Equal(payload["name"])
-			g.Assert(fmt.Sprintf("%v", rClan["membershipCount"])).Equal("1")
+			g.Assert(str(rClan["membershipCount"])).Equal("1")
 			g.Assert(rClan["allowApplication"]).Equal(payload["allowApplication"])
 			g.Assert(rClan["autoJoin"]).Equal(payload["autoJoin"])
 			clanMetadata := rClan["metadata"].(map[string]interface{})
 			metadata = payload["metadata"].(util.JSON)
 			for k, v := range clanMetadata {
-				g.Assert(fmt.Sprintf("%v", v)).Equal(fmt.Sprintf("%v", metadata[k]))
+				g.Assert(str(v)).Equal(str(metadata[k]))
 			}
+		})
+
+		g.It("Should call leave clan hook", func() {
+			hooks, err := models.GetHooksForRoutes(testDb, []string{
+				"http://localhost:52525/clanleave",
+			}, models.ClanLeaveHook)
+			g.Assert(err == nil).IsTrue()
+			responses := startRouteHandler([]string{"/clanleave"}, 52525)
+
+			_, clan, _, players, _, err := models.GetClanWithMemberships(testDb, 1, 0, 0, 0, hooks[0].GameID, "", true)
+			AssertNotError(g, err)
+
+			gameID := clan.GameID
+			publicID := clan.PublicID
+
+			payload := util.JSON{}
+			route := GetGameRoute(gameID, fmt.Sprintf("/clans/%s/leave", publicID))
+			a := GetDefaultTestApp()
+			res := PostJSON(a, route, t, payload)
+
+			g.Assert(res.Raw().StatusCode).Equal(http.StatusOK)
+			var result util.JSON
+			json.Unmarshal([]byte(res.Body().Raw()), &result)
+			g.Assert(result["success"]).IsTrue()
+
+			a.Dispatcher.Wait()
+
+			g.Assert(len(*responses)).Equal(1)
+
+			rClan := (*responses)[0]
+			g.Assert(rClan["gameID"]).Equal(hooks[0].GameID)
+
+			clanDetails := rClan["clan"].(map[string]interface{})
+			g.Assert(clanDetails["publicID"]).Equal(clan.PublicID)
+			g.Assert(clanDetails["name"]).Equal(clan.Name)
+			g.Assert(str(clanDetails["membershipCount"])).Equal("1")
+			g.Assert(clanDetails["allowApplication"]).Equal(clan.AllowApplication)
+			g.Assert(clanDetails["autoJoin"]).Equal(clan.AutoJoin)
+
+			newOwner := players[0]
+			ownerDetails := rClan["newOwner"].(map[string]interface{})
+			g.Assert(ownerDetails["publicID"]).Equal(newOwner.PublicID)
+			g.Assert(ownerDetails["name"]).Equal(newOwner.Name)
+			g.Assert(str(ownerDetails["membershipCount"])).Equal("0")
+			g.Assert(str(ownerDetails["ownershipCount"])).Equal("1")
 		})
 	})
 }

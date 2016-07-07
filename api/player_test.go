@@ -258,6 +258,8 @@ func TestPlayerHandler(t *testing.T) {
 			g.Assert(player["gameID"]).Equal(gameID)
 			g.Assert(player["publicID"]).Equal(payload["publicID"])
 			g.Assert(player["name"]).Equal(payload["name"])
+			g.Assert(str(player["membershipCount"])).Equal("0")
+			g.Assert(str(player["ownershipCount"])).Equal("0")
 			playerMetadata := player["metadata"].(map[string]interface{})
 			metadata := payload["metadata"].(util.JSON)
 			for k, v := range playerMetadata {
@@ -299,6 +301,8 @@ func TestPlayerHandler(t *testing.T) {
 			g.Assert(playerPayload["gameID"]).Equal(gameID)
 			g.Assert(playerPayload["publicID"]).Equal(payload["publicID"])
 			g.Assert(playerPayload["name"]).Equal(payload["name"])
+			g.Assert(str(playerPayload["membershipCount"])).Equal("0")
+			g.Assert(str(playerPayload["ownershipCount"])).Equal("0")
 			playerMetadata := playerPayload["metadata"].(map[string]interface{})
 			metadata := payload["metadata"].(util.JSON)
 			for k, v := range playerMetadata {
