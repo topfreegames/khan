@@ -380,9 +380,10 @@ func GetClanDetails(db DB, gameID, publicID string, maxClansPerPlayer int) (util
 		//Otherwise return empty array of object
 		result["roster"] = []util.JSON{}
 		result["memberships"] = util.JSON{
-			"pending": []util.JSON{},
-			"banned":  []util.JSON{},
-			"denied":  []util.JSON{},
+			"pendingApplications": []util.JSON{},
+			"pendingInvites":      []util.JSON{},
+			"banned":              []util.JSON{},
+			"denied":              []util.JSON{},
 		}
 	}
 
