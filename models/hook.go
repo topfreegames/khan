@@ -24,6 +24,12 @@ const (
 
 	//PlayerUpdatedHook happens when a player is updated
 	PlayerUpdatedHook
+
+	//ClanCreatedHook happens when a clan is created
+	ClanCreatedHook
+
+	//ClanUpdatedHook happens when a clan is updated
+	ClanUpdatedHook
 )
 
 // Hook identifies a webhook for a given event

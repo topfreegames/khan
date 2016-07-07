@@ -122,22 +122,32 @@ var ClanFactory = configureFactory(factory.NewFactory(
 ))
 
 // CreatePlayerFactory is responsible for creating a test player instance with the associated game
-func CreatePlayerFactory(db DB, gameID string) (*Game, *Player, error) {
-	if gameID == "" {
-		gameID = uuid.NewV4().String()
-	}
-	game := GameFactory.MustCreateWithOption(util.JSON{
-		"PublicID": gameID,
-	}).(*Game)
-	err := db.Insert(game)
-	if err != nil {
-		return nil, nil, err
+func CreatePlayerFactory(db DB, gameID string, skipCreateGame ...bool) (*Game, *Player, error) {
+	var game *Game
+
+	if skipCreateGame == nil || len(skipCreateGame) != 1 || !skipCreateGame[0] {
+		if gameID == "" {
+			gameID = uuid.NewV4().String()
+		}
+		game = GameFactory.MustCreateWithOption(util.JSON{
+			"PublicID": gameID,
+		}).(*Game)
+		err := db.Insert(game)
+		if err != nil {
+			return nil, nil, err
+		}
+	} else {
+		var err error
+		game, err = GetGameByPublicID(db, gameID)
+		if err != nil {
+			return nil, nil, err
+		}
 	}
 
 	player := PlayerFactory.MustCreateWithOption(util.JSON{
 		"GameID": gameID,
 	}).(*Player)
-	err = db.Insert(player)
+	err := db.Insert(player)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -153,28 +163,36 @@ var MembershipFactory = factory.NewFactory(
 
 // GetClanWithMemberships returns a clan filled with the number of memberships specified
 func GetClanWithMemberships(
-	db DB, approvedMemberships, deniedMemberships, bannedMemberships, pendingMemberships int, gameID string, clanPublicID string,
-) (*Game, *Clan, *Player, []*Player, []*Membership, error) {
-	if gameID == "" {
-		gameID = uuid.NewV4().String()
+	db DB, approvedMemberships, deniedMemberships, bannedMemberships, pendingMemberships int, gameID string, clanPublicID string, skipCreateGame ...bool) (*Game, *Clan, *Player, []*Player, []*Membership, error) {
+	var game *Game
+
+	if skipCreateGame == nil || len(skipCreateGame) != 1 || !skipCreateGame[0] {
+		if gameID == "" {
+			gameID = uuid.NewV4().String()
+		}
+		game = GameFactory.MustCreateWithOption(util.JSON{
+			"PublicID": gameID,
+		}).(*Game)
+		err := db.Insert(game)
+		if err != nil {
+			return nil, nil, nil, nil, nil, err
+		}
+	} else {
+		var err error
+		game, err = GetGameByPublicID(db, gameID)
+		if err != nil {
+			return nil, nil, nil, nil, nil, err
+		}
 	}
 	if clanPublicID == "" {
 		clanPublicID = uuid.NewV4().String()
-	}
-
-	game := GameFactory.MustCreateWithOption(util.JSON{
-		"PublicID": gameID,
-	}).(*Game)
-	err := db.Insert(game)
-	if err != nil {
-		return nil, nil, nil, nil, nil, err
 	}
 
 	owner := PlayerFactory.MustCreateWithOption(util.JSON{
 		"GameID":         gameID,
 		"OwnershipCount": 1,
 	}).(*Player)
-	err = db.Insert(owner)
+	err := db.Insert(owner)
 	if err != nil {
 		return nil, nil, nil, nil, nil, err
 	}

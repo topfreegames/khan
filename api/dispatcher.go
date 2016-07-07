@@ -181,7 +181,6 @@ func (w *Worker) interpolateURL(url string, payload map[string]interface{}) (str
 
 		return 0, nil
 	})
-	fmt.Println("interpolated", s)
 	return s, nil
 }
 
