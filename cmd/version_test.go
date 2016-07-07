@@ -38,6 +38,7 @@ func TestVersionCommand(t *testing.T) {
 	g.Describe("Version Cmd", func() {
 		g.It("Should get version", func() {
 			version, err := runVersion()
+			fmt.Println(version, err)
 			g.Assert(err == nil).IsTrue()
 			g.Assert(version).Equal(fmt.Sprintf("Khan v%s\n", api.VERSION))
 		})
