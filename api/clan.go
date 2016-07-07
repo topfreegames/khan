@@ -8,6 +8,7 @@
 package api
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/kataras/iris"
@@ -161,6 +162,34 @@ func LeaveClanHandler(app *App) func(c *iris.Context) {
 			}
 			return
 		}
+
+		clan, err := models.GetClanByPublicID(db, gameID, publicID)
+		if err != nil {
+			FailWith(500, (&models.ModelNotFoundError{"Clan", publicID}).Error(), c)
+			return
+		}
+		newOwner, err := models.GetPlayerByID(db, clan.OwnerID)
+		if err != nil {
+			FailWith(500, fmt.Sprintf("Could not find new owner for clan %s.", clan.Name), c)
+			return
+		}
+
+		newOwnerJSON := newOwner.Serialize()
+		delete(newOwnerJSON, "gameID")
+
+		result := util.JSON{
+			"gameID": gameID,
+			"clan": util.JSON{
+				"publicID":         clan.PublicID,
+				"name":             clan.Name,
+				"membershipCount":  clan.MembershipCount,
+				"metadata":         clan.Metadata,
+				"allowApplication": clan.AllowApplication,
+				"autoJoin":         clan.AutoJoin,
+			},
+			"newOwner": newOwner.Serialize(),
+		}
+		app.DispatchHooks(gameID, models.ClanLeaveHook, result)
 
 		SucceedWith(util.JSON{}, c)
 	}

@@ -60,7 +60,7 @@ func CreatePlayerHandler(app *App) func(c *iris.Context) {
 			"metadata": player.Metadata,
 		}
 
-		app.DispatchHooks(gameID, models.PlayerCreatedHook, result)
+		app.DispatchHooks(gameID, models.PlayerCreatedHook, player.Serialize())
 
 		SucceedWith(result, c)
 	}
@@ -80,7 +80,7 @@ func UpdatePlayerHandler(app *App) func(c *iris.Context) {
 
 		db := GetCtxDB(c)
 
-		_, err := models.UpdatePlayer(
+		player, err := models.UpdatePlayer(
 			db,
 			gameID,
 			playerPublicID,
@@ -93,14 +93,7 @@ func UpdatePlayerHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
-		result := util.JSON{
-			"success":  true,
-			"gameID":   gameID,
-			"publicID": playerPublicID,
-			"name":     payload.Name,
-			"metadata": payload.Metadata,
-		}
-		app.DispatchHooks(gameID, models.PlayerUpdatedHook, result)
+		app.DispatchHooks(gameID, models.PlayerUpdatedHook, player.Serialize())
 
 		SucceedWith(util.JSON{}, c)
 	}

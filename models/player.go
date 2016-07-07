@@ -42,6 +42,18 @@ func (p *Player) PreUpdate(s gorp.SqlExecutor) error {
 	return nil
 }
 
+//Serialize the player information to JSON
+func (p *Player) Serialize() util.JSON {
+	return util.JSON{
+		"gameID":          p.GameID,
+		"publicID":        p.PublicID,
+		"name":            p.Name,
+		"metadata":        p.Metadata,
+		"membershipCount": p.MembershipCount,
+		"ownershipCount":  p.OwnershipCount,
+	}
+}
+
 // IncrementPlayerMembershipCount increments the player membership count
 func IncrementPlayerMembershipCount(db DB, id, by int) error {
 	query := `
