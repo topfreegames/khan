@@ -25,6 +25,37 @@ Let's say we want to keep track of all the clans that are created in our game. W
 
 We could then use this information to store this clan in our Database, to integrate with a chat channel, to provision some third-party system for clans, etc.
 
+## URL Format and Flexibility
+
+When registering a new URL, Khan allows you to specify the URL as a Template.
+
+Let's assume you need to use the clan public ID in your URL to store a newly created clan at `http://my-system.com:3030/clans/some-clan/`. Instead of some-clan, we need to use the clan's public ID.
+
+This is very easy to do with Khan. You can interpolate any of the keys in the payload using `{{key}}`. Bear in mind that only two types of keys can be used:
+
+* top-level keys - if you use a key that's in the first level of depth in the payload, you are good with any type of key;
+* dot separated keys - this type of key will only work if all the keys in the path are objects (except the last one).
+
+Let's try with the payload for the player created event:
+
+```
+    {
+        "success": true,
+        "gameID":  "some-game",
+        "publicID": "playerPublicID",
+        "name": "Player Name",
+        "metadata": {
+            "score": 1200,
+            "league": {
+                ranking: "diamond",
+                position: 30
+            }
+        }
+    }
+```
+
+Now imagine we want the player to be included in the league he belongs to. We could use an URL like `http://my-server.com:3030/players/{{publicID}}/leagues/{{metadata.league.ranking}}/`. This would be translated by Khan to `http://my-server.com:3030/players/playerPublicID/leagues/diamond/`.
+
 ## Event Types
 
 So what types of events can you create Web Hooks for?

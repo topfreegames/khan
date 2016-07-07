@@ -10,18 +10,22 @@ package api
 import (
 	"encoding/json"
 	"fmt"
+	"io"
+	"strings"
 	"time"
 
 	"github.com/topfreegames/khan/util"
 	"github.com/uber-go/zap"
 	"github.com/valyala/fasthttp"
+	"github.com/valyala/fasttemplate"
 )
 
 //Dispatch represents an event hook to be sent to all available dispatchers
 type Dispatch struct {
-	gameID    string
-	eventType int
-	payload   []byte
+	gameID      string
+	eventType   int
+	payload     util.JSON
+	payloadJSON []byte
 }
 
 //Dispatcher is responsible for sending web hooks to workers
@@ -76,8 +80,18 @@ func (d *Dispatcher) Start() {
 }
 
 //Wait blocks until all jobs are done
-func (d *Dispatcher) Wait() {
+func (d *Dispatcher) Wait(timeout ...int) {
+	actualTimeout := 0
+	if timeout != nil && len(timeout) == 1 {
+		actualTimeout = timeout[0]
+	}
+
+	start := time.Now()
+	timeoutDuration := time.Duration(actualTimeout) * time.Millisecond
 	for d.Jobs > 0 {
+		if actualTimeout > 0 && time.Now().Sub(start) > timeoutDuration {
+			break
+		}
 		time.Sleep(time.Millisecond)
 	}
 }
@@ -94,7 +108,7 @@ func (d *Dispatcher) finishJob() {
 func (d *Dispatcher) DispatchHook(gameID string, eventType int, payload util.JSON) {
 	payloadJSON, _ := json.Marshal(payload)
 	defer d.startJob()
-	work := Dispatch{gameID: gameID, eventType: eventType, payload: payloadJSON}
+	work := Dispatch{gameID: gameID, eventType: eventType, payload: payload, payloadJSON: payloadJSON}
 	// Push the work onto the queue.
 	d.workQueue <- work
 }
@@ -131,12 +145,44 @@ func (w *Worker) Start() {
 					fmt.Sprintf("worker%d: Received work request for game\n", w.ID),
 					zap.String("GameID", work.gameID),
 					zap.Int("EventType", work.eventType),
-					zap.String("Payload", string(work.payload)),
+					zap.String("Payload", string(work.payloadJSON)),
 				)
 				w.handleJob(work)
 			}
 		}
 	}()
+}
+
+func (w *Worker) interpolateURL(url string, payload map[string]interface{}) (string, error) {
+	t, err := fasttemplate.NewTemplate(url, "{{", "}}")
+	if err != nil {
+		return url, err
+	}
+	s := t.ExecuteFuncString(func(w io.Writer, tag string) (int, error) {
+		pieces := strings.Split(tag, ".")
+		var item interface{}
+		item = payload
+
+		if len(pieces) > 1 {
+			for _, piece := range pieces {
+				switch item.(type) {
+				case map[string]interface{}:
+					item = item.(map[string]interface{})[piece]
+				default:
+					return 0, nil
+				}
+			}
+			return w.Write([]byte(fmt.Sprintf("%v", item)))
+		}
+
+		if val, ok := payload[tag]; ok {
+			return w.Write([]byte(fmt.Sprintf("%v", val)))
+		}
+
+		return 0, nil
+	})
+	fmt.Println("interpolated", s)
+	return s, nil
 }
 
 // DispatchHook dispatches web hooks for a specific game and event type
@@ -159,17 +205,26 @@ func (w *Worker) DispatchHook(d Dispatch) error {
 			Name: fmt.Sprintf("khan-%s", VERSION),
 		}
 
+		url, err := w.interpolateURL(hook.URL, d.payload)
+		if err != nil {
+			w.App.addError()
+			w.App.Logger.Error(fmt.Sprintf("Could not interpolate webhook %s: %s", hook.URL, err.Error()))
+			continue
+		}
+
 		req := fasthttp.AcquireRequest()
 		req.Header.SetMethod("POST")
-		req.SetRequestURI(hook.URL)
-		req.AppendBody(d.payload)
+		req.SetRequestURI(url)
+		req.AppendBody(d.payloadJSON)
 		resp := fasthttp.AcquireResponse()
-		err := client.DoTimeout(req, resp, timeout)
+
+		err = client.DoTimeout(req, resp, timeout)
 		if err != nil {
 			w.App.addError()
 			w.App.Logger.Error(fmt.Sprintf("Could not request webhook %s: %s", hook.URL, err.Error()))
 			continue
 		}
+
 		if resp.StatusCode() > 399 {
 			w.App.addError()
 			w.App.Logger.Error(
