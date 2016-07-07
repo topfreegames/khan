@@ -139,6 +139,32 @@ func UpdateClanHandler(app *App) func(c *iris.Context) {
 	}
 }
 
+func dispatchClanOwnershipChangeHook(app *App, db models.DB, hookType int, gameID, publicID string) error {
+	clan, newOwner, err := models.GetClanAndOwnerByPublicID(db, gameID, publicID)
+	if err != nil {
+		return err
+	}
+
+	newOwnerJSON := newOwner.Serialize()
+	delete(newOwnerJSON, "gameID")
+
+	result := util.JSON{
+		"gameID": gameID,
+		"clan": util.JSON{
+			"publicID":         clan.PublicID,
+			"name":             clan.Name,
+			"membershipCount":  clan.MembershipCount,
+			"metadata":         clan.Metadata,
+			"allowApplication": clan.AllowApplication,
+			"autoJoin":         clan.AutoJoin,
+		},
+		"newOwner": newOwner.Serialize(),
+	}
+	app.DispatchHooks(gameID, hookType, result)
+
+	return nil
+}
+
 // LeaveClanHandler is the handler responsible for changing the clan ownership when the owner leaves it
 func LeaveClanHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
@@ -162,28 +188,10 @@ func LeaveClanHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
-		clan, newOwner, err := models.GetClanAndOwnerByPublicID(db, gameID, publicID)
+		err = dispatchClanOwnershipChangeHook(app, db, models.ClanLeaveHook, gameID, publicID)
 		if err != nil {
-			FailWith(500, (&models.ModelNotFoundError{"Clan", publicID}).Error(), c)
-			return
+			FailWith(500, err.Error(), c)
 		}
-
-		newOwnerJSON := newOwner.Serialize()
-		delete(newOwnerJSON, "gameID")
-
-		result := util.JSON{
-			"gameID": gameID,
-			"clan": util.JSON{
-				"publicID":         clan.PublicID,
-				"name":             clan.Name,
-				"membershipCount":  clan.MembershipCount,
-				"metadata":         clan.Metadata,
-				"allowApplication": clan.AllowApplication,
-				"autoJoin":         clan.AutoJoin,
-			},
-			"newOwner": newOwner.Serialize(),
-		}
-		app.DispatchHooks(gameID, models.ClanLeaveHook, result)
 
 		SucceedWith(util.JSON{}, c)
 	}
@@ -221,6 +229,11 @@ func TransferOwnershipHandler(app *App) func(c *iris.Context) {
 		if err != nil {
 			FailWith(500, err.Error(), c)
 			return
+		}
+
+		err = dispatchClanOwnershipChangeHook(app, db, models.ClanTransferOwnershipHook, gameID, publicID)
+		if err != nil {
+			FailWith(500, err.Error(), c)
 		}
 
 		SucceedWith(util.JSON{}, c)

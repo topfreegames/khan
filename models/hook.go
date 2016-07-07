@@ -33,6 +33,9 @@ const (
 
 	//ClanLeaveHook happens when a clan owner rage quits
 	ClanLeaveHook
+
+	//ClanTransferOwnershipHook happens when a clan owner transfers ownership to another player
+	ClanTransferOwnershipHook
 )
 
 // Hook identifies a webhook for a given event

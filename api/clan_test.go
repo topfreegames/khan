@@ -647,5 +647,53 @@ func TestClanHandler(t *testing.T) {
 			g.Assert(str(ownerDetails["membershipCount"])).Equal("0")
 			g.Assert(str(ownerDetails["ownershipCount"])).Equal("1")
 		})
+
+		g.It("Should call transfer ownership hook", func() {
+			hooks, err := models.GetHooksForRoutes(testDb, []string{
+				"http://localhost:52525/clantransfer",
+			}, models.ClanTransferOwnershipHook)
+			g.Assert(err == nil).IsTrue()
+			responses := startRouteHandler([]string{"/clantransfer"}, 52525)
+
+			_, clan, _, players, _, err := models.GetClanWithMemberships(testDb, 1, 0, 0, 0, hooks[0].GameID, "", true)
+			AssertNotError(g, err)
+
+			gameID := clan.GameID
+			publicID := clan.PublicID
+
+			payload := util.JSON{
+				"playerPublicID": players[0].PublicID,
+			}
+			route := GetGameRoute(gameID, fmt.Sprintf("/clans/%s/transfer-ownership", publicID))
+			a := GetDefaultTestApp()
+			res := PostJSON(a, route, t, payload)
+
+			g.Assert(res.Raw().StatusCode).Equal(http.StatusOK)
+			var result util.JSON
+			json.Unmarshal([]byte(res.Body().Raw()), &result)
+			g.Assert(result["success"]).IsTrue()
+
+			a.Dispatcher.Wait()
+
+			g.Assert(len(*responses)).Equal(1)
+
+			rClan := (*responses)[0]
+			g.Assert(rClan["gameID"]).Equal(hooks[0].GameID)
+
+			clanDetails := rClan["clan"].(map[string]interface{})
+			g.Assert(clanDetails["publicID"]).Equal(clan.PublicID)
+			g.Assert(clanDetails["name"]).Equal(clan.Name)
+			g.Assert(str(clanDetails["membershipCount"])).Equal("1")
+			g.Assert(clanDetails["allowApplication"]).Equal(clan.AllowApplication)
+			g.Assert(clanDetails["autoJoin"]).Equal(clan.AutoJoin)
+
+			newOwner := players[0]
+			ownerDetails := rClan["newOwner"].(map[string]interface{})
+			g.Assert(ownerDetails["publicID"]).Equal(newOwner.PublicID)
+			g.Assert(ownerDetails["name"]).Equal(newOwner.Name)
+			g.Assert(str(ownerDetails["membershipCount"])).Equal("0")
+			g.Assert(str(ownerDetails["ownershipCount"])).Equal("1")
+		})
+
 	})
 }
