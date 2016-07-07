@@ -60,7 +60,9 @@ Now imagine we want the player to be included in the league he belongs to. We co
 
 So what types of events can you create Web Hooks for?
 
-### Game Updated
+### Game Hooks
+
+#### Game Updated
 
 Event Type: `0`
 
@@ -89,7 +91,9 @@ Payload:
                                                     // member of.
     }
 
-### Player Created
+### Player Hooks
+
+#### Player Created
 
 Event Type: `1`
 
@@ -105,7 +109,7 @@ Payload:
         "metadata": [JSON],                         // JSON Object containing player metadata
     }
 
-### Player Updated
+#### Player Updated
 
 Event Type: `2`
 
@@ -119,4 +123,45 @@ Payload:
                                                     // future operations.
         "name": [string],                           // Player Name
         "metadata": [JSON],                         // JSON Object containing player metadata
+    }
+
+
+### Clan Hooks
+
+#### Clan Created
+
+Event Type: `3`
+
+Payload:
+
+    {
+        "success": true,
+        "gameID":  [string],                        // Game ID
+        "publicID": [string],                       // Created Clan PublicID. This id should
+                                                    // be used when referring to the clan in
+                                                    // future operations.
+        "name": [string],                           // Clan Name
+        "metadata": [JSON],                         // JSON Object containing clan's metadata
+        "allowApplication": [bool]                  // Indicates whether this clan acceps applications
+        "autoJoin": [bool]                          // Indicates whether this clan automatically
+                                                    // accepts applications
+    }
+
+#### Clan Updated
+
+Event Type: `4`
+
+Payload:
+
+    {
+        "success": true,
+        "gameID":  [string],                        // Game ID
+        "publicID": [string],                       // Updated Clan PublicID. This id should
+                                                    // be used when referring to the clan in
+                                                    // future operations.
+        "name": [string],                           // Clan Name
+        "metadata": [JSON],                         // JSON Object containing clan's metadata
+        "allowApplication": [bool]                  // Indicates whether this clan acceps applications
+        "autoJoin": [bool]                          // Indicates whether this clan automatically
+                                                    // accepts applications
     }

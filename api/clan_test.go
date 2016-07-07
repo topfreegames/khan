@@ -17,6 +17,7 @@ import (
 
 	"github.com/Pallinder/go-randomdata"
 	. "github.com/franela/goblin"
+	"github.com/satori/go.uuid"
 	"github.com/topfreegames/khan/models"
 	"github.com/topfreegames/khan/util"
 )
@@ -497,6 +498,104 @@ func TestClanHandler(t *testing.T) {
 				g.Assert(int(clan["membershipCount"].(float64))).Equal(expectedClan.MembershipCount)
 				g.Assert(clan["autoJoin"]).Equal(expectedClan.AutoJoin)
 				g.Assert(clan["allowApplication"]).Equal(expectedClan.AllowApplication)
+			}
+		})
+	})
+
+	g.Describe("Clan Hooks", func() {
+		g.It("Should call create clan hook", func() {
+			hooks, err := models.GetHooksForRoutes(testDb, []string{
+				"http://localhost:52525/clancreated",
+			}, models.ClanCreatedHook)
+			g.Assert(err == nil).IsTrue()
+			responses := startRouteHandler([]string{"/clancreated"}, 52525)
+
+			_, player, err := models.CreatePlayerFactory(testDb, hooks[0].GameID, true)
+			AssertNotError(g, err)
+
+			clanPublicID := uuid.NewV4().String()
+			payload := util.JSON{
+				"publicID":         clanPublicID,
+				"name":             randomdata.FullName(randomdata.RandomGender),
+				"ownerPublicID":    player.PublicID,
+				"metadata":         util.JSON{"x": 1},
+				"allowApplication": true,
+				"autoJoin":         true,
+			}
+			a := GetDefaultTestApp()
+			res := PostJSON(a, GetGameRoute(player.GameID, "/clans"), t, payload)
+
+			g.Assert(res.Raw().StatusCode).Equal(http.StatusOK)
+			var result util.JSON
+			json.Unmarshal([]byte(res.Body().Raw()), &result)
+			g.Assert(result["success"]).IsTrue()
+			g.Assert(result["publicID"]).Equal(clanPublicID)
+
+			a.Dispatcher.Wait()
+
+			g.Assert(len(*responses)).Equal(1)
+
+			clan := (*responses)[0]
+			g.Assert(clan["gameID"]).Equal(player.GameID)
+			g.Assert(clan["publicID"]).Equal(payload["publicID"])
+			g.Assert(clan["name"]).Equal(payload["name"])
+			g.Assert(fmt.Sprintf("%v", clan["membershipCount"])).Equal("1")
+			g.Assert(clan["allowApplication"]).Equal(payload["allowApplication"])
+			g.Assert(clan["autoJoin"]).Equal(payload["autoJoin"])
+			clanMetadata := clan["metadata"].(map[string]interface{})
+			metadata := payload["metadata"].(util.JSON)
+			for k, v := range clanMetadata {
+				g.Assert(fmt.Sprintf("%v", v)).Equal(fmt.Sprintf("%v", metadata[k]))
+			}
+		})
+
+		g.It("Should call update clan hook", func() {
+			hooks, err := models.GetHooksForRoutes(testDb, []string{
+				"http://localhost:52525/clanupdated",
+			}, models.ClanUpdatedHook)
+			g.Assert(err == nil).IsTrue()
+			responses := startRouteHandler([]string{"/clanupdated"}, 52525)
+
+			_, clan, owner, _, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 0, hooks[0].GameID, "", true)
+			AssertNotError(g, err)
+
+			gameID := clan.GameID
+			publicID := clan.PublicID
+			clanName := randomdata.FullName(randomdata.RandomGender)
+			ownerPublicID := owner.PublicID
+			metadata := util.JSON{"new": "metadata"}
+
+			payload := util.JSON{
+				"name":             clanName,
+				"ownerPublicID":    ownerPublicID,
+				"metadata":         metadata,
+				"allowApplication": clan.AllowApplication,
+				"autoJoin":         clan.AutoJoin,
+			}
+			route := GetGameRoute(gameID, fmt.Sprintf("/clans/%s", publicID))
+			a := GetDefaultTestApp()
+			res := PutJSON(a, route, t, payload)
+
+			g.Assert(res.Raw().StatusCode).Equal(http.StatusOK)
+			var result util.JSON
+			json.Unmarshal([]byte(res.Body().Raw()), &result)
+			g.Assert(result["success"]).IsTrue()
+
+			a.Dispatcher.Wait()
+
+			g.Assert(len(*responses)).Equal(1)
+
+			rClan := (*responses)[0]
+			g.Assert(rClan["gameID"]).Equal(hooks[0].GameID)
+			g.Assert(rClan["publicID"]).Equal(publicID)
+			g.Assert(rClan["name"]).Equal(payload["name"])
+			g.Assert(fmt.Sprintf("%v", rClan["membershipCount"])).Equal("1")
+			g.Assert(rClan["allowApplication"]).Equal(payload["allowApplication"])
+			g.Assert(rClan["autoJoin"]).Equal(payload["autoJoin"])
+			clanMetadata := rClan["metadata"].(map[string]interface{})
+			metadata = payload["metadata"].(util.JSON)
+			for k, v := range clanMetadata {
+				g.Assert(fmt.Sprintf("%v", v)).Equal(fmt.Sprintf("%v", metadata[k]))
 			}
 		})
 	})

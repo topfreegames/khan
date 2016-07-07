@@ -75,6 +75,18 @@ func CreateClanHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
+		result := util.JSON{
+			"gameID":           gameID,
+			"publicID":         clan.PublicID,
+			"name":             clan.Name,
+			"membershipCount":  clan.MembershipCount,
+			"ownerPublicID":    payload.OwnerPublicID,
+			"metadata":         clan.Metadata,
+			"allowApplication": clan.AllowApplication,
+			"autoJoin":         clan.AutoJoin,
+		}
+		app.DispatchHooks(gameID, models.ClanCreatedHook, result)
+
 		SucceedWith(util.JSON{
 			"publicID": clan.PublicID,
 		}, c)
@@ -95,7 +107,7 @@ func UpdateClanHandler(app *App) func(c *iris.Context) {
 
 		db := GetCtxDB(c)
 
-		_, err := models.UpdateClan(
+		clan, err := models.UpdateClan(
 			db,
 			gameID,
 			publicID,
@@ -110,6 +122,18 @@ func UpdateClanHandler(app *App) func(c *iris.Context) {
 			FailWith(500, err.Error(), c)
 			return
 		}
+
+		result := util.JSON{
+			"gameID":           gameID,
+			"publicID":         clan.PublicID,
+			"name":             clan.Name,
+			"ownerPublicID":    payload.OwnerPublicID,
+			"membershipCount":  clan.MembershipCount,
+			"metadata":         clan.Metadata,
+			"allowApplication": payload.AllowApplication,
+			"autoJoin":         payload.AutoJoin,
+		}
+		app.DispatchHooks(gameID, models.ClanUpdatedHook, result)
 
 		SucceedWith(util.JSON{}, c)
 	}
