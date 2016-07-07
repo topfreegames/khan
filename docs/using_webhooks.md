@@ -217,3 +217,40 @@ Payload:
             "ownershipCount":  [int]                    // Number of clans this player is an owner of
         }
     }
+
+### Membership Hooks
+
+#### Membership Created
+
+This event occurs if a player applied to a clan (applicant == requestor) or if a player is invited to a clan (applicant != requestor).
+
+Event Type: `7`
+
+Payload:
+
+    {
+        "gameID": [string],
+        "clan": {
+            "publicID": [string],                       // Clan that player is applying to
+            "name": [string],                           // Clan Name
+            "metadata": [JSON],                         // JSON Object containing clan's metadata
+            "allowApplication": [bool]                  // Indicates whether this clan acceps applications
+            "autoJoin": [bool],                         // Indicates whether this clan automatically
+                                                        // accepts applications
+            "membershipCount":  [int],                  // Number of members in clan
+        },
+        "applicant": {                                  // Player that is applying/being invited to the clan
+            "publicID": [string],                       // Applicant PublicID.
+            "name": [string],                           // Player Name
+            "metadata": [JSON],                         // JSON Object containing player metadata
+            "membershipCount": [int],                   // Number of clans this player is a member of
+            "ownershipCount":  [int]                    // Number of clans this player is an owner of
+        },
+        "requestor": {                                  // Player that requested this membership application/invite
+            "publicID": [string],                       // Requestor PublicID.
+            "name": [string],                           // Player Name
+            "metadata": [JSON],                         // JSON Object containing player metadata
+            "membershipCount": [int],                   // Number of clans this player is a member of
+            "ownershipCount":  [int]                    // Number of clans this player is an owner of
+        }
+    }

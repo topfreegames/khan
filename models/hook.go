@@ -36,6 +36,9 @@ const (
 
 	//ClanTransferOwnershipHook happens when a clan owner transfers ownership to another player
 	ClanTransferOwnershipHook
+
+	//MembershipApplicationCreatedHook happens when a new application to a clan is created
+	MembershipApplicationCreatedHook
 )
 
 // Hook identifies a webhook for a given event

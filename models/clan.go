@@ -53,6 +53,19 @@ func (c *Clan) PreUpdate(s gorp.SqlExecutor) error {
 	return nil
 }
 
+// Serialize returns a JSON with clan details
+func (c *Clan) Serialize() util.JSON {
+	return util.JSON{
+		"gameID":           c.GameID,
+		"publicID":         c.PublicID,
+		"name":             c.Name,
+		"membershipCount":  c.MembershipCount,
+		"metadata":         c.Metadata,
+		"allowApplication": c.AllowApplication,
+		"autoJoin":         c.AutoJoin,
+	}
+}
+
 // IncrementClanMembershipCount increments the clan membership count
 func IncrementClanMembershipCount(db DB, id, by int) error {
 	query := `
