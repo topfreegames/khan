@@ -124,7 +124,79 @@ func TestApp(t *testing.T) {
 			g.Assert(err == nil).IsTrue()
 			app.Dispatcher.Wait()
 			g.Assert(len(*responses)).Equal(2)
+			app.Errors.Tick()
 			g.Assert(app.Errors.Rate()).Equal(0.0)
+		})
+
+		g.It("should dispatch hooks using template", func() {
+			hooks, err := models.GetHooksForRoutes(testDb, []string{
+				"http://localhost:52525/created/{{publicID}}",
+			}, models.GameUpdatedHook)
+			g.Assert(err == nil).IsTrue()
+			responses := startRouteHandler([]string{fmt.Sprintf("/created/%s", hooks[0].GameID)}, 52525)
+
+			app := GetDefaultTestApp()
+			time.Sleep(time.Second)
+
+			resultingPayload := util.JSON{
+				"success":  true,
+				"publicID": hooks[0].GameID,
+			}
+			err = app.DispatchHooks(hooks[0].GameID, models.GameUpdatedHook, resultingPayload)
+			g.Assert(err == nil).IsTrue()
+			app.Dispatcher.Wait()
+			g.Assert(len(*responses)).Equal(1)
+			app.Errors.Tick()
+			g.Assert(app.Errors.Rate()).Equal(0.0)
+		})
+
+		g.It("should dispatch hooks using second-level key", func() {
+			hooks, err := models.GetHooksForRoutes(testDb, []string{
+				"http://localhost:52525/{{playerPosition}}/créated/{{player.publicID}}",
+			}, models.GameUpdatedHook)
+			g.Assert(err == nil).IsTrue()
+			responses := startRouteHandler([]string{fmt.Sprintf("/1/créated/%s", hooks[0].GameID)}, 52525)
+
+			app := GetDefaultTestApp()
+			time.Sleep(time.Second)
+
+			resultingPayload := map[string]interface{}{
+				"success":        true,
+				"playerPosition": 1,
+				"player": map[string]interface{}{
+					"publicID": hooks[0].GameID,
+				},
+			}
+			err = app.DispatchHooks(hooks[0].GameID, models.GameUpdatedHook, resultingPayload)
+			g.Assert(err == nil).IsTrue()
+			app.Dispatcher.Wait()
+			g.Assert(len(*responses)).Equal(1)
+			app.Errors.Tick()
+			g.Assert(app.Errors.Rate()).Equal(0.0)
+		})
+
+		g.It("should fail dispatch hooks if invalid key", func() {
+			hooks, err := models.GetHooksForRoutes(testDb, []string{
+				"http://localhost:52525/invalid/{{player.publicID.invalid}}",
+			}, models.GameUpdatedHook)
+			g.Assert(err == nil).IsTrue()
+			responses := startRouteHandler([]string{fmt.Sprintf("/invalid/%s", hooks[0].GameID)}, 52525)
+
+			app := GetDefaultTestApp()
+			time.Sleep(time.Second)
+
+			resultingPayload := map[string]interface{}{
+				"success": true,
+				"player": map[string]interface{}{
+					"publicID": hooks[0].GameID,
+				},
+			}
+			err = app.DispatchHooks(hooks[0].GameID, models.GameUpdatedHook, resultingPayload)
+			g.Assert(err == nil).IsTrue()
+			app.Dispatcher.Wait(50)
+			g.Assert(len(*responses)).Equal(0)
+			app.Errors.Tick()
+			g.Assert(app.Errors.Rate() > 0.0).IsTrue()
 		})
 	})
 }

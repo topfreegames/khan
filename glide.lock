@@ -1,5 +1,5 @@
-hash: d08b42e0337161afc3404002696df541db065ff00f099046c4265fc73340d483
-updated: 2016-06-27T16:37:31.043413528-03:00
+hash: 5f96e02dc1e848508fd572b93e7c5583e479b75924647baf0da8aec848c3ad8a
+updated: 2016-07-07T14:41:12.904432592-03:00
 imports:
 - name: github.com/ajg/form
   version: e7b99d6ea9c58e7bb6b2c1059b9ba748cdff22b0
@@ -40,8 +40,6 @@ imports:
   - fasthttpexpect
 - name: github.com/go-sql-driver/mysql
   version: 3654d25ec346ee8ce71a68431025458d52a38ac0
-- name: github.com/golang/glog
-  version: 23def4e6c14b4da8ac2ed8007337bc5eb5007998
 - name: github.com/google/go-querystring
   version: 9235644dd9e52eeae6fa48efd539fdc351a0af53
   subpackages:
@@ -77,8 +75,8 @@ imports:
   version: dcded4e4004a1b5ff7602e8733bc71360a6e14b5
   subpackages:
   - iris
-  - middleware/logger
   - config
+  - middleware/logger
   - context
   - errors
   - logger
@@ -187,6 +185,8 @@ imports:
   subpackages:
   - fasthttpadaptor
   - fasthttputil
+- name: github.com/valyala/fasttemplate
+  version: 3b874956e03f1636d171bda64b130f9135f42cff
 - name: github.com/yudai/golcs
   version: d1c525dea8ce39ea9a783d33cf08932305373f2c
 - name: github.com/ziutek/mymysql
