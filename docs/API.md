@@ -736,14 +736,11 @@ Khan API
             "name": [string],
             "metadata": [JSON],
             "membershipCount": [int],
-            "publicID": [string]
+            "publicID": [string],
+            "allowApplication": [bool],
+            "autoJoin": [bool]
           },
-          {
-            "name": [string],
-            "metadata": [JSON],
-            "membershipCount": [int],
-            "publicID": [string]
-          }
+          // ...
         ]
       }
       ```
@@ -773,13 +770,10 @@ Khan API
             "metadata": [JSON],
             "membershipCount": [int],
             "publicID": [string],
+            "allowApplication": [bool],
+            "autoJoin": [bool]
           },
-          {
-            "name": [string],
-            "metadata": [JSON],
-            "membershipCount": [int],
-            "publicID": [string]
-          }
+          // ...
         ]
       }
       ```
