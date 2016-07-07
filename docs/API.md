@@ -739,8 +739,7 @@ Khan API
             "publicID": [string],
             "allowApplication": [bool],
             "autoJoin": [bool]
-          },
-          // ...
+          }
         ]
       }
       ```
@@ -772,8 +771,7 @@ Khan API
             "publicID": [string],
             "allowApplication": [bool],
             "autoJoin": [bool]
-          },
-          // ...
+          }
         ]
       }
       ```
