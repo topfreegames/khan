@@ -222,7 +222,7 @@ Payload:
 
 #### Membership Created
 
-This event occurs if a player applied to a clan (applicant == requestor) or if a player is invited to a clan (applicant != requestor).
+This event occurs if a player applies to a clan (applicant == requestor) or if a player is invited to a clan (applicant != requestor).
 
 Event Type: `7`
 
