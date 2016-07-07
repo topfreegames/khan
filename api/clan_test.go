@@ -371,6 +371,8 @@ func TestClanHandler(t *testing.T) {
 				}
 				g.Assert(clan["publicID"]).Equal(expectedClans[index].PublicID)
 				g.Assert(clan["ID"]).Equal(nil)
+				g.Assert(clan["autoJoin"]).Equal(expectedClans[index].AutoJoin)
+				g.Assert(clan["allowApplication"]).Equal(expectedClans[index].AllowApplication)
 			}
 		})
 
@@ -493,6 +495,8 @@ func TestClanHandler(t *testing.T) {
 				clan := clans[index].(map[string]interface{}) // Can't be util.JSON
 				g.Assert(clan["name"]).Equal(expectedClan.Name)
 				g.Assert(int(clan["membershipCount"].(float64))).Equal(expectedClan.MembershipCount)
+				g.Assert(clan["autoJoin"]).Equal(expectedClan.AutoJoin)
+				g.Assert(clan["allowApplication"]).Equal(expectedClan.AllowApplication)
 			}
 		})
 	})
