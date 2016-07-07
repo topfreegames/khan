@@ -8,6 +8,8 @@
 package api
 
 import (
+	"fmt"
+
 	"github.com/kataras/iris"
 	"github.com/topfreegames/khan/models"
 	"github.com/topfreegames/khan/util"
@@ -53,7 +55,7 @@ func ApplyForMembershipHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
-		_, err = models.CreateMembership(
+		membership, err := models.CreateMembership(
 			db,
 			game,
 			gameID,
@@ -67,6 +69,31 @@ func ApplyForMembershipHandler(app *App) func(c *iris.Context) {
 			FailWith(500, err.Error(), c)
 			return
 		}
+
+		clan, err := models.GetClanByID(db, membership.ClanID)
+		if err != nil {
+			FailWith(500, err.Error(), c)
+		}
+
+		player, err := models.GetPlayerByID(db, membership.PlayerID)
+		if err != nil {
+			FailWith(500, err.Error(), c)
+		}
+
+		clanJSON := clan.Serialize()
+		delete(clanJSON, "gameID")
+
+		playerJSON := player.Serialize()
+		delete(playerJSON, "gameID")
+
+		result := util.JSON{
+			"gameID":    gameID,
+			"clan":      clanJSON,
+			"applicant": playerJSON,
+			"requestor": playerJSON,
+		}
+		fmt.Println("Application", result)
+		app.DispatchHooks(gameID, models.MembershipApplicationCreatedHook, result)
 
 		SucceedWith(util.JSON{}, c)
 	}
@@ -108,7 +135,6 @@ func InviteForMembershipHandler(app *App) func(c *iris.Context) {
 		}
 
 		SucceedWith(util.JSON{}, c)
-
 	}
 }
 

@@ -148,17 +148,13 @@ func dispatchClanOwnershipChangeHook(app *App, db models.DB, hookType int, gameI
 	newOwnerJSON := newOwner.Serialize()
 	delete(newOwnerJSON, "gameID")
 
+	clanJSON := clan.Serialize()
+	delete(clanJSON, "gameID")
+
 	result := util.JSON{
-		"gameID": gameID,
-		"clan": util.JSON{
-			"publicID":         clan.PublicID,
-			"name":             clan.Name,
-			"membershipCount":  clan.MembershipCount,
-			"metadata":         clan.Metadata,
-			"allowApplication": clan.AllowApplication,
-			"autoJoin":         clan.AutoJoin,
-		},
-		"newOwner": newOwner.Serialize(),
+		"gameID":   gameID,
+		"clan":     clanJSON,
+		"newOwner": newOwnerJSON,
 	}
 	app.DispatchHooks(gameID, hookType, result)
 
