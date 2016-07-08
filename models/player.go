@@ -199,6 +199,7 @@ func GetPlayerDetails(db DB, gameID, publicID string) (util.JSON, error) {
 		// Player has memberships
 		result["memberships"] = make([]util.JSON, len(details))
 
+		owned := []util.JSON{}
 		approved := []util.JSON{}
 		denied := []util.JSON{}
 		banned := []util.JSON{}
@@ -222,6 +223,7 @@ func GetPlayerDetails(db DB, gameID, publicID string) (util.JSON, error) {
 
 			if owner {
 				result["memberships"].([]util.JSON)[index]["level"] = "owner"
+				result["memberships"].([]util.JSON)[index]["approved"] = true
 			}
 
 			clanDetail := clanFromDetail(detail)
@@ -233,7 +235,7 @@ func GetPlayerDetails(db DB, gameID, publicID string) (util.JSON, error) {
 					pendingInvites = append(pendingInvites, clanDetail)
 				}
 			case owner:
-				approved = append(approved, clanDetail)
+				owned = append(owned, clanDetail)
 			case ma:
 				approved = append(approved, clanDetail)
 			case md:
@@ -244,6 +246,7 @@ func GetPlayerDetails(db DB, gameID, publicID string) (util.JSON, error) {
 		}
 
 		result["clans"] = util.JSON{
+			"owned":               owned,
 			"approved":            approved,
 			"denied":              denied,
 			"banned":              banned,
@@ -254,6 +257,7 @@ func GetPlayerDetails(db DB, gameID, publicID string) (util.JSON, error) {
 	} else {
 		result["memberships"] = []util.JSON{}
 		result["clans"] = util.JSON{
+			"owned":    []util.JSON{},
 			"approved": []util.JSON{},
 			"denied":   []util.JSON{},
 			"banned":   []util.JSON{},
