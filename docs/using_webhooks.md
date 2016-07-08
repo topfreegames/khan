@@ -289,3 +289,38 @@ Payload:
             "ownershipCount":  [int]                    // Number of clans this player is an owner of
         }
     }
+
+#### Membership Denied
+
+This event occurs if an application or an invite to a clan gets denied. If the membership that was denied was an invitation into the clan, the requestor and the player will be the same Player. Otherwise, the requestor will be whomever denied the membership.
+
+Event Type: `9`
+
+Payload:
+
+    {
+        "gameID": [string],
+        "clan": {
+            "publicID": [string],                       // Clan that membership was denied
+            "name": [string],                           // Clan Name
+            "metadata": [JSON],                         // JSON Object containing clan's metadata
+            "allowApplication": [bool]                  // Indicates whether this clan acceps applications
+            "autoJoin": [bool],                         // Indicates whether this clan automatically
+                                                        // accepts applications
+            "membershipCount":  [int],                  // Number of members in clan
+        },
+        "player": {                                     // Player that was denied into the clan
+            "publicID": [string],                       // Player PublicID
+            "name": [string],                           // Player Name
+            "metadata": [JSON],                         // JSON Object containing player metadata
+            "membershipCount": [int],                   // Number of clans this player is a member of
+            "ownershipCount":  [int]                    // Number of clans this player is an owner of
+        },
+        "requestor": {                                  // Player that denied the membership
+            "publicID": [string],                       // Requestor PublicID
+            "name": [string],                           // Player Name
+            "metadata": [JSON],                         // JSON Object containing player metadata
+            "membershipCount": [int],                   // Number of clans this player is a member of
+            "ownershipCount":  [int]                    // Number of clans this player is an owner of
+        }
+    }
