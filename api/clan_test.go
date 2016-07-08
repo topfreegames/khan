@@ -602,7 +602,7 @@ func TestClanHandler(t *testing.T) {
 		g.It("Should call leave clan hook", func() {
 			hooks, err := models.GetHooksForRoutes(testDb, []string{
 				"http://localhost:52525/clanleave",
-			}, models.ClanLeaveHook)
+			}, models.ClanLeftHook)
 			g.Assert(err == nil).IsTrue()
 			responses := startRouteHandler([]string{"/clanleave"}, 52525)
 
@@ -647,7 +647,7 @@ func TestClanHandler(t *testing.T) {
 		g.It("Should call transfer ownership hook", func() {
 			hooks, err := models.GetHooksForRoutes(testDb, []string{
 				"http://localhost:52525/clantransfer",
-			}, models.ClanTransferOwnershipHook)
+			}, models.ClanOwnershipTransferredHook)
 			g.Assert(err == nil).IsTrue()
 			responses := startRouteHandler([]string{"/clantransfer"}, 52525)
 

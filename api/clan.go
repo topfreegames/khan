@@ -184,7 +184,7 @@ func LeaveClanHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
-		err = dispatchClanOwnershipChangeHook(app, db, models.ClanLeaveHook, gameID, publicID)
+		err = dispatchClanOwnershipChangeHook(app, db, models.ClanLeftHook, gameID, publicID)
 		if err != nil {
 			FailWith(500, err.Error(), c)
 		}
@@ -227,7 +227,7 @@ func TransferOwnershipHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
-		err = dispatchClanOwnershipChangeHook(app, db, models.ClanTransferOwnershipHook, gameID, publicID)
+		err = dispatchClanOwnershipChangeHook(app, db, models.ClanOwnershipTransferredHook, gameID, publicID)
 		if err != nil {
 			FailWith(500, err.Error(), c)
 		}

@@ -31,11 +31,11 @@ const (
 	//ClanUpdatedHook happens when a clan is updated
 	ClanUpdatedHook = 4
 
-	//ClanLeaveHook happens when a clan owner rage quits
-	ClanLeaveHook = 5
+	//ClanLeftHook happens when a clan owner rage quits
+	ClanLeftHook = 5
 
-	//ClanTransferOwnershipHook happens when a clan owner transfers ownership to another player
-	ClanTransferOwnershipHook = 6
+	//ClanOwnershipTransferredHook happens when a clan owner transfers ownership to another player
+	ClanOwnershipTransferredHook = 6
 
 	//MembershipApplicationCreatedHook happens when a new application or invite to a clan is created
 	MembershipApplicationCreatedHook = 7
@@ -51,6 +51,9 @@ const (
 
 	//MembershipDemotedHook happens when a clan member is demoted
 	MembershipDemotedHook = 11
+
+	//MembershipLeftHook happens when a player leaves a clan
+	MembershipLeftHook = 12
 )
 
 // Hook identifies a webhook for a given event
