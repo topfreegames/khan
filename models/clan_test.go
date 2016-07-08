@@ -285,6 +285,8 @@ func TestClanModel(t *testing.T) {
 				clan := clans[0]
 
 				metadata := map[string]interface{}{"x": 1}
+				allowApplication := !clan.AllowApplication
+				autoJoin := !clan.AutoJoin
 				updClan, err := UpdateClan(
 					testDb,
 					clan.GameID,
@@ -292,8 +294,8 @@ func TestClanModel(t *testing.T) {
 					clan.Name,
 					player.PublicID,
 					metadata,
-					clan.AllowApplication,
-					clan.AutoJoin,
+					allowApplication,
+					autoJoin,
 				)
 
 				g.Assert(err == nil).IsTrue()
@@ -301,8 +303,9 @@ func TestClanModel(t *testing.T) {
 
 				dbClan, err := GetClanByPublicID(testDb, clan.GameID, clan.PublicID)
 				g.Assert(err == nil).IsTrue()
-
 				g.Assert(dbClan.Metadata).Equal(metadata)
+				g.Assert(dbClan.AllowApplication).Equal(allowApplication)
+				g.Assert(dbClan.AutoJoin).Equal(autoJoin)
 			})
 
 			g.It("Should not update a Clan if player is not the clan owner with UpdateClan", func() {
