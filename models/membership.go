@@ -454,6 +454,9 @@ func recreateDeletedMembershipHelper(db DB, membership *Membership, level string
 	membership.Level = level
 	membership.Approved = approved
 	membership.Denied = false
+	membership.Banned = false
+	membership.DeletedAt = 0
+	membership.DeletedBy = 0
 
 	_, err := db.Update(membership)
 	if err != nil {

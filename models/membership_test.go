@@ -244,6 +244,58 @@ func TestMembershipModel(t *testing.T) {
 				g.Assert(dbClan.MembershipCount).Equal(1)
 			})
 
+			g.It("If requestor is the player and clan.AllowApplication = true and previous deleted membership", func() {
+				game, clan, _, players, _, err := GetClanWithMemberships(testDb, 1, 0, 0, 0, "", "")
+				g.Assert(err == nil).IsTrue()
+
+				clan.AllowApplication = true
+				_, err = testDb.Update(clan)
+				g.Assert(err == nil).IsTrue()
+
+				err = DeleteMembership(
+					testDb,
+					game,
+					clan.GameID,
+					players[0].PublicID,
+					clan.PublicID,
+					players[0].PublicID,
+				)
+
+				g.Assert(err == nil).IsTrue()
+
+				membership, err := CreateMembership(
+					testDb,
+					game,
+					players[0].GameID,
+					"Member",
+					players[0].PublicID,
+					clan.PublicID,
+					players[0].PublicID,
+				)
+
+				g.Assert(err == nil).IsTrue()
+				g.Assert(membership.ID != 0).IsTrue()
+
+				dbMembership, err := GetMembershipByID(testDb, membership.ID)
+				g.Assert(err == nil).IsTrue()
+
+				g.Assert(dbMembership.GameID).Equal(membership.GameID)
+				g.Assert(dbMembership.PlayerID).Equal(players[0].ID)
+				g.Assert(dbMembership.RequestorID).Equal(players[0].ID)
+				g.Assert(dbMembership.ClanID).Equal(clan.ID)
+				g.Assert(dbMembership.Approved).Equal(false)
+				g.Assert(dbMembership.Denied).Equal(false)
+				g.Assert(dbMembership.DeletedAt).Equal(int64(0))
+
+				dbPlayer, err := GetPlayerByID(testDb, players[0].ID)
+				g.Assert(err == nil).IsTrue()
+				g.Assert(dbPlayer.MembershipCount).Equal(0)
+
+				dbClan, err := GetClanByID(testDb, clan.ID)
+				g.Assert(err == nil).IsTrue()
+				g.Assert(dbClan.MembershipCount).Equal(1)
+			})
+
 			g.It("And approve it automatically if requestor is the player, clan.AllowApplication=true and clan.AutoJoin=true", func() {
 				game, clan, _, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				g.Assert(err == nil).IsTrue()
