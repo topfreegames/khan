@@ -14,7 +14,6 @@ import (
 
 	"github.com/satori/go.uuid"
 	"github.com/topfreegames/khan/models"
-	"github.com/topfreegames/khan/util"
 )
 
 var playerResult *http.Response
@@ -55,7 +54,7 @@ func BenchmarkUpdatePlayer(b *testing.B) {
 
 	var players []*models.Player
 	for i := 0; i < b.N; i++ {
-		player := models.PlayerFactory.MustCreateWithOption(util.JSON{
+		player := models.PlayerFactory.MustCreateWithOption(map[string]interface{}{
 			"GameID": game.PublicID,
 		}).(*models.Player)
 		err = db.Insert(player)

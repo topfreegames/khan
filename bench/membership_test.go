@@ -13,7 +13,6 @@ import (
 	"testing"
 
 	"github.com/topfreegames/khan/models"
-	"github.com/topfreegames/khan/util"
 )
 
 var membershipResult *http.Response
@@ -42,7 +41,7 @@ func BenchmarkApplyForMembership(b *testing.B) {
 
 	var players []*models.Player
 	for i := 0; i < b.N; i++ {
-		player := models.PlayerFactory.MustCreateWithOption(util.JSON{
+		player := models.PlayerFactory.MustCreateWithOption(map[string]interface{}{
 			"GameID": game.PublicID,
 		}).(*models.Player)
 		err = db.Insert(player)
@@ -55,7 +54,7 @@ func BenchmarkApplyForMembership(b *testing.B) {
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		payload := util.JSON{
+		payload := map[string]interface{}{
 			"level":          "Member",
 			"playerPublicID": players[i].PublicID,
 		}
@@ -86,7 +85,7 @@ func BenchmarkInviteForMembership(b *testing.B) {
 
 	var players []*models.Player
 	for i := 0; i < b.N; i++ {
-		player := models.PlayerFactory.MustCreateWithOption(util.JSON{
+		player := models.PlayerFactory.MustCreateWithOption(map[string]interface{}{
 			"GameID": game.PublicID,
 		}).(*models.Player)
 		err = db.Insert(player)
@@ -99,7 +98,7 @@ func BenchmarkInviteForMembership(b *testing.B) {
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		payload := util.JSON{
+		payload := map[string]interface{}{
 			"level":             "Member",
 			"playerPublicID":    players[i].PublicID,
 			"requestorPublicID": owner.PublicID,
@@ -140,7 +139,7 @@ func BenchmarkApproveMembershipApplication(b *testing.B) {
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		payload := util.JSON{
+		payload := map[string]interface{}{
 			"playerPublicID":    players[i].PublicID,
 			"requestorPublicID": owner.PublicID,
 		}
@@ -172,7 +171,7 @@ func BenchmarkApproveMembershipInvitation(b *testing.B) {
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		payload := util.JSON{
+		payload := map[string]interface{}{
 			"playerPublicID":    players[i].PublicID,
 			"requestorPublicID": players[i].PublicID,
 		}
@@ -199,7 +198,7 @@ func BenchmarkDeleteMembership(b *testing.B) {
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		payload := util.JSON{
+		payload := map[string]interface{}{
 			"playerPublicID":    players[i].PublicID,
 			"requestorPublicID": owner.PublicID,
 		}
@@ -226,7 +225,7 @@ func BenchmarkPromoteMembership(b *testing.B) {
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		payload := util.JSON{
+		payload := map[string]interface{}{
 			"playerPublicID":    players[i].PublicID,
 			"requestorPublicID": owner.PublicID,
 		}
@@ -261,7 +260,7 @@ func BenchmarkDemoteMembership(b *testing.B) {
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		payload := util.JSON{
+		payload := map[string]interface{}{
 			"playerPublicID":    players[i].PublicID,
 			"requestorPublicID": owner.PublicID,
 		}

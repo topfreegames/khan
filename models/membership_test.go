@@ -15,7 +15,6 @@ import (
 	"github.com/Pallinder/go-randomdata"
 	. "github.com/franela/goblin"
 	"github.com/satori/go.uuid"
-	"github.com/topfreegames/khan/util"
 )
 
 func TestMembershipModel(t *testing.T) {
@@ -83,7 +82,7 @@ func TestMembershipModel(t *testing.T) {
 				_, player, err := CreatePlayerFactory(testDb, "")
 				g.Assert(err == nil).IsTrue()
 
-				clan := ClanFactory.MustCreateWithOption(util.JSON{
+				clan := ClanFactory.MustCreateWithOption(map[string]interface{}{
 					"GameID":  player.GameID,
 					"OwnerID": player.ID,
 				}).(*Clan)
@@ -207,7 +206,7 @@ func TestMembershipModel(t *testing.T) {
 				_, err = testDb.Update(clan)
 				g.Assert(err == nil).IsTrue()
 
-				player := PlayerFactory.MustCreateWithOption(util.JSON{
+				player := PlayerFactory.MustCreateWithOption(map[string]interface{}{
 					"GameID": clan.GameID,
 				}).(*Player)
 				err = testDb.Insert(player)
@@ -254,7 +253,7 @@ func TestMembershipModel(t *testing.T) {
 				_, err = testDb.Update(clan)
 				g.Assert(err == nil).IsTrue()
 
-				player := PlayerFactory.MustCreateWithOption(util.JSON{
+				player := PlayerFactory.MustCreateWithOption(map[string]interface{}{
 					"GameID": clan.GameID,
 				}).(*Player)
 				err = testDb.Insert(player)
@@ -296,7 +295,7 @@ func TestMembershipModel(t *testing.T) {
 				game, clan, owner, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				g.Assert(err == nil).IsTrue()
 
-				player := PlayerFactory.MustCreateWithOption(util.JSON{
+				player := PlayerFactory.MustCreateWithOption(map[string]interface{}{
 					"GameID": clan.GameID,
 				}).(*Player)
 				err = testDb.Insert(player)
@@ -330,7 +329,7 @@ func TestMembershipModel(t *testing.T) {
 				game, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				g.Assert(err == nil).IsTrue()
 
-				player := PlayerFactory.MustCreateWithOption(util.JSON{
+				player := PlayerFactory.MustCreateWithOption(map[string]interface{}{
 					"GameID": clan.GameID,
 				}).(*Player)
 				err = testDb.Insert(player)
@@ -415,7 +414,7 @@ func TestMembershipModel(t *testing.T) {
 				game, clan, owner, _, _, err := GetClanReachedMaxMemberships(testDb)
 				g.Assert(err == nil).IsTrue()
 
-				player := PlayerFactory.MustCreateWithOption(util.JSON{
+				player := PlayerFactory.MustCreateWithOption(map[string]interface{}{
 					"GameID": clan.GameID,
 				}).(*Player)
 				err = testDb.Insert(player)
@@ -439,11 +438,11 @@ func TestMembershipModel(t *testing.T) {
 				game, _, owner, players, _, err := GetClanWithMemberships(testDb, 1, 0, 0, 0, "", "")
 				g.Assert(err == nil).IsTrue()
 
-				anotherClan := ClanFactory.MustCreateWithOption(util.JSON{
+				anotherClan := ClanFactory.MustCreateWithOption(map[string]interface{}{
 					"GameID":   owner.GameID,
 					"PublicID": uuid.NewV4().String(),
 					"OwnerID":  owner.ID,
-					"Metadata": util.JSON{"x": "a"},
+					"Metadata": map[string]interface{}{"x": "a"},
 				}).(*Clan)
 				err = testDb.Insert(anotherClan)
 				g.Assert(err == nil).IsTrue()
@@ -466,11 +465,11 @@ func TestMembershipModel(t *testing.T) {
 				game, _, owner, players, _, err := GetClanWithMemberships(testDb, 1, 0, 0, 0, "", "")
 				g.Assert(err == nil).IsTrue()
 
-				anotherClan := ClanFactory.MustCreateWithOption(util.JSON{
+				anotherClan := ClanFactory.MustCreateWithOption(map[string]interface{}{
 					"GameID":   players[0].GameID,
 					"PublicID": uuid.NewV4().String(),
 					"OwnerID":  players[0].ID,
-					"Metadata": util.JSON{"x": "a"},
+					"Metadata": map[string]interface{}{"x": "a"},
 				}).(*Clan)
 				err = testDb.Insert(anotherClan)
 				g.Assert(err == nil).IsTrue()
@@ -493,7 +492,7 @@ func TestMembershipModel(t *testing.T) {
 				game, clan, _, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				g.Assert(err == nil).IsTrue()
 
-				player := PlayerFactory.MustCreateWithOption(util.JSON{
+				player := PlayerFactory.MustCreateWithOption(map[string]interface{}{
 					"GameID": clan.GameID,
 				}).(*Player)
 				err = testDb.Insert(player)
@@ -558,7 +557,7 @@ func TestMembershipModel(t *testing.T) {
 				game, clan, _, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
 				g.Assert(err == nil).IsTrue()
 
-				player := PlayerFactory.MustCreateWithOption(util.JSON{
+				player := PlayerFactory.MustCreateWithOption(map[string]interface{}{
 					"GameID": clan.GameID,
 				}).(*Player)
 				err = testDb.Insert(player)
@@ -583,7 +582,7 @@ func TestMembershipModel(t *testing.T) {
 				game, clan, _, players, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				g.Assert(err == nil).IsTrue()
 
-				player := PlayerFactory.MustCreateWithOption(util.JSON{
+				player := PlayerFactory.MustCreateWithOption(map[string]interface{}{
 					"GameID": clan.GameID,
 				}).(*Player)
 				err = testDb.Insert(player)
@@ -682,21 +681,21 @@ func TestMembershipModel(t *testing.T) {
 				game, _, owner, players, _, err := GetClanWithMemberships(testDb, 1, 0, 0, 0, "", "")
 				g.Assert(err == nil).IsTrue()
 
-				anotherClan := ClanFactory.MustCreateWithOption(util.JSON{
+				anotherClan := ClanFactory.MustCreateWithOption(map[string]interface{}{
 					"GameID":   owner.GameID,
 					"PublicID": uuid.NewV4().String(),
 					"OwnerID":  owner.ID,
-					"Metadata": util.JSON{"x": "a"},
+					"Metadata": map[string]interface{}{"x": "a"},
 				}).(*Clan)
 				err = testDb.Insert(anotherClan)
 				g.Assert(err == nil).IsTrue()
 
-				membership := MembershipFactory.MustCreateWithOption(util.JSON{
+				membership := MembershipFactory.MustCreateWithOption(map[string]interface{}{
 					"GameID":      game.PublicID,
 					"PlayerID":    players[0].ID,
 					"ClanID":      anotherClan.ID,
 					"RequestorID": owner.ID,
-					"Metadata":    util.JSON{"x": "a"},
+					"Metadata":    map[string]interface{}{"x": "a"},
 					"Level":       "Member",
 				}).(*Membership)
 				err = testDb.Insert(membership)
@@ -742,7 +741,7 @@ func TestMembershipModel(t *testing.T) {
 				game, clan, _, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				g.Assert(err == nil).IsTrue()
 
-				player := PlayerFactory.MustCreateWithOption(util.JSON{
+				player := PlayerFactory.MustCreateWithOption(map[string]interface{}{
 					"GameID": clan.GameID,
 				}).(*Player)
 				err = testDb.Insert(player)
@@ -985,21 +984,21 @@ func TestMembershipModel(t *testing.T) {
 				game, _, owner, players, _, err := GetClanWithMemberships(testDb, 1, 0, 0, 0, "", "")
 				g.Assert(err == nil).IsTrue()
 
-				anotherClan := ClanFactory.MustCreateWithOption(util.JSON{
+				anotherClan := ClanFactory.MustCreateWithOption(map[string]interface{}{
 					"GameID":   owner.GameID,
 					"PublicID": uuid.NewV4().String(),
 					"OwnerID":  owner.ID,
-					"Metadata": util.JSON{"x": "a"},
+					"Metadata": map[string]interface{}{"x": "a"},
 				}).(*Clan)
 				err = testDb.Insert(anotherClan)
 				g.Assert(err == nil).IsTrue()
 
-				membership := MembershipFactory.MustCreateWithOption(util.JSON{
+				membership := MembershipFactory.MustCreateWithOption(map[string]interface{}{
 					"GameID":      game.PublicID,
 					"PlayerID":    players[0].ID,
 					"ClanID":      anotherClan.ID,
 					"RequestorID": players[0].ID,
-					"Metadata":    util.JSON{"x": "a"},
+					"Metadata":    map[string]interface{}{"x": "a"},
 					"Level":       "Member",
 				}).(*Membership)
 				err = testDb.Insert(membership)
@@ -1084,7 +1083,7 @@ func TestMembershipModel(t *testing.T) {
 				_, err = testDb.Update(memberships[0])
 				g.Assert(err == nil).IsTrue()
 
-				requestor := PlayerFactory.MustCreateWithOption(util.JSON{
+				requestor := PlayerFactory.MustCreateWithOption(map[string]interface{}{
 					"GameID": clan.GameID,
 				}).(*Player)
 				err = testDb.Insert(requestor)
@@ -1179,7 +1178,7 @@ func TestMembershipModel(t *testing.T) {
 				game, clan, owner, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
 				g.Assert(err == nil).IsTrue()
 
-				player := PlayerFactory.MustCreateWithOption(util.JSON{
+				player := PlayerFactory.MustCreateWithOption(map[string]interface{}{
 					"GameID": clan.GameID,
 				}).(*Player)
 				err = testDb.Insert(player)
@@ -1474,7 +1473,7 @@ func TestMembershipModel(t *testing.T) {
 				game, clan, owner, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				g.Assert(err == nil).IsTrue()
 
-				player := PlayerFactory.MustCreateWithOption(util.JSON{
+				player := PlayerFactory.MustCreateWithOption(map[string]interface{}{
 					"GameID": clan.GameID,
 				}).(*Player)
 				err = testDb.Insert(player)
@@ -1803,7 +1802,7 @@ func TestMembershipModel(t *testing.T) {
 				game, clan, _, players, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				g.Assert(err == nil).IsTrue()
 
-				requestor := PlayerFactory.MustCreateWithOption(util.JSON{
+				requestor := PlayerFactory.MustCreateWithOption(map[string]interface{}{
 					"GameID": clan.GameID,
 				}).(*Player)
 				err = testDb.Insert(requestor)

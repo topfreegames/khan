@@ -10,8 +10,6 @@ package models
 import (
 	"database/sql"
 	"encoding/json"
-
-	"github.com/topfreegames/khan/util"
 )
 
 type clanDetailsDAO struct {
@@ -19,7 +17,7 @@ type clanDetailsDAO struct {
 	GameID               string
 	ClanPublicID         string
 	ClanName             string
-	ClanMetadata         util.JSON
+	ClanMetadata         map[string]interface{}
 	ClanAllowApplication bool
 	ClanAutoJoin         bool
 	ClanMembershipCount  int
@@ -35,13 +33,13 @@ type clanDetailsDAO struct {
 	// Clan Owner Information
 	OwnerPublicID string
 	OwnerName     string
-	OwnerMetadata util.JSON
+	OwnerMetadata map[string]interface{}
 
 	// Member Information
 	PlayerPublicID   sql.NullString
 	PlayerName       sql.NullString
 	DBPlayerMetadata sql.NullString
-	PlayerMetadata   util.JSON
+	PlayerMetadata   map[string]interface{}
 	MembershipCount  int
 	OwnershipCount   int
 
@@ -50,9 +48,9 @@ type clanDetailsDAO struct {
 	RequestorName     sql.NullString
 }
 
-func (member *clanDetailsDAO) Serialize(includeMembershipLevel bool) util.JSON {
-	result := util.JSON{
-		"player": util.JSON{
+func (member *clanDetailsDAO) Serialize(includeMembershipLevel bool) map[string]interface{} {
+	result := map[string]interface{}{
+		"player": map[string]interface{}{
 			"publicID": nullOrString(member.PlayerPublicID),
 			"name":     nullOrString(member.PlayerName),
 		},
@@ -60,12 +58,12 @@ func (member *clanDetailsDAO) Serialize(includeMembershipLevel bool) util.JSON {
 	if member.DBPlayerMetadata.Valid {
 		json.Unmarshal([]byte(nullOrString(member.DBPlayerMetadata)), &member.PlayerMetadata)
 	} else {
-		member.PlayerMetadata = util.JSON{}
+		member.PlayerMetadata = map[string]interface{}{}
 	}
 	if includeMembershipLevel {
 		result["level"] = nullOrString(member.MembershipLevel)
 	}
-	result["player"].(util.JSON)["metadata"] = member.PlayerMetadata
+	result["player"].(map[string]interface{})["metadata"] = member.PlayerMetadata
 	return result
 }
 
@@ -73,7 +71,7 @@ type playerDetailsDAO struct {
 	// Player Details
 	PlayerID        int
 	PlayerName      string
-	PlayerMetadata  util.JSON
+	PlayerMetadata  map[string]interface{}
 	PlayerPublicID  string
 	PlayerCreatedAt int64
 	PlayerUpdatedAt int64
@@ -91,22 +89,22 @@ type playerDetailsDAO struct {
 	ClanPublicID   sql.NullString
 	ClanName       sql.NullString
 	DBClanMetadata sql.NullString
-	ClanMetadata   util.JSON
+	ClanMetadata   map[string]interface{}
 	ClanOwnerID    sql.NullInt64
 
 	// Membership Requestor Details
 	RequestorName       sql.NullString
 	RequestorPublicID   sql.NullString
 	DBRequestorMetadata sql.NullString
-	RequestorMetadata   util.JSON
+	RequestorMetadata   map[string]interface{}
 
 	// Deleted by Details
 	DeletedByName     sql.NullString
 	DeletedByPublicID sql.NullString
 }
 
-func (p *playerDetailsDAO) Serialize() util.JSON {
-	result := util.JSON{
+func (p *playerDetailsDAO) Serialize() map[string]interface{} {
+	result := map[string]interface{}{
 		"level":     nullOrString(p.MembershipLevel),
 		"approved":  nullOrBool(p.MembershipApproved),
 		"denied":    nullOrBool(p.MembershipDenied),
@@ -114,11 +112,11 @@ func (p *playerDetailsDAO) Serialize() util.JSON {
 		"createdAt": nullOrInt(p.MembershipCreatedAt),
 		"updatedAt": nullOrInt(p.MembershipUpdatedAt),
 		"deletedAt": nullOrInt(p.MembershipDeletedAt),
-		"clan": util.JSON{
+		"clan": map[string]interface{}{
 			"publicID": nullOrString(p.ClanPublicID),
 			"name":     nullOrString(p.ClanName),
 		},
-		"requestor": util.JSON{
+		"requestor": map[string]interface{}{
 			"publicID": nullOrString(p.RequestorPublicID),
 			"name":     nullOrString(p.RequestorName),
 		},
@@ -127,19 +125,19 @@ func (p *playerDetailsDAO) Serialize() util.JSON {
 	if p.DBClanMetadata.Valid {
 		json.Unmarshal([]byte(nullOrString(p.DBClanMetadata)), &p.ClanMetadata)
 	} else {
-		p.ClanMetadata = util.JSON{}
+		p.ClanMetadata = map[string]interface{}{}
 	}
-	result["clan"].(util.JSON)["metadata"] = p.ClanMetadata
+	result["clan"].(map[string]interface{})["metadata"] = p.ClanMetadata
 
 	if p.DBRequestorMetadata.Valid {
 		json.Unmarshal([]byte(nullOrString(p.DBRequestorMetadata)), &p.RequestorMetadata)
 	} else {
-		p.RequestorMetadata = util.JSON{}
+		p.RequestorMetadata = map[string]interface{}{}
 	}
-	result["requestor"].(util.JSON)["metadata"] = p.RequestorMetadata
+	result["requestor"].(map[string]interface{})["metadata"] = p.RequestorMetadata
 
 	if p.DeletedByPublicID.Valid {
-		result["deletedBy"] = util.JSON{
+		result["deletedBy"] = map[string]interface{}{
 			"publicID": nullOrString(p.DeletedByPublicID),
 			"name":     nullOrString(p.DeletedByName),
 		}

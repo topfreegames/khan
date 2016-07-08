@@ -14,7 +14,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/topfreegames/khan/util"
 	"github.com/uber-go/zap"
 	"github.com/valyala/fasthttp"
 	"github.com/valyala/fasttemplate"
@@ -24,7 +23,7 @@ import (
 type Dispatch struct {
 	gameID      string
 	eventType   int
-	payload     util.JSON
+	payload     map[string]interface{}
 	payloadJSON []byte
 }
 
@@ -105,7 +104,7 @@ func (d *Dispatcher) finishJob() {
 }
 
 //DispatchHook dispatches an event hook for eventType to gameID with the specified payload
-func (d *Dispatcher) DispatchHook(gameID string, eventType int, payload util.JSON) {
+func (d *Dispatcher) DispatchHook(gameID string, eventType int, payload map[string]interface{}) {
 	payloadJSON, _ := json.Marshal(payload)
 	defer d.startJob()
 	work := Dispatch{gameID: gameID, eventType: eventType, payload: payload, payloadJSON: payloadJSON}

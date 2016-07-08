@@ -12,8 +12,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/topfreegames/khan/util"
-
 	"gopkg.in/gorp.v1"
 )
 
@@ -26,18 +24,18 @@ func (a ClanByName) Less(i, j int) bool { return a[i].Name < a[j].Name }
 
 // Clan identifies uniquely one clan in a given game
 type Clan struct {
-	ID               int       `db:"id"`
-	GameID           string    `db:"game_id"`
-	PublicID         string    `db:"public_id"`
-	Name             string    `db:"name"`
-	OwnerID          int       `db:"owner_id"`
-	MembershipCount  int       `db:"membership_count"`
-	Metadata         util.JSON `db:"metadata"`
-	AllowApplication bool      `db:"allow_application"`
-	AutoJoin         bool      `db:"auto_join"`
-	CreatedAt        int64     `db:"created_at"`
-	UpdatedAt        int64     `db:"updated_at"`
-	DeletedAt        int64     `db:"deleted_at"`
+	ID               int                    `db:"id"`
+	GameID           string                 `db:"game_id"`
+	PublicID         string                 `db:"public_id"`
+	Name             string                 `db:"name"`
+	OwnerID          int                    `db:"owner_id"`
+	MembershipCount  int                    `db:"membership_count"`
+	Metadata         map[string]interface{} `db:"metadata"`
+	AllowApplication bool                   `db:"allow_application"`
+	AutoJoin         bool                   `db:"auto_join"`
+	CreatedAt        int64                  `db:"created_at"`
+	UpdatedAt        int64                  `db:"updated_at"`
+	DeletedAt        int64                  `db:"deleted_at"`
 }
 
 // PreInsert populates fields before inserting a new clan
@@ -54,8 +52,8 @@ func (c *Clan) PreUpdate(s gorp.SqlExecutor) error {
 }
 
 // Serialize returns a JSON with clan details
-func (c *Clan) Serialize() util.JSON {
-	return util.JSON{
+func (c *Clan) Serialize() map[string]interface{} {
+	return map[string]interface{}{
 		"gameID":           c.GameID,
 		"publicID":         c.PublicID,
 		"name":             c.Name,
@@ -117,7 +115,7 @@ func GetClanByPublicIDAndOwnerPublicID(db DB, gameID, publicID, ownerPublicID st
 }
 
 // CreateClan creates a new clan
-func CreateClan(db DB, gameID, publicID, name, ownerPublicID string, metadata util.JSON, allowApplication, autoJoin bool, maxClansPerPlayer int) (*Clan, error) {
+func CreateClan(db DB, gameID, publicID, name, ownerPublicID string, metadata map[string]interface{}, allowApplication, autoJoin bool, maxClansPerPlayer int) (*Clan, error) {
 	player, err := GetPlayerByPublicID(db, gameID, ownerPublicID)
 	if err != nil {
 		return nil, err
@@ -194,7 +192,7 @@ func LeaveClan(db DB, gameID, publicID string) error {
 }
 
 // TransferClanOwnership allows the clan owner to transfer the clan ownership to the a clan member
-func TransferClanOwnership(db DB, gameID, clanPublicID, playerPublicID string, levels util.JSON, maxLevel int) error {
+func TransferClanOwnership(db DB, gameID, clanPublicID, playerPublicID string, levels map[string]interface{}, maxLevel int) error {
 	clan, err := GetClanByPublicID(db, gameID, clanPublicID)
 	if err != nil {
 		return err
@@ -267,7 +265,7 @@ func TransferClanOwnership(db DB, gameID, clanPublicID, playerPublicID string, l
 }
 
 // UpdateClan updates an existing clan
-func UpdateClan(db DB, gameID, publicID, name, ownerPublicID string, metadata util.JSON, allowApplication, autoJoin bool) (*Clan, error) {
+func UpdateClan(db DB, gameID, publicID, name, ownerPublicID string, metadata map[string]interface{}, allowApplication, autoJoin bool) (*Clan, error) {
 	clan, err := GetClanByPublicIDAndOwnerPublicID(db, gameID, publicID, ownerPublicID)
 
 	if err != nil {
@@ -304,7 +302,7 @@ func GetAllClans(db DB, gameID string) ([]Clan, error) {
 }
 
 // GetClanDetails returns all details for a given clan by its game id and public id
-func GetClanDetails(db DB, gameID, publicID string, maxClansPerPlayer int) (util.JSON, error) {
+func GetClanDetails(db DB, gameID, publicID string, maxClansPerPlayer int) (map[string]interface{}, error) {
 	query := `
 	SELECT
 		c.game_id GameID,
@@ -337,14 +335,14 @@ func GetClanDetails(db DB, gameID, publicID string, maxClansPerPlayer int) (util
 		return nil, &ModelNotFoundError{"Clan", publicID}
 	}
 
-	result := make(util.JSON)
+	result := make(map[string]interface{})
 	result["name"] = details[0].ClanName
 	result["metadata"] = details[0].ClanMetadata
 	result["allowApplication"] = details[0].ClanAllowApplication
 	result["autoJoin"] = details[0].ClanAutoJoin
 	result["membershipCount"] = details[0].ClanMembershipCount
 
-	result["owner"] = util.JSON{
+	result["owner"] = map[string]interface{}{
 		"publicID": details[0].OwnerPublicID,
 		"name":     details[0].OwnerName,
 		"metadata": details[0].OwnerMetadata,
@@ -353,14 +351,14 @@ func GetClanDetails(db DB, gameID, publicID string, maxClansPerPlayer int) (util
 	// First row player public id is not null, meaning we found players!
 	if details[0].PlayerPublicID.Valid {
 
-		result["roster"] = make([]util.JSON, 0)
-		result["memberships"] = util.JSON{
-			"pendingInvites":      []util.JSON{},
-			"pendingApplications": []util.JSON{},
-			"banned":              []util.JSON{},
-			"denied":              []util.JSON{},
+		result["roster"] = make([]map[string]interface{}, 0)
+		result["memberships"] = map[string]interface{}{
+			"pendingInvites":      []map[string]interface{}{},
+			"pendingApplications": []map[string]interface{}{},
+			"banned":              []map[string]interface{}{},
+			"denied":              []map[string]interface{}{},
 		}
-		memberships := result["memberships"].(util.JSON)
+		memberships := result["memberships"].(map[string]interface{})
 
 		for _, member := range details {
 			approved := nullOrBool(member.MembershipApproved)
@@ -373,30 +371,30 @@ func GetClanDetails(db DB, gameID, publicID string, maxClansPerPlayer int) (util
 				memberData := member.Serialize(true)
 				if member.MembershipCount+member.OwnershipCount < maxClansPerPlayer {
 					if member.PlayerPublicID == member.RequestorPublicID {
-						memberships["pendingApplications"] = append(memberships["pendingApplications"].([]util.JSON), memberData)
+						memberships["pendingApplications"] = append(memberships["pendingApplications"].([]map[string]interface{}), memberData)
 					} else {
-						memberships["pendingInvites"] = append(memberships["pendingInvites"].([]util.JSON), memberData)
+						memberships["pendingInvites"] = append(memberships["pendingInvites"].([]map[string]interface{}), memberData)
 					}
 				}
 			case banned:
 				memberData := member.Serialize(false)
-				memberships["banned"] = append(memberships["banned"].([]util.JSON), memberData)
+				memberships["banned"] = append(memberships["banned"].([]map[string]interface{}), memberData)
 			case denied:
 				memberData := member.Serialize(false)
-				memberships["denied"] = append(memberships["denied"].([]util.JSON), memberData)
+				memberships["denied"] = append(memberships["denied"].([]map[string]interface{}), memberData)
 			case approved:
 				memberData := member.Serialize(true)
-				result["roster"] = append(result["roster"].([]util.JSON), memberData)
+				result["roster"] = append(result["roster"].([]map[string]interface{}), memberData)
 			}
 		}
 	} else {
 		//Otherwise return empty array of object
-		result["roster"] = []util.JSON{}
-		result["memberships"] = util.JSON{
-			"pendingApplications": []util.JSON{},
-			"pendingInvites":      []util.JSON{},
-			"banned":              []util.JSON{},
-			"denied":              []util.JSON{},
+		result["roster"] = []map[string]interface{}{}
+		result["memberships"] = map[string]interface{}{
+			"pendingApplications": []map[string]interface{}{},
+			"pendingInvites":      []map[string]interface{}{},
+			"banned":              []map[string]interface{}{},
+			"denied":              []map[string]interface{}{},
 		}
 	}
 
@@ -404,13 +402,13 @@ func GetClanDetails(db DB, gameID, publicID string, maxClansPerPlayer int) (util
 }
 
 // GetClanSummary returns a summary of the clan details for a given clan by its game id and public id
-func GetClanSummary(db DB, gameID, publicID string) (util.JSON, error) {
+func GetClanSummary(db DB, gameID, publicID string) (map[string]interface{}, error) {
 	clan, err := GetClanByPublicID(db, gameID, publicID)
 	if err != nil {
 		return nil, err
 	}
 
-	result := make(util.JSON)
+	result := make(map[string]interface{})
 	result["membershipCount"] = clan.MembershipCount
 	result["publicID"] = clan.PublicID
 	result["metadata"] = clan.Metadata

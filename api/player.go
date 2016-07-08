@@ -12,18 +12,17 @@ import (
 
 	"github.com/kataras/iris"
 	"github.com/topfreegames/khan/models"
-	"github.com/topfreegames/khan/util"
 )
 
 type createPlayerPayload struct {
 	PublicID string
 	Name     string
-	Metadata util.JSON
+	Metadata map[string]interface{}
 }
 
 type updatePlayerPayload struct {
 	Name     string
-	Metadata util.JSON
+	Metadata map[string]interface{}
 }
 
 // CreatePlayerHandler is the handler responsible for creating new players
@@ -52,7 +51,7 @@ func CreatePlayerHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
-		result := util.JSON{
+		result := map[string]interface{}{
 			"success":  true,
 			"gameID":   gameID,
 			"publicID": player.PublicID,
@@ -95,7 +94,7 @@ func UpdatePlayerHandler(app *App) func(c *iris.Context) {
 
 		app.DispatchHooks(gameID, models.PlayerUpdatedHook, player.Serialize())
 
-		SucceedWith(util.JSON{}, c)
+		SucceedWith(map[string]interface{}{}, c)
 	}
 }
 

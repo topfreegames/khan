@@ -10,7 +10,6 @@ package api
 import (
 	"github.com/kataras/iris"
 	"github.com/topfreegames/khan/models"
-	"github.com/topfreegames/khan/util"
 )
 
 type applyForMembershipPayload struct {
@@ -87,7 +86,7 @@ func dispatchMembershipHook(app *App, db models.DB, hookType int, gameID string,
 	requestorJSON := requestor.Serialize()
 	delete(requestorJSON, "gameID")
 
-	result := util.JSON{
+	result := map[string]interface{}{
 		"gameID":    gameID,
 		"clan":      clanJSON,
 		"player":    playerJSON,
@@ -142,7 +141,7 @@ func ApplyForMembershipHandler(app *App) func(c *iris.Context) {
 			FailWith(500, err.Error(), c)
 		}
 
-		SucceedWith(util.JSON{}, c)
+		SucceedWith(map[string]interface{}{}, c)
 	}
 }
 
@@ -190,7 +189,7 @@ func InviteForMembershipHandler(app *App) func(c *iris.Context) {
 			FailWith(500, err.Error(), c)
 		}
 
-		SucceedWith(util.JSON{}, c)
+		SucceedWith(map[string]interface{}{}, c)
 	}
 }
 
@@ -251,7 +250,7 @@ func ApproveOrDenyMembershipApplicationHandler(app *App) func(c *iris.Context) {
 			FailWith(500, err.Error(), c)
 		}
 
-		SucceedWith(util.JSON{}, c)
+		SucceedWith(map[string]interface{}{}, c)
 	}
 }
 
@@ -304,7 +303,7 @@ func ApproveOrDenyMembershipInvitationHandler(app *App) func(c *iris.Context) {
 			FailWith(500, err.Error(), c)
 		}
 
-		SucceedWith(util.JSON{}, c)
+		SucceedWith(map[string]interface{}{}, c)
 	}
 }
 
@@ -358,7 +357,7 @@ func DeleteMembershipHandler(app *App) func(c *iris.Context) {
 			FailWith(500, err.Error(), c)
 		}
 
-		SucceedWith(util.JSON{}, c)
+		SucceedWith(map[string]interface{}{}, c)
 	}
 }
 
@@ -408,7 +407,7 @@ func PromoteOrDemoteMembershipHandler(app *App, action string) func(c *iris.Cont
 			FailWith(500, err.Error(), c)
 		}
 
-		SucceedWith(util.JSON{
+		SucceedWith(map[string]interface{}{
 			"level": membership.Level,
 		}, c)
 	}

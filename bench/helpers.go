@@ -16,7 +16,6 @@ import (
 
 	"github.com/satori/go.uuid"
 	"github.com/topfreegames/khan/models"
-	"github.com/topfreegames/khan/util"
 )
 
 func getRoute(url string) string {
@@ -27,15 +26,15 @@ func get(url string) (*http.Response, error) {
 	return sendTo("GET", url, nil)
 }
 
-func postTo(url string, payload util.JSON) (*http.Response, error) {
+func postTo(url string, payload map[string]interface{}) (*http.Response, error) {
 	return sendTo("POST", url, payload)
 }
 
-func putTo(url string, payload util.JSON) (*http.Response, error) {
+func putTo(url string, payload map[string]interface{}) (*http.Response, error) {
 	return sendTo("PUT", url, payload)
 }
 
-func sendTo(method, url string, payload util.JSON) (*http.Response, error) {
+func sendTo(method, url string, payload map[string]interface{}) (*http.Response, error) {
 	payloadJSON, err := json.Marshal(payload)
 	if err != nil {
 		return nil, err
@@ -66,27 +65,27 @@ func sendTo(method, url string, payload util.JSON) (*http.Response, error) {
 	return resp, nil
 }
 
-func getClanPayload(ownerID, clanPublicID string) util.JSON {
-	return util.JSON{
+func getClanPayload(ownerID, clanPublicID string) map[string]interface{} {
+	return map[string]interface{}{
 		"publicID":         clanPublicID,
 		"name":             clanPublicID,
 		"ownerPublicID":    ownerID,
-		"metadata":         util.JSON{"x": 1},
+		"metadata":         map[string]interface{}{"x": 1},
 		"allowApplication": true,
 		"autoJoin":         true,
 	}
 }
 
-func getPlayerPayload(playerPublicID string) util.JSON {
-	return util.JSON{
+func getPlayerPayload(playerPublicID string) map[string]interface{} {
+	return map[string]interface{}{
 		"publicID": playerPublicID,
 		"name":     playerPublicID,
-		"metadata": util.JSON{"x": 1},
+		"metadata": map[string]interface{}{"x": 1},
 	}
 }
 
 func getGameAndPlayer(db models.DB) (*models.Game, *models.Player, error) {
-	game := models.GameFactory.MustCreateWithOption(util.JSON{
+	game := models.GameFactory.MustCreateWithOption(map[string]interface{}{
 		"PublicID":          uuid.NewV4().String(),
 		"MaxClansPerPlayer": 999999,
 	}).(*models.Game)
@@ -94,7 +93,7 @@ func getGameAndPlayer(db models.DB) (*models.Game, *models.Player, error) {
 	if err != nil {
 		return nil, nil, err
 	}
-	player := models.PlayerFactory.MustCreateWithOption(util.JSON{
+	player := models.PlayerFactory.MustCreateWithOption(map[string]interface{}{
 		"GameID":   game.PublicID,
 		"PublicID": uuid.NewV4().String(),
 	}).(*models.Player)
@@ -120,7 +119,7 @@ func validateResp(res *http.Response, err error) {
 func createClans(db models.DB, game *models.Game, owner *models.Player, numberOfClans int) ([]*models.Clan, error) {
 	var clans []*models.Clan
 	for i := 0; i < numberOfClans; i++ {
-		clan := models.ClanFactory.MustCreateWithOption(util.JSON{
+		clan := models.ClanFactory.MustCreateWithOption(map[string]interface{}{
 			"GameID":   game.PublicID,
 			"PublicID": uuid.NewV4().String(),
 			"OwnerID":  owner.ID,

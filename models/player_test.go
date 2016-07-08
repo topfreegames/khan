@@ -14,7 +14,6 @@ import (
 	"github.com/Pallinder/go-randomdata"
 	. "github.com/franela/goblin"
 	"github.com/satori/go.uuid"
-	"github.com/topfreegames/khan/util"
 )
 
 func TestPlayerModel(t *testing.T) {
@@ -45,7 +44,7 @@ func TestPlayerModel(t *testing.T) {
 
 				time.Sleep(time.Millisecond)
 
-				player.Metadata = util.JSON{"x": 1}
+				player.Metadata = map[string]interface{}{"x": 1}
 				count, err := testDb.Update(player)
 				g.Assert(err == nil).IsTrue()
 				g.Assert(int(count)).Equal(1)
@@ -94,7 +93,7 @@ func TestPlayerModel(t *testing.T) {
 					"create-1",
 					randomdata.FullName(randomdata.RandomGender),
 					"player-name",
-					util.JSON{},
+					map[string]interface{}{},
 				)
 				g.Assert(err == nil).IsTrue()
 				g.Assert(player.ID != 0).IsTrue()
@@ -112,7 +111,7 @@ func TestPlayerModel(t *testing.T) {
 				_, player, err := CreatePlayerFactory(testDb, "")
 				g.Assert(err == nil).IsTrue()
 
-				metadata := util.JSON{"x": 1}
+				metadata := map[string]interface{}{"x": 1}
 				updPlayer, err := UpdatePlayer(
 					testDb,
 					player.GameID,
@@ -138,7 +137,7 @@ func TestPlayerModel(t *testing.T) {
 				gameID := game.PublicID
 				publicID := uuid.NewV4().String()
 
-				metadata := util.JSON{"x": "1"}
+				metadata := map[string]interface{}{"x": "1"}
 				updPlayer, err := UpdatePlayer(
 					testDb,
 					gameID,
@@ -162,7 +161,7 @@ func TestPlayerModel(t *testing.T) {
 					"-1",
 					"qwe",
 					"some player name",
-					util.JSON{},
+					map[string]interface{}{},
 				)
 
 				g.Assert(err == nil).IsFalse()
@@ -191,14 +190,14 @@ func TestPlayerModel(t *testing.T) {
 				g.Assert(playerDetails["updatedAt"]).Equal(player.UpdatedAt)
 
 				//Memberships
-				g.Assert(len(playerDetails["memberships"].([]util.JSON))).Equal(18)
+				g.Assert(len(playerDetails["memberships"].([]map[string]interface{}))).Equal(18)
 
-				clans := playerDetails["clans"].(util.JSON)
-				approved := clans["approved"].([]util.JSON)
-				denied := clans["denied"].([]util.JSON)
-				banned := clans["banned"].([]util.JSON)
-				pendingApplications := clans["pendingApplications"].([]util.JSON)
-				pendingInvites := clans["pendingInvites"].([]util.JSON)
+				clans := playerDetails["clans"].(map[string]interface{})
+				approved := clans["approved"].([]map[string]interface{})
+				denied := clans["denied"].([]map[string]interface{})
+				banned := clans["banned"].([]map[string]interface{})
+				pendingApplications := clans["pendingApplications"].([]map[string]interface{})
+				pendingInvites := clans["pendingInvites"].([]map[string]interface{})
 
 				g.Assert(len(approved)).Equal(5)
 				g.Assert(len(denied)).Equal(2)
@@ -215,11 +214,11 @@ func TestPlayerModel(t *testing.T) {
 				_, err = testDb.Update(game)
 				g.Assert(err == nil).IsTrue()
 
-				ownedClan := ClanFactory.MustCreateWithOption(util.JSON{
+				ownedClan := ClanFactory.MustCreateWithOption(map[string]interface{}{
 					"GameID":          players[0].GameID,
 					"PublicID":        uuid.NewV4().String(),
 					"OwnerID":         players[0].ID,
-					"Metadata":        util.JSON{"x": "a"},
+					"Metadata":        map[string]interface{}{"x": "a"},
 					"MembershipCount": 1,
 				}).(*Clan)
 				err = testDb.Insert(ownedClan)
@@ -241,20 +240,20 @@ func TestPlayerModel(t *testing.T) {
 				g.Assert(playerDetails["updatedAt"]).Equal(players[0].UpdatedAt)
 
 				//Memberships
-				g.Assert(len(playerDetails["memberships"].([]util.JSON))).Equal(2)
-				g.Assert(playerDetails["memberships"].([]util.JSON)[0]["level"]).Equal("Member")
-				g.Assert(playerDetails["memberships"].([]util.JSON)[0]["clan"].(util.JSON)["publicID"]).Equal(clan.PublicID)
-				g.Assert(playerDetails["memberships"].([]util.JSON)[1]["level"]).Equal("owner")
-				g.Assert(playerDetails["memberships"].([]util.JSON)[1]["approved"]).IsTrue()
-				g.Assert(playerDetails["memberships"].([]util.JSON)[1]["clan"].(util.JSON)["publicID"]).Equal(ownedClan.PublicID)
+				g.Assert(len(playerDetails["memberships"].([]map[string]interface{}))).Equal(2)
+				g.Assert(playerDetails["memberships"].([]map[string]interface{})[0]["level"]).Equal("Member")
+				g.Assert(playerDetails["memberships"].([]map[string]interface{})[0]["clan"].(map[string]interface{})["publicID"]).Equal(clan.PublicID)
+				g.Assert(playerDetails["memberships"].([]map[string]interface{})[1]["level"]).Equal("owner")
+				g.Assert(playerDetails["memberships"].([]map[string]interface{})[1]["approved"]).IsTrue()
+				g.Assert(playerDetails["memberships"].([]map[string]interface{})[1]["clan"].(map[string]interface{})["publicID"]).Equal(ownedClan.PublicID)
 
-				clans := playerDetails["clans"].(util.JSON)
-				owned := clans["owned"].([]util.JSON)
-				approved := clans["approved"].([]util.JSON)
-				denied := clans["denied"].([]util.JSON)
-				banned := clans["banned"].([]util.JSON)
-				pendingApplications := clans["pendingApplications"].([]util.JSON)
-				pendingInvites := clans["pendingInvites"].([]util.JSON)
+				clans := playerDetails["clans"].(map[string]interface{})
+				owned := clans["owned"].([]map[string]interface{})
+				approved := clans["approved"].([]map[string]interface{})
+				denied := clans["denied"].([]map[string]interface{})
+				banned := clans["banned"].([]map[string]interface{})
+				pendingApplications := clans["pendingApplications"].([]map[string]interface{})
+				pendingInvites := clans["pendingInvites"].([]map[string]interface{})
 
 				g.Assert(len(owned)).Equal(1)
 				g.Assert(len(approved)).Equal(1)
@@ -290,14 +289,14 @@ func TestPlayerModel(t *testing.T) {
 				g.Assert(playerDetails["updatedAt"]).Equal(player.UpdatedAt)
 
 				//Memberships
-				g.Assert(len(playerDetails["memberships"].([]util.JSON))).Equal(0)
+				g.Assert(len(playerDetails["memberships"].([]map[string]interface{}))).Equal(0)
 
-				clans := playerDetails["clans"].(util.JSON)
-				approved := clans["approved"].([]util.JSON)
-				denied := clans["denied"].([]util.JSON)
-				banned := clans["banned"].([]util.JSON)
-				pendingApplications := clans["pendingApplications"].([]util.JSON)
-				pendingInvites := clans["pendingInvites"].([]util.JSON)
+				clans := playerDetails["clans"].(map[string]interface{})
+				approved := clans["approved"].([]map[string]interface{})
+				denied := clans["denied"].([]map[string]interface{})
+				banned := clans["banned"].([]map[string]interface{})
+				pendingApplications := clans["pendingApplications"].([]map[string]interface{})
+				pendingInvites := clans["pendingInvites"].([]map[string]interface{})
 
 				g.Assert(len(approved)).Equal(0)
 				g.Assert(len(denied)).Equal(0)

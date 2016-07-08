@@ -16,7 +16,6 @@ import (
 
 	. "github.com/franela/goblin"
 	"github.com/topfreegames/khan/models"
-	"github.com/topfreegames/khan/util"
 )
 
 func TestHookHandler(t *testing.T) {
@@ -33,14 +32,14 @@ func TestHookHandler(t *testing.T) {
 			err := a.Db.Insert(game)
 			AssertNotError(g, err)
 
-			payload := util.JSON{
+			payload := map[string]interface{}{
 				"type":    models.GameUpdatedHook,
 				"hookURL": "http://test/create",
 			}
 			res := PostJSON(a, GetGameRoute(game.PublicID, "/hooks"), t, payload)
 
 			g.Assert(res.Raw().StatusCode).Equal(http.StatusOK)
-			var result util.JSON
+			var result map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsTrue()
 			g.Assert(result["publicID"] != "").IsTrue()
@@ -58,10 +57,10 @@ func TestHookHandler(t *testing.T) {
 		g.It("Should not create hook if missing parameters", func() {
 			a := GetDefaultTestApp()
 			route := GetGameRoute("game-id", "/hooks")
-			res := PostJSON(a, route, t, util.JSON{})
+			res := PostJSON(a, route, t, map[string]interface{}{})
 
 			g.Assert(res.Raw().StatusCode).Equal(http.StatusBadRequest)
-			var result util.JSON
+			var result map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
 			g.Assert(result["reason"]).Equal("type is required, hookURL is required")
@@ -73,7 +72,7 @@ func TestHookHandler(t *testing.T) {
 			res := PostBody(a, route, t, "invalid")
 
 			g.Assert(res.Raw().StatusCode).Equal(http.StatusBadRequest)
-			var result util.JSON
+			var result map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
 			g.Assert(strings.Contains(result["reason"].(string), "While trying to read JSON")).IsTrue()
@@ -91,7 +90,7 @@ func TestHookHandler(t *testing.T) {
 
 			g.Assert(res.Raw().StatusCode).Equal(http.StatusOK)
 
-			var result util.JSON
+			var result map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsTrue()
 
