@@ -222,8 +222,14 @@ Khan API
 
   ### Supported Web Hook Event Types
 
-  * `0 Game Created` - Same payload as the response of the Create Game Route
-  * `1 Game Updated` - Same payload as the response of the Update Game Route
+  * `0 Game Updated` - Happens when a game is updated;
+  * `1 Player Created` - Happens when a new player is created;
+  * `2 Player Updated` - Happens when an existing player is updated;
+  * `3 Clan Created` - Happens when a new clan is created;
+  * `4 Clan Updated` - Happens when an existing clan is updated;
+  * `5 Clan Leave` - Happens when the owner of a clan leaves the clan without transferring the ownership to someone else;
+  * `6 Transfer Ownership of Clan` - Happens when the owner of a clan transfers ownership to another player;
+  * `7 Membership Created` - Happens when either someone applies to a clan or is invited;
 
   ### Create Hook
 
