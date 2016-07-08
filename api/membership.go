@@ -353,6 +353,26 @@ func PromoteOrDemoteMembershipHandler(app *App, action string) func(c *iris.Cont
 			return
 		}
 
+		requestor, err := models.GetPlayerByPublicID(db, membership.GameID, payload.RequestorPublicID)
+		if err != nil {
+			FailWith(500, err.Error(), c)
+			return
+		}
+
+		hookType := models.MembershipPromotedHook
+		if action == "demote" {
+			hookType = models.MembershipDemotedHook
+		}
+
+		err = dispatchMembershipHook(
+			app, db, hookType,
+			membership.GameID, membership.ClanID, membership.PlayerID,
+			requestor.ID,
+		)
+		if err != nil {
+			FailWith(500, err.Error(), c)
+		}
+
 		SucceedWith(util.JSON{
 			"level": membership.Level,
 		}, c)

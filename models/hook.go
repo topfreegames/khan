@@ -44,7 +44,13 @@ const (
 	MembershipApprovedHook = 8
 
 	//MembershipDeniedHook happens when a clan membership is denied
-	MembershipDeniedHook = 8
+	MembershipDeniedHook = 9
+
+	//MembershipPromotedHook happens when a clan member is promoted
+	MembershipPromotedHook = 10
+
+	//MembershipDemotedHook happens when a clan member is demoted
+	MembershipDemotedHook = 11
 )
 
 // Hook identifies a webhook for a given event
