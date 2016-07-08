@@ -177,7 +177,7 @@ func LeaveClanHandler(app *App) func(c *iris.Context) {
 
 		if err != nil {
 			if strings.HasPrefix(err.Error(), "Clan was not found with id") {
-				FailWith(400, (&models.ModelNotFoundError{"Clan", publicID}).Error(), c)
+				FailWith(400, (&models.ModelNotFoundError{Type: "Clan", ID: publicID}).Error(), c)
 			} else {
 				FailWith(500, err.Error(), c)
 			}
