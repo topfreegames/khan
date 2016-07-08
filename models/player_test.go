@@ -296,12 +296,14 @@ func TestPlayerModel(t *testing.T) {
 				approved := clans["approved"].([]util.JSON)
 				denied := clans["denied"].([]util.JSON)
 				banned := clans["banned"].([]util.JSON)
-				pending := clans["pending"].([]util.JSON)
+				pendingApplications := clans["pendingApplications"].([]util.JSON)
+				pendingInvites := clans["pendingInvites"].([]util.JSON)
 
 				g.Assert(len(approved)).Equal(0)
 				g.Assert(len(denied)).Equal(0)
 				g.Assert(len(banned)).Equal(0)
-				g.Assert(len(pending)).Equal(0)
+				g.Assert(len(pendingApplications)).Equal(0)
+				g.Assert(len(pendingInvites)).Equal(0)
 			})
 
 			g.It("Should return error if Player does not exist", func() {
