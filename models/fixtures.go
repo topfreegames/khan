@@ -163,10 +163,15 @@ var MembershipFactory = factory.NewFactory(
 
 // GetClanWithMemberships returns a clan filled with the number of memberships specified
 func GetClanWithMemberships(
-	db DB, approvedMemberships, deniedMemberships, bannedMemberships, pendingMemberships int, gameID string, clanPublicID string, skipCreateGame ...bool) (*Game, *Clan, *Player, []*Player, []*Membership, error) {
+	db DB, approvedMemberships, deniedMemberships, bannedMemberships, pendingMemberships int, gameID string, clanPublicID string, options ...bool) (*Game, *Clan, *Player, []*Player, []*Membership, error) {
 	var game *Game
 
-	if skipCreateGame == nil || len(skipCreateGame) != 1 || !skipCreateGame[0] {
+	pendingsAreInvites := true
+	if options != nil && len(options) > 1 {
+		pendingsAreInvites = options[1]
+	}
+
+	if options == nil || len(options) == 0 || !options[0] {
 		if gameID == "" {
 			gameID = uuid.NewV4().String()
 		}
@@ -260,11 +265,16 @@ func GetClanWithMemberships(
 			}
 			players = append(players, player)
 
+			requestorID := owner.ID
+			if !pendingsAreInvites {
+				requestorID = player.ID
+			}
+
 			membership := MembershipFactory.MustCreateWithOption(util.JSON{
 				"GameID":      owner.GameID,
 				"PlayerID":    player.ID,
 				"ClanID":      clan.ID,
-				"RequestorID": owner.ID,
+				"RequestorID": requestorID,
 				"Metadata":    util.JSON{"x": "a"},
 				"Level":       "Member",
 				"Approved":    approved,
