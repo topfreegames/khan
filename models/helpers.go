@@ -31,6 +31,11 @@ type DB interface {
 
 var _db DB
 
+// GetDefaultDB returns a connection to the default database
+func GetDefaultDB() (DB, error) {
+	return GetDB("localhost", "khan", 5432, "disable", "khan", "")
+}
+
 // GetPerfDB returns a connection to the perf database
 func GetPerfDB() (DB, error) {
 	return GetDB("localhost", "khan_perf", 5432, "disable", "khan_perf", "")
