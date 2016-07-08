@@ -198,7 +198,7 @@ func GetPlayerDetails(db DB, gameID, publicID string) (map[string]interface{}, e
 
 	if details[0].MembershipLevel.Valid || details[0].ClanOwnerID.Valid && int(details[0].ClanOwnerID.Int64) == details[0].PlayerID {
 		// Player has memberships
-		result["memberships"] = make([]map[string]interface{}, len(details))
+		memberships := []map[string]interface{}{}
 
 		owned := []map[string]interface{}{}
 		approved := []map[string]interface{}{}
@@ -214,38 +214,42 @@ func GetPlayerDetails(db DB, gameID, publicID string) (map[string]interface{}, e
 			}
 		}
 
-		for index, detail := range details {
-			result["memberships"].([]map[string]interface{})[index] = detail.Serialize()
-
+		for _, detail := range details {
 			ma := nullOrBool(detail.MembershipApproved)
 			md := nullOrBool(detail.MembershipDenied)
 			mb := nullOrBool(detail.MembershipBanned)
 			owner := detail.ClanOwnerID.Valid && int(detail.ClanOwnerID.Int64) == detail.PlayerID
+			mdel := detail.MembershipDeletedAt.Valid && detail.MembershipDeletedAt.Int64 > 0 && !mb
 
-			if owner {
-				result["memberships"].([]map[string]interface{})[index]["level"] = "owner"
-				result["memberships"].([]map[string]interface{})[index]["approved"] = true
-			}
-
-			clanDetail := clanFromDetail(detail)
-			switch {
-			case !ma && !md && !mb && !owner:
-				if detail.RequestorPublicID.Valid && detail.RequestorPublicID.String == detail.PlayerPublicID {
-					pendingApplications = append(pendingApplications, clanDetail)
-				} else {
-					pendingInvites = append(pendingInvites, clanDetail)
+			if !mdel {
+				m := detail.Serialize()
+				if owner {
+					m["level"] = "owner"
+					m["approved"] = true
 				}
-			case owner:
-				owned = append(owned, clanDetail)
-			case ma:
-				approved = append(approved, clanDetail)
-			case md:
-				denied = append(denied, clanDetail)
-			case mb:
-				banned = append(banned, clanDetail)
+				memberships = append(memberships, m)
+
+				clanDetail := clanFromDetail(detail)
+				switch {
+				case !ma && !md && !mb && !mdel && !owner:
+					if detail.RequestorPublicID.Valid && detail.RequestorPublicID.String == detail.PlayerPublicID {
+						pendingApplications = append(pendingApplications, clanDetail)
+					} else {
+						pendingInvites = append(pendingInvites, clanDetail)
+					}
+				case owner:
+					owned = append(owned, clanDetail)
+				case ma:
+					approved = append(approved, clanDetail)
+				case md:
+					denied = append(denied, clanDetail)
+				case mb:
+					banned = append(banned, clanDetail)
+				}
 			}
 		}
 
+		result["memberships"] = memberships
 		result["clans"] = map[string]interface{}{
 			"owned":               owned,
 			"approved":            approved,

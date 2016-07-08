@@ -219,6 +219,52 @@ func TestPlayerModel(t *testing.T) {
 				g.Assert(approvedMembership["approvedAt"].(int64) > 0).IsTrue()
 			})
 
+			g.It("Should get Player Details without memberships that were deleted by the player", func() {
+				game, clan, _, players, _, err := GetClanWithMemberships(testDb, 1, 0, 0, 0, "", "")
+				g.Assert(err == nil).IsTrue()
+
+				err = DeleteMembership(
+					testDb,
+					game,
+					game.PublicID,
+					players[0].PublicID,
+					clan.PublicID,
+					players[0].PublicID,
+				)
+				g.Assert(err == nil).IsTrue()
+
+				playerDetails, err := GetPlayerDetails(
+					testDb,
+					players[0].GameID,
+					players[0].PublicID,
+				)
+
+				g.Assert(err == nil).IsTrue()
+
+				// Player Details
+				g.Assert(playerDetails["publicID"]).Equal(players[0].PublicID)
+				g.Assert(playerDetails["name"]).Equal(players[0].Name)
+				g.Assert(playerDetails["metadata"]).Equal(players[0].Metadata)
+				g.Assert(playerDetails["createdAt"]).Equal(players[0].CreatedAt)
+				g.Assert(playerDetails["updatedAt"]).Equal(players[0].UpdatedAt)
+
+				//Memberships
+				g.Assert(len(playerDetails["memberships"].([]map[string]interface{}))).Equal(0)
+
+				clans := playerDetails["clans"].(map[string]interface{})
+				approved := clans["approved"].([]map[string]interface{})
+				denied := clans["denied"].([]map[string]interface{})
+				banned := clans["banned"].([]map[string]interface{})
+				pendingApplications := clans["pendingApplications"].([]map[string]interface{})
+				pendingInvites := clans["pendingInvites"].([]map[string]interface{})
+
+				g.Assert(len(approved)).Equal(0)
+				g.Assert(len(denied)).Equal(0)
+				g.Assert(len(banned)).Equal(0)
+				g.Assert(len(pendingApplications)).Equal(0)
+				g.Assert(len(pendingInvites)).Equal(0)
+			})
+
 			g.It("Should get Player Details including owned clans", func() {
 				game, clan, _, players, _, err := GetClanWithMemberships(testDb, 1, 0, 0, 0, "", "")
 				g.Assert(err == nil).IsTrue()
