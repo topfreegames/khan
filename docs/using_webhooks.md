@@ -70,25 +70,25 @@ Payload:
 
     {
         "success": true,
-        "publicID": [string],                       // Game ID.
-        "name": [string],                           // Game Name.
+        "publicID": [string],                       // Game ID
+        "name": [string],                           // Game Name
         "metadata": [JSON],                         // JSON Object containing game metadata.
         "membershipLevels": [JSON],                 // JSON Object mapping membership levels
         "minLevelToAcceptApplication": [int],       // Minimum level of membership required
-                                                    // to accept players into clan.
+                                                    // to accept players into clan
         "minLevelToCreateInvitation": [int],        // Minimum level of membership required
-                                                    // to invite players into clan.
+                                                    // to invite players into clan
         "minLevelToRemoveMember": [int],            // Minimum level of membership required
-                                                    // to remove players from clan.
+                                                    // to remove players from clan
         "minLevelOffsetToRemoveMember": [int],      // A player must be at least this offset
                                                     // higher than the player being removed.
         "minLevelOffsetToPromoteMember": [int],     // A player must be at least this offset
-                                                    // higher than the player being promoted.
+                                                    // higher than the player being promoted
         "minLevelOffsetToDemoteMember": [int],      // A player must be at least this offset
-                                                    // higher than the player being demoted.
-        "maxMembers": [int],                        // Maximum number of players in the clan.
+                                                    // higher than the player being demoted
+        "maxMembers": [int],                        // Maximum number of players in the clan
         "maxClansPerPlayer": [int]                  // Maximum number of clans the player can be
-                                                    // member of.
+                                                    // member of
     }
 
 ### Player Hooks
@@ -101,7 +101,7 @@ Payload:
 
     {
         "gameID":  [string],                        // Game ID
-        "publicID": [string],                       // Created Player PublicID. This id should
+        "publicID": [string],                       // Created Player PublicID This id should
                                                     // be used when referring to the player in
                                                     // future operations.
         "name": [string],                           // Player Name
@@ -118,7 +118,7 @@ Payload:
 
     {
         "gameID":  [string],                        // Game ID
-        "publicID": [string],                       // Created Player PublicID. This id should
+        "publicID": [string],                       // Created Player PublicID This id should
                                                     // be used when referring to the player in
                                                     // future operations.
         "name": [string],                           // Player Name
@@ -138,7 +138,7 @@ Payload:
 
     {
         "gameID":  [string],                        // Game ID
-        "publicID": [string],                       // Created Clan PublicID. This id should
+        "publicID": [string],                       // Created Clan PublicID This id should
                                                     // be used when referring to the clan in
                                                     // future operations.
         "name": [string],                           // Clan Name
@@ -156,7 +156,7 @@ Payload:
 
     {
         "gameID":  [string],                        // Game ID
-        "publicID": [string],                       // Updated Clan PublicID. This id should
+        "publicID": [string],                       // Updated Clan PublicID This id should
                                                     // be used when referring to the clan in
                                                     // future operations.
         "name": [string],                           // Clan Name
@@ -175,7 +175,7 @@ Payload:
     {
         "gameID": [string],
         "clan": {
-            "publicID": [string],                       // Updated Clan PublicID.
+            "publicID": [string],                       // Updated Clan PublicID
             "name": [string],                           // Clan Name
             "metadata": [JSON],                         // JSON Object containing clan's metadata
             "allowApplication": [bool]                  // Indicates whether this clan acceps applications
@@ -184,7 +184,7 @@ Payload:
             "membershipCount":  [int],                  // Number of members in clan
         },
         "newOwner": {                                   // After the owner left, this is the new owner
-            "publicID": [string],                       // New Owner PublicID.
+            "publicID": [string],                       // New Owner PublicID
             "name": [string],                           // Player Name
             "metadata": [JSON],                         // JSON Object containing player metadata
             "membershipCount": [int],                   // Number of clans this player is a member of
@@ -201,7 +201,7 @@ Payload:
     {
         "gameID": [string],
         "clan": {
-            "publicID": [string],                       // Updated Clan PublicID.
+            "publicID": [string],                       // Updated Clan PublicID
             "name": [string],                           // Clan Name
             "metadata": [JSON],                         // JSON Object containing clan's metadata
             "allowApplication": [bool]                  // Indicates whether this clan acceps applications
@@ -210,7 +210,7 @@ Payload:
             "membershipCount":  [int],                  // Number of members in clan
         },
         "newOwner": {                                   // Player that the owner transferred ownership to
-            "publicID": [string],                       // New Owner PublicID.
+            "publicID": [string],                       // New Owner PublicID
             "name": [string],                           // Player Name
             "metadata": [JSON],                         // JSON Object containing player metadata
             "membershipCount": [int],                   // Number of clans this player is a member of
@@ -240,14 +240,49 @@ Payload:
             "membershipCount":  [int],                  // Number of members in clan
         },
         "applicant": {                                  // Player that is applying/being invited to the clan
-            "publicID": [string],                       // Applicant PublicID.
+            "publicID": [string],                       // Applicant PublicID
             "name": [string],                           // Player Name
             "metadata": [JSON],                         // JSON Object containing player metadata
             "membershipCount": [int],                   // Number of clans this player is a member of
             "ownershipCount":  [int]                    // Number of clans this player is an owner of
         },
         "requestor": {                                  // Player that requested this membership application/invite
-            "publicID": [string],                       // Requestor PublicID.
+            "publicID": [string],                       // Requestor PublicID
+            "name": [string],                           // Player Name
+            "metadata": [JSON],                         // JSON Object containing player metadata
+            "membershipCount": [int],                   // Number of clans this player is a member of
+            "ownershipCount":  [int]                    // Number of clans this player is an owner of
+        }
+    }
+
+#### Membership Approved
+
+This event occurs if an application or an invite to a clan gets approved. If the membership that was approved was an invitation into the clan, the requestor and the player will be the same Player. Otherwise, the requestor will be whomever approved the membership.
+
+Event Type: `8`
+
+Payload:
+
+    {
+        "gameID": [string],
+        "clan": {
+            "publicID": [string],                       // Clan that membership was approved
+            "name": [string],                           // Clan Name
+            "metadata": [JSON],                         // JSON Object containing clan's metadata
+            "allowApplication": [bool]                  // Indicates whether this clan acceps applications
+            "autoJoin": [bool],                         // Indicates whether this clan automatically
+                                                        // accepts applications
+            "membershipCount":  [int],                  // Number of members in clan
+        },
+        "player": {                                     // Player that was approved into the clan
+            "publicID": [string],                       // Player PublicID
+            "name": [string],                           // Player Name
+            "metadata": [JSON],                         // JSON Object containing player metadata
+            "membershipCount": [int],                   // Number of clans this player is a member of
+            "ownershipCount":  [int]                    // Number of clans this player is an owner of
+        },
+        "requestor": {                                  // Player that approved the membership
+            "publicID": [string],                       // Requestor PublicID
             "name": [string],                           // Player Name
             "metadata": [JSON],                         // JSON Object containing player metadata
             "membershipCount": [int],                   // Number of clans this player is a member of

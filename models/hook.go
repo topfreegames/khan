@@ -37,8 +37,11 @@ const (
 	//ClanTransferOwnershipHook happens when a clan owner transfers ownership to another player
 	ClanTransferOwnershipHook = 6
 
-	//MembershipApplicationCreatedHook happens when a new application to a clan is created
+	//MembershipApplicationCreatedHook happens when a new application or invite to a clan is created
 	MembershipApplicationCreatedHook = 7
+
+	//MembershipApprovedHook happens when a clan membership is approved
+	MembershipApprovedHook = 8
 )
 
 // Hook identifies a webhook for a given event

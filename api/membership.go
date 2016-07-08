@@ -33,20 +33,20 @@ type approveOrDenyMembershipInvitationPayload struct {
 	PlayerPublicID string
 }
 
-func dispatchMembershipCreatedHook(app *App, db models.DB, membership *models.Membership) error {
-	clan, err := models.GetClanByID(db, membership.ClanID)
+func dispatchMembershipHook(app *App, db models.DB, hookType int, gameID string, clanID, playerID, requestorID int) error {
+	clan, err := models.GetClanByID(db, clanID)
 	if err != nil {
 		return err
 	}
 
-	player, err := models.GetPlayerByID(db, membership.PlayerID)
+	player, err := models.GetPlayerByID(db, playerID)
 	if err != nil {
 		return err
 	}
 
 	requestor := player
-	if membership.RequestorID != membership.PlayerID {
-		requestor, err = models.GetPlayerByID(db, membership.RequestorID)
+	if requestorID != playerID {
+		requestor, err = models.GetPlayerByID(db, requestorID)
 		if err != nil {
 			return err
 		}
@@ -62,12 +62,12 @@ func dispatchMembershipCreatedHook(app *App, db models.DB, membership *models.Me
 	delete(requestorJSON, "gameID")
 
 	result := util.JSON{
-		"gameID":    membership.GameID,
+		"gameID":    gameID,
 		"clan":      clanJSON,
-		"applicant": playerJSON,
+		"player":    playerJSON,
 		"requestor": requestorJSON,
 	}
-	app.DispatchHooks(membership.GameID, models.MembershipApplicationCreatedHook, result)
+	app.DispatchHooks(gameID, hookType, result)
 
 	return nil
 }
@@ -107,7 +107,11 @@ func ApplyForMembershipHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
-		err = dispatchMembershipCreatedHook(app, db, membership)
+		err = dispatchMembershipHook(
+			app, db, models.MembershipApplicationCreatedHook,
+			membership.GameID, membership.ClanID, membership.PlayerID,
+			membership.RequestorID,
+		)
 		if err != nil {
 			FailWith(500, err.Error(), c)
 		}
@@ -151,7 +155,11 @@ func InviteForMembershipHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
-		err = dispatchMembershipCreatedHook(app, db, membership)
+		err = dispatchMembershipHook(
+			app, db, models.MembershipApplicationCreatedHook,
+			membership.GameID, membership.ClanID, membership.PlayerID,
+			membership.RequestorID,
+		)
 		if err != nil {
 			FailWith(500, err.Error(), c)
 		}
@@ -221,7 +229,7 @@ func ApproveOrDenyMembershipInvitationHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
-		_, err = models.ApproveOrDenyMembershipInvitation(
+		membership, err := models.ApproveOrDenyMembershipInvitation(
 			db,
 			game,
 			gameID,
@@ -233,6 +241,15 @@ func ApproveOrDenyMembershipInvitationHandler(app *App) func(c *iris.Context) {
 		if err != nil {
 			FailWith(500, err.Error(), c)
 			return
+		}
+
+		err = dispatchMembershipHook(
+			app, db, models.MembershipApprovedHook,
+			membership.GameID, membership.ClanID, membership.PlayerID,
+			membership.PlayerID,
+		)
+		if err != nil {
+			FailWith(500, err.Error(), c)
 		}
 
 		SucceedWith(util.JSON{}, c)
