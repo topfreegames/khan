@@ -22,10 +22,6 @@ import (
 	"github.com/topfreegames/khan/util"
 )
 
-func str(value interface{}) string {
-	return fmt.Sprintf("%v", value)
-}
-
 // AssertError asserts that the specified error is not nil
 func AssertError(g *G, err error) {
 	g.Assert(err == nil).IsFalse("Expected error to exist, but it was nil")

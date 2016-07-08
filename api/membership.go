@@ -8,8 +8,6 @@
 package api
 
 import (
-	"fmt"
-
 	"github.com/kataras/iris"
 	"github.com/topfreegames/khan/models"
 	"github.com/topfreegames/khan/util"
@@ -33,6 +31,45 @@ type basePayloadWithRequestorAndPlayerPublicIDs struct {
 
 type approveOrDenyMembershipInvitationPayload struct {
 	PlayerPublicID string
+}
+
+func dispatchMembershipCreatedHook(app *App, db models.DB, membership *models.Membership) error {
+	clan, err := models.GetClanByID(db, membership.ClanID)
+	if err != nil {
+		return err
+	}
+
+	player, err := models.GetPlayerByID(db, membership.PlayerID)
+	if err != nil {
+		return err
+	}
+
+	requestor := player
+	if membership.RequestorID != membership.PlayerID {
+		requestor, err = models.GetPlayerByID(db, membership.RequestorID)
+		if err != nil {
+			return err
+		}
+	}
+
+	clanJSON := clan.Serialize()
+	delete(clanJSON, "gameID")
+
+	playerJSON := player.Serialize()
+	delete(playerJSON, "gameID")
+
+	requestorJSON := requestor.Serialize()
+	delete(requestorJSON, "gameID")
+
+	result := util.JSON{
+		"gameID":    membership.GameID,
+		"clan":      clanJSON,
+		"applicant": playerJSON,
+		"requestor": requestorJSON,
+	}
+	app.DispatchHooks(membership.GameID, models.MembershipApplicationCreatedHook, result)
+
+	return nil
 }
 
 // ApplyForMembershipHandler is the handler responsible for applying for new memberships
@@ -70,30 +107,10 @@ func ApplyForMembershipHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
-		clan, err := models.GetClanByID(db, membership.ClanID)
+		err = dispatchMembershipCreatedHook(app, db, membership)
 		if err != nil {
 			FailWith(500, err.Error(), c)
 		}
-
-		player, err := models.GetPlayerByID(db, membership.PlayerID)
-		if err != nil {
-			FailWith(500, err.Error(), c)
-		}
-
-		clanJSON := clan.Serialize()
-		delete(clanJSON, "gameID")
-
-		playerJSON := player.Serialize()
-		delete(playerJSON, "gameID")
-
-		result := util.JSON{
-			"gameID":    gameID,
-			"clan":      clanJSON,
-			"applicant": playerJSON,
-			"requestor": playerJSON,
-		}
-		fmt.Println("Application", result)
-		app.DispatchHooks(gameID, models.MembershipApplicationCreatedHook, result)
 
 		SucceedWith(util.JSON{}, c)
 	}
@@ -119,7 +136,7 @@ func InviteForMembershipHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
-		_, err = models.CreateMembership(
+		membership, err := models.CreateMembership(
 			db,
 			game,
 			gameID,
@@ -132,6 +149,11 @@ func InviteForMembershipHandler(app *App) func(c *iris.Context) {
 		if err != nil {
 			FailWith(500, err.Error(), c)
 			return
+		}
+
+		err = dispatchMembershipCreatedHook(app, db, membership)
+		if err != nil {
+			FailWith(500, err.Error(), c)
 		}
 
 		SucceedWith(util.JSON{}, c)

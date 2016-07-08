@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/franela/goblin"
 	"github.com/gavv/httpexpect"
 	"github.com/gavv/httpexpect/fasthttpexpect"
 	"github.com/topfreegames/khan/models"
@@ -95,4 +96,46 @@ func LoadGames(a *App) map[string]*models.Game {
 		g[game.PublicID] = game
 	}
 	return g
+}
+
+func str(value interface{}) string {
+	return fmt.Sprintf("%v", value)
+}
+
+func validateMembershipCreatedHookResponse(g *goblin.G, apply util.JSON, gameID string, clan *models.Clan, player *models.Player, requestor *models.Player) {
+	g.Assert(apply["gameID"]).Equal(gameID)
+
+	rClan := apply["clan"].(map[string]interface{})
+	g.Assert(rClan["publicID"]).Equal(clan.PublicID)
+	g.Assert(rClan["name"]).Equal(clan.Name)
+	g.Assert(str(rClan["membershipCount"])).Equal(str(clan.MembershipCount))
+	g.Assert(rClan["allowApplication"]).Equal(clan.AllowApplication)
+	g.Assert(rClan["autoJoin"]).Equal(clan.AutoJoin)
+	clanMetadata := rClan["metadata"].(map[string]interface{})
+	metadata := clan.Metadata
+	for k, v := range clanMetadata {
+		g.Assert(v).Equal(metadata[k])
+	}
+
+	rPlayer := apply["applicant"].(map[string]interface{})
+	g.Assert(rPlayer["publicID"]).Equal(player.PublicID)
+	g.Assert(rPlayer["name"]).Equal(player.Name)
+	g.Assert(str(rPlayer["membershipCount"])).Equal("0")
+	g.Assert(str(rPlayer["ownershipCount"])).Equal("0")
+	playerMetadata := rPlayer["metadata"].(map[string]interface{})
+	metadata = player.Metadata
+	for pk, pv := range playerMetadata {
+		g.Assert(pv).Equal(metadata[pk])
+	}
+
+	rPlayer = apply["requestor"].(map[string]interface{})
+	g.Assert(rPlayer["publicID"]).Equal(requestor.PublicID)
+	g.Assert(rPlayer["name"]).Equal(requestor.Name)
+	g.Assert(str(rPlayer["membershipCount"])).Equal("0")
+	g.Assert(rPlayer["ownershipCount"] != nil).IsTrue()
+	playerMetadata = rPlayer["metadata"].(map[string]interface{})
+	metadata = requestor.Metadata
+	for rk, rv := range playerMetadata {
+		g.Assert(rv).Equal(metadata[rk])
+	}
 }
