@@ -11,22 +11,20 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/topfreegames/khan/util"
-
 	"gopkg.in/gorp.v1"
 )
 
 // Player identifies uniquely one player in a given game
 type Player struct {
-	ID              int       `db:"id"`
-	GameID          string    `db:"game_id"`
-	PublicID        string    `db:"public_id"`
-	Name            string    `db:"name"`
-	Metadata        util.JSON `db:"metadata"`
-	MembershipCount int       `db:"membership_count"`
-	OwnershipCount  int       `db:"ownership_count"`
-	CreatedAt       int64     `db:"created_at"`
-	UpdatedAt       int64     `db:"updated_at"`
+	ID              int                    `db:"id"`
+	GameID          string                 `db:"game_id"`
+	PublicID        string                 `db:"public_id"`
+	Name            string                 `db:"name"`
+	Metadata        map[string]interface{} `db:"metadata"`
+	MembershipCount int                    `db:"membership_count"`
+	OwnershipCount  int                    `db:"ownership_count"`
+	CreatedAt       int64                  `db:"created_at"`
+	UpdatedAt       int64                  `db:"updated_at"`
 }
 
 // PreInsert populates fields before inserting a new player
@@ -43,8 +41,8 @@ func (p *Player) PreUpdate(s gorp.SqlExecutor) error {
 }
 
 //Serialize the player information to JSON
-func (p *Player) Serialize() util.JSON {
-	return util.JSON{
+func (p *Player) Serialize() map[string]interface{} {
+	return map[string]interface{}{
 		"gameID":          p.GameID,
 		"publicID":        p.PublicID,
 		"name":            p.Name,
@@ -118,7 +116,7 @@ func GetPlayerByPublicID(db DB, gameID string, publicID string) (*Player, error)
 }
 
 // CreatePlayer creates a new player
-func CreatePlayer(db DB, gameID, publicID, name string, metadata util.JSON) (*Player, error) {
+func CreatePlayer(db DB, gameID, publicID, name string, metadata map[string]interface{}) (*Player, error) {
 	player := &Player{
 		GameID:   gameID,
 		PublicID: publicID,
@@ -133,7 +131,7 @@ func CreatePlayer(db DB, gameID, publicID, name string, metadata util.JSON) (*Pl
 }
 
 // UpdatePlayer updates an existing player
-func UpdatePlayer(db DB, gameID, publicID, name string, metadata util.JSON) (*Player, error) {
+func UpdatePlayer(db DB, gameID, publicID, name string, metadata map[string]interface{}) (*Player, error) {
 	player, err := GetPlayerByPublicID(db, gameID, publicID)
 
 	if err != nil {
@@ -156,7 +154,7 @@ func UpdatePlayer(db DB, gameID, publicID, name string, metadata util.JSON) (*Pl
 }
 
 // GetPlayerDetails returns detailed information about a player and their memberships
-func GetPlayerDetails(db DB, gameID, publicID string) (util.JSON, error) {
+func GetPlayerDetails(db DB, gameID, publicID string) (map[string]interface{}, error) {
 	query := `
 	SELECT
 		p.id PlayerID, p.name PlayerName, p.metadata PlayerMetadata, p.public_id PlayerPublicID,
@@ -187,7 +185,7 @@ func GetPlayerDetails(db DB, gameID, publicID string) (util.JSON, error) {
 		return nil, &ModelNotFoundError{"Player", publicID}
 	}
 
-	result := make(util.JSON)
+	result := make(map[string]interface{})
 
 	result["name"] = details[0].PlayerName
 	result["metadata"] = details[0].PlayerMetadata
@@ -197,24 +195,24 @@ func GetPlayerDetails(db DB, gameID, publicID string) (util.JSON, error) {
 
 	if details[0].MembershipLevel.Valid || details[0].ClanOwnerID.Valid && int(details[0].ClanOwnerID.Int64) == details[0].PlayerID {
 		// Player has memberships
-		result["memberships"] = make([]util.JSON, len(details))
+		result["memberships"] = make([]map[string]interface{}, len(details))
 
-		owned := []util.JSON{}
-		approved := []util.JSON{}
-		denied := []util.JSON{}
-		banned := []util.JSON{}
-		pendingApplications := []util.JSON{}
-		pendingInvites := []util.JSON{}
+		owned := []map[string]interface{}{}
+		approved := []map[string]interface{}{}
+		denied := []map[string]interface{}{}
+		banned := []map[string]interface{}{}
+		pendingApplications := []map[string]interface{}{}
+		pendingInvites := []map[string]interface{}{}
 
-		clanFromDetail := func(clanDetail playerDetailsDAO) util.JSON {
-			return util.JSON{
+		clanFromDetail := func(clanDetail playerDetailsDAO) map[string]interface{} {
+			return map[string]interface{}{
 				"publicID": nullOrString(clanDetail.ClanPublicID),
 				"name":     nullOrString(clanDetail.ClanName),
 			}
 		}
 
 		for index, detail := range details {
-			result["memberships"].([]util.JSON)[index] = detail.Serialize()
+			result["memberships"].([]map[string]interface{})[index] = detail.Serialize()
 
 			ma := nullOrBool(detail.MembershipApproved)
 			md := nullOrBool(detail.MembershipDenied)
@@ -222,8 +220,8 @@ func GetPlayerDetails(db DB, gameID, publicID string) (util.JSON, error) {
 			owner := detail.ClanOwnerID.Valid && int(detail.ClanOwnerID.Int64) == detail.PlayerID
 
 			if owner {
-				result["memberships"].([]util.JSON)[index]["level"] = "owner"
-				result["memberships"].([]util.JSON)[index]["approved"] = true
+				result["memberships"].([]map[string]interface{})[index]["level"] = "owner"
+				result["memberships"].([]map[string]interface{})[index]["approved"] = true
 			}
 
 			clanDetail := clanFromDetail(detail)
@@ -245,7 +243,7 @@ func GetPlayerDetails(db DB, gameID, publicID string) (util.JSON, error) {
 			}
 		}
 
-		result["clans"] = util.JSON{
+		result["clans"] = map[string]interface{}{
 			"owned":               owned,
 			"approved":            approved,
 			"denied":              denied,
@@ -255,14 +253,14 @@ func GetPlayerDetails(db DB, gameID, publicID string) (util.JSON, error) {
 		}
 
 	} else {
-		result["memberships"] = []util.JSON{}
-		result["clans"] = util.JSON{
-			"owned":               []util.JSON{},
-			"approved":            []util.JSON{},
-			"denied":              []util.JSON{},
-			"banned":              []util.JSON{},
-			"pendingApplications": []util.JSON{},
-			"pendingInvites":      []util.JSON{},
+		result["memberships"] = []map[string]interface{}{}
+		result["clans"] = map[string]interface{}{
+			"owned":               []map[string]interface{}{},
+			"approved":            []map[string]interface{}{},
+			"denied":              []map[string]interface{}{},
+			"banned":              []map[string]interface{}{},
+			"pendingApplications": []map[string]interface{}{},
+			"pendingInvites":      []map[string]interface{}{},
 		}
 	}
 

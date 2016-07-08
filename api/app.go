@@ -20,7 +20,6 @@ import (
 	"github.com/rcrowley/go-metrics"
 	"github.com/spf13/viper"
 	"github.com/topfreegames/khan/models"
-	"github.com/topfreegames/khan/util"
 	"github.com/uber-go/zap"
 )
 
@@ -219,7 +218,7 @@ func (app *App) initDispatcher() {
 }
 
 // DispatchHooks dispatches web hooks for a specific game and event type
-func (app *App) DispatchHooks(gameID string, eventType int, payload util.JSON) error {
+func (app *App) DispatchHooks(gameID string, eventType int, payload map[string]interface{}) error {
 	app.Dispatcher.DispatchHook(gameID, eventType, payload)
 	return nil
 }

@@ -18,8 +18,8 @@ import (
 
 type gamePayload struct {
 	Name                          string
-	MembershipLevels              util.JSON
-	Metadata                      util.JSON
+	MembershipLevels              map[string]interface{}
+	Metadata                      map[string]interface{}
 	MinLevelToAcceptApplication   int
 	MinLevelToCreateInvitation    int
 	MinLevelToRemoveMember        int
@@ -33,8 +33,8 @@ type gamePayload struct {
 type createGamePayload struct {
 	PublicID                      string
 	Name                          string
-	MembershipLevels              util.JSON
-	Metadata                      util.JSON
+	MembershipLevels              map[string]interface{}
+	Metadata                      map[string]interface{}
 	MinLevelToAcceptApplication   int
 	MinLevelToCreateInvitation    int
 	MinLevelToRemoveMember        int
@@ -51,10 +51,10 @@ func getAsInt(field string, payload interface{}) int {
 	return fieldValue.(int)
 }
 
-func getAsJSON(field string, payload interface{}) util.JSON {
+func getAsJSON(field string, payload interface{}) map[string]interface{} {
 	v := reflect.ValueOf(payload)
 	fieldValue := v.FieldByName(field).Interface()
-	return fieldValue.(util.JSON)
+	return fieldValue.(map[string]interface{})
 }
 
 func validateGamePayload(payload interface{}) []string {
@@ -111,7 +111,7 @@ func CreateGameHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
-		SucceedWith(util.JSON{
+		SucceedWith(map[string]interface{}{
 			"publicID": game.PublicID,
 		}, c)
 	}
@@ -156,7 +156,7 @@ func UpdateGameHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
-		successPayload := util.JSON{
+		successPayload := map[string]interface{}{
 			"success":                       true,
 			"publicID":                      gameID,
 			"name":                          payload.Name,
@@ -173,6 +173,6 @@ func UpdateGameHandler(app *App) func(c *iris.Context) {
 		}
 		app.DispatchHooks(gameID, models.GameUpdatedHook, successPayload)
 
-		SucceedWith(util.JSON{}, c)
+		SucceedWith(map[string]interface{}{}, c)
 	}
 }

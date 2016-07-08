@@ -14,7 +14,6 @@ import (
 
 	. "github.com/franela/goblin"
 	"github.com/satori/go.uuid"
-	"github.com/topfreegames/khan/util"
 )
 
 func TestGameModel(t *testing.T) {
@@ -59,7 +58,7 @@ func TestGameModel(t *testing.T) {
 
 				time.Sleep(time.Millisecond)
 
-				game.Metadata = util.JSON{"x": "a"}
+				game.Metadata = map[string]interface{}{"x": "a"}
 				count, err := testDb.Update(game)
 				g.Assert(err == nil).IsTrue()
 				g.Assert(int(count)).Equal(1)
@@ -109,8 +108,8 @@ func TestGameModel(t *testing.T) {
 					testDb,
 					"create-1",
 					"game-name",
-					util.JSON{"Member": 1, "Elder": 2, "CoLeader": 3},
-					util.JSON{},
+					map[string]interface{}{"Member": 1, "Elder": 2, "CoLeader": 3},
+					map[string]interface{}{},
 					8, 7, 8, 1, 2, 3, 100, 1,
 				)
 				g.Assert(err == nil).IsTrue()
@@ -147,8 +146,8 @@ func TestGameModel(t *testing.T) {
 					testDb,
 					game.PublicID,
 					"game-new-name",
-					util.JSON{"Member": 1, "Elder": 2, "CoLeader": 3},
-					util.JSON{"x": 1},
+					map[string]interface{}{"Member": 1, "Elder": 2, "CoLeader": 3},
+					map[string]interface{}{"x": 1},
 					5, 4, 7, 1, 1, 1, 100, 1,
 				)
 
@@ -181,8 +180,8 @@ func TestGameModel(t *testing.T) {
 					testDb,
 					gameID,
 					gameID,
-					util.JSON{"Member": 1, "Elder": 2, "CoLeader": 3},
-					util.JSON{"x": 1},
+					map[string]interface{}{"Member": 1, "Elder": 2, "CoLeader": 3},
+					map[string]interface{}{"x": 1},
 					5, 4, 7, 1, 1, 1, 100, 1,
 				)
 
@@ -216,8 +215,8 @@ func TestGameModel(t *testing.T) {
 					testDb,
 					game.PublicID,
 					strings.Repeat("a", 256),
-					util.JSON{"Member": 1, "Elder": 2, "CoLeader": 3},
-					util.JSON{"x": 1},
+					map[string]interface{}{"Member": 1, "Elder": 2, "CoLeader": 3},
+					map[string]interface{}{"x": 1},
 					5, 4, 7, 1, 1, 0, 100, 1,
 				)
 

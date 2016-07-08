@@ -19,21 +19,20 @@ import (
 	. "github.com/franela/goblin"
 	"github.com/satori/go.uuid"
 	"github.com/topfreegames/khan/models"
-	"github.com/topfreegames/khan/util"
 )
 
-func getGamePayload(publicID, name string) util.JSON {
+func getGamePayload(publicID, name string) map[string]interface{} {
 	if publicID == "" {
 		publicID = randomdata.FullName(randomdata.RandomGender)
 	}
 	if name == "" {
 		name = randomdata.FullName(randomdata.RandomGender)
 	}
-	return util.JSON{
+	return map[string]interface{}{
 		"publicID":                      publicID,
 		"name":                          name,
-		"membershipLevels":              util.JSON{"Member": 1, "Elder": 2, "CoLeader": 3},
-		"metadata":                      util.JSON{"x": "a"},
+		"membershipLevels":              map[string]interface{}{"Member": 1, "Elder": 2, "CoLeader": 3},
+		"metadata":                      map[string]interface{}{"x": "a"},
 		"minLevelToAcceptApplication":   1,
 		"minLevelToCreateInvitation":    1,
 		"minLevelToRemoveMember":        1,
@@ -59,7 +58,7 @@ func TestGameHandler(t *testing.T) {
 			res := PostJSON(a, "/games", t, payload)
 
 			g.Assert(res.Raw().StatusCode).Equal(http.StatusOK)
-			var result util.JSON
+			var result map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsTrue()
 			g.Assert(result["publicID"]).Equal(payload["publicID"].(string))
@@ -68,7 +67,7 @@ func TestGameHandler(t *testing.T) {
 			AssertNotError(g, err)
 			g.Assert(dbGame.PublicID).Equal(payload["publicID"])
 			g.Assert(dbGame.Name).Equal(payload["name"])
-			membershipLevels := payload["membershipLevels"].(util.JSON)
+			membershipLevels := payload["membershipLevels"].(map[string]interface{})
 			for k, v := range membershipLevels {
 				g.Assert(v.(int)).Equal(int(dbGame.MembershipLevels[k].(float64)))
 			}
@@ -90,7 +89,7 @@ func TestGameHandler(t *testing.T) {
 			res := PostJSON(a, "/games", t, payload)
 
 			g.Assert(res.Raw().StatusCode).Equal(http.StatusBadRequest)
-			var result util.JSON
+			var result map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
 			g.Assert(result["reason"]).Equal("maxMembers is required")
@@ -103,7 +102,7 @@ func TestGameHandler(t *testing.T) {
 			res := PostJSON(a, "/games", t, payload)
 
 			g.Assert(res.Raw().StatusCode).Equal(422)
-			var result util.JSON
+			var result map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
 			g.Assert(result["reason"]).Equal("minLevelToCreateInvitation should be greater or equal to minMembershipLevel")
@@ -114,7 +113,7 @@ func TestGameHandler(t *testing.T) {
 			res := PostBody(a, "/games", t, "invalid")
 
 			g.Assert(res.Raw().StatusCode).Equal(http.StatusBadRequest)
-			var result util.JSON
+			var result map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
 			g.Assert(strings.Contains(result["reason"].(string), "While trying to read JSON")).IsTrue()
@@ -126,7 +125,7 @@ func TestGameHandler(t *testing.T) {
 			res := PostJSON(a, "/games", t, payload)
 
 			g.Assert(res.Raw().StatusCode).Equal(http.StatusInternalServerError)
-			var result util.JSON
+			var result map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
 			g.Assert(result["reason"]).Equal("pq: value too long for type character varying(36)")
@@ -140,21 +139,21 @@ func TestGameHandler(t *testing.T) {
 			err := a.Db.Insert(game)
 			AssertNotError(g, err)
 
-			metadata := util.JSON{"y": "10"}
+			metadata := map[string]interface{}{"y": "10"}
 			payload := getGamePayload(game.PublicID, game.Name)
 			payload["metadata"] = metadata
 
 			route := fmt.Sprintf("/games/%s", game.PublicID)
 			res := PutJSON(a, route, t, payload)
 			g.Assert(res.Raw().StatusCode).Equal(http.StatusOK)
-			var result util.JSON
+			var result map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsTrue()
 
 			dbGame, err := models.GetGameByPublicID(a.Db, game.PublicID)
 			AssertNotError(g, err)
 			g.Assert(dbGame.Metadata).Equal(metadata)
-			membershipLevels := payload["membershipLevels"].(util.JSON)
+			membershipLevels := payload["membershipLevels"].(map[string]interface{})
 			for k, v := range membershipLevels {
 				g.Assert(v.(int)).Equal(int(dbGame.MembershipLevels[k].(float64)))
 			}
@@ -179,7 +178,7 @@ func TestGameHandler(t *testing.T) {
 			route := fmt.Sprintf("/games/%s", gameID)
 			res := PutJSON(a, route, t, payload)
 			g.Assert(res.Raw().StatusCode).Equal(http.StatusOK)
-			var result util.JSON
+			var result map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsTrue()
 
@@ -196,7 +195,7 @@ func TestGameHandler(t *testing.T) {
 			err := a.Db.Insert(game)
 			AssertNotError(g, err)
 
-			metadata := util.JSON{"y": "10"}
+			metadata := map[string]interface{}{"y": "10"}
 			payload := getGamePayload(game.PublicID, game.Name)
 			payload["metadata"] = metadata
 			delete(payload, "name")
@@ -206,7 +205,7 @@ func TestGameHandler(t *testing.T) {
 			route := fmt.Sprintf("/games/%s", game.PublicID)
 			res := PutJSON(a, route, t, payload)
 			g.Assert(res.Raw().StatusCode).Equal(http.StatusBadRequest)
-			var result util.JSON
+			var result map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
 			g.Assert(result["reason"]).Equal("name is required, minLevelOffsetToPromoteMember is required, maxMembers is required")
@@ -225,7 +224,7 @@ func TestGameHandler(t *testing.T) {
 			res := PutJSON(a, route, t, payload)
 
 			g.Assert(res.Raw().StatusCode).Equal(422)
-			var result util.JSON
+			var result map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
 			g.Assert(result["reason"]).Equal("minLevelToCreateInvitation should be greater or equal to minMembershipLevel")
@@ -236,7 +235,7 @@ func TestGameHandler(t *testing.T) {
 			res := PutBody(a, "/games/game-id", t, "invalid")
 
 			g.Assert(res.Raw().StatusCode).Equal(http.StatusBadRequest)
-			var result util.JSON
+			var result map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
 			g.Assert(strings.Contains(result["reason"].(string), "While trying to read JSON")).IsTrue()
@@ -255,7 +254,7 @@ func TestGameHandler(t *testing.T) {
 			res := PutJSON(a, route, t, payload)
 
 			g.Assert(res.Raw().StatusCode).Equal(http.StatusInternalServerError)
-			var result util.JSON
+			var result map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			g.Assert(result["success"]).IsFalse()
 			g.Assert(result["reason"]).Equal("pq: value too long for type character varying(255)")
@@ -281,7 +280,7 @@ func TestGameHandler(t *testing.T) {
 				route := fmt.Sprintf("/games/%s", gameID)
 				res := PutJSON(app, route, t, payload)
 				g.Assert(res.Raw().StatusCode).Equal(http.StatusOK)
-				var result util.JSON
+				var result map[string]interface{}
 				json.Unmarshal([]byte(res.Body().Raw()), &result)
 				g.Assert(result["success"]).IsTrue()
 

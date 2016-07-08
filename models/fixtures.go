@@ -14,7 +14,6 @@ import (
 	"github.com/Pallinder/go-randomdata"
 	"github.com/bluele/factory-go/factory"
 	"github.com/satori/go.uuid"
-	"github.com/topfreegames/khan/util"
 )
 
 // GameFactory is responsible for constructing test game instances
@@ -34,9 +33,9 @@ var GameFactory = factory.NewFactory(
 }).Attr("Name", func(args factory.Args) (interface{}, error) {
 	return uuid.NewV4().String(), nil
 }).Attr("Metadata", func(args factory.Args) (interface{}, error) {
-	return util.JSON{}, nil
+	return map[string]interface{}{}, nil
 }).Attr("MembershipLevels", func(args factory.Args) (interface{}, error) {
-	return util.JSON{"Member": 1, "Elder": 2, "CoLeader": 3}, nil
+	return map[string]interface{}{"Member": 1, "Elder": 2, "CoLeader": 3}, nil
 })
 
 // HookFactory is responsible for constructing event hook instances
@@ -49,7 +48,7 @@ func CreateHookFactory(db DB, gameID string, eventType int, url string) (*Hook, 
 	if gameID == "" {
 		gameID = uuid.NewV4().String()
 	}
-	game := GameFactory.MustCreateWithOption(util.JSON{
+	game := GameFactory.MustCreateWithOption(map[string]interface{}{
 		"PublicID": gameID,
 	}).(*Game)
 	err := db.Insert(game)
@@ -57,7 +56,7 @@ func CreateHookFactory(db DB, gameID string, eventType int, url string) (*Hook, 
 		return nil, err
 	}
 
-	hook := HookFactory.MustCreateWithOption(util.JSON{
+	hook := HookFactory.MustCreateWithOption(map[string]interface{}{
 		"GameID":    gameID,
 		"PublicID":  uuid.NewV4().String(),
 		"EventType": eventType,
@@ -76,7 +75,7 @@ func GetHooksForRoutes(db DB, routes []string, eventType int) ([]*Hook, error) {
 
 	gameID := uuid.NewV4().String()
 
-	game := GameFactory.MustCreateWithOption(util.JSON{
+	game := GameFactory.MustCreateWithOption(map[string]interface{}{
 		"PublicID": gameID,
 	}).(*Game)
 	err := db.Insert(game)
@@ -85,7 +84,7 @@ func GetHooksForRoutes(db DB, routes []string, eventType int) ([]*Hook, error) {
 	}
 
 	for _, route := range routes {
-		hook := HookFactory.MustCreateWithOption(util.JSON{
+		hook := HookFactory.MustCreateWithOption(map[string]interface{}{
 			"GameID":    gameID,
 			"PublicID":  uuid.NewV4().String(),
 			"EventType": eventType,
@@ -107,7 +106,7 @@ func configureFactory(fct *factory.Factory) *factory.Factory {
 	}).Attr("Name", func(args factory.Args) (interface{}, error) {
 		return randomdata.FullName(randomdata.RandomGender), nil
 	}).Attr("Metadata", func(args factory.Args) (interface{}, error) {
-		return util.JSON{}, nil
+		return map[string]interface{}{}, nil
 	})
 }
 
@@ -129,7 +128,7 @@ func CreatePlayerFactory(db DB, gameID string, skipCreateGame ...bool) (*Game, *
 		if gameID == "" {
 			gameID = uuid.NewV4().String()
 		}
-		game = GameFactory.MustCreateWithOption(util.JSON{
+		game = GameFactory.MustCreateWithOption(map[string]interface{}{
 			"PublicID": gameID,
 		}).(*Game)
 		err := db.Insert(game)
@@ -144,7 +143,7 @@ func CreatePlayerFactory(db DB, gameID string, skipCreateGame ...bool) (*Game, *
 		}
 	}
 
-	player := PlayerFactory.MustCreateWithOption(util.JSON{
+	player := PlayerFactory.MustCreateWithOption(map[string]interface{}{
 		"GameID": gameID,
 	}).(*Player)
 	err := db.Insert(player)
@@ -175,7 +174,7 @@ func GetClanWithMemberships(
 		if gameID == "" {
 			gameID = uuid.NewV4().String()
 		}
-		game = GameFactory.MustCreateWithOption(util.JSON{
+		game = GameFactory.MustCreateWithOption(map[string]interface{}{
 			"PublicID": gameID,
 		}).(*Game)
 		err := db.Insert(game)
@@ -193,7 +192,7 @@ func GetClanWithMemberships(
 		clanPublicID = uuid.NewV4().String()
 	}
 
-	owner := PlayerFactory.MustCreateWithOption(util.JSON{
+	owner := PlayerFactory.MustCreateWithOption(map[string]interface{}{
 		"GameID":         gameID,
 		"OwnershipCount": 1,
 	}).(*Player)
@@ -202,11 +201,11 @@ func GetClanWithMemberships(
 		return nil, nil, nil, nil, nil, err
 	}
 
-	clan := ClanFactory.MustCreateWithOption(util.JSON{
+	clan := ClanFactory.MustCreateWithOption(map[string]interface{}{
 		"GameID":          owner.GameID,
 		"PublicID":        clanPublicID,
 		"OwnerID":         owner.ID,
-		"Metadata":        util.JSON{"x": "a"},
+		"Metadata":        map[string]interface{}{"x": "a"},
 		"MembershipCount": approvedMemberships + 1,
 	}).(*Clan)
 	err = db.Insert(clan)
@@ -214,26 +213,26 @@ func GetClanWithMemberships(
 		return nil, nil, nil, nil, nil, err
 	}
 
-	testData := []util.JSON{
-		util.JSON{
+	testData := []map[string]interface{}{
+		map[string]interface{}{
 			"approved": true,
 			"denied":   false,
 			"banned":   false,
 			"count":    approvedMemberships,
 		},
-		util.JSON{
+		map[string]interface{}{
 			"approved": false,
 			"denied":   true,
 			"banned":   false,
 			"count":    deniedMemberships,
 		},
-		util.JSON{
+		map[string]interface{}{
 			"approved": false,
 			"denied":   false,
 			"banned":   true,
 			"count":    bannedMemberships,
 		},
-		util.JSON{
+		map[string]interface{}{
 			"approved": false,
 			"denied":   false,
 			"banned":   false,
@@ -255,7 +254,7 @@ func GetClanWithMemberships(
 			if approved {
 				membershipCount = 1
 			}
-			player := PlayerFactory.MustCreateWithOption(util.JSON{
+			player := PlayerFactory.MustCreateWithOption(map[string]interface{}{
 				"GameID":          owner.GameID,
 				"MembershipCount": membershipCount,
 			}).(*Player)
@@ -270,12 +269,12 @@ func GetClanWithMemberships(
 				requestorID = player.ID
 			}
 
-			membership := MembershipFactory.MustCreateWithOption(util.JSON{
+			membership := MembershipFactory.MustCreateWithOption(map[string]interface{}{
 				"GameID":      owner.GameID,
 				"PlayerID":    player.ID,
 				"ClanID":      clan.ID,
 				"RequestorID": requestorID,
-				"Metadata":    util.JSON{"x": "a"},
+				"Metadata":    map[string]interface{}{"x": "a"},
 				"Level":       "Member",
 				"Approved":    approved,
 				"Denied":      denied,
@@ -299,7 +298,7 @@ func GetClanReachedMaxMemberships(db DB) (*Game, *Clan, *Player, []*Player, []*M
 	gameID := uuid.NewV4().String()
 	clanPublicID := uuid.NewV4().String()
 
-	game := GameFactory.MustCreateWithOption(util.JSON{
+	game := GameFactory.MustCreateWithOption(map[string]interface{}{
 		"PublicID":   gameID,
 		"MaxMembers": 1,
 	}).(*Game)
@@ -308,7 +307,7 @@ func GetClanReachedMaxMemberships(db DB) (*Game, *Clan, *Player, []*Player, []*M
 		return nil, nil, nil, nil, nil, err
 	}
 
-	owner := PlayerFactory.MustCreateWithOption(util.JSON{
+	owner := PlayerFactory.MustCreateWithOption(map[string]interface{}{
 		"GameID":         gameID,
 		"OwnershipCount": 1,
 	}).(*Player)
@@ -324,7 +323,7 @@ func GetClanReachedMaxMemberships(db DB) (*Game, *Clan, *Player, []*Player, []*M
 		if i == 0 {
 			membershipCount = 1
 		}
-		player := PlayerFactory.MustCreateWithOption(util.JSON{
+		player := PlayerFactory.MustCreateWithOption(map[string]interface{}{
 			"GameID":          owner.GameID,
 			"MembershipCount": membershipCount,
 		}).(*Player)
@@ -335,11 +334,11 @@ func GetClanReachedMaxMemberships(db DB) (*Game, *Clan, *Player, []*Player, []*M
 		players = append(players, player)
 	}
 
-	clan := ClanFactory.MustCreateWithOption(util.JSON{
+	clan := ClanFactory.MustCreateWithOption(map[string]interface{}{
 		"GameID":          owner.GameID,
 		"PublicID":        clanPublicID,
 		"OwnerID":         owner.ID,
-		"Metadata":        util.JSON{"x": "a"},
+		"Metadata":        map[string]interface{}{"x": "a"},
 		"MembershipCount": 2,
 	}).(*Clan)
 	err = db.Insert(clan)
@@ -349,12 +348,12 @@ func GetClanReachedMaxMemberships(db DB) (*Game, *Clan, *Player, []*Player, []*M
 
 	var memberships []*Membership
 
-	membership := MembershipFactory.MustCreateWithOption(util.JSON{
+	membership := MembershipFactory.MustCreateWithOption(map[string]interface{}{
 		"GameID":      owner.GameID,
 		"PlayerID":    players[0].ID,
 		"ClanID":      clan.ID,
 		"RequestorID": owner.ID,
-		"Metadata":    util.JSON{"x": "a"},
+		"Metadata":    map[string]interface{}{"x": "a"},
 		"Approved":    true,
 		"Level":       "Member",
 	}).(*Membership)
@@ -364,12 +363,12 @@ func GetClanReachedMaxMemberships(db DB) (*Game, *Clan, *Player, []*Player, []*M
 	}
 	memberships = append(memberships, membership)
 
-	membership = MembershipFactory.MustCreateWithOption(util.JSON{
+	membership = MembershipFactory.MustCreateWithOption(map[string]interface{}{
 		"GameID":      owner.GameID,
 		"PlayerID":    players[1].ID,
 		"ClanID":      clan.ID,
 		"RequestorID": owner.ID,
-		"Metadata":    util.JSON{"x": "a"},
+		"Metadata":    map[string]interface{}{"x": "a"},
 		"Approved":    false,
 		"Level":       "Member",
 	}).(*Membership)
@@ -387,7 +386,7 @@ func GetTestClans(db DB, gameID string, publicIDTemplate string, numberOfClans i
 	if gameID == "" {
 		gameID = uuid.NewV4().String()
 	}
-	game := GameFactory.MustCreateWithOption(util.JSON{
+	game := GameFactory.MustCreateWithOption(map[string]interface{}{
 		"PublicID": gameID,
 	}).(*Game)
 	err := db.Insert(game)
@@ -395,7 +394,7 @@ func GetTestClans(db DB, gameID string, publicIDTemplate string, numberOfClans i
 		return nil, nil, err
 	}
 
-	player := PlayerFactory.MustCreateWithOption(util.JSON{
+	player := PlayerFactory.MustCreateWithOption(map[string]interface{}{
 		"GameID":         gameID,
 		"OwnershipCount": numberOfClans,
 	}).(*Player)
@@ -410,7 +409,7 @@ func GetTestClans(db DB, gameID string, publicIDTemplate string, numberOfClans i
 
 	var clans []*Clan
 	for i := 0; i < numberOfClans; i++ {
-		clan := ClanFactory.MustCreateWithOption(util.JSON{
+		clan := ClanFactory.MustCreateWithOption(map[string]interface{}{
 			"GameID":   player.GameID,
 			"PublicID": fmt.Sprintf("%s-%d", publicIDTemplate, i),
 			"Name":     fmt.Sprintf("💩clán-%s-%d", publicIDTemplate, i),
@@ -429,7 +428,7 @@ func GetTestClans(db DB, gameID string, publicIDTemplate string, numberOfClans i
 
 // GetTestHooks return a fixed number of hooks for each event available
 func GetTestHooks(db DB, gameID string, numberOfHooks int) ([]*Hook, error) {
-	game := GameFactory.MustCreateWithOption(util.JSON{
+	game := GameFactory.MustCreateWithOption(map[string]interface{}{
 		"PublicID": gameID,
 	}).(*Game)
 	err := db.Insert(game)
@@ -440,7 +439,7 @@ func GetTestHooks(db DB, gameID string, numberOfHooks int) ([]*Hook, error) {
 	var hooks []*Hook
 	for i := 0; i < 2; i++ {
 		for j := 0; j < numberOfHooks; j++ {
-			hook := HookFactory.MustCreateWithOption(util.JSON{
+			hook := HookFactory.MustCreateWithOption(map[string]interface{}{
 				"GameID":    gameID,
 				"PublicID":  uuid.NewV4().String(),
 				"EventType": i,
@@ -459,7 +458,7 @@ func GetTestHooks(db DB, gameID string, numberOfHooks int) ([]*Hook, error) {
 
 //GetTestPlayerWithMemberships returns a player with approved, rejected and banned memberships
 func GetTestPlayerWithMemberships(db DB, gameID string, approvedMemberships, rejectedMemberships, bannedMemberships, pendingMemberships int) (*Player, error) {
-	game := GameFactory.MustCreateWithOption(util.JSON{
+	game := GameFactory.MustCreateWithOption(map[string]interface{}{
 		"PublicID": gameID,
 	}).(*Game)
 	err := db.Insert(game)
@@ -467,7 +466,7 @@ func GetTestPlayerWithMemberships(db DB, gameID string, approvedMemberships, rej
 		return nil, err
 	}
 
-	owner := PlayerFactory.MustCreateWithOption(util.JSON{
+	owner := PlayerFactory.MustCreateWithOption(map[string]interface{}{
 		"GameID":         gameID,
 		"OwnershipCount": 1,
 	}).(*Player)
@@ -476,7 +475,7 @@ func GetTestPlayerWithMemberships(db DB, gameID string, approvedMemberships, rej
 		return nil, err
 	}
 
-	player := PlayerFactory.MustCreateWithOption(util.JSON{
+	player := PlayerFactory.MustCreateWithOption(map[string]interface{}{
 		"GameID":          owner.GameID,
 		"MembershipCount": approvedMemberships,
 	}).(*Player)
@@ -486,11 +485,11 @@ func GetTestPlayerWithMemberships(db DB, gameID string, approvedMemberships, rej
 	}
 
 	createClan := func() (*Clan, error) {
-		clan := ClanFactory.MustCreateWithOption(util.JSON{
+		clan := ClanFactory.MustCreateWithOption(map[string]interface{}{
 			"GameID":          owner.GameID,
 			"PublicID":        uuid.NewV4().String(),
 			"OwnerID":         owner.ID,
-			"Metadata":        util.JSON{"x": "a"},
+			"Metadata":        map[string]interface{}{"x": "a"},
 			"MembershipCount": approvedMemberships + 1,
 		}).(*Clan)
 		err = db.Insert(clan)
@@ -507,12 +506,12 @@ func GetTestPlayerWithMemberships(db DB, gameID string, approvedMemberships, rej
 			return nil, err
 		}
 
-		payload := util.JSON{
+		payload := map[string]interface{}{
 			"GameID":      owner.GameID,
 			"PlayerID":    player.ID,
 			"ClanID":      clan.ID,
 			"RequestorID": owner.ID,
-			"Metadata":    util.JSON{"x": "a"},
+			"Metadata":    map[string]interface{}{"x": "a"},
 			"Approved":    approved,
 			"Denied":      denied,
 			"Banned":      banned,

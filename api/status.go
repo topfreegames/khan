@@ -11,17 +11,16 @@ import (
 	"encoding/json"
 
 	"github.com/kataras/iris"
-	"github.com/topfreegames/khan/util"
 )
 
 // StatusHandler is the handler responsible for reporting khan status
 func StatusHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
-		payload := util.JSON{
-			"app": util.JSON{
+		payload := map[string]interface{}{
+			"app": map[string]interface{}{
 				"errorRate": app.Errors.Rate(),
 			},
-			"dispatch": util.JSON{
+			"dispatch": map[string]interface{}{
 				"pendingJobs": app.Dispatcher.Jobs,
 			},
 		}

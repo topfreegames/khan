@@ -15,23 +15,22 @@ import (
 	"github.com/Pallinder/go-randomdata"
 	"github.com/satori/go.uuid"
 	"github.com/topfreegames/khan/models"
-	"github.com/topfreegames/khan/util"
 )
 
 var gameResult *http.Response
 
-func getGamePayload(publicID, name string) util.JSON {
+func getGamePayload(publicID, name string) map[string]interface{} {
 	if publicID == "" {
 		publicID = randomdata.FullName(randomdata.RandomGender)
 	}
 	if name == "" {
 		name = randomdata.FullName(randomdata.RandomGender)
 	}
-	return util.JSON{
+	return map[string]interface{}{
 		"publicID":                      publicID,
 		"name":                          name,
-		"membershipLevels":              util.JSON{"Member": 1, "Elder": 2, "CoLeader": 3},
-		"metadata":                      util.JSON{"x": "a"},
+		"membershipLevels":              map[string]interface{}{"Member": 1, "Elder": 2, "CoLeader": 3},
+		"metadata":                      map[string]interface{}{"x": "a"},
 		"minLevelToAcceptApplication":   1,
 		"minLevelToCreateInvitation":    1,
 		"minLevelToRemoveMember":        1,
@@ -66,7 +65,7 @@ func BenchmarkUpdateGame(b *testing.B) {
 
 	var games []*models.Game
 	for i := 0; i < b.N; i++ {
-		game := models.GameFactory.MustCreateWithOption(util.JSON{
+		game := models.GameFactory.MustCreateWithOption(map[string]interface{}{
 			"PublicID":          uuid.NewV4().String(),
 			"MaxClansPerPlayer": 999999,
 		}).(*models.Game)

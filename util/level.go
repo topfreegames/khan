@@ -19,7 +19,7 @@ func getIntLevel(level interface{}) int {
 }
 
 // SortLevels sorts levels
-func SortLevels(levels JSON) LevelsList {
+func SortLevels(levels map[string]interface{}) LevelsList {
 	ll := make(LevelsList, len(levels))
 	i := 0
 	for k, v := range levels {

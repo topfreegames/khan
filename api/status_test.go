@@ -13,7 +13,6 @@ import (
 	"testing"
 
 	. "github.com/franela/goblin"
-	"github.com/topfreegames/khan/util"
 )
 
 func TestStatusHandler(t *testing.T) {
@@ -26,7 +25,7 @@ func TestStatusHandler(t *testing.T) {
 
 			g.Assert(res.Raw().StatusCode).Equal(http.StatusOK)
 
-			var result util.JSON
+			var result map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 
 			g.Assert(result["app"] != nil).IsTrue()

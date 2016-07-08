@@ -50,13 +50,14 @@ func createGames(db models.DB, gameCount int) []string {
 			1,
 			50,
 			1, 
-			to_json('{1:"member", 2:"elder", 3:"coleader"}'::text),
-			to_json('{}'::text),
+			CAST(to_jsonb($1::text) as jsonb),
+			CAST(to_jsonb($2::text) as jsonb),
 			0,
 			0
-	FROM generate_series(1, $1)
+	FROM generate_series(1, $3)
 	`
-	_, err := db.Exec(sql, gameCount)
+	_, err := db.Exec(sql, "{1:\"member\", 2:\"elder\", 3:\"coleader\"}", "{}", gameCount)
+
 	if err != nil {
 		panic(err.Error())
 	}
@@ -84,12 +85,12 @@ func createPlayersWithoutClan(db models.DB, games []string, playersWithoutClan i
 				uuid_generate_v4(),
 				$1,
 				uuid_generate_v4(),
-				to_json('{}'::text),
+				$2,
 				0,
 				0
-		FROM generate_series(1, $2)
+		FROM generate_series(1, $3)
 		`
-		_, err := db.Exec(sql, game, playersWithoutClan)
+		_, err := db.Exec(sql, game, "{}", playersWithoutClan)
 		if err != nil {
 			panic(err.Error())
 		}
@@ -119,7 +120,7 @@ func createClans(db models.DB, games []string, clans int, progress func() bool) 
 					uuid_generate_v4(),
 					$1,
 					uuid_generate_v4(),
-					to_json('{}'::text),
+					$2,
 					0,
 					0
 			FROM generate_series(1, 1)
@@ -141,16 +142,16 @@ func createClans(db models.DB, games []string, clans int, progress func() bool) 
 			uuid_generate_v4(),
 			$1,
 			uuid_generate_v4(),
-			to_json('{}'::text),
+			$2,
 			true,
 			true,
 			0,
 			0,
 			0,
 			owner.id
-		FROM generate_series(1, $2), owner
+		FROM generate_series(1, $3), owner
 		`
-		_, err := db.Exec(sql, game, clans)
+		_, err := db.Exec(sql, game, "{}", clans)
 		if err != nil {
 			panic(err.Error())
 		}
@@ -189,7 +190,7 @@ func createClanPlayers(db models.DB, games []string, clans map[string][]clanData
 						uuid_generate_v4(),
 						$1,
 						uuid_generate_v4(),
-						to_json('{}'::text),
+						$8,
 						0,
 						0
 				FROM generate_series(1, $2)
@@ -224,7 +225,7 @@ func createClanPlayers(db models.DB, games []string, clans map[string][]clanData
 				0
 			FROM addedPlayers ap
 			`
-			_, err := db.Exec(sql, game, playersPerClan, clan.ID, approved, denied, banned, clan.OwnerID)
+			_, err := db.Exec(sql, game, playersPerClan, clan.ID, approved, denied, banned, clan.OwnerID, "{}")
 			if err != nil {
 				panic(err.Error())
 			}

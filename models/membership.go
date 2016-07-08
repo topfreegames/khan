@@ -10,8 +10,6 @@ package models
 import (
 	"time"
 
-	"github.com/topfreegames/khan/util"
-
 	"gopkg.in/gorp.v1"
 )
 
@@ -459,7 +457,7 @@ func recreateDeletedMembershipHelper(db DB, membership *Membership, level string
 	return membership, nil
 }
 
-func promoteOrDemoteMemberHelper(db DB, membership *Membership, action string, levels util.JSON) (*Membership, error) {
+func promoteOrDemoteMemberHelper(db DB, membership *Membership, action string, levels map[string]interface{}) (*Membership, error) {
 	levelInt := GetLevelIntByLevel(membership.Level, levels)
 	if action == "promote" {
 		membership.Level = GetLevelByLevelInt(levelInt+1, levels)
@@ -504,7 +502,7 @@ func deleteMembershipHelper(db DB, membership *Membership, deletedBy int) error 
 }
 
 // GetLevelByLevelInt returns the level string given the level int
-func GetLevelByLevelInt(levelInt int, levels util.JSON) string {
+func GetLevelByLevelInt(levelInt int, levels map[string]interface{}) string {
 	for k, v := range levels {
 		switch v.(type) {
 		case float64:
@@ -521,7 +519,7 @@ func GetLevelByLevelInt(levelInt int, levels util.JSON) string {
 }
 
 // GetLevelIntByLevel returns the level string given the level int
-func GetLevelIntByLevel(level string, levels util.JSON) int {
+func GetLevelIntByLevel(level string, levels map[string]interface{}) int {
 	v := levels[level]
 	switch v.(type) {
 	case float64:

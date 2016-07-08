@@ -14,7 +14,6 @@ import (
 
 	"github.com/satori/go.uuid"
 	"github.com/topfreegames/khan/models"
-	"github.com/topfreegames/khan/util"
 )
 
 var result *http.Response
@@ -32,7 +31,7 @@ func BenchmarkCreateClan(b *testing.B) {
 
 	var players []*models.Player
 	for i := 0; i < b.N; i++ {
-		player := models.PlayerFactory.MustCreateWithOption(util.JSON{
+		player := models.PlayerFactory.MustCreateWithOption(map[string]interface{}{
 			"GameID": game.PublicID,
 		}).(*models.Player)
 		err = db.Insert(player)
@@ -213,7 +212,7 @@ func BenchmarkLeaveClan(b *testing.B) {
 
 	for i := 0; i < b.N; i++ {
 		route := getRoute(fmt.Sprintf("/games/%s/clans/%s/leave", game.PublicID, clans[i].PublicID))
-		res, err := postTo(route, util.JSON{
+		res, err := postTo(route, map[string]interface{}{
 			"ownerPublicID": owner.PublicID,
 		})
 		validateResp(res, err)
@@ -243,7 +242,7 @@ func BenchmarkTransferOwnership(b *testing.B) {
 
 	for i := 0; i < b.N; i++ {
 		route := getRoute(fmt.Sprintf("/games/%s/clans/%s/transfer-ownership", game.PublicID, clan.PublicID))
-		res, err := postTo(route, util.JSON{
+		res, err := postTo(route, map[string]interface{}{
 			"ownerPublicID":  player1,
 			"playerPublicID": player2,
 		})

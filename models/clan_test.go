@@ -16,7 +16,6 @@ import (
 
 	"github.com/Pallinder/go-randomdata"
 	. "github.com/franela/goblin"
-	"github.com/topfreegames/khan/util"
 )
 
 func TestClanModel(t *testing.T) {
@@ -59,7 +58,7 @@ func TestClanModel(t *testing.T) {
 				dt := clan.UpdatedAt
 				time.Sleep(time.Millisecond)
 
-				clan.Metadata = util.JSON{"x": 1}
+				clan.Metadata = map[string]interface{}{"x": 1}
 				count, err := testDb.Update(clan)
 				g.Assert(err == nil).IsTrue()
 				g.Assert(int(count)).Equal(1)
@@ -178,7 +177,7 @@ func TestClanModel(t *testing.T) {
 					"create-1",
 					randomdata.FullName(randomdata.RandomGender),
 					player.PublicID,
-					util.JSON{},
+					map[string]interface{}{},
 					true,
 					false,
 					game.MaxClansPerPlayer,
@@ -209,7 +208,7 @@ func TestClanModel(t *testing.T) {
 					strings.Repeat("a", 256),
 					"clan-name",
 					player.PublicID,
-					util.JSON{},
+					map[string]interface{}{},
 					true,
 					false,
 					game.MaxClansPerPlayer,
@@ -229,7 +228,7 @@ func TestClanModel(t *testing.T) {
 					"create-1",
 					randomdata.FullName(randomdata.RandomGender),
 					owner.PublicID,
-					util.JSON{},
+					map[string]interface{}{},
 					true,
 					false,
 					game.MaxClansPerPlayer,
@@ -249,7 +248,7 @@ func TestClanModel(t *testing.T) {
 					"create-1",
 					randomdata.FullName(randomdata.RandomGender),
 					players[0].PublicID,
-					util.JSON{},
+					map[string]interface{}{},
 					true,
 					false,
 					game.MaxClansPerPlayer,
@@ -268,7 +267,7 @@ func TestClanModel(t *testing.T) {
 					randomdata.FullName(randomdata.RandomGender),
 					"clan-name",
 					playerPublicID,
-					util.JSON{},
+					map[string]interface{}{},
 					true,
 					false,
 					game.MaxClansPerPlayer,
@@ -285,7 +284,7 @@ func TestClanModel(t *testing.T) {
 				g.Assert(err == nil).IsTrue()
 				clan := clans[0]
 
-				metadata := util.JSON{"x": 1}
+				metadata := map[string]interface{}{"x": 1}
 				updClan, err := UpdateClan(
 					testDb,
 					clan.GameID,
@@ -314,7 +313,7 @@ func TestClanModel(t *testing.T) {
 				_, player, err := CreatePlayerFactory(testDb, "")
 				g.Assert(err == nil).IsTrue()
 
-				metadata := util.JSON{"x": 1}
+				metadata := map[string]interface{}{"x": 1}
 				_, err = UpdateClan(
 					testDb,
 					clan.GameID,
@@ -335,7 +334,7 @@ func TestClanModel(t *testing.T) {
 				g.Assert(err == nil).IsTrue()
 				clan := clans[0]
 
-				metadata := util.JSON{}
+				metadata := map[string]interface{}{}
 				_, err = UpdateClan(
 					testDb,
 					clan.GameID,
@@ -585,21 +584,21 @@ func TestClanModel(t *testing.T) {
 				g.Assert(clanData["name"]).Equal(clan.Name)
 				g.Assert(clanData["metadata"]).Equal(clan.Metadata)
 				g.Assert(clanData["membershipCount"]).Equal(11)
-				g.Assert(clanData["owner"].(util.JSON)["publicID"]).Equal(owner.PublicID)
+				g.Assert(clanData["owner"].(map[string]interface{})["publicID"]).Equal(owner.PublicID)
 
-				roster := clanData["roster"].([]util.JSON)
+				roster := clanData["roster"].([]map[string]interface{})
 				g.Assert(len(roster)).Equal(10)
 
-				pendingApplications := clanData["memberships"].(util.JSON)["pendingApplications"].([]util.JSON)
+				pendingApplications := clanData["memberships"].(map[string]interface{})["pendingApplications"].([]map[string]interface{})
 				g.Assert(len(pendingApplications)).Equal(0)
 
-				pendingInvites := clanData["memberships"].(util.JSON)["pendingInvites"].([]util.JSON)
+				pendingInvites := clanData["memberships"].(map[string]interface{})["pendingInvites"].([]map[string]interface{})
 				g.Assert(len(pendingInvites)).Equal(5)
 
-				banned := clanData["memberships"].(util.JSON)["banned"].([]util.JSON)
+				banned := clanData["memberships"].(map[string]interface{})["banned"].([]map[string]interface{})
 				g.Assert(len(banned)).Equal(4)
 
-				denied := clanData["memberships"].(util.JSON)["denied"].([]util.JSON)
+				denied := clanData["memberships"].(map[string]interface{})["denied"].([]map[string]interface{})
 				g.Assert(len(denied)).Equal(3)
 
 				playerDict := map[string]*Player{}
@@ -613,7 +612,7 @@ func TestClanModel(t *testing.T) {
 				}
 
 				for _, playerData := range roster {
-					player := playerData["player"].(util.JSON)
+					player := playerData["player"].(map[string]interface{})
 					pid := player["publicID"].(string)
 					name := player["name"].(string)
 					g.Assert(name).Equal(playerDict[pid].Name)
@@ -622,7 +621,7 @@ func TestClanModel(t *testing.T) {
 				}
 
 				for _, playerData := range pendingInvites {
-					player := playerData["player"].(util.JSON)
+					player := playerData["player"].(map[string]interface{})
 					pid := player["publicID"].(string)
 					name := player["name"].(string)
 					g.Assert(name).Equal(playerDict[pid].Name)
@@ -631,7 +630,7 @@ func TestClanModel(t *testing.T) {
 				}
 
 				for _, playerData := range banned {
-					player := playerData["player"].(util.JSON)
+					player := playerData["player"].(map[string]interface{})
 					pid := player["publicID"].(string)
 					name := player["name"].(string)
 					g.Assert(name).Equal(playerDict[pid].Name)
@@ -639,7 +638,7 @@ func TestClanModel(t *testing.T) {
 				}
 
 				for _, playerData := range denied {
-					player := playerData["player"].(util.JSON)
+					player := playerData["player"].(map[string]interface{})
 					pid := player["publicID"].(string)
 					name := player["name"].(string)
 					g.Assert(name).Equal(playerDict[pid].Name)
@@ -663,7 +662,7 @@ func TestClanModel(t *testing.T) {
 				g.Assert(clanData["name"]).Equal(clan.Name)
 				g.Assert(clanData["metadata"]).Equal(clan.Metadata)
 
-				roster := clanData["roster"].([]util.JSON)
+				roster := clanData["roster"].([]map[string]interface{})
 				g.Assert(len(roster)).Equal(9)
 
 				playerDict := map[string]*Player{}
@@ -672,7 +671,7 @@ func TestClanModel(t *testing.T) {
 				}
 
 				for i := 0; i < len(roster); i++ {
-					player := roster[i]["player"].(util.JSON)
+					player := roster[i]["player"].(map[string]interface{})
 					pid := player["publicID"].(string)
 					name := player["name"].(string)
 					g.Assert(name).Equal(playerDict[pid].Name)
@@ -696,7 +695,7 @@ func TestClanModel(t *testing.T) {
 				g.Assert(clanData["allowApplication"]).Equal(clan.AllowApplication)
 				g.Assert(clanData["autoJoin"]).Equal(clan.AutoJoin)
 				g.Assert(clanData["membershipCount"]).Equal(1)
-				roster := clanData["roster"].([]util.JSON)
+				roster := clanData["roster"].([]map[string]interface{})
 				g.Assert(len(roster)).Equal(0)
 			})
 

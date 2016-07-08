@@ -15,7 +15,6 @@ import (
 	"github.com/gavv/httpexpect"
 	"github.com/gavv/httpexpect/fasthttpexpect"
 	"github.com/topfreegames/khan/models"
-	"github.com/topfreegames/khan/util"
 )
 
 // GetDefaultTestApp returns a new Khan API Application bound to 0.0.0.0:8888 for test
@@ -47,16 +46,16 @@ func sendBody(app *App, method string, url string, t *testing.T, payload string)
 }
 
 // PostJSON returns a test request against specified URL
-func PostJSON(app *App, url string, t *testing.T, payload util.JSON) *httpexpect.Response {
+func PostJSON(app *App, url string, t *testing.T, payload map[string]interface{}) *httpexpect.Response {
 	return sendJSON(app, "POST", url, t, payload)
 }
 
 // PutJSON returns a test request against specified URL
-func PutJSON(app *App, url string, t *testing.T, payload util.JSON) *httpexpect.Response {
+func PutJSON(app *App, url string, t *testing.T, payload map[string]interface{}) *httpexpect.Response {
 	return sendJSON(app, "PUT", url, t, payload)
 }
 
-func sendJSON(app *App, method, url string, t *testing.T, payload util.JSON) *httpexpect.Response {
+func sendJSON(app *App, method, url string, t *testing.T, payload map[string]interface{}) *httpexpect.Response {
 	req := sendRequest(app, method, url, t)
 	return req.WithJSON(payload).Expect()
 }
@@ -102,7 +101,7 @@ func str(value interface{}) string {
 	return fmt.Sprintf("%v", value)
 }
 
-func validateMembershipHookResponse(g *goblin.G, apply util.JSON, gameID string, clan *models.Clan, player *models.Player, requestor *models.Player) {
+func validateMembershipHookResponse(g *goblin.G, apply map[string]interface{}, gameID string, clan *models.Clan, player *models.Player, requestor *models.Player) {
 	g.Assert(apply["gameID"]).Equal(gameID)
 
 	rClan := apply["clan"].(map[string]interface{})
