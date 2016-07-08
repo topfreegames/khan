@@ -312,15 +312,18 @@ func GetClanDetails(db DB, gameID, publicID string, maxClansPerPlayer int) (map[
 		m.membership_level MembershipLevel, m.approved MembershipApproved, m.denied MembershipDenied,
 		m.banned MembershipBanned,
 		m.created_at MembershipCreatedAt, m.updated_at MembershipUpdatedAt,
+		m.approved_at MembershipApprovedAt,
 		o.public_id OwnerPublicID, o.name OwnerName, o.metadata OwnerMetadata,
 		p.public_id PlayerPublicID, p.name PlayerName, p.metadata DBPlayerMetadata,
 		r.public_id RequestorPublicID, r.name RequestorName,
+		a.public_id ApproverPublicID, a.name ApproverName,
 		Coalesce(p.membership_count, 0) MembershipCount,
 		Coalesce(p.ownership_count, 0) OwnershipCount
 	FROM clans c
 		INNER JOIN players o ON c.owner_id=o.id
 		LEFT OUTER JOIN memberships m ON m.clan_id=c.id AND m.deleted_at=0
 		LEFT OUTER JOIN players r ON m.requestor_id=r.id
+		LEFT OUTER JOIN players a ON m.approver_id=a.id
 		LEFT OUTER JOIN players p ON m.player_id=p.id
 	WHERE
 		c.game_id=$1 AND c.public_id=$2

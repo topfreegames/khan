@@ -647,6 +647,9 @@ func TestMembershipModel(t *testing.T) {
 				g.Assert(dbMembership.Approved).Equal(true)
 				g.Assert(dbMembership.Denied).Equal(false)
 
+				g.Assert(dbMembership.ApproverID.Valid).IsTrue()
+				g.Assert(dbMembership.ApproverID.Int64).Equal(int64(players[0].ID))
+
 				dbPlayer, err := GetPlayerByID(testDb, players[0].ID)
 				g.Assert(err == nil).IsTrue()
 				g.Assert(dbPlayer.MembershipCount).Equal(1)
@@ -902,6 +905,9 @@ func TestMembershipModel(t *testing.T) {
 				g.Assert(dbMembership.Approved).Equal(true)
 				g.Assert(dbMembership.Denied).Equal(false)
 
+				g.Assert(dbMembership.ApproverID.Valid).IsTrue()
+				g.Assert(dbMembership.ApproverID.Int64).Equal(int64(owner.ID))
+
 				dbPlayer, err := GetPlayerByID(testDb, players[0].ID)
 				g.Assert(err == nil).IsTrue()
 				g.Assert(dbPlayer.MembershipCount).Equal(1)
@@ -939,6 +945,9 @@ func TestMembershipModel(t *testing.T) {
 				g.Assert(updatedMembership.ID).Equal(memberships[0].ID)
 				g.Assert(updatedMembership.Approved).Equal(true)
 				g.Assert(updatedMembership.Denied).Equal(false)
+
+				g.Assert(updatedMembership.ApproverID.Valid).IsTrue()
+				g.Assert(updatedMembership.ApproverID.Int64).Equal(int64(players[1].ID))
 
 				dbMembership, err := GetMembershipByID(testDb, updatedMembership.ID)
 				g.Assert(err == nil).IsTrue()

@@ -8,6 +8,7 @@
 package models
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
@@ -174,6 +175,8 @@ func TestPlayerModel(t *testing.T) {
 				player, err := GetTestPlayerWithMemberships(testDb, gameID, 5, 2, 3, 8)
 				g.Assert(err == nil).IsTrue()
 
+				fmt.Println("TEST PLAYER", player.PublicID)
+
 				playerDetails, err := GetPlayerDetails(
 					testDb,
 					player.GameID,
@@ -204,6 +207,16 @@ func TestPlayerModel(t *testing.T) {
 				g.Assert(len(banned)).Equal(3)
 				g.Assert(len(pendingApplications)).Equal(0)
 				g.Assert(len(pendingInvites)).Equal(8)
+
+				approvedMembership := playerDetails["memberships"].([]map[string]interface{})[0]
+
+				g.Assert(approvedMembership["approver"] != nil).IsTrue()
+				approver := approvedMembership["approver"].(map[string]interface{})
+				g.Assert(approver["name"]).Equal(player.Name)
+				g.Assert(approver["publicID"]).Equal(player.PublicID)
+
+				g.Assert(approvedMembership["approvedAt"] != nil).IsTrue()
+				g.Assert(approvedMembership["approvedAt"].(int64) > 0).IsTrue()
 			})
 
 			g.It("Should get Player Details including owned clans", func() {

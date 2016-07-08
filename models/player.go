@@ -163,15 +163,18 @@ func GetPlayerDetails(db DB, gameID, publicID string) (map[string]interface{}, e
 		m.approved MembershipApproved, m.denied MembershipDenied, m.banned MembershipBanned,
 		c.public_id ClanPublicID, c.name ClanName, c.metadata DBClanMetadata, c.owner_id ClanOwnerID,
 		r.name RequestorName, r.public_id RequestorPublicID, r.metadata DBRequestorMetadata,
+		a.name ApproverName, a.public_id ApproverPublicID, a.metadata DBApproverMetadata,
 		m.created_at MembershipCreatedAt,
 		m.updated_at MembershipUpdatedAt,
 		m.deleted_at MembershipDeletedAt,
+		m.approved_at MembershipApprovedAt,
 		d.name DeletedByName, d.public_id DeletedByPublicID
 	FROM players p
 		LEFT OUTER JOIN memberships m on m.player_id = p.id
 		LEFT OUTER JOIN clans c on c.id=m.clan_id OR c.owner_id=p.id
 		LEFT OUTER JOIN players d on d.id=m.deleted_by
 		LEFT OUTER JOIN players r on r.id=m.requestor_id
+		LEFT OUTER JOIN players a on a.id=m.approver_id
 	WHERE
 		p.game_id=$1 and p.public_id=$2`
 

@@ -8,6 +8,7 @@
 package models
 
 import (
+	"database/sql"
 	"fmt"
 	"time"
 
@@ -158,6 +159,15 @@ var MembershipFactory = factory.NewFactory(
 	&Membership{},
 ).SeqInt("GameID", func(n int) (interface{}, error) {
 	return fmt.Sprintf("game-%d", n), nil
+}).Attr("ApproverID", func(args factory.Args) (interface{}, error) {
+	membership := args.Instance().(*Membership)
+	approverID := 0
+	valid := false
+	if membership.Approved {
+		approverID = membership.RequestorID
+		valid = true
+	}
+	return sql.NullInt64{Int64: int64(approverID), Valid: valid}, nil
 })
 
 // GetClanWithMemberships returns a clan filled with the number of memberships specified
@@ -281,6 +291,16 @@ func GetClanWithMemberships(
 				"Banned":      banned,
 			}).(*Membership)
 
+			if approved {
+				approverID := player.ID
+				if !pendingsAreInvites {
+					approverID = owner.ID
+				}
+
+				membership.ApproverID = sql.NullInt64{Int64: int64(approverID), Valid: true}
+				membership.ApprovedAt = time.Now().UnixNano()
+			}
+
 			err = db.Insert(membership)
 			if err != nil {
 				return nil, nil, nil, nil, nil, err
@@ -356,6 +376,8 @@ func GetClanReachedMaxMemberships(db DB) (*Game, *Clan, *Player, []*Player, []*M
 		"Metadata":    map[string]interface{}{"x": "a"},
 		"Approved":    true,
 		"Level":       "Member",
+		"ApproverID":  sql.NullInt64{Int64: int64(players[0].ID), Valid: true},
+		"ApprovedAt":  time.Now().UnixNano(),
 	}).(*Membership)
 	err = db.Insert(membership)
 	if err != nil {
@@ -519,6 +541,10 @@ func GetTestPlayerWithMemberships(db DB, gameID string, approvedMemberships, rej
 		if banned {
 			payload["DeletedAt"] = time.Now().UnixNano()
 			payload["DeletedBy"] = owner.ID
+		}
+		if approved {
+			payload["ApproverID"] = sql.NullInt64{Int64: int64(player.ID), Valid: true}
+			payload["ApprovedAt"] = time.Now().UnixNano()
 		}
 
 		membership := MembershipFactory.MustCreateWithOption(payload).(*Membership)
