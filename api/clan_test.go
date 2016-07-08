@@ -500,6 +500,35 @@ func TestClanHandler(t *testing.T) {
 				g.Assert(clan["allowApplication"]).Equal(expectedClan.AllowApplication)
 			}
 		})
+
+		g.It("Should unicode search for a clan", func() {
+			player, expectedClans, err := models.GetTestClans(
+				testDb, "clan-apisearch-game", "clan-apisearch-clan", 10,
+			)
+			g.Assert(err == nil).IsTrue()
+
+			a := GetDefaultTestApp()
+
+			res := Get(a, GetGameRoute(player.GameID, "clan-search?term=💩clán-clan-APISEARCH"), t)
+
+			g.Assert(res.Raw().StatusCode).Equal(http.StatusOK)
+			var result util.JSON
+			json.Unmarshal([]byte(res.Body().Raw()), &result)
+
+			g.Assert(result["success"]).IsTrue()
+
+			clans := result["clans"].([]interface{})
+			g.Assert(len(clans)).Equal(10)
+
+			for index, expectedClan := range expectedClans {
+				clan := clans[index].(map[string]interface{}) // Can't be util.JSON
+				g.Assert(clan["name"]).Equal(expectedClan.Name)
+				g.Assert(int(clan["membershipCount"].(float64))).Equal(expectedClan.MembershipCount)
+				g.Assert(clan["autoJoin"]).Equal(expectedClan.AutoJoin)
+				g.Assert(clan["allowApplication"]).Equal(expectedClan.AllowApplication)
+			}
+		})
+
 	})
 
 	g.Describe("Clan Hooks", func() {

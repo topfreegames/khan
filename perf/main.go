@@ -8,6 +8,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"time"
 
@@ -267,7 +268,17 @@ func createTestData(db models.DB, games, clansPerGame, playersPerClan, playersWi
 	return nil
 }
 
+var games = flag.Int("games", 20, "number of games to create")
+var playersWithoutClan = flag.Int("pwc", 50000, "number of players without clan")
+var clansPerGame = flag.Int("cpg", 1000, "clans per game")
+var playersPerClan = flag.Int("ppc", 50, "number of players in each clan")
+var pendingMembershipsPerClan = flag.Int("pmpc", 250, "number of players with pending memberships in each clan")
+var bannedMembershipsPerClan = flag.Int("bmpc", 250, "number of players with pending memberships in each clan")
+var deniedMembershipsPerClan = flag.Int("dmpc", 250, "number of players with pending memberships in each clan")
+var useMainDB = flag.Bool("use-main", false, "use main database for khan")
+
 func main() {
+	flag.Parse()
 	stages = map[int]string{
 		0:  "******Games*****",
 		1:  "Clanless Players",
@@ -284,23 +295,7 @@ func main() {
 
 	start := time.Now()
 
-	games := 20
-	playersWithoutClan := 50000
-	clansPerGame := 1000
-	playersPerClan := 50
-	pendingMembershipsPerClan := 250
-	bannedMembershipsPerClan := 250
-	deniedMembershipsPerClan := 250
-
-	//games := 2
-	//playersWithoutClan := 50
-	//clansPerGame := 10
-	//playersPerClan := 50
-	//pendingMembershipsPerClan := 250
-	//bannedMembershipsPerClan := 250
-	//deniedMembershipsPerClan := 250
-
-	totalOps := 1 + games + games + (games * clansPerGame * 4)
+	totalOps := 1 + *games + *games + (*games * *clansPerGame * 4)
 
 	uiprogress.Start()                     // start rendering
 	bar := uiprogress.AddBar(totalOps - 1) // Add a new bar
@@ -316,10 +311,17 @@ func main() {
 		return strutil.Resize(text, uint(len(text)))
 	})
 
-	testDb, err := models.GetPerfDB()
+	var testDb models.DB
+	var err error
+
+	if *useMainDB {
+		testDb, err = models.GetDefaultDB()
+	} else {
+		testDb, err = models.GetPerfDB()
+	}
 	if err != nil {
 		panic(err.Error())
 	}
 
-	createTestData(testDb, games, clansPerGame, playersPerClan, playersWithoutClan, pendingMembershipsPerClan, deniedMembershipsPerClan, bannedMembershipsPerClan, bar.Incr)
+	createTestData(testDb, *games, *clansPerGame, *playersPerClan, *playersWithoutClan, *pendingMembershipsPerClan, *deniedMembershipsPerClan, *bannedMembershipsPerClan, bar.Incr)
 }

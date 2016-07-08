@@ -81,6 +81,9 @@ coverage-html:
 db migrate:
 	@go run main.go migrate -c ./config/local.yaml
 
+random-data:
+	@go run perf/main.go -games 5 -pwc 100 -cpg 10 -use-main
+
 drop:
 	@psql -d postgres -f db/drop.sql > /dev/null
 	@echo "Database created successfully!"

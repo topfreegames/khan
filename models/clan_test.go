@@ -34,7 +34,7 @@ func TestClanModel(t *testing.T) {
 				sort.Sort(ClanByName(clans))
 
 				for i := 0; i < 10; i++ {
-					g.Assert(clans[i].Name).Equal(fmt.Sprintf("test-sort-clan-%d", i))
+					g.Assert(clans[i].Name).Equal(fmt.Sprintf("💩clán-test-sort-clan-%d", i))
 				}
 			})
 
@@ -743,6 +743,18 @@ func TestClanModel(t *testing.T) {
 				g.Assert(err == nil).IsTrue()
 
 				clans, err := SearchClan(testDb, player.GameID, "SEARCH")
+				g.Assert(err == nil).IsTrue()
+
+				g.Assert(len(clans)).Equal(10)
+			})
+
+			g.It("Should return clan by unicode search term", func() {
+				player, _, err := GetTestClans(
+					testDb, "", "clan-search-clan", 10,
+				)
+				g.Assert(err == nil).IsTrue()
+
+				clans, err := SearchClan(testDb, player.GameID, "💩clán")
 				g.Assert(err == nil).IsTrue()
 
 				g.Assert(len(clans)).Equal(10)

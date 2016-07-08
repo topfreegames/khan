@@ -413,7 +413,7 @@ func GetTestClans(db DB, gameID string, publicIDTemplate string, numberOfClans i
 		clan := ClanFactory.MustCreateWithOption(util.JSON{
 			"GameID":   player.GameID,
 			"PublicID": fmt.Sprintf("%s-%d", publicIDTemplate, i),
-			"Name":     fmt.Sprintf("%s-%d", publicIDTemplate, i),
+			"Name":     fmt.Sprintf("💩clán-%s-%d", publicIDTemplate, i),
 			"OwnerID":  player.ID,
 		}).(*Clan)
 		err = db.Insert(clan)
