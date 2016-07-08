@@ -33,7 +33,29 @@ type approveOrDenyMembershipInvitationPayload struct {
 	PlayerPublicID string
 }
 
-func dispatchMembershipHook(app *App, db models.DB, hookType int, gameID string, clanID, playerID, requestorID int) error {
+func dispatchMembershipHookByPublicID(app *App, db models.DB, hookType int, gameID, clanID, playerID, requestorID string) error {
+	clan, err := models.GetClanByPublicID(db, gameID, clanID)
+	if err != nil {
+		return err
+	}
+
+	player, err := models.GetPlayerByPublicID(db, gameID, playerID)
+	if err != nil {
+		return err
+	}
+
+	requestor := player
+	if requestorID != playerID {
+		requestor, err = models.GetPlayerByPublicID(db, gameID, requestorID)
+		if err != nil {
+			return err
+		}
+	}
+
+	return dispatchMembershipHook(app, db, hookType, gameID, clan, player, requestor)
+}
+
+func dispatchMembershipHookByID(app *App, db models.DB, hookType int, gameID string, clanID, playerID, requestorID int) error {
 	clan, err := models.GetClanByID(db, clanID)
 	if err != nil {
 		return err
@@ -52,6 +74,10 @@ func dispatchMembershipHook(app *App, db models.DB, hookType int, gameID string,
 		}
 	}
 
+	return dispatchMembershipHook(app, db, hookType, gameID, clan, player, requestor)
+}
+
+func dispatchMembershipHook(app *App, db models.DB, hookType int, gameID string, clan *models.Clan, player *models.Player, requestor *models.Player) error {
 	clanJSON := clan.Serialize()
 	delete(clanJSON, "gameID")
 
@@ -107,7 +133,7 @@ func ApplyForMembershipHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
-		err = dispatchMembershipHook(
+		err = dispatchMembershipHookByID(
 			app, db, models.MembershipApplicationCreatedHook,
 			membership.GameID, membership.ClanID, membership.PlayerID,
 			membership.RequestorID,
@@ -155,7 +181,7 @@ func InviteForMembershipHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
-		err = dispatchMembershipHook(
+		err = dispatchMembershipHookByID(
 			app, db, models.MembershipApplicationCreatedHook,
 			membership.GameID, membership.ClanID, membership.PlayerID,
 			membership.RequestorID,
@@ -216,7 +242,7 @@ func ApproveOrDenyMembershipApplicationHandler(app *App) func(c *iris.Context) {
 			hookType = models.MembershipDeniedHook
 		}
 
-		err = dispatchMembershipHook(
+		err = dispatchMembershipHookByID(
 			app, db, hookType,
 			membership.GameID, membership.ClanID, membership.PlayerID,
 			requestor.ID,
@@ -269,7 +295,7 @@ func ApproveOrDenyMembershipInvitationHandler(app *App) func(c *iris.Context) {
 			hookType = models.MembershipDeniedHook
 		}
 
-		err = dispatchMembershipHook(
+		err = dispatchMembershipHookByID(
 			app, db, hookType,
 			membership.GameID, membership.ClanID, membership.PlayerID,
 			membership.PlayerID,
@@ -323,6 +349,15 @@ func DeleteMembershipHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
+		err = dispatchMembershipHookByPublicID(
+			app, db, models.MembershipLeftHook,
+			game.PublicID, clanPublicID, payload.PlayerPublicID,
+			payload.RequestorPublicID,
+		)
+		if err != nil {
+			FailWith(500, err.Error(), c)
+		}
+
 		SucceedWith(util.JSON{}, c)
 	}
 }
@@ -364,7 +399,7 @@ func PromoteOrDemoteMembershipHandler(app *App, action string) func(c *iris.Cont
 			hookType = models.MembershipDemotedHook
 		}
 
-		err = dispatchMembershipHook(
+		err = dispatchMembershipHookByID(
 			app, db, hookType,
 			membership.GameID, membership.ClanID, membership.PlayerID,
 			requestor.ID,

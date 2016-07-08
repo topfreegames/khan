@@ -227,13 +227,14 @@ Khan API
   * `2 Player Updated` - Happens when an existing player is updated;
   * `3 Clan Created` - Happens when a new clan is created;
   * `4 Clan Updated` - Happens when an existing clan is updated;
-  * `5 Clan Leave` - Happens when the owner of a clan leaves the clan without transferring the ownership to someone else;
-  * `6 Transfer Ownership of Clan` - Happens when the owner of a clan transfers ownership to another player;
+  * `5 Clan Owner Left` - Happens when the owner of a clan leaves the clan without transferring the ownership to someone else;
+  * `6 Ownership of the Clan transferred` - Happens when the owner of a clan transfers ownership to another player;
   * `7 Membership Created` - Happens when either someone applies to a clan or is invited;
   * `8 Membership Approved` - Happens when a pending membership to a clan is approved;
   * `9 Membership Denied` - Happens when a pending membership to a clan is denied;
   * `10 Member Promoted` - Happens when a member of the clan is promoted;
-  * `11 Member Demoted` - Happens when a pending member of the clan is demoted.
+  * `11 Member Demoted` - Happens when a pending member of the clan is demoted;
+  * `12 Member Left` - Happens when a member of the clan is either removed or leaves the clan.
 
   ### Create Hook
 

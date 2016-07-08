@@ -166,7 +166,7 @@ Payload:
                                                     // accepts applications
     }
 
-#### Leave Clan
+#### Clan Owner Left
 
 Event Type: `5`
 
@@ -192,7 +192,7 @@ Payload:
         }
     }
 
-#### Transfer Clan Ownership
+#### Clan Ownership Transferred to Another Player
 
 Event Type: `6`
 
@@ -383,6 +383,40 @@ Payload:
             "ownershipCount":  [int]                    // Number of clans this player is an owner of
         },
         "requestor": {                                  // Player that demoted this member
+            "publicID": [string],                       // Requestor PublicID
+            "name": [string],                           // Player Name
+            "metadata": [JSON],                         // JSON Object containing player metadata
+            "membershipCount": [int],                   // Number of clans this player is a member of
+            "ownershipCount":  [int]                    // Number of clans this player is an owner of
+        }
+    }
+
+#### Member Left
+
+Event Type: `11`
+
+Payload:
+
+    {
+        "gameID": [string],
+        "clan": {
+            "publicID": [string],                       // Clan that member left
+            "name": [string],                           // Clan Name
+            "metadata": [JSON],                         // JSON Object containing clan's metadata
+            "allowApplication": [bool]                  // Indicates whether this clan acceps applications
+            "autoJoin": [bool],                         // Indicates whether this clan automatically
+                                                        // accepts applications
+            "membershipCount":  [int],                  // Number of members in clan
+        },
+        "player": {                                     // Player that left
+            "publicID": [string],                       // Player PublicID
+            "name": [string],                           // Player Name
+            "metadata": [JSON],                         // JSON Object containing player metadata
+            "membershipCount": [int],                   // Number of clans this player is a member of
+            "ownershipCount":  [int]                    // Number of clans this player is an owner of
+        },
+        "requestor": {                                  // Player that removed leaving player (if they left
+                                                        // on their own, then this is the same as player)
             "publicID": [string],                       // Requestor PublicID
             "name": [string],                           // Player Name
             "metadata": [JSON],                         // JSON Object containing player metadata
