@@ -247,8 +247,8 @@ func TestClanHandler(t *testing.T) {
 				"name":             clanName,
 				"ownerPublicID":    ownerPublicID,
 				"metadata":         metadata,
-				"allowApplication": clan.AllowApplication,
-				"autoJoin":         clan.AutoJoin,
+				"allowApplication": !clan.AllowApplication,
+				"autoJoin":         !clan.AutoJoin,
 			}
 			route := GetGameRoute(gameID, fmt.Sprintf("/clans/%s", publicID))
 			a := GetDefaultTestApp()
@@ -266,6 +266,8 @@ func TestClanHandler(t *testing.T) {
 			g.Assert(dbClan.Name).Equal(clanName)
 			g.Assert(dbClan.OwnerID).Equal(owner.ID)
 			g.Assert(dbClan.Metadata).Equal(metadata)
+			g.Assert(dbClan.AllowApplication).Equal(!clan.AllowApplication)
+			g.Assert(dbClan.AutoJoin).Equal(!clan.AutoJoin)
 		})
 
 		g.It("Should not update clan if missing parameters", func() {
