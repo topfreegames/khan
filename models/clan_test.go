@@ -621,6 +621,11 @@ func TestClanModel(t *testing.T) {
 					g.Assert(name).Equal(playerDict[pid].Name)
 					membershipLevel := playerData["level"]
 					g.Assert(membershipLevel).Equal(membershipDict[playerDict[pid].ID].Level)
+
+					//Approval
+					approver := player["approver"].(map[string]interface{})
+					g.Assert(approver["name"]).Equal(playerDict[pid].Name)
+					g.Assert(approver["publicID"]).Equal(playerDict[pid].PublicID)
 				}
 
 				for _, playerData := range pendingInvites {

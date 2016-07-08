@@ -23,12 +23,13 @@ type clanDetailsDAO struct {
 	ClanMembershipCount  int
 
 	//Membership Information
-	MembershipLevel     sql.NullString
-	MembershipApproved  sql.NullBool
-	MembershipDenied    sql.NullBool
-	MembershipBanned    sql.NullBool
-	MembershipCreatedAt sql.NullInt64
-	MembershipUpdatedAt sql.NullInt64
+	MembershipLevel      sql.NullString
+	MembershipApproved   sql.NullBool
+	MembershipDenied     sql.NullBool
+	MembershipBanned     sql.NullBool
+	MembershipCreatedAt  sql.NullInt64
+	MembershipUpdatedAt  sql.NullInt64
+	MembershipApprovedAt sql.NullInt64
 
 	// Clan Owner Information
 	OwnerPublicID string
@@ -46,6 +47,10 @@ type clanDetailsDAO struct {
 	// Requestor Information
 	RequestorPublicID sql.NullString
 	RequestorName     sql.NullString
+
+	// Approver Information
+	ApproverPublicID sql.NullString
+	ApproverName     sql.NullString
 }
 
 func (member *clanDetailsDAO) Serialize(includeMembershipLevel bool) map[string]interface{} {
@@ -64,6 +69,13 @@ func (member *clanDetailsDAO) Serialize(includeMembershipLevel bool) map[string]
 		result["level"] = nullOrString(member.MembershipLevel)
 	}
 	result["player"].(map[string]interface{})["metadata"] = member.PlayerMetadata
+
+	if member.ApproverName.Valid {
+		result["player"].(map[string]interface{})["approver"] = map[string]interface{}{
+			"name":     member.ApproverName.String,
+			"publicID": member.ApproverPublicID.String,
+		}
+	}
 	return result
 }
 
@@ -77,13 +89,14 @@ type playerDetailsDAO struct {
 	PlayerUpdatedAt int64
 
 	// Membership Details
-	MembershipLevel     sql.NullString
-	MembershipApproved  sql.NullBool
-	MembershipDenied    sql.NullBool
-	MembershipBanned    sql.NullBool
-	MembershipCreatedAt sql.NullInt64
-	MembershipUpdatedAt sql.NullInt64
-	MembershipDeletedAt sql.NullInt64
+	MembershipLevel      sql.NullString
+	MembershipApproved   sql.NullBool
+	MembershipDenied     sql.NullBool
+	MembershipBanned     sql.NullBool
+	MembershipCreatedAt  sql.NullInt64
+	MembershipUpdatedAt  sql.NullInt64
+	MembershipDeletedAt  sql.NullInt64
+	MembershipApprovedAt sql.NullInt64
 
 	// Clan Details
 	ClanPublicID   sql.NullString
@@ -98,6 +111,12 @@ type playerDetailsDAO struct {
 	DBRequestorMetadata sql.NullString
 	RequestorMetadata   map[string]interface{}
 
+	// Membership Approver Details
+	ApproverName       sql.NullString
+	ApproverPublicID   sql.NullString
+	DBApproverMetadata sql.NullString
+	ApproverMetadata   map[string]interface{}
+
 	// Deleted by Details
 	DeletedByName     sql.NullString
 	DeletedByPublicID sql.NullString
@@ -105,13 +124,14 @@ type playerDetailsDAO struct {
 
 func (p *playerDetailsDAO) Serialize() map[string]interface{} {
 	result := map[string]interface{}{
-		"level":     nullOrString(p.MembershipLevel),
-		"approved":  nullOrBool(p.MembershipApproved),
-		"denied":    nullOrBool(p.MembershipDenied),
-		"banned":    nullOrBool(p.MembershipBanned),
-		"createdAt": nullOrInt(p.MembershipCreatedAt),
-		"updatedAt": nullOrInt(p.MembershipUpdatedAt),
-		"deletedAt": nullOrInt(p.MembershipDeletedAt),
+		"level":      nullOrString(p.MembershipLevel),
+		"approved":   nullOrBool(p.MembershipApproved),
+		"denied":     nullOrBool(p.MembershipDenied),
+		"banned":     nullOrBool(p.MembershipBanned),
+		"createdAt":  nullOrInt(p.MembershipCreatedAt),
+		"updatedAt":  nullOrInt(p.MembershipUpdatedAt),
+		"deletedAt":  nullOrInt(p.MembershipDeletedAt),
+		"approvedAt": nullOrInt(p.MembershipApprovedAt),
 		"clan": map[string]interface{}{
 			"publicID": nullOrString(p.ClanPublicID),
 			"name":     nullOrString(p.ClanName),
@@ -140,6 +160,20 @@ func (p *playerDetailsDAO) Serialize() map[string]interface{} {
 		result["deletedBy"] = map[string]interface{}{
 			"publicID": nullOrString(p.DeletedByPublicID),
 			"name":     nullOrString(p.DeletedByName),
+		}
+	}
+
+	if p.ApproverPublicID.Valid {
+		if p.DBApproverMetadata.Valid {
+			json.Unmarshal([]byte(nullOrString(p.DBApproverMetadata)), &p.ApproverMetadata)
+		} else {
+			p.ApproverMetadata = map[string]interface{}{}
+		}
+
+		result["approver"] = map[string]interface{}{
+			"publicID": nullOrString(p.ApproverPublicID),
+			"name":     nullOrString(p.ApproverName),
+			"metadata": p.RequestorMetadata,
 		}
 	}
 	return result
