@@ -764,7 +764,7 @@ func TestMembershipHandler(t *testing.T) {
 			g.Assert(len(*responses)).Equal(1)
 
 			apply := (*responses)[0]
-			validateMembershipCreatedHookResponse(g, apply, gameID, clan, player, player)
+			validateMembershipHookResponse(g, apply, gameID, clan, player, player)
 		})
 
 		g.It("Invite should call membership application created hook", func() {
@@ -809,7 +809,46 @@ func TestMembershipHandler(t *testing.T) {
 			g.Assert(len(*responses)).Equal(1)
 
 			apply := (*responses)[0]
-			validateMembershipCreatedHookResponse(g, apply, gameID, clan, player, owner)
+			validateMembershipHookResponse(g, apply, gameID, clan, player, owner)
+		})
+
+		g.It("should call membership approved hook", func() {
+			hooks, err := models.GetHooksForRoutes(testDb, []string{
+				"http://localhost:52525/membershipinvitationapproved",
+			}, models.MembershipApprovedHook)
+			g.Assert(err == nil).IsTrue()
+			responses := startRouteHandler([]string{"/membershipinvitationapproved"}, 52525)
+
+			_, clan, _, players, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 1, hooks[0].GameID, "", true)
+			g.Assert(err == nil).IsTrue()
+
+			clan.AllowApplication = true
+			_, err = testDb.Update(clan)
+			g.Assert(err == nil).IsTrue()
+
+			gameID := hooks[0].GameID
+			clanPublicID := clan.PublicID
+			level := "Member"
+
+			payload := util.JSON{
+				"level":             level,
+				"playerPublicID":    players[0].PublicID,
+				"requestorPublicID": players[0].PublicID,
+			}
+			a := GetDefaultTestApp()
+			res := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "invitation/approve"), t, payload)
+
+			g.Assert(res.Raw().StatusCode).Equal(http.StatusOK)
+			var result util.JSON
+			json.Unmarshal([]byte(res.Body().Raw()), &result)
+			g.Assert(result["success"]).IsTrue()
+
+			a.Dispatcher.Wait()
+
+			g.Assert(len(*responses)).Equal(1)
+
+			apply := (*responses)[0]
+			validateMembershipHookResponse(g, apply, gameID, clan, players[0], players[0])
 		})
 
 	})

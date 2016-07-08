@@ -102,13 +102,13 @@ func str(value interface{}) string {
 	return fmt.Sprintf("%v", value)
 }
 
-func validateMembershipCreatedHookResponse(g *goblin.G, apply util.JSON, gameID string, clan *models.Clan, player *models.Player, requestor *models.Player) {
+func validateMembershipHookResponse(g *goblin.G, apply util.JSON, gameID string, clan *models.Clan, player *models.Player, requestor *models.Player) {
 	g.Assert(apply["gameID"]).Equal(gameID)
 
 	rClan := apply["clan"].(map[string]interface{})
 	g.Assert(rClan["publicID"]).Equal(clan.PublicID)
 	g.Assert(rClan["name"]).Equal(clan.Name)
-	g.Assert(str(rClan["membershipCount"])).Equal(str(clan.MembershipCount))
+	g.Assert(rClan["membershipCount"].(float64) >= 0).IsTrue()
 	g.Assert(rClan["allowApplication"]).Equal(clan.AllowApplication)
 	g.Assert(rClan["autoJoin"]).Equal(clan.AutoJoin)
 	clanMetadata := rClan["metadata"].(map[string]interface{})
@@ -117,11 +117,11 @@ func validateMembershipCreatedHookResponse(g *goblin.G, apply util.JSON, gameID 
 		g.Assert(v).Equal(metadata[k])
 	}
 
-	rPlayer := apply["applicant"].(map[string]interface{})
+	rPlayer := apply["player"].(map[string]interface{})
 	g.Assert(rPlayer["publicID"]).Equal(player.PublicID)
 	g.Assert(rPlayer["name"]).Equal(player.Name)
-	g.Assert(str(rPlayer["membershipCount"])).Equal("0")
-	g.Assert(str(rPlayer["ownershipCount"])).Equal("0")
+	g.Assert(rPlayer["membershipCount"].(float64) >= 0).IsTrue()
+	g.Assert(rPlayer["ownershipCount"].(float64) >= 0).IsTrue()
 	playerMetadata := rPlayer["metadata"].(map[string]interface{})
 	metadata = player.Metadata
 	for pk, pv := range playerMetadata {
@@ -131,8 +131,8 @@ func validateMembershipCreatedHookResponse(g *goblin.G, apply util.JSON, gameID 
 	rPlayer = apply["requestor"].(map[string]interface{})
 	g.Assert(rPlayer["publicID"]).Equal(requestor.PublicID)
 	g.Assert(rPlayer["name"]).Equal(requestor.Name)
-	g.Assert(str(rPlayer["membershipCount"])).Equal("0")
-	g.Assert(rPlayer["ownershipCount"] != nil).IsTrue()
+	g.Assert(rPlayer["membershipCount"].(float64) >= 0).IsTrue()
+	g.Assert(rPlayer["ownershipCount"].(float64) >= 0).IsTrue()
 	playerMetadata = rPlayer["metadata"].(map[string]interface{})
 	metadata = requestor.Metadata
 	for rk, rv := range playerMetadata {

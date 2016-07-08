@@ -230,6 +230,7 @@ Khan API
   * `5 Clan Leave` - Happens when the owner of a clan leaves the clan without transferring the ownership to someone else;
   * `6 Transfer Ownership of Clan` - Happens when the owner of a clan transfers ownership to another player;
   * `7 Membership Created` - Happens when either someone applies to a clan or is invited;
+  * `8 Membership Approved` - Happens when a pending membership to a clan is approved.
 
   ### Create Hook
 
