@@ -18,6 +18,7 @@ Contents:
    hosting
    using_webhooks
    API
+   benchmark
 
 
 Indices and tables
