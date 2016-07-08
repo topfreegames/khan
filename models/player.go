@@ -257,11 +257,12 @@ func GetPlayerDetails(db DB, gameID, publicID string) (util.JSON, error) {
 	} else {
 		result["memberships"] = []util.JSON{}
 		result["clans"] = util.JSON{
-			"owned":    []util.JSON{},
-			"approved": []util.JSON{},
-			"denied":   []util.JSON{},
-			"banned":   []util.JSON{},
-			"pending":  []util.JSON{},
+			"owned":               []util.JSON{},
+			"approved":            []util.JSON{},
+			"denied":              []util.JSON{},
+			"banned":              []util.JSON{},
+			"pendingApplications": []util.JSON{},
+			"pendingInvites":      []util.JSON{},
 		}
 	}
 
