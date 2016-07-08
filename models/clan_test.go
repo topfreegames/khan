@@ -755,6 +755,7 @@ func TestClanModel(t *testing.T) {
 				g.Assert(err == nil).IsTrue()
 
 				dbClan, dbOwner, err := GetClanAndOwnerByPublicID(testDb, clan.GameID, clan.PublicID)
+				g.Assert(err == nil).IsTrue()
 				g.Assert(dbClan.ID).Equal(clan.ID)
 				g.Assert(dbOwner.ID).Equal(owner.ID)
 			})

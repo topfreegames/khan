@@ -282,30 +282,37 @@ func ApproveOrDenyMembershipInvitationHandler(app *App) func(c *iris.Context) {
 	}
 }
 
+func getPayloadAndGame(app *App, c *iris.Context) (*basePayloadWithRequestorAndPlayerPublicIDs, *models.Game, int, error) {
+	gameID := c.Param("gameID")
+
+	var payload basePayloadWithRequestorAndPlayerPublicIDs
+	if err := LoadJSONPayload(&payload, c); err != nil {
+		return nil, nil, 400, err
+	}
+
+	game, err := app.GetGame(gameID)
+	if err != nil {
+		return nil, nil, 404, err
+	}
+
+	return &payload, game, 200, nil
+}
+
 // DeleteMembershipHandler is the handler responsible for deleting a member
 func DeleteMembershipHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
-		gameID := c.Param("gameID")
-		clanPublicID := c.Param("clanPublicID")
-
-		var payload basePayloadWithRequestorAndPlayerPublicIDs
-		if err := LoadJSONPayload(&payload, c); err != nil {
-			FailWith(400, err.Error(), c)
-			return
-		}
-
 		db := GetCtxDB(c)
-
-		game, err := app.GetGame(gameID)
+		clanPublicID := c.Param("clanPublicID")
+		payload, game, status, err := getPayloadAndGame(app, c)
 		if err != nil {
-			FailWith(404, err.Error(), c)
+			FailWith(status, err.Error(), c)
 			return
 		}
 
 		err = models.DeleteMembership(
 			db,
 			game,
-			gameID,
+			game.PublicID,
 			payload.PlayerPublicID,
 			clanPublicID,
 			payload.RequestorPublicID,
@@ -323,27 +330,18 @@ func DeleteMembershipHandler(app *App) func(c *iris.Context) {
 // PromoteOrDemoteMembershipHandler is the handler responsible for promoting or demoting a member
 func PromoteOrDemoteMembershipHandler(app *App, action string) func(c *iris.Context) {
 	return func(c *iris.Context) {
-		gameID := c.Param("gameID")
-		clanPublicID := c.Param("clanPublicID")
-
-		var payload basePayloadWithRequestorAndPlayerPublicIDs
-		if err := LoadJSONPayload(&payload, c); err != nil {
-			FailWith(400, err.Error(), c)
-			return
-		}
-
 		db := GetCtxDB(c)
-
-		game, err := app.GetGame(gameID)
+		clanPublicID := c.Param("clanPublicID")
+		payload, game, status, err := getPayloadAndGame(app, c)
 		if err != nil {
-			FailWith(404, err.Error(), c)
+			FailWith(status, err.Error(), c)
 			return
 		}
 
 		membership, err := models.PromoteOrDemoteMember(
 			db,
 			game,
-			gameID,
+			game.PublicID,
 			payload.PlayerPublicID,
 			clanPublicID,
 			payload.RequestorPublicID,
