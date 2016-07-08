@@ -435,8 +435,6 @@ Khan API
 
   Gets the player with the given publicID.
 
-
-
   * Success Response
     * Code: `200`
     * Content:
@@ -446,10 +444,10 @@ Khan API
         "publicID": [string], // Player publicID
         "name": [string], // Player Name
         "metadata": [JSON], // Player Metadata
-        "createdAt": [int64], // timestamp in milliseconds of when the user was created
-        "updatedAt": [int64]  // timestamp in milliseconds of when the user was last updated
+        "createdAt": [int64], // timestamp in milliseconds of when the player was created
+        "updatedAt": [int64]  // timestamp in milliseconds of when the player was last updated
 
-        //All clans the user is involved with show here
+        //All clans the player is involved with show here
         "clans":{
           // Clans the player ownership
           "owned":[
@@ -490,25 +488,36 @@ Khan API
             "denied": [bool],
             "banned": [bool],
 
-            //clan the user applied to
+            //clan the player applied to
             "clan":{
               "metadata": [JSON],
               "name": [string],
               "publicID": [string]
             },
-            "createdAt": [int64], // timestamp the user applied to a clan
-            "updatedAt": [int64], // timestamp that the membership was last updated
-            "deletedAt": [int64], // timestamp that the user was banned
-            "level": [string],    // level of the user in this clan
+            "createdAt":  [int64], // timestamp the player applied to a clan
+            "updatedAt":  [int64], // timestamp that the membership was last updated
+            "deletedAt":  [int64], // timestamp that the player was banned
+            "approvedAt": [int64], // timestamp that the player was approved
 
-            // User that requested membership
-            // If the user was invited, this should be another player.
+            "level": [string],    // level of the player in this clan
+
+            // Player that requested membership
+            // If the player was invited, this should be another player.
             // Otherwise, this is the same as the player.
             "requestor":{
-              "metadata": [JSON],
-              "name": [string],
               "publicID": [string]
+              "name": [string],
+              "metadata": [JSON],
             },
+
+            // Player that approved this membership
+            // If the membership is not yet approved this key does not exist
+            "approver":{
+              "publicID": [string]
+              "name": [string],
+              "metadata": [JSON],
+            },
+
           }
         ]
       }
@@ -650,6 +659,10 @@ Khan API
           "publicID": [string],
           "name":     [string],
           "metadata": [JSON]      
+          "approver": {  // player that approved this membership
+            "publicID": [string],
+            "name":     [string],
+          }
         }
     }
 
