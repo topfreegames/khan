@@ -450,8 +450,12 @@ Khan API
 
         //All clans the user is involved with show here
         "clans":{
+          // Clans the player ownership
+          "owned":[
+            { "name": [string], "publicID": [string] }, // clan name and publicID
+          ],
+
           // Clans the player has been approved and is currently a member of
-          // Also includes the clans where the player is the owner
           "approved":[
             { "name": [string], "publicID": [string] }, // clan name and publicID
           ],
