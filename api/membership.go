@@ -189,7 +189,7 @@ func ApproveOrDenyMembershipApplicationHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
-		_, err = models.ApproveOrDenyMembershipApplication(
+		membership, err := models.ApproveOrDenyMembershipApplication(
 			db,
 			game,
 			gameID,
@@ -202,6 +202,22 @@ func ApproveOrDenyMembershipApplicationHandler(app *App) func(c *iris.Context) {
 		if err != nil {
 			FailWith(500, err.Error(), c)
 			return
+		}
+
+		//TODO: This must be removed once the membership includes who approved it
+		requestor, err := models.GetPlayerByPublicID(db, gameID, payload.RequestorPublicID)
+		if err != nil {
+			FailWith(500, err.Error(), c)
+			return
+		}
+
+		err = dispatchMembershipHook(
+			app, db, models.MembershipApprovedHook,
+			membership.GameID, membership.ClanID, membership.PlayerID,
+			requestor.ID,
+		)
+		if err != nil {
+			FailWith(500, err.Error(), c)
 		}
 
 		SucceedWith(util.JSON{}, c)
