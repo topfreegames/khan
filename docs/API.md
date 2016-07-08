@@ -231,7 +231,9 @@ Khan API
   * `6 Transfer Ownership of Clan` - Happens when the owner of a clan transfers ownership to another player;
   * `7 Membership Created` - Happens when either someone applies to a clan or is invited;
   * `8 Membership Approved` - Happens when a pending membership to a clan is approved;
-  * `9 Membership Denied` - Happens when a pending membership to a clan is denied.
+  * `9 Membership Denied` - Happens when a pending membership to a clan is denied;
+  * `10 Member Promoted` - Happens when a member of the clan is promoted;
+  * `11 Member Demoted` - Happens when a pending member of the clan is demoted.
 
   ### Create Hook
 

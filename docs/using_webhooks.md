@@ -324,3 +324,69 @@ Payload:
             "ownershipCount":  [int]                    // Number of clans this player is an owner of
         }
     }
+
+#### Member Promoted
+
+Event Type: `10`
+
+Payload:
+
+    {
+        "gameID": [string],
+        "clan": {
+            "publicID": [string],                       // Clan that member was promoted
+            "name": [string],                           // Clan Name
+            "metadata": [JSON],                         // JSON Object containing clan's metadata
+            "allowApplication": [bool]                  // Indicates whether this clan acceps applications
+            "autoJoin": [bool],                         // Indicates whether this clan automatically
+                                                        // accepts applications
+            "membershipCount":  [int],                  // Number of members in clan
+        },
+        "player": {                                     // Player that was promoted
+            "publicID": [string],                       // Player PublicID
+            "name": [string],                           // Player Name
+            "metadata": [JSON],                         // JSON Object containing player metadata
+            "membershipCount": [int],                   // Number of clans this player is a member of
+            "ownershipCount":  [int]                    // Number of clans this player is an owner of
+        },
+        "requestor": {                                  // Player that promoted this member
+            "publicID": [string],                       // Requestor PublicID
+            "name": [string],                           // Player Name
+            "metadata": [JSON],                         // JSON Object containing player metadata
+            "membershipCount": [int],                   // Number of clans this player is a member of
+            "ownershipCount":  [int]                    // Number of clans this player is an owner of
+        }
+    }
+
+#### Member Demoted
+
+Event Type: `11`
+
+Payload:
+
+    {
+        "gameID": [string],
+        "clan": {
+            "publicID": [string],                       // Clan that member was demoted
+            "name": [string],                           // Clan Name
+            "metadata": [JSON],                         // JSON Object containing clan's metadata
+            "allowApplication": [bool]                  // Indicates whether this clan acceps applications
+            "autoJoin": [bool],                         // Indicates whether this clan automatically
+                                                        // accepts applications
+            "membershipCount":  [int],                  // Number of members in clan
+        },
+        "player": {                                     // Player that was demoted
+            "publicID": [string],                       // Player PublicID
+            "name": [string],                           // Player Name
+            "metadata": [JSON],                         // JSON Object containing player metadata
+            "membershipCount": [int],                   // Number of clans this player is a member of
+            "ownershipCount":  [int]                    // Number of clans this player is an owner of
+        },
+        "requestor": {                                  // Player that demoted this member
+            "publicID": [string],                       // Requestor PublicID
+            "name": [string],                           // Player Name
+            "metadata": [JSON],                         // JSON Object containing player metadata
+            "membershipCount": [int],                   // Number of clans this player is a member of
+            "ownershipCount":  [int]                    // Number of clans this player is an owner of
+        }
+    }
