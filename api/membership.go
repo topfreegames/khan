@@ -211,8 +211,13 @@ func ApproveOrDenyMembershipApplicationHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
+		hookType := models.MembershipApprovedHook
+		if action == "deny" {
+			hookType = models.MembershipDeniedHook
+		}
+
 		err = dispatchMembershipHook(
-			app, db, models.MembershipApprovedHook,
+			app, db, hookType,
 			membership.GameID, membership.ClanID, membership.PlayerID,
 			requestor.ID,
 		)
@@ -259,8 +264,13 @@ func ApproveOrDenyMembershipInvitationHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
+		hookType := models.MembershipApprovedHook
+		if action == "deny" {
+			hookType = models.MembershipDeniedHook
+		}
+
 		err = dispatchMembershipHook(
-			app, db, models.MembershipApprovedHook,
+			app, db, hookType,
 			membership.GameID, membership.ClanID, membership.PlayerID,
 			membership.PlayerID,
 		)
