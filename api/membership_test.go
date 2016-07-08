@@ -723,7 +723,7 @@ func TestMembershipHandler(t *testing.T) {
 	})
 
 	g.Describe("Membership Hooks", func() {
-		g.It("Should call membership application created hook", func() {
+		g.It("Apply should call membership application created hook", func() {
 			hooks, err := models.GetHooksForRoutes(testDb, []string{
 				"http://localhost:52525/membershipapply",
 			}, models.MembershipApplicationCreatedHook)
@@ -753,7 +753,6 @@ func TestMembershipHandler(t *testing.T) {
 			}
 			a := GetDefaultTestApp()
 			res := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "application"), t, payload)
-			fmt.Println("RESPONSE", res.Body().Raw())
 
 			g.Assert(res.Raw().StatusCode).Equal(http.StatusOK)
 			var result util.JSON
@@ -765,42 +764,54 @@ func TestMembershipHandler(t *testing.T) {
 			g.Assert(len(*responses)).Equal(1)
 
 			apply := (*responses)[0]
-			g.Assert(apply["gameID"]).Equal(gameID)
-
-			rClan := apply["clan"].(map[string]interface{})
-			g.Assert(rClan["publicID"]).Equal(clan.PublicID)
-			g.Assert(rClan["name"]).Equal(clan.Name)
-			g.Assert(str(rClan["membershipCount"])).Equal(str(clan.MembershipCount))
-			g.Assert(rClan["allowApplication"]).Equal(clan.AllowApplication)
-			g.Assert(rClan["autoJoin"]).Equal(clan.AutoJoin)
-			clanMetadata := rClan["metadata"].(map[string]interface{})
-			metadata := clan.Metadata
-			for k, v := range clanMetadata {
-				g.Assert(v).Equal(metadata[k])
-			}
-
-			rPlayer := apply["applicant"].(map[string]interface{})
-			g.Assert(rPlayer["publicID"]).Equal(player.PublicID)
-			g.Assert(rPlayer["name"]).Equal(player.Name)
-			g.Assert(str(rPlayer["membershipCount"])).Equal("0")
-			g.Assert(str(rPlayer["ownershipCount"])).Equal("0")
-			playerMetadata := rPlayer["metadata"].(map[string]interface{})
-			metadata = player.Metadata
-			for pk, pv := range playerMetadata {
-				g.Assert(pv).Equal(metadata[pk])
-			}
-
-			rPlayer = apply["requestor"].(map[string]interface{})
-			g.Assert(rPlayer["publicID"]).Equal(player.PublicID)
-			g.Assert(rPlayer["name"]).Equal(player.Name)
-			g.Assert(str(rPlayer["membershipCount"])).Equal("0")
-			g.Assert(str(rPlayer["ownershipCount"])).Equal("0")
-			playerMetadata = rPlayer["metadata"].(map[string]interface{})
-			metadata = player.Metadata
-			for rk, rv := range playerMetadata {
-				g.Assert(rv).Equal(metadata[rk])
-			}
-
+			validateMembershipCreatedHookResponse(g, apply, gameID, clan, player, player)
 		})
+
+		g.It("Invite should call membership application created hook", func() {
+			hooks, err := models.GetHooksForRoutes(testDb, []string{
+				"http://localhost:52525/membershipinvite",
+			}, models.MembershipApplicationCreatedHook)
+			g.Assert(err == nil).IsTrue()
+			responses := startRouteHandler([]string{"/membershipinvite"}, 52525)
+
+			_, clan, owner, _, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 0, hooks[0].GameID, "", true)
+			g.Assert(err == nil).IsTrue()
+
+			clan.AllowApplication = true
+			_, err = testDb.Update(clan)
+			g.Assert(err == nil).IsTrue()
+
+			player := models.PlayerFactory.MustCreateWithOption(util.JSON{
+				"GameID": clan.GameID,
+			}).(*models.Player)
+			err = testDb.Insert(player)
+			g.Assert(err == nil).IsTrue()
+
+			gameID := player.GameID
+			clanPublicID := clan.PublicID
+			level := "Member"
+
+			payload := util.JSON{
+				"level":             level,
+				"playerPublicID":    player.PublicID,
+				"requestorPublicID": owner.PublicID,
+			}
+			a := GetDefaultTestApp()
+			res := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "invitation"), t, payload)
+
+			g.Assert(res.Raw().StatusCode).Equal(http.StatusOK)
+			var result util.JSON
+			json.Unmarshal([]byte(res.Body().Raw()), &result)
+			g.Assert(result["success"]).IsTrue()
+
+			a.Dispatcher.Wait()
+
+			g.Assert(len(*responses)).Equal(1)
+
+			apply := (*responses)[0]
+			validateMembershipCreatedHookResponse(g, apply, gameID, clan, player, owner)
+		})
+
 	})
+
 }

@@ -17,28 +17,28 @@ import (
 
 const (
 	//GameUpdatedHook happens when a game is updated
-	GameUpdatedHook = iota
+	GameUpdatedHook = 0
 
 	//PlayerCreatedHook happens when a new player is created
-	PlayerCreatedHook
+	PlayerCreatedHook = 1
 
 	//PlayerUpdatedHook happens when a player is updated
-	PlayerUpdatedHook
+	PlayerUpdatedHook = 2
 
 	//ClanCreatedHook happens when a clan is created
-	ClanCreatedHook
+	ClanCreatedHook = 3
 
 	//ClanUpdatedHook happens when a clan is updated
-	ClanUpdatedHook
+	ClanUpdatedHook = 4
 
 	//ClanLeaveHook happens when a clan owner rage quits
-	ClanLeaveHook
+	ClanLeaveHook = 5
 
 	//ClanTransferOwnershipHook happens when a clan owner transfers ownership to another player
-	ClanTransferOwnershipHook
+	ClanTransferOwnershipHook = 6
 
 	//MembershipApplicationCreatedHook happens when a new application to a clan is created
-	MembershipApplicationCreatedHook
+	MembershipApplicationCreatedHook = 7
 )
 
 // Hook identifies a webhook for a given event
