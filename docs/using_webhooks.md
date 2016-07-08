@@ -58,7 +58,7 @@ Now imagine we want the player to be included in the league he belongs to. We co
 
 ## Event Types
 
-So what types of events can you create Web Hooks for?
+So what types of events can you [create Web Hooks for](http://khan-api.readthedocs.io/en/latest/API.html#create-hook)?
 
 ### Game Hooks
 
