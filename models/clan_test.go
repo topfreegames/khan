@@ -219,7 +219,7 @@ func TestClanModel(t *testing.T) {
 				g.Assert(err.Error()).Equal("pq: value too long for type character varying(255)")
 			})
 
-			g.It("Should not create a new Clan with CreateClan if reached MaxClansPerPlayer", func() {
+			g.It("Should not create a new Clan with CreateClan if reached MaxClansPerPlayer - owner", func() {
 				game, _, owner, _, _, err := GetClanWithMemberships(testDb, 1, 0, 0, 0, "", "")
 				g.Assert(err == nil).IsTrue()
 
@@ -237,6 +237,26 @@ func TestClanModel(t *testing.T) {
 
 				g.Assert(err != nil).IsTrue()
 				g.Assert(err.Error()).Equal(fmt.Sprintf("Player %s reached max clans", owner.PublicID))
+			})
+
+			g.It("Should not create a new Clan with CreateClan if reached MaxClansPerPlayer - member", func() {
+				game, _, _, players, _, err := GetClanWithMemberships(testDb, 1, 0, 0, 0, "", "")
+				g.Assert(err == nil).IsTrue()
+
+				_, err = CreateClan(
+					testDb,
+					game.PublicID,
+					"create-1",
+					randomdata.FullName(randomdata.RandomGender),
+					players[0].PublicID,
+					util.JSON{},
+					true,
+					false,
+					game.MaxClansPerPlayer,
+				)
+
+				g.Assert(err != nil).IsTrue()
+				g.Assert(err.Error()).Equal(fmt.Sprintf("Player %s reached max clans", players[0].PublicID))
 			})
 
 			g.It("Should not create a new Clan with CreateClan if unexistent player", func() {
