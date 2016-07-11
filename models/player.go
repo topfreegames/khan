@@ -162,6 +162,7 @@ func GetPlayerDetails(db DB, gameID, publicID string) (map[string]interface{}, e
 		m.membership_level MembershipLevel,
 		m.approved MembershipApproved, m.denied MembershipDenied, m.banned MembershipBanned,
 		c.public_id ClanPublicID, c.name ClanName, c.metadata DBClanMetadata, c.owner_id ClanOwnerID,
+		c.membership_count ClanMembershipCount,
 		r.name RequestorName, r.public_id RequestorPublicID, r.metadata DBRequestorMetadata,
 		a.name ApproverName, a.public_id ApproverPublicID, a.metadata DBApproverMetadata,
 		m.created_at MembershipCreatedAt,

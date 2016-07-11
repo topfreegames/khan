@@ -8,7 +8,6 @@
 package models
 
 import (
-	"fmt"
 	"testing"
 	"time"
 
@@ -175,8 +174,6 @@ func TestPlayerModel(t *testing.T) {
 				player, err := GetTestPlayerWithMemberships(testDb, gameID, 5, 2, 3, 8)
 				g.Assert(err == nil).IsTrue()
 
-				fmt.Println("TEST PLAYER", player.PublicID)
-
 				playerDetails, err := GetPlayerDetails(
 					testDb,
 					player.GameID,
@@ -326,6 +323,8 @@ func TestPlayerModel(t *testing.T) {
 
 				g.Assert(owned[0]["publicID"]).Equal(ownedClan.PublicID)
 				g.Assert(owned[0]["name"]).Equal(ownedClan.Name)
+
+				g.Assert(int(playerDetails["memberships"].([]map[string]interface{})[0]["clan"].(map[string]interface{})["membershipCount"].(int64))).Equal(clan.MembershipCount)
 			})
 
 			g.It("Should get Player Details when player has no affiliations", func() {
