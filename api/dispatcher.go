@@ -106,6 +106,7 @@ func (d *Dispatcher) finishJob() {
 
 //DispatchHook dispatches an event hook for eventType to gameID with the specified payload
 func (d *Dispatcher) DispatchHook(gameID string, eventType int, payload map[string]interface{}) {
+	payload["type"] = eventType
 	payloadJSON, _ := json.Marshal(payload)
 	defer d.startJob()
 	work := Dispatch{gameID: gameID, eventType: eventType, payload: payload, payloadJSON: payloadJSON}
