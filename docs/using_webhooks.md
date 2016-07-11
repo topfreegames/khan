@@ -70,6 +70,7 @@ Payload:
 
     {
         "success": true,
+        "type": 0,                                  // Event Type
         "publicID": [string],                       // Game ID
         "name": [string],                           // Game Name
         "metadata": [JSON],                         // JSON Object containing game metadata.
@@ -101,6 +102,7 @@ Payload:
 
     {
         "gameID":  [string],                        // Game ID
+        "type": 1,                                  // Event Type
         "publicID": [string],                       // Created Player PublicID This id should
                                                     // be used when referring to the player in
                                                     // future operations.
@@ -118,6 +120,7 @@ Payload:
 
     {
         "gameID":  [string],                        // Game ID
+        "type": 2,                                  // Event Type
         "publicID": [string],                       // Created Player PublicID This id should
                                                     // be used when referring to the player in
                                                     // future operations.
@@ -138,6 +141,7 @@ Payload:
 
     {
         "gameID":  [string],                        // Game ID
+        "type": 3,                                  // Event Type
         "publicID": [string],                       // Created Clan PublicID This id should
                                                     // be used when referring to the clan in
                                                     // future operations.
@@ -156,6 +160,7 @@ Payload:
 
     {
         "gameID":  [string],                        // Game ID
+        "type": 4,                                  // Event Type
         "publicID": [string],                       // Updated Clan PublicID This id should
                                                     // be used when referring to the clan in
                                                     // future operations.
@@ -174,6 +179,7 @@ Payload:
 
     {
         "gameID": [string],
+        "type": 5,                                  // Event Type
         "clan": {
             "publicID": [string],                       // Updated Clan PublicID
             "name": [string],                           // Clan Name
@@ -200,6 +206,7 @@ Payload:
 
     {
         "gameID": [string],
+        "type": 6,                                  // Event Type
         "clan": {
             "publicID": [string],                       // Updated Clan PublicID
             "name": [string],                           // Clan Name
@@ -230,6 +237,7 @@ Payload:
 
     {
         "gameID": [string],
+        "type": 7,                                  // Event Type
         "clan": {
             "publicID": [string],                       // Clan that player is applying to
             "name": [string],                           // Clan Name
@@ -265,6 +273,7 @@ Payload:
 
     {
         "gameID": [string],
+        "type": 8,                                  // Event Type
         "clan": {
             "publicID": [string],                       // Clan that membership was approved
             "name": [string],                           // Clan Name
@@ -300,6 +309,7 @@ Payload:
 
     {
         "gameID": [string],
+        "type": 9,                                  // Event Type
         "clan": {
             "publicID": [string],                       // Clan that membership was denied
             "name": [string],                           // Clan Name
@@ -333,6 +343,7 @@ Payload:
 
     {
         "gameID": [string],
+        "type": 10,                                  // Event Type
         "clan": {
             "publicID": [string],                       // Clan that member was promoted
             "name": [string],                           // Clan Name
@@ -366,6 +377,7 @@ Payload:
 
     {
         "gameID": [string],
+        "type": 11,                                  // Event Type
         "clan": {
             "publicID": [string],                       // Clan that member was demoted
             "name": [string],                           // Clan Name
@@ -393,12 +405,13 @@ Payload:
 
 #### Member Left
 
-Event Type: `11`
+Event Type: `12`
 
 Payload:
 
     {
         "gameID": [string],
+        "type": 12,                                  // Event Type
         "clan": {
             "publicID": [string],                       // Clan that member left
             "name": [string],                           // Clan Name
