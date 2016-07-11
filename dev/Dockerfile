@@ -1,6 +1,6 @@
 FROM kiasaki/alpine-postgres
 
-ENV KHAN_VERSION 0.6.7
+ENV KHAN_VERSION 0.6.8
 ENV KHAN_BIN khan-linux
 ENV KHAN_DOWNLOAD_URL https://github.com/topfreegames/khan/releases/download/${KHAN_VERSION}/khan-linux-x86_64
 ENV KHAN_PORT 8080
