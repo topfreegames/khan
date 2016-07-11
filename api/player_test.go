@@ -253,7 +253,7 @@ func TestPlayerHandler(t *testing.T) {
 
 			g.Assert(len(*responses)).Equal(1)
 
-			player := (*responses)[0]
+			player := (*responses)[0]["payload"].(map[string]interface{})
 			g.Assert(player["gameID"]).Equal(gameID)
 			g.Assert(player["publicID"]).Equal(payload["publicID"])
 			g.Assert(player["name"]).Equal(payload["name"])
@@ -296,7 +296,7 @@ func TestPlayerHandler(t *testing.T) {
 			app.Dispatcher.Wait()
 			g.Assert(len(*responses)).Equal(1)
 
-			playerPayload := (*responses)[0]
+			playerPayload := (*responses)[0]["payload"].(map[string]interface{})
 			g.Assert(playerPayload["gameID"]).Equal(gameID)
 			g.Assert(playerPayload["publicID"]).Equal(payload["publicID"])
 			g.Assert(playerPayload["name"]).Equal(payload["name"])

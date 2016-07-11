@@ -11,6 +11,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net/url"
 	"strings"
 	"time"
 
@@ -152,10 +153,10 @@ func (w *Worker) Start() {
 	}()
 }
 
-func (w *Worker) interpolateURL(url string, payload map[string]interface{}) (string, error) {
-	t, err := fasttemplate.NewTemplate(url, "{{", "}}")
+func (w *Worker) interpolateURL(sourceURL string, payload map[string]interface{}) (string, error) {
+	t, err := fasttemplate.NewTemplate(sourceURL, "{{", "}}")
 	if err != nil {
-		return url, err
+		return sourceURL, err
 	}
 	s := t.ExecuteFuncString(func(w io.Writer, tag string) (int, error) {
 		pieces := strings.Split(tag, ".")
@@ -171,11 +172,18 @@ func (w *Worker) interpolateURL(url string, payload map[string]interface{}) (str
 					return 0, nil
 				}
 			}
-			return w.Write([]byte(fmt.Sprintf("%v", item)))
+			valEncoded := url.QueryEscape(
+				fmt.Sprintf("%v", item),
+			)
+			return w.Write([]byte(valEncoded))
 		}
 
 		if val, ok := payload[tag]; ok {
-			return w.Write([]byte(fmt.Sprintf("%v", val)))
+			valEncoded := url.QueryEscape(
+				fmt.Sprintf("%v", val),
+			)
+
+			return w.Write([]byte(valEncoded))
 		}
 
 		return 0, nil
@@ -210,6 +218,7 @@ func (w *Worker) DispatchHook(d Dispatch) error {
 			continue
 		}
 
+		fmt.Println("Requesting URI: ", url)
 		req := fasthttp.AcquireRequest()
 		req.Header.SetMethod("POST")
 		req.SetRequestURI(url)

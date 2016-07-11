@@ -762,8 +762,8 @@ func TestMembershipHandler(t *testing.T) {
 
 			g.Assert(len(*responses)).Equal(1)
 
-			apply := (*responses)[0]
-			validateMembershipHookResponse(g, apply, gameID, clan, player, player)
+			response := (*responses)[0]["payload"].(map[string]interface{})
+			validateMembershipHookResponse(g, response, gameID, clan, player, player)
 		})
 
 		g.It("Invite should call membership application created hook", func() {
@@ -807,8 +807,8 @@ func TestMembershipHandler(t *testing.T) {
 
 			g.Assert(len(*responses)).Equal(1)
 
-			apply := (*responses)[0]
-			validateMembershipHookResponse(g, apply, gameID, clan, player, owner)
+			response := (*responses)[0]["payload"].(map[string]interface{})
+			validateMembershipHookResponse(g, response, gameID, clan, player, owner)
 		})
 
 		g.It("should call membership approved hook on application", func() {
@@ -846,8 +846,8 @@ func TestMembershipHandler(t *testing.T) {
 
 			g.Assert(len(*responses)).Equal(1)
 
-			apply := (*responses)[0]
-			validateMembershipHookResponse(g, apply, gameID, clan, players[0], owner)
+			response := (*responses)[0]["payload"].(map[string]interface{})
+			validateMembershipHookResponse(g, response, gameID, clan, players[0], owner)
 		})
 
 		g.It("should call membership approved hook on invitation", func() {
@@ -885,8 +885,8 @@ func TestMembershipHandler(t *testing.T) {
 
 			g.Assert(len(*responses)).Equal(1)
 
-			apply := (*responses)[0]
-			validateMembershipHookResponse(g, apply, gameID, clan, players[0], players[0])
+			response := (*responses)[0]["payload"].(map[string]interface{})
+			validateMembershipHookResponse(g, response, gameID, clan, players[0], players[0])
 		})
 
 		g.It("should call membership denied hook on application", func() {
@@ -924,8 +924,8 @@ func TestMembershipHandler(t *testing.T) {
 
 			g.Assert(len(*responses)).Equal(1)
 
-			apply := (*responses)[0]
-			validateMembershipHookResponse(g, apply, gameID, clan, players[0], owner)
+			response := (*responses)[0]["payload"].(map[string]interface{})
+			validateMembershipHookResponse(g, response, gameID, clan, players[0], owner)
 		})
 
 		g.It("should call membership denied hook on invitation", func() {
@@ -963,8 +963,8 @@ func TestMembershipHandler(t *testing.T) {
 
 			g.Assert(len(*responses)).Equal(1)
 
-			apply := (*responses)[0]
-			validateMembershipHookResponse(g, apply, gameID, clan, players[0], players[0])
+			response := (*responses)[0]["payload"].(map[string]interface{})
+			validateMembershipHookResponse(g, response, gameID, clan, players[0], players[0])
 		})
 
 		g.It("should call membership promoted hook", func() {
@@ -1000,8 +1000,8 @@ func TestMembershipHandler(t *testing.T) {
 
 			g.Assert(len(*responses)).Equal(1)
 
-			apply := (*responses)[0]
-			validateMembershipHookResponse(g, apply, gameID, clan, players[0], owner)
+			response := (*responses)[0]["payload"].(map[string]interface{})
+			validateMembershipHookResponse(g, response, gameID, clan, players[0], owner)
 		})
 
 		g.It("should call membership demoted hook", func() {
@@ -1041,8 +1041,8 @@ func TestMembershipHandler(t *testing.T) {
 
 			g.Assert(len(*responses)).Equal(1)
 
-			apply := (*responses)[0]
-			validateMembershipHookResponse(g, apply, gameID, clan, players[0], owner)
+			response := (*responses)[0]["payload"].(map[string]interface{})
+			validateMembershipHookResponse(g, response, gameID, clan, players[0], owner)
 		})
 
 		g.It("should call membership deleted hook", func() {
@@ -1078,8 +1078,8 @@ func TestMembershipHandler(t *testing.T) {
 
 			g.Assert(len(*responses)).Equal(1)
 
-			apply := (*responses)[0]
-			validateMembershipHookResponse(g, apply, gameID, clan, players[0], owner)
+			response := (*responses)[0]["payload"].(map[string]interface{})
+			validateMembershipHookResponse(g, response, gameID, clan, players[0], owner)
 		})
 
 	})

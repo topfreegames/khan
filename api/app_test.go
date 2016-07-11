@@ -34,7 +34,13 @@ func startRouteHandler(routes []string, port int) *[]map[string]interface{} {
 			var payload map[string]interface{}
 			json.Unmarshal(bs, &payload)
 
-			responses = append(responses, payload)
+			response := map[string]interface{}{
+				"payload":  payload,
+				"request":  r,
+				"response": w,
+			}
+
+			responses = append(responses, response)
 		}
 		for _, route := range routes {
 			http.HandleFunc(route, handleFunc)
@@ -123,6 +129,45 @@ func TestApp(t *testing.T) {
 			g.Assert(err == nil).IsTrue()
 			app.Dispatcher.Wait()
 			g.Assert(len(*responses)).Equal(2)
+			app.Errors.Tick()
+			g.Assert(app.Errors.Rate()).Equal(0.0)
+		})
+
+		g.It("should encode hook parameters", func() {
+			hooks, err := models.GetHooksForRoutes(
+				testDb, []string{
+					"http://localhost:52525/encoding?url={{url}}",
+				}, models.GameUpdatedHook,
+			)
+			g.Assert(err == nil).IsTrue()
+			responses := startRouteHandler(
+				[]string{"/encoding"},
+				52525,
+			)
+
+			app := GetDefaultTestApp()
+			time.Sleep(time.Second)
+
+			resultingPayload := map[string]interface{}{
+				"url":      "http://some-url.com",
+				"success":  true,
+				"publicID": hooks[0].GameID,
+			}
+			err = app.DispatchHooks(
+				hooks[0].GameID,
+				models.GameUpdatedHook,
+				resultingPayload,
+			)
+			g.Assert(err == nil).IsTrue()
+			app.Dispatcher.Wait()
+			g.Assert(len(*responses)).Equal(1)
+
+			resp := (*responses)[0]
+			req := resp["request"].(*http.Request)
+
+			url := req.URL.Query().Get("url")
+			g.Assert(url).Equal("http://some-url.com")
+
 			app.Errors.Tick()
 			g.Assert(app.Errors.Rate()).Equal(0.0)
 		})

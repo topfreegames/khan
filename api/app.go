@@ -131,6 +131,16 @@ func (app *App) configureApplication() {
 	a.Use(&TransactionMiddleware{App: app})
 	a.Use(&VersionMiddleware{App: app})
 
+	a.OnError(iris.StatusInternalServerError, func(ctx *iris.Context) {
+		app.Logger.Error("Internal server error happened.", zap.String("error", string(ctx.Response.Body())))
+		ctx.Write("INTERNAL SERVER ERROR")
+	})
+
+	a.OnError(iris.StatusNotFound, func(ctx *iris.Context) {
+		app.Logger.Warn("Route not found.", zap.String("url", ctx.Request.URI().String()))
+		ctx.Write("Not Found")
+	})
+
 	a.Get("/healthcheck", HealthCheckHandler(app))
 	a.Get("/status", StatusHandler(app))
 

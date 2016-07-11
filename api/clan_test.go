@@ -565,7 +565,7 @@ func TestClanHandler(t *testing.T) {
 
 			g.Assert(len(*responses)).Equal(1)
 
-			clan := (*responses)[0]
+			clan := (*responses)[0]["payload"].(map[string]interface{})
 			g.Assert(clan["gameID"]).Equal(player.GameID)
 			g.Assert(clan["publicID"]).Equal(payload["publicID"])
 			g.Assert(clan["name"]).Equal(payload["name"])
@@ -615,7 +615,7 @@ func TestClanHandler(t *testing.T) {
 
 			g.Assert(len(*responses)).Equal(1)
 
-			rClan := (*responses)[0]
+			rClan := (*responses)[0]["payload"].(map[string]interface{})
 			g.Assert(rClan["gameID"]).Equal(hooks[0].GameID)
 			g.Assert(rClan["publicID"]).Equal(publicID)
 			g.Assert(rClan["name"]).Equal(payload["name"])
@@ -656,7 +656,7 @@ func TestClanHandler(t *testing.T) {
 
 			g.Assert(len(*responses)).Equal(1)
 
-			rClan := (*responses)[0]
+			rClan := (*responses)[0]["payload"].(map[string]interface{})
 			g.Assert(rClan["gameID"]).Equal(hooks[0].GameID)
 
 			clanDetails := rClan["clan"].(map[string]interface{})
@@ -703,7 +703,7 @@ func TestClanHandler(t *testing.T) {
 
 			g.Assert(len(*responses)).Equal(1)
 
-			rClan := (*responses)[0]
+			rClan := (*responses)[0]["payload"].(map[string]interface{})
 			g.Assert(rClan["gameID"]).Equal(hooks[0].GameID)
 
 			clanDetails := rClan["clan"].(map[string]interface{})
@@ -720,6 +720,5 @@ func TestClanHandler(t *testing.T) {
 			g.Assert(str(ownerDetails["membershipCount"])).Equal("0")
 			g.Assert(str(ownerDetails["ownershipCount"])).Equal("1")
 		})
-
 	})
 }
