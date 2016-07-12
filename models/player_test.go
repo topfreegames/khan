@@ -262,6 +262,68 @@ func TestPlayerModel(t *testing.T) {
 				g.Assert(len(pendingInvites)).Equal(0)
 			})
 
+			g.It("Should get owned clans as not deleted if there are deleted memberships of other clans (a.k.a fix John's bug)", func() {
+				game, clan, _, players, _, err := GetClanWithMemberships(testDb, 1, 0, 0, 0, "", "")
+				g.Assert(err == nil).IsTrue()
+
+				err = DeleteMembership(
+					testDb,
+					game,
+					game.PublicID,
+					players[0].PublicID,
+					clan.PublicID,
+					players[0].PublicID,
+				)
+				g.Assert(err == nil).IsTrue()
+
+				c, err := CreateClan(
+					testDb,
+					game.PublicID,
+					"johns-bug-clan",
+					"johns-bug-clan",
+					players[0].PublicID,
+					map[string]interface{}{"one": "one"},
+					false,
+					false,
+					1,
+				)
+				g.Assert(err == nil).IsTrue()
+				g.Assert(c.OwnerID).Equal(players[0].ID)
+
+				playerDetails, err := GetPlayerDetails(
+					testDb,
+					players[0].GameID,
+					players[0].PublicID,
+				)
+
+				g.Assert(err == nil).IsTrue()
+
+				// Player Details
+				g.Assert(playerDetails["publicID"]).Equal(players[0].PublicID)
+				g.Assert(playerDetails["name"]).Equal(players[0].Name)
+				g.Assert(playerDetails["metadata"]).Equal(players[0].Metadata)
+				g.Assert(playerDetails["createdAt"]).Equal(players[0].CreatedAt)
+				g.Assert(playerDetails["updatedAt"]).Equal(players[0].UpdatedAt)
+
+				//Memberships
+				g.Assert(len(playerDetails["memberships"].([]map[string]interface{}))).Equal(1)
+
+				clans := playerDetails["clans"].(map[string]interface{})
+				owned := clans["owned"].([]map[string]interface{})
+				approved := clans["approved"].([]map[string]interface{})
+				denied := clans["denied"].([]map[string]interface{})
+				banned := clans["banned"].([]map[string]interface{})
+				pendingApplications := clans["pendingApplications"].([]map[string]interface{})
+				pendingInvites := clans["pendingInvites"].([]map[string]interface{})
+
+				g.Assert(len(owned)).Equal(1)
+				g.Assert(len(approved)).Equal(0)
+				g.Assert(len(denied)).Equal(0)
+				g.Assert(len(banned)).Equal(0)
+				g.Assert(len(pendingApplications)).Equal(0)
+				g.Assert(len(pendingInvites)).Equal(0)
+			})
+
 			g.It("Should get Player Details including owned clans", func() {
 				game, clan, _, players, _, err := GetClanWithMemberships(testDb, 1, 0, 0, 0, "", "")
 				g.Assert(err == nil).IsTrue()
