@@ -492,7 +492,8 @@ Khan API
             "clan":{
               "metadata": [JSON],
               "name": [string],
-              "publicID": [string]
+              "publicID": [string],
+              "membershipCount": [int]
             },
             "createdAt":  [int64], // timestamp the player applied to a clan
             "updatedAt":  [int64], // timestamp that the membership was last updated
@@ -504,6 +505,7 @@ Khan API
             // Player that requested membership
             // If the player was invited, this should be another player.
             // Otherwise, this is the same as the player.
+            // If the membership level is 'owner' this key does not exist.
             "requestor":{
               "publicID": [string]
               "name": [string],
@@ -511,7 +513,7 @@ Khan API
             },
 
             // Player that approved this membership
-            // If the membership is not yet approved this key does not exist
+            // If the membership is not yet approved or the level is 'owner' this key does not exist
             "approver":{
               "publicID": [string]
               "name": [string],
