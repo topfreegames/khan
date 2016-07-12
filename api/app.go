@@ -14,9 +14,9 @@ import (
 
 	"gopkg.in/gorp.v1"
 
+	"github.com/iris-contrib/middleware/logger"
 	"github.com/kataras/iris"
 	"github.com/kataras/iris/config"
-	"github.com/kataras/iris/middleware/logger"
 	"github.com/rcrowley/go-metrics"
 	"github.com/spf13/viper"
 	"github.com/topfreegames/khan/models"
