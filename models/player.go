@@ -153,8 +153,68 @@ func UpdatePlayer(db DB, gameID, publicID, name string, metadata map[string]inte
 	return player, nil
 }
 
-// GetPlayerDetails returns detailed information about a player and their memberships
-func GetPlayerDetails(db DB, gameID, publicID string) (map[string]interface{}, error) {
+// GetPlayerOwnershipDetails returns detailed information about a player owned clans
+func GetPlayerOwnershipDetails(db DB, gameID, publicID string) (map[string]interface{}, error) {
+	query := `
+	SELECT c.*
+	FROM clans c
+		INNER JOIN players p on p.id=c.owner_id
+	WHERE
+		c.game_id=$1 and p.public_id=$2`
+
+	var clans []Clan
+	_, err := db.Select(&clans, query, gameID, publicID)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make(map[string]interface{})
+	memberships := []map[string]interface{}{}
+	owned := []map[string]interface{}{}
+
+	if len(clans) > 0 {
+		clanFromDetail := func(clan Clan) map[string]interface{} {
+			return map[string]interface{}{
+				"publicID": clan.PublicID,
+				"name":     clan.Name,
+			}
+		}
+
+		membershipFromClan := func(clan Clan) map[string]interface{} {
+			return map[string]interface{}{
+				"level":    "owner",
+				"approved": true,
+				"denied":   false,
+				"banned":   false,
+				"clan": map[string]interface{}{
+					"metadata":        clan.Metadata,
+					"name":            clan.Name,
+					"publicID":        clan.PublicID,
+					"membershipCount": clan.MembershipCount,
+				},
+				"createdAt":  clan.CreatedAt,
+				"updatedAt":  clan.CreatedAt,
+				"approvedAt": clan.CreatedAt,
+				"deletedAt":  0,
+			}
+		}
+
+		for _, clan := range clans {
+			m := membershipFromClan(clan)
+			memberships = append(memberships, m)
+
+			clanDetail := clanFromDetail(clan)
+			owned = append(owned, clanDetail)
+		}
+	}
+
+	result["memberships"] = memberships
+	result["clans"] = owned
+	return result, nil
+}
+
+// GetPlayerMembershipDetails returns detailed information about a player and their memberships
+func GetPlayerMembershipDetails(db DB, gameID, publicID string) (map[string]interface{}, error) {
 	query := `
 	SELECT
 		p.id PlayerID, p.name PlayerName, p.metadata PlayerMetadata, p.public_id PlayerPublicID,
@@ -172,7 +232,7 @@ func GetPlayerDetails(db DB, gameID, publicID string) (map[string]interface{}, e
 		d.name DeletedByName, d.public_id DeletedByPublicID
 	FROM players p
 		LEFT OUTER JOIN memberships m on m.player_id = p.id
-		LEFT OUTER JOIN clans c on c.id=m.clan_id OR c.owner_id=p.id
+		LEFT OUTER JOIN clans c on c.id=m.clan_id
 		LEFT OUTER JOIN players d on d.id=m.deleted_by
 		LEFT OUTER JOIN players r on r.id=m.requestor_id
 		LEFT OUTER JOIN players a on a.id=m.approver_id
@@ -197,11 +257,10 @@ func GetPlayerDetails(db DB, gameID, publicID string) (map[string]interface{}, e
 	result["createdAt"] = details[0].PlayerCreatedAt
 	result["updatedAt"] = details[0].PlayerUpdatedAt
 
-	if details[0].MembershipLevel.Valid || details[0].ClanOwnerID.Valid && int(details[0].ClanOwnerID.Int64) == details[0].PlayerID {
+	if details[0].MembershipLevel.Valid {
 		// Player has memberships
 		memberships := []map[string]interface{}{}
 
-		owned := []map[string]interface{}{}
 		approved := []map[string]interface{}{}
 		denied := []map[string]interface{}{}
 		banned := []map[string]interface{}{}
@@ -219,27 +278,20 @@ func GetPlayerDetails(db DB, gameID, publicID string) (map[string]interface{}, e
 			ma := nullOrBool(detail.MembershipApproved)
 			md := nullOrBool(detail.MembershipDenied)
 			mb := nullOrBool(detail.MembershipBanned)
-			owner := detail.ClanOwnerID.Valid && int(detail.ClanOwnerID.Int64) == detail.PlayerID
-			mdel := detail.MembershipDeletedAt.Valid && detail.MembershipDeletedAt.Int64 > 0 && !mb
+			mdel := !mb && detail.MembershipDeletedAt.Valid && detail.MembershipDeletedAt.Int64 > 0
 
 			if !mdel {
 				m := detail.Serialize()
-				if owner {
-					m["level"] = "owner"
-					m["approved"] = true
-				}
 				memberships = append(memberships, m)
 
 				clanDetail := clanFromDetail(detail)
 				switch {
-				case !ma && !md && !mb && !mdel && !owner:
+				case !ma && !md && !mb:
 					if detail.RequestorPublicID.Valid && detail.RequestorPublicID.String == detail.PlayerPublicID {
 						pendingApplications = append(pendingApplications, clanDetail)
 					} else {
 						pendingInvites = append(pendingInvites, clanDetail)
 					}
-				case owner:
-					owned = append(owned, clanDetail)
 				case ma:
 					approved = append(approved, clanDetail)
 				case md:
@@ -252,7 +304,6 @@ func GetPlayerDetails(db DB, gameID, publicID string) (map[string]interface{}, e
 
 		result["memberships"] = memberships
 		result["clans"] = map[string]interface{}{
-			"owned":               owned,
 			"approved":            approved,
 			"denied":              denied,
 			"banned":              banned,
@@ -263,7 +314,6 @@ func GetPlayerDetails(db DB, gameID, publicID string) (map[string]interface{}, e
 	} else {
 		result["memberships"] = []map[string]interface{}{}
 		result["clans"] = map[string]interface{}{
-			"owned":               []map[string]interface{}{},
 			"approved":            []map[string]interface{}{},
 			"denied":              []map[string]interface{}{},
 			"banned":              []map[string]interface{}{},
@@ -272,5 +322,20 @@ func GetPlayerDetails(db DB, gameID, publicID string) (map[string]interface{}, e
 		}
 	}
 
+	return result, nil
+}
+
+// GetPlayerDetails returns detailed information about a player and their memberships
+func GetPlayerDetails(db DB, gameID, publicID string) (map[string]interface{}, error) {
+	result, err := GetPlayerMembershipDetails(db, gameID, publicID)
+	if err != nil {
+		return nil, err
+	}
+	ownerships, err := GetPlayerOwnershipDetails(db, gameID, publicID)
+	if err != nil {
+		return nil, err
+	}
+	result["clans"].(map[string]interface{})["owned"] = ownerships["clans"]
+	result["memberships"] = append(result["memberships"].([]map[string]interface{}), ownerships["memberships"].([]map[string]interface{})...)
 	return result, nil
 }
