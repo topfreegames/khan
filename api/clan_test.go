@@ -482,7 +482,9 @@ func TestClanHandler(t *testing.T) {
 
 			a := GetDefaultTestApp()
 
-			res := Get(a, GetGameRoute(player.GameID, "clan-search?term=APISEARCH"), t)
+			res := Get(a, GetGameRoute(player.GameID, "clan-search"), t, map[string]interface{}{
+				"term": "APISEARCH",
+			})
 
 			g.Assert(res.Raw().StatusCode).Equal(http.StatusOK)
 			var result map[string]interface{}
@@ -510,7 +512,9 @@ func TestClanHandler(t *testing.T) {
 
 			a := GetDefaultTestApp()
 
-			res := Get(a, GetGameRoute(player.GameID, "clan-search?term=💩clán-clan-APISEARCH"), t)
+			res := Get(a, GetGameRoute(player.GameID, "clan-search"), t, map[string]interface{}{
+				"term": "💩clán-clan-APISEARCH",
+			})
 
 			g.Assert(res.Raw().StatusCode).Equal(http.StatusOK)
 			var result map[string]interface{}

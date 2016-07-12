@@ -9,12 +9,12 @@ package api
 
 import (
 	"fmt"
+	"net/http"
 	"testing"
 
 	"github.com/franela/goblin"
-	"github.com/gavv/httpexpect"
-	"github.com/gavv/httpexpect/fasthttpexpect"
 	"github.com/topfreegames/khan/models"
+	"gopkg.in/gavv/httpexpect.v1"
 )
 
 // GetDefaultTestApp returns a new Khan API Application bound to 0.0.0.0:8888 for test
@@ -25,8 +25,13 @@ func GetDefaultTestApp() *App {
 }
 
 // Get returns a test request against specified URL
-func Get(app *App, url string, t *testing.T) *httpexpect.Response {
+func Get(app *App, url string, t *testing.T, queryString ...map[string]interface{}) *httpexpect.Response {
 	req := sendRequest(app, "GET", url, t)
+	if len(queryString) == 1 {
+		for k, v := range queryString[0] {
+			req = req.WithQuery(k, v)
+		}
+	}
 	return req.Expect()
 }
 
@@ -70,8 +75,15 @@ func sendRequest(app *App, method, url string, t *testing.T) *httpexpect.Request
 	handler := app.App.NoListen().Handler
 
 	e := httpexpect.WithConfig(httpexpect.Config{
+		BaseURL: fmt.Sprintf("http://%s:%d", app.Host, app.Port),
+		Client: &http.Client{
+			Transport: httpexpect.NewFastBinder(handler),
+			Jar:       httpexpect.NewJar(),
+		},
 		Reporter: httpexpect.NewAssertReporter(t),
-		Client:   fasthttpexpect.NewBinder(handler),
+		Printers: []httpexpect.Printer{
+			httpexpect.NewDebugPrinter(t, true),
+		},
 	})
 
 	return e.Request(method, url)

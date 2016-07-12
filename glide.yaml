@@ -6,7 +6,7 @@ import:
   subpackages:
   - iris
 - package: github.com/Joker/jade
-- package: github.com/gavv/httpexpect
+- package: gopkg.in/gavv/httpexpect.v1
 - package: github.com/topfreegames/goose
   subpackages:
   - cmd/goose
@@ -22,3 +22,4 @@ import:
 - package: github.com/uber-go/zap
 - package: github.com/uber-go/atomic
 - package: github.com/valyala/fasttemplate
+- package: github.com/iris-contrib/middleware
