@@ -211,9 +211,21 @@ func TestPlayerModel(t *testing.T) {
 				approver := approvedMembership["approver"].(map[string]interface{})
 				g.Assert(approver["name"]).Equal(player.Name)
 				g.Assert(approver["publicID"]).Equal(player.PublicID)
+				g.Assert(approvedMembership["denier"] == nil).IsTrue()
 
 				g.Assert(approvedMembership["approvedAt"] != nil).IsTrue()
 				g.Assert(approvedMembership["approvedAt"].(int64) > 0).IsTrue()
+
+				deniedMembership := playerDetails["memberships"].([]map[string]interface{})[6]
+				g.Assert(deniedMembership["denier"] != nil).IsTrue()
+				denier := deniedMembership["denier"].(map[string]interface{})
+				g.Assert(denier["name"]).Equal(player.Name)
+				g.Assert(denier["publicID"]).Equal(player.PublicID)
+				g.Assert(deniedMembership["approver"] == nil).IsTrue()
+
+				g.Assert(deniedMembership["deniedAt"] != nil).IsTrue()
+				g.Assert(deniedMembership["deniedAt"].(int64) > 0).IsTrue()
+
 			})
 
 			g.It("Should get Player Details without memberships that were deleted by the player", func() {
