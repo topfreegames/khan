@@ -306,7 +306,7 @@ func ApproveOrDenyMembershipApplicationHandler(app *App) func(c *iris.Context) {
 		}
 
 		l.Debug("Retrieving requestor details.")
-		requestor, err := models.GetPlayerByID(db, int(membership.ApproverID.Int64))
+		requestor, err := models.GetPlayerByPublicID(db, gameID, payload.RequestorPublicID)
 		if err != nil {
 			l.Error("Requestor details retrieval failed.", zap.Error(err))
 			FailWith(500, err.Error(), c)
