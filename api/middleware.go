@@ -129,7 +129,7 @@ func (l *LoggerMiddleware) Serve(ctx *iris.Context) {
 		reqLog.Warn("Request failed.")
 		return
 	}
-	reqLog.Debug("Request successful.")
+	reqLog.Info("Request successful.")
 }
 
 // NewLoggerMiddleware returns the logger middleware
