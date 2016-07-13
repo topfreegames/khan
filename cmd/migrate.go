@@ -50,6 +50,9 @@ func createTempDbDir() (string, error) {
 }
 
 func getDatabase() (*gorp.DbMap, error) {
+	viper.SetEnvPrefix("khan")
+	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+	viper.AutomaticEnv()
 	host := viper.GetString("postgres.host")
 	user := viper.GetString("postgres.user")
 	dbName := viper.GetString("postgres.dbname")
