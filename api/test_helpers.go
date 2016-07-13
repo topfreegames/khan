@@ -14,12 +14,14 @@ import (
 
 	"github.com/franela/goblin"
 	"github.com/topfreegames/khan/models"
+	kt "github.com/topfreegames/khan/testing"
 	"gopkg.in/gavv/httpexpect.v1"
 )
 
 // GetDefaultTestApp returns a new Khan API Application bound to 0.0.0.0:8888 for test
 func GetDefaultTestApp() *App {
-	app := GetApp("0.0.0.0", 8888, "../config/test.yaml", true)
+	l := kt.NewMockLogger()
+	app := GetApp("0.0.0.0", 8888, "../config/test.yaml", true, l)
 	app.Configure()
 	return app
 }

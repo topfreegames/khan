@@ -10,6 +10,7 @@ package cmd
 import (
 	"github.com/spf13/cobra"
 	"github.com/topfreegames/khan/api"
+	"github.com/uber-go/zap"
 )
 
 var host string
@@ -23,13 +24,31 @@ var startCmd = &cobra.Command{
 	Long: `Starts khan server with the specified arguments. You can use
 environment variables to override configuration keys.`,
 	Run: func(cmd *cobra.Command, args []string) {
+		ll := zap.WarnLevel
+		if debug {
+			ll = zap.DebugLevel
+		}
+		l := zap.NewJSON(ll)
+
+		cmdL := l.With(
+			zap.String("source", "startCmd"),
+			zap.String("operation", "Run"),
+			zap.String("host", host),
+			zap.Int("port", port),
+			zap.Bool("debug", debug),
+		)
+
+		cmdL.Debug("Creating application...")
 		app := api.GetApp(
 			host,
 			port,
 			ConfigFile,
 			debug,
+			l,
 		)
+		cmdL.Debug("Application created successfully.")
 
+		cmdL.Debug("Starting application...")
 		app.Start()
 	},
 }

@@ -18,6 +18,7 @@ import (
 	. "github.com/franela/goblin"
 	"github.com/satori/go.uuid"
 	"github.com/topfreegames/khan/models"
+	kt "github.com/topfreegames/khan/testing"
 )
 
 func startRouteHandler(routes []string, port int) *[]map[string]interface{} {
@@ -61,7 +62,8 @@ func TestApp(t *testing.T) {
 
 	g.Describe("App Struct", func() {
 		g.It("should create app with custom arguments", func() {
-			app := GetApp("127.0.0.1", 9999, "../config/test.yaml", false)
+			l := kt.NewMockLogger()
+			app := GetApp("127.0.0.1", 9999, "../config/test.yaml", false, l)
 			g.Assert(app.Port).Equal(9999)
 			g.Assert(app.Host).Equal("127.0.0.1")
 		})
