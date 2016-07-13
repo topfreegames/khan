@@ -10,10 +10,12 @@ package api
 import (
 	"reflect"
 	"strings"
+	"time"
 
 	"github.com/kataras/iris"
 	"github.com/topfreegames/khan/models"
 	"github.com/topfreegames/khan/util"
+	"github.com/uber-go/zap"
 )
 
 type gamePayload struct {
@@ -74,26 +76,49 @@ func validateGamePayload(payload interface{}) []string {
 	return errors
 }
 
+func logPayloadErrors(l zap.Logger, errors []string) {
+	var fields []zap.Field
+	for _, err := range errors {
+		fields = append(fields, zap.String("validationError", err))
+	}
+	l.Warn(
+		"Payload is not valid",
+		fields...,
+	)
+}
+
 // CreateGameHandler is the handler responsible for creating new games
 func CreateGameHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
+		start := time.Now()
+		l := app.Logger.With(
+			zap.String("source", "gameHandler"),
+			zap.String("operation", "createGame"),
+		)
+
 		var payload createGamePayload
 		if err := LoadJSONPayload(&payload, c); err != nil {
 			FailWith(400, err.Error(), c)
 			return
 		}
+
 		if payloadErrors := validateGamePayload(payload); len(payloadErrors) != 0 {
+			logPayloadErrors(l, payloadErrors)
 			errorString := strings.Join(payloadErrors[:], ", ")
 			FailWith(422, errorString, c)
 			return
 		}
 
+		l.Debug("Getting DB connection...")
 		db, err := GetCtxDB(c)
 		if err != nil {
+			l.Error("Failed to connect to DB.", zap.Error(err))
 			FailWith(500, err.Error(), c)
 			return
 		}
+		l.Debug("DB Connection successful.")
 
+		l.Debug("Creating game...")
 		game, err := models.CreateGame(
 			db,
 			payload.PublicID,
@@ -111,9 +136,15 @@ func CreateGameHandler(app *App) func(c *iris.Context) {
 		)
 
 		if err != nil {
+			l.Error("Create game failed.", zap.Error(err))
 			FailWith(500, err.Error(), c)
 			return
 		}
+
+		l.Info(
+			"Game created succesfully.",
+			zap.Duration("createGameDuration", time.Now().Sub(start)),
+		)
 
 		SucceedWith(map[string]interface{}{
 			"publicID": game.PublicID,
@@ -125,24 +156,37 @@ func CreateGameHandler(app *App) func(c *iris.Context) {
 func UpdateGameHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
 		gameID := c.Param("gameID")
+		start := time.Now()
+
+		l := app.Logger.With(
+			zap.String("source", "gameHandler"),
+			zap.String("operation", "createGame"),
+			zap.String("gameID", gameID),
+		)
+
 		var payload gamePayload
 
-		if err := LoadJSONPayload(&payload, c); err != nil {
+		if err := LoadJSONPayload(&payload, c, l); err != nil {
 			FailWith(400, err.Error(), c)
 			return
 		}
 		if payloadErrors := validateGamePayload(payload); len(payloadErrors) != 0 {
+			logPayloadErrors(l, payloadErrors)
 			errorString := strings.Join(payloadErrors[:], ", ")
 			FailWith(422, errorString, c)
 			return
 		}
 
+		l.Debug("Getting DB connection...")
 		db, err := GetCtxDB(c)
 		if err != nil {
+			l.Error("Failed to connect to DB.", zap.Error(err))
 			FailWith(500, err.Error(), c)
 			return
 		}
+		l.Debug("DB Connection successful.")
 
+		l.Debug("Updating game...")
 		_, err = models.UpdateGame(
 			db,
 			gameID,
@@ -160,12 +204,17 @@ func UpdateGameHandler(app *App) func(c *iris.Context) {
 		)
 
 		if err != nil {
+			l.Error("Game update failed.", zap.Error(err))
 			FailWith(500, err.Error(), c)
 			return
 		}
 
+		l.Info(
+			"Game updated succesfully.",
+			zap.Duration("createGameDuration", time.Now().Sub(start)),
+		)
+
 		successPayload := map[string]interface{}{
-			"success":                       true,
 			"publicID":                      gameID,
 			"name":                          payload.Name,
 			"membershipLevels":              payload.MembershipLevels,
@@ -179,7 +228,9 @@ func UpdateGameHandler(app *App) func(c *iris.Context) {
 			"maxMembers":                    payload.MaxMembers,
 			"maxClansPerPlayer":             payload.MaxClansPerPlayer,
 		}
+		l.Debug("Dispatching game updated hook...")
 		app.DispatchHooks(gameID, models.GameUpdatedHook, successPayload)
+		l.Debug("Game updated hook dispatched successfully.")
 
 		SucceedWith(map[string]interface{}{}, c)
 	}

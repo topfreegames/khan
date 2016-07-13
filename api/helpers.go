@@ -17,6 +17,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/kataras/iris"
+	"github.com/uber-go/zap"
 )
 
 // FailWith fails with the specified message
@@ -38,9 +39,18 @@ func SucceedWith(payload map[string]interface{}, c *iris.Context) {
 }
 
 // LoadJSONPayload loads the JSON payload to the given struct validating all fields are not null
-func LoadJSONPayload(payloadStruct interface{}, c *iris.Context) error {
+func LoadJSONPayload(payloadStruct interface{}, c *iris.Context, logger ...zap.Logger) error {
+	var l zap.Logger
+	if len(logger) == 1 {
+		l = logger[0]
+	} else {
+		l = zap.NewJSON()
+	}
+	l.Debug("Loading payload...")
+
 	if err := c.ReadJSON(payloadStruct); err != nil {
 		if err != nil {
+			l.Error("Loading payload failed.", zap.Error(err))
 			return err
 		}
 	}
@@ -49,6 +59,7 @@ func LoadJSONPayload(payloadStruct interface{}, c *iris.Context) error {
 	var jsonPayload map[string]interface{}
 	err := json.Unmarshal(data, &jsonPayload)
 	if err != nil {
+		l.Error("Loading payload failed.", zap.Error(err))
 		return err
 	}
 
@@ -66,8 +77,10 @@ func LoadJSONPayload(payloadStruct interface{}, c *iris.Context) error {
 
 	if len(missingFieldErrors) != 0 {
 		error := errors.New(strings.Join(missingFieldErrors[:], ", "))
+		l.Error("Loading payload failed.", zap.Error(err))
 		return error
 	}
 
+	l.Debug("Payload loaded successfully.")
 	return nil
 }
