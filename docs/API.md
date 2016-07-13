@@ -77,7 +77,9 @@ Khan API
       "minLevelOffsetToPromoteMember": [int],
       "minLevelOffsetToDemoteMember":  [int],
       "maxMembers":                    [int],
-      "maxClansPerPlayer":             [int]
+      "maxClansPerPlayer":             [int],
+      "cooldownAfterDeny":             [int],
+      "cooldownAfterDelete":           [int]
     }
     ```
 
@@ -108,6 +110,10 @@ Khan API
       **maxMembers**: Maximum number of members a clan of this game can have.
 
       **maxClansPerPlayer**: Maximum number of clans a player can be member of.
+
+      **cooldownAfterDeny**: Time (in seconds) the player must wait before applying/being invited to a new membership after the last membership application/invite was denied.
+
+      **cooldownAfterDelete**:  Time (in seconds) the player must wait before applying/being invited to a new membership after the last membership application/invite was deleted.
 
   * Success Response
     * Code: `200`
@@ -170,7 +176,9 @@ Khan API
       "minLevelOffsetToPromoteMember": [int],
       "minLevelOffsetToDemoteMember":  [int],
       "maxMembers":                    [int],
-      "maxClansPerPlayer":             [int]
+      "maxClansPerPlayer":             [int],
+      "cooldownAfterDeny":             [int],
+      "cooldownAfterDelete":           [int]
     }
     ```
 
