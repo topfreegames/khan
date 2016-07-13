@@ -38,22 +38,22 @@ type App struct {
 }
 
 // GetApp returns a new Khan API Application
-func GetApp(host string, port int, configPath string, debug bool) *App {
+func GetApp(host string, port int, configPath string, debug bool, logger zap.Logger) *App {
 	app := &App{
 		Host:       host,
 		Port:       port,
 		ConfigPath: configPath,
 		Config:     viper.New(),
 		Debug:      debug,
+		Logger:     logger,
 	}
+
 	app.Configure()
 	return app
 }
 
 // Configure instantiates the required dependencies for Khan Api Application
 func (app *App) Configure() {
-	app.Logger = zap.NewJSON(zap.WarnLevel)
-
 	app.setConfigurationDefaults()
 	app.loadConfiguration()
 	app.connectDatabase()
@@ -62,6 +62,10 @@ func (app *App) Configure() {
 }
 
 func (app *App) setConfigurationDefaults() {
+	l := app.Logger.With(
+		zap.String("source", "app"),
+		zap.String("operation", "setConfigurationDefaults"),
+	)
 	app.Config.SetDefault("healthcheck.workingText", "WORKING")
 	app.Config.SetDefault("postgres.host", "localhost")
 	app.Config.SetDefault("postgres.user", "khan")
@@ -69,18 +73,26 @@ func (app *App) setConfigurationDefaults() {
 	app.Config.SetDefault("postgres.port", 5432)
 	app.Config.SetDefault("postgres.sslMode", "disable")
 	app.Config.SetDefault("webhooks.timeout", 2)
+	l.Debug("Configuration defaults set.")
 }
 
 func (app *App) loadConfiguration() {
+	l := app.Logger.With(
+		zap.String("source", "app"),
+		zap.String("operation", "loadConfiguration"),
+		zap.String("configPath", app.ConfigPath),
+	)
+
 	app.Config.SetConfigFile(app.ConfigPath)
 	app.Config.SetEnvPrefix("khan")
 	app.Config.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	app.Config.AutomaticEnv()
 
+	l.Debug("Loading configuration file...")
 	if err := app.Config.ReadInConfig(); err == nil {
-		app.Logger.Info("Loaded config file.", zap.String("configFile", app.Config.ConfigFileUsed()))
+		l.Info("Loaded config file successfully.")
 	} else {
-		panic(fmt.Sprintf("Could not load configuration file from: %s", app.ConfigPath))
+		l.Panic("Config file failed to load.")
 	}
 }
 
@@ -92,25 +104,33 @@ func (app *App) connectDatabase() {
 	port := app.Config.GetInt("postgres.port")
 	sslMode := app.Config.GetString("postgres.sslMode")
 
+	l := app.Logger.With(
+		zap.String("source", "app"),
+		zap.String("operation", "connectDatabase"),
+		zap.String("host", host),
+		zap.String("user", user),
+		zap.String("dbName", dbName),
+		zap.Int("port", port),
+		zap.String("sslMode", sslMode),
+	)
+
+	l.Debug("Connecting to database...")
 	db, err := models.GetDB(host, user, port, sslMode, dbName, password)
 
 	if err != nil {
-		app.Logger.Error(
+		l.Panic(
 			"Could not connect to postgres...",
-			zap.String("host", host),
-			zap.Int("port", port),
-			zap.String("user", user),
-			zap.String("dbName", dbName),
 			zap.String("error", err.Error()),
 		)
-		panic(err)
 	}
+	l.Info("Connected to database successfully.")
 	app.Db = db
 }
 
 func (app *App) onErrorHandler(err interface{}, stack []byte) {
 	app.Logger.Error(
 		"Panic occurred.",
+		zap.String("source", "app"),
 		zap.Object("panicText", err),
 		zap.String("stack", string(stack)),
 	)
@@ -118,7 +138,7 @@ func (app *App) onErrorHandler(err interface{}, stack []byte) {
 
 func (app *App) configureApplication() {
 	c := config.Iris{
-		DisableBanner: !app.Debug,
+		DisableBanner: true,
 	}
 
 	app.App = iris.New(c)
@@ -132,12 +152,19 @@ func (app *App) configureApplication() {
 	a.Use(&VersionMiddleware{App: app})
 
 	a.OnError(iris.StatusInternalServerError, func(ctx *iris.Context) {
-		app.Logger.Error("Internal server error happened.", zap.String("error", string(ctx.Response.Body())))
+		app.Logger.Error(
+			"Internal server error happened.",
+			zap.String("error", string(ctx.Response.Body())),
+			zap.String("source", "app"),
+		)
 		ctx.Write("INTERNAL SERVER ERROR")
 	})
 
 	a.OnError(iris.StatusNotFound, func(ctx *iris.Context) {
-		app.Logger.Warn("Route not found.", zap.String("url", ctx.Request.URI().String()))
+		app.Logger.Warn(
+			"Route not found.", zap.String("url", ctx.Request.URI().String()),
+			zap.String("source", "app"),
+		)
 		ctx.Write("Not Found")
 	})
 
@@ -190,14 +217,22 @@ func (app *App) addError() {
 
 //GetHooks returns all available hooks
 func (app *App) GetHooks() map[string]map[int][]*models.Hook {
+	l := app.Logger.With(
+		zap.String("source", "app"),
+		zap.String("operation", "GetHooks"),
+	)
+
+	start := time.Now()
+	l.Debug("Retrieving hooks...")
 	dbHooks, err := models.GetAllHooks(app.Db)
 	if err != nil {
-		app.Logger.Error(
-			"Failed to retrieve hooks!",
+		l.Error(
+			"Retrieve hooks failed.",
 			zap.String("error", err.Error()),
 		)
 		return nil
 	}
+	l.Info("Hooks retrieved successfully.", zap.Duration("hookRetrievalDuration", time.Now().Sub(start)))
 
 	hooks := make(map[string]map[int][]*models.Hook)
 	for _, hook := range dbHooks {
@@ -215,30 +250,89 @@ func (app *App) GetHooks() map[string]map[int][]*models.Hook {
 
 //GetGame returns a game by Public ID
 func (app *App) GetGame(gameID string) (*models.Game, error) {
-	return models.GetGameByPublicID(app.Db, gameID)
+	l := app.Logger.With(
+		zap.String("source", "app"),
+		zap.String("operation", "GetGame"),
+		zap.String("gameID", gameID),
+	)
+
+	start := time.Now()
+	l.Debug("Retrieving game...")
+
+	game, err := models.GetGameByPublicID(app.Db, gameID)
+	if err != nil {
+		l.Error(
+			"Retrieve game failed.",
+			zap.Error(err),
+		)
+		return nil, err
+	}
+
+	l.Info(
+		"Game retrieved succesfully.",
+		zap.Duration("gameRetrievalDuration", time.Now().Sub(start)),
+	)
+	return game, nil
 }
 
 func (app *App) initDispatcher() {
+	l := app.Logger.With(
+		zap.String("source", "app"),
+		zap.String("operation", "initDispatcher"),
+	)
+
+	l.Debug("Initializing dispatcher...")
 	disp, err := NewDispatcher(app, 5, 1000)
 	if err != nil {
-		panic(fmt.Sprintf("Could not initialize dispatcher: %s", err.Error()))
+		l.Panic("Dispatcher failed to initialize.", zap.Error(err))
+		return
 	}
+	l.Info("Dispatcher initialized successfully")
+
+	l.Debug("Starting dispatcher...")
 	app.Dispatcher = disp
 	app.Dispatcher.Start()
+	l.Info("Dispatcher started successfully.")
 }
 
 // DispatchHooks dispatches web hooks for a specific game and event type
 func (app *App) DispatchHooks(gameID string, eventType int, payload map[string]interface{}) error {
+	l := app.Logger.With(
+		zap.String("source", "app"),
+		zap.String("operation", "DispatchHooks"),
+		zap.String("gameID", gameID),
+		zap.Int("eventType", eventType),
+	)
+
+	start := time.Now()
+	l.Debug("Dispatching hook...")
 	app.Dispatcher.DispatchHook(gameID, eventType, payload)
+	l.Info(
+		"Hook dispatched successfully.",
+		zap.Duration("hookDispatchDuration", time.Now().Sub(start)),
+	)
 	return nil
 }
 
 func (app *App) finalizeApp() {
+	l := app.Logger.With(
+		zap.String("source", "app"),
+		zap.String("operation", "finalizeApp"),
+	)
+
+	l.Debug("Closing DB connection...")
 	app.Db.(*gorp.DbMap).Db.Close()
+	l.Info("DB connection closed succesfully.")
 }
 
 // Start starts listening for web requests at specified host and port
 func (app *App) Start() {
+	l := app.Logger.With(
+		zap.String("source", "app"),
+		zap.String("operation", "Start"),
+	)
+
 	defer app.finalizeApp()
+	l.Debug("App started.", zap.String("host", app.Host), zap.Int("port", app.Port))
 	app.App.Listen(fmt.Sprintf("%s:%d", app.Host, app.Port))
 }
