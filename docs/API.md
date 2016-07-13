@@ -507,6 +507,7 @@ Khan API
             "updatedAt":  [int64], // timestamp that the membership was last updated
             "deletedAt":  [int64], // timestamp that the player was banned
             "approvedAt": [int64], // timestamp that the player was approved
+            "deniedAt":   [int64], // timestamp that the player was denied
 
             "level": [string],    // level of the player in this clan
 
@@ -523,6 +524,14 @@ Khan API
             // Player that approved this membership
             // If the membership is not yet approved or the level is 'owner' this key does not exist
             "approver":{
+              "publicID": [string]
+              "name": [string],
+              "metadata": [JSON],
+            },
+
+            // Player that denied this membership
+            // If the membership is not yet denied
+            "denier":{
               "publicID": [string]
               "name": [string],
               "metadata": [JSON],
