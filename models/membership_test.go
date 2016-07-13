@@ -907,6 +907,9 @@ func TestMembershipModel(t *testing.T) {
 				g.Assert(err == nil).IsTrue()
 				g.Assert(dbMembership.Approved).Equal(false)
 				g.Assert(dbMembership.Denied).Equal(true)
+				g.Assert(dbMembership.DenierID.Valid).IsTrue()
+				g.Assert(dbMembership.DenierID.Int64).Equal(int64(players[0].ID))
+				g.Assert(dbMembership.DeniedAt > time.Now().UnixNano()/1000000-1000).IsTrue()
 			})
 		})
 
@@ -1336,6 +1339,10 @@ func TestMembershipModel(t *testing.T) {
 
 				g.Assert(dbMembership.Approved).Equal(false)
 				g.Assert(dbMembership.Denied).Equal(true)
+				g.Assert(dbMembership.DenierID.Valid).IsTrue()
+				g.Assert(dbMembership.DenierID.Int64).Equal(int64(owner.ID))
+				g.Assert(dbMembership.DeniedAt > time.Now().UnixNano()/1000000-1000).IsTrue()
+
 			})
 		})
 
