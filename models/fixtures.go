@@ -28,6 +28,8 @@ var GameFactory = factory.NewFactory(
 		MinLevelOffsetToDemoteMember:  1,
 		MaxClansPerPlayer:             1,
 		MaxMembers:                    100,
+		CooldownAfterDeny:             0,
+		CooldownAfterDelete:           0,
 	},
 ).Attr("PublicID", func(args factory.Args) (interface{}, error) {
 	return uuid.NewV4().String(), nil
