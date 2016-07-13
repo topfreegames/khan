@@ -30,6 +30,8 @@ type gamePayload struct {
 	MinLevelOffsetToDemoteMember  int
 	MaxMembers                    int
 	MaxClansPerPlayer             int
+	CooldownAfterDeny             int
+	CooldownAfterDelete           int
 }
 
 type createGamePayload struct {
@@ -45,6 +47,8 @@ type createGamePayload struct {
 	MinLevelOffsetToDemoteMember  int
 	MaxMembers                    int
 	MaxClansPerPlayer             int
+	CooldownAfterDeny             int
+	CooldownAfterDelete           int
 }
 
 func getAsInt(field string, payload interface{}) int {
@@ -133,6 +137,8 @@ func CreateGameHandler(app *App) func(c *iris.Context) {
 			payload.MinLevelOffsetToDemoteMember,
 			payload.MaxMembers,
 			payload.MaxClansPerPlayer,
+			payload.CooldownAfterDeny,
+			payload.CooldownAfterDelete,
 		)
 
 		if err != nil {
@@ -201,6 +207,8 @@ func UpdateGameHandler(app *App) func(c *iris.Context) {
 			payload.MinLevelOffsetToDemoteMember,
 			payload.MaxMembers,
 			payload.MaxClansPerPlayer,
+			payload.CooldownAfterDeny,
+			payload.CooldownAfterDelete,
 		)
 
 		if err != nil {
@@ -227,6 +235,8 @@ func UpdateGameHandler(app *App) func(c *iris.Context) {
 			"minLevelOffsetToDemoteMember":  payload.MinLevelOffsetToDemoteMember,
 			"maxMembers":                    payload.MaxMembers,
 			"maxClansPerPlayer":             payload.MaxClansPerPlayer,
+			"cooldownAfterDeny":             payload.CooldownAfterDeny,
+			"cooldownAfterDelete":           payload.CooldownAfterDelete,
 		}
 		app.DispatchHooks(gameID, models.GameUpdatedHook, successPayload)
 

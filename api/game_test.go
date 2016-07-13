@@ -41,6 +41,8 @@ func getGamePayload(publicID, name string) map[string]interface{} {
 		"minLevelOffsetToDemoteMember":  1,
 		"maxMembers":                    100,
 		"maxClansPerPlayer":             1,
+		"cooldownAfterDeny":             30,
+		"cooldownAfterDelete":           30,
 	}
 }
 
@@ -80,6 +82,8 @@ func TestGameHandler(t *testing.T) {
 			g.Assert(dbGame.MinLevelOffsetToDemoteMember).Equal(payload["minLevelOffsetToDemoteMember"])
 			g.Assert(dbGame.MaxMembers).Equal(payload["maxMembers"])
 			g.Assert(dbGame.MaxClansPerPlayer).Equal(payload["maxClansPerPlayer"])
+			g.Assert(dbGame.CooldownAfterDeny).Equal(payload["cooldownAfterDeny"])
+			g.Assert(dbGame.CooldownAfterDelete).Equal(payload["cooldownAfterDelete"])
 		})
 
 		g.It("Should not create game if missing parameters", func() {
@@ -142,6 +146,7 @@ func TestGameHandler(t *testing.T) {
 			metadata := map[string]interface{}{"y": "10"}
 			payload := getGamePayload(game.PublicID, game.Name)
 			payload["metadata"] = metadata
+			payload["cooldownAfterDeny"] = 0
 
 			route := fmt.Sprintf("/games/%s", game.PublicID)
 			res := PutJSON(a, route, t, payload)
@@ -167,6 +172,8 @@ func TestGameHandler(t *testing.T) {
 			g.Assert(dbGame.MinLevelOffsetToDemoteMember).Equal(payload["minLevelOffsetToDemoteMember"])
 			g.Assert(dbGame.MaxMembers).Equal(payload["maxMembers"])
 			g.Assert(dbGame.MaxClansPerPlayer).Equal(payload["maxClansPerPlayer"])
+			g.Assert(dbGame.CooldownAfterDeny).Equal(payload["cooldownAfterDeny"])
+			g.Assert(dbGame.CooldownAfterDelete).Equal(payload["cooldownAfterDelete"])
 		})
 
 		g.It("Should insert if game does not exist", func() {
