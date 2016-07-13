@@ -119,7 +119,7 @@ func UpdateClanHandler(app *App) func(c *iris.Context) {
 
 		l := app.Logger.With(
 			zap.String("source", "clanHandler"),
-			zap.String("operation", "createClan"),
+			zap.String("operation", "updateClan"),
 			zap.String("gameID", gameID),
 			zap.String("clanPublicID", publicID),
 		)
@@ -204,7 +204,7 @@ func LeaveClanHandler(app *App) func(c *iris.Context) {
 
 		l := app.Logger.With(
 			zap.String("source", "clanHandler"),
-			zap.String("operation", "createClan"),
+			zap.String("operation", "leaveClan"),
 			zap.String("gameID", gameID),
 			zap.String("clanPublicID", publicID),
 		)
@@ -254,7 +254,7 @@ func TransferOwnershipHandler(app *App) func(c *iris.Context) {
 
 		l := app.Logger.With(
 			zap.String("source", "clanHandler"),
-			zap.String("operation", "createClan"),
+			zap.String("operation", "transferClanOwnership"),
 			zap.String("gameID", gameID),
 			zap.String("clanPublicID", publicID),
 		)
@@ -320,7 +320,7 @@ func ListClansHandler(app *App) func(c *iris.Context) {
 
 		l := app.Logger.With(
 			zap.String("source", "clanHandler"),
-			zap.String("operation", "createClan"),
+			zap.String("operation", "ListClans"),
 			zap.String("gameID", gameID),
 		)
 
@@ -361,7 +361,7 @@ func SearchClansHandler(app *App) func(c *iris.Context) {
 
 		l := app.Logger.With(
 			zap.String("source", "clanHandler"),
-			zap.String("operation", "createClan"),
+			zap.String("operation", "SearchClans"),
 			zap.String("gameID", gameID),
 			zap.String("term", term),
 		)
@@ -410,7 +410,7 @@ func RetrieveClanHandler(app *App) func(c *iris.Context) {
 
 		l := app.Logger.With(
 			zap.String("source", "clanHandler"),
-			zap.String("operation", "createClan"),
+			zap.String("operation", "RetrieveClan"),
 			zap.String("gameID", gameID),
 			zap.String("clanPublicID", publicID),
 		)
@@ -457,7 +457,7 @@ func RetrieveClanSummaryHandler(app *App) func(c *iris.Context) {
 
 		l := app.Logger.With(
 			zap.String("source", "clanHandler"),
-			zap.String("operation", "createClan"),
+			zap.String("operation", "RetrieveClanSummary"),
 			zap.String("gameID", gameID),
 			zap.String("clanPublicID", publicID),
 		)
