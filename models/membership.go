@@ -14,6 +14,8 @@ import (
 	"gopkg.in/gorp.v1"
 )
 
+var approveString = "approve"
+
 // Membership relates a player to a clan
 type Membership struct {
 	ID          int           `db:"id"`
@@ -26,11 +28,13 @@ type Membership struct {
 	ClanID      int           `db:"clan_id"`
 	RequestorID int           `db:"requestor_id"`
 	ApproverID  sql.NullInt64 `db:"approver_id"`
+	DenierID    sql.NullInt64 `db:"denier_id"`
 	CreatedAt   int64         `db:"created_at"`
 	UpdatedAt   int64         `db:"updated_at"`
 	DeletedBy   int           `db:"deleted_by"`
 	DeletedAt   int64         `db:"deleted_at"`
 	ApprovedAt  int64         `db:"approved_at"`
+	DeniedAt    int64         `db:"denied_at"`
 }
 
 // PreInsert populates fields before inserting a new clan
@@ -164,12 +168,11 @@ func ApproveOrDenyMembershipInvitation(db DB, game *Game, gameID, playerPublicID
 		return nil, &PlayerCannotPerformMembershipActionError{action, playerPublicID, clanPublicID, playerPublicID}
 	}
 
-	var approver *Player
-	if action == "approve" {
-		player, err := GetPlayerByID(db, membership.PlayerID)
-		if err != nil {
-			return nil, err
-		}
+	player, err := GetPlayerByID(db, membership.PlayerID)
+	if err != nil {
+		return nil, err
+	}
+	if action == approveString {
 		if player.MembershipCount+player.OwnershipCount >= game.MaxClansPerPlayer {
 			return nil, &PlayerReachedMaxClansError{playerPublicID}
 		}
@@ -177,10 +180,8 @@ func ApproveOrDenyMembershipInvitation(db DB, game *Game, gameID, playerPublicID
 		if reachedMaxMembersError != nil {
 			return nil, reachedMaxMembersError
 		}
-
-		approver = player
 	}
-	return approveOrDenyMembershipHelper(db, membership, action, approver)
+	return approveOrDenyMembershipHelper(db, membership, action, player)
 }
 
 // ApproveOrDenyMembershipApplication sets Membership.Approved to true or Membership.Denied to true
@@ -207,8 +208,7 @@ func ApproveOrDenyMembershipApplication(db DB, game *Game, gameID, playerPublicI
 		return nil, &CannotApproveOrDenyMembershipAlreadyProcessedError{action}
 	}
 
-	var approver *Player
-	if action == "approve" {
+	if action == approveString {
 		player, err := GetPlayerByID(db, membership.PlayerID)
 		if err != nil {
 			return nil, err
@@ -220,7 +220,6 @@ func ApproveOrDenyMembershipApplication(db DB, game *Game, gameID, playerPublicI
 		if reachedMaxMembersError != nil {
 			return nil, reachedMaxMembersError
 		}
-		approver = requestor
 	}
 
 	reqMembership, _ := GetMembershipByClanAndPlayerPublicID(db, gameID, clanPublicID, requestorPublicID)
@@ -229,14 +228,14 @@ func ApproveOrDenyMembershipApplication(db DB, game *Game, gameID, playerPublicI
 		if clanErr != nil {
 			return nil, &PlayerCannotPerformMembershipActionError{action, playerPublicID, clanPublicID, requestorPublicID}
 		}
-		return approveOrDenyMembershipHelper(db, membership, action, approver)
+		return approveOrDenyMembershipHelper(db, membership, action, requestor)
 	}
 
 	levelInt := GetLevelIntByLevel(reqMembership.Level, game.MembershipLevels)
 	if !reqMembership.Approved || levelInt < game.MinLevelToAcceptApplication {
 		return nil, &PlayerCannotPerformMembershipActionError{action, playerPublicID, clanPublicID, requestorPublicID}
 	}
-	return approveOrDenyMembershipHelper(db, membership, action, approver)
+	return approveOrDenyMembershipHelper(db, membership, action, requestor)
 }
 
 // CreateMembership creates a new membership
@@ -393,14 +392,17 @@ func isValidMember(membership *Membership) bool {
 	return membership.Approved && !membership.Denied
 }
 
-func approveOrDenyMembershipHelper(db DB, membership *Membership, action string, approver *Player) (*Membership, error) {
-	approve := action == "approve"
+func approveOrDenyMembershipHelper(db DB, membership *Membership, action string, performer *Player) (*Membership, error) {
+	approve := action == approveString
 	if approve {
 		membership.Approved = true
-		membership.ApproverID = sql.NullInt64{Int64: int64(approver.ID), Valid: true}
+		membership.ApproverID = sql.NullInt64{Int64: int64(performer.ID), Valid: true}
 		membership.ApprovedAt = time.Now().UnixNano()
 	} else if action == "deny" {
 		membership.Denied = true
+		membership.DenierID = sql.NullInt64{Int64: int64(performer.ID), Valid: true}
+		membership.DeniedAt = time.Now().UnixNano()
+
 	} else {
 		return nil, &InvalidMembershipActionError{action}
 	}

@@ -77,7 +77,9 @@ Khan API
       "minLevelOffsetToPromoteMember": [int],
       "minLevelOffsetToDemoteMember":  [int],
       "maxMembers":                    [int],
-      "maxClansPerPlayer":             [int]
+      "maxClansPerPlayer":             [int],
+      "cooldownAfterDeny":             [int],
+      "cooldownAfterDelete":           [int]
     }
     ```
 
@@ -108,6 +110,10 @@ Khan API
       **maxMembers**: Maximum number of members a clan of this game can have.
 
       **maxClansPerPlayer**: Maximum number of clans a player can be member of.
+
+      **cooldownAfterDeny**: Time (in seconds) the player must wait before applying/being invited to a new membership after the last membership application/invite was denied.
+
+      **cooldownAfterDelete**:  Time (in seconds) the player must wait before applying/being invited to a new membership after the last membership application/invite was deleted.
 
   * Success Response
     * Code: `200`
@@ -170,7 +176,9 @@ Khan API
       "minLevelOffsetToPromoteMember": [int],
       "minLevelOffsetToDemoteMember":  [int],
       "maxMembers":                    [int],
-      "maxClansPerPlayer":             [int]
+      "maxClansPerPlayer":             [int],
+      "cooldownAfterDeny":             [int],
+      "cooldownAfterDelete":           [int]
     }
     ```
 
@@ -499,6 +507,7 @@ Khan API
             "updatedAt":  [int64], // timestamp that the membership was last updated
             "deletedAt":  [int64], // timestamp that the player was banned
             "approvedAt": [int64], // timestamp that the player was approved
+            "deniedAt":   [int64], // timestamp that the player was denied
 
             "level": [string],    // level of the player in this clan
 
@@ -515,6 +524,14 @@ Khan API
             // Player that approved this membership
             // If the membership is not yet approved or the level is 'owner' this key does not exist
             "approver":{
+              "publicID": [string]
+              "name": [string],
+              "metadata": [JSON],
+            },
+
+            // Player that denied this membership
+            // If the membership is not yet denied
+            "denier":{
               "publicID": [string]
               "name": [string],
               "metadata": [JSON],
