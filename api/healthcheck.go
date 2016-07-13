@@ -17,10 +17,15 @@ import (
 // HealthCheckHandler is the handler responsible for validating that the app is still up
 func HealthCheckHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
-		db := GetCtxDB(c)
+		db, err := GetCtxDB(c)
+		if err != nil {
+			FailWith(500, err.Error(), c)
+			return
+		}
+
 		workingString := app.Config.GetString("healthcheck.workingText")
-		num, err := db.SelectInt("select 1")
-		if num != 1 || err != nil {
+		_, err = db.SelectInt("select count(*) from games")
+		if err != nil {
 			c.Write(fmt.Sprintf("Error connecting to database: %s", err))
 			c.SetStatusCode(500)
 			return

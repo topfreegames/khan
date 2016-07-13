@@ -55,7 +55,11 @@ func CreateClanHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
-		db := GetCtxDB(c)
+		db, err := GetCtxDB(c)
+		if err != nil {
+			FailWith(500, err.Error(), c)
+			return
+		}
 
 		clan, err := models.CreateClan(
 			db,
@@ -84,6 +88,7 @@ func CreateClanHandler(app *App) func(c *iris.Context) {
 			"allowApplication": clan.AllowApplication,
 			"autoJoin":         clan.AutoJoin,
 		}
+
 		app.DispatchHooks(gameID, models.ClanCreatedHook, result)
 
 		SucceedWith(map[string]interface{}{
@@ -104,7 +109,11 @@ func UpdateClanHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
-		db := GetCtxDB(c)
+		db, err := GetCtxDB(c)
+		if err != nil {
+			FailWith(500, err.Error(), c)
+			return
+		}
 
 		clan, err := models.UpdateClan(
 			db,
@@ -166,9 +175,13 @@ func LeaveClanHandler(app *App) func(c *iris.Context) {
 		gameID := c.Param("gameID")
 		publicID := c.Param("clanPublicID")
 
-		db := GetCtxDB(c)
+		db, err := GetCtxDB(c)
+		if err != nil {
+			FailWith(500, err.Error(), c)
+			return
+		}
 
-		err := models.LeaveClan(
+		err = models.LeaveClan(
 			db,
 			gameID,
 			publicID,
@@ -210,7 +223,11 @@ func TransferOwnershipHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
-		db := GetCtxDB(c)
+		db, err := GetCtxDB(c)
+		if err != nil {
+			FailWith(500, err.Error(), c)
+			return
+		}
 
 		err = models.TransferClanOwnership(
 			db,
@@ -238,7 +255,12 @@ func TransferOwnershipHandler(app *App) func(c *iris.Context) {
 // ListClansHandler is the handler responsible for returning a list of all clans
 func ListClansHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
-		db := GetCtxDB(c)
+		db, err := GetCtxDB(c)
+		if err != nil {
+			FailWith(500, err.Error(), c)
+			return
+		}
+
 		gameID := c.Param("gameID")
 
 		clans, err := models.GetAllClans(
@@ -261,7 +283,12 @@ func ListClansHandler(app *App) func(c *iris.Context) {
 // SearchClansHandler is the handler responsible for searching for clans
 func SearchClansHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
-		db := GetCtxDB(c)
+		db, err := GetCtxDB(c)
+		if err != nil {
+			FailWith(500, err.Error(), c)
+			return
+		}
+
 		gameID := c.Param("gameID")
 		term := c.URLParam("term")
 
@@ -291,7 +318,12 @@ func SearchClansHandler(app *App) func(c *iris.Context) {
 // RetrieveClanHandler is the handler responsible for returning details for a given clan
 func RetrieveClanHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
-		db := GetCtxDB(c)
+		db, err := GetCtxDB(c)
+		if err != nil {
+			FailWith(500, err.Error(), c)
+			return
+		}
+
 		gameID := c.Param("gameID")
 		publicID := c.Param("clanPublicID")
 
@@ -319,7 +351,12 @@ func RetrieveClanHandler(app *App) func(c *iris.Context) {
 // RetrieveClanSummaryHandler is the handler responsible for returning details summary for a given clan
 func RetrieveClanSummaryHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
-		db := GetCtxDB(c)
+		db, err := GetCtxDB(c)
+		if err != nil {
+			FailWith(500, err.Error(), c)
+			return
+		}
+
 		gameID := c.Param("gameID")
 		publicID := c.Param("clanPublicID")
 

@@ -109,7 +109,11 @@ func ApplyForMembershipHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
-		db := GetCtxDB(c)
+		db, err := GetCtxDB(c)
+		if err != nil {
+			FailWith(500, err.Error(), c)
+			return
+		}
 
 		game, err := app.GetGame(gameID)
 		if err != nil {
@@ -157,7 +161,11 @@ func InviteForMembershipHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
-		db := GetCtxDB(c)
+		db, err := GetCtxDB(c)
+		if err != nil {
+			FailWith(500, err.Error(), c)
+			return
+		}
 
 		game, err := app.GetGame(gameID)
 		if err != nil {
@@ -206,7 +214,11 @@ func ApproveOrDenyMembershipApplicationHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
-		db := GetCtxDB(c)
+		db, err := GetCtxDB(c)
+		if err != nil {
+			FailWith(500, err.Error(), c)
+			return
+		}
 
 		game, err := app.GetGame(gameID)
 		if err != nil {
@@ -267,7 +279,11 @@ func ApproveOrDenyMembershipInvitationHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
-		db := GetCtxDB(c)
+		db, err := GetCtxDB(c)
+		if err != nil {
+			FailWith(500, err.Error(), c)
+			return
+		}
 
 		game, err := app.GetGame(gameID)
 		if err != nil {
@@ -326,7 +342,12 @@ func getPayloadAndGame(app *App, c *iris.Context) (*basePayloadWithRequestorAndP
 // DeleteMembershipHandler is the handler responsible for deleting a member
 func DeleteMembershipHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
-		db := GetCtxDB(c)
+		db, err := GetCtxDB(c)
+		if err != nil {
+			FailWith(500, err.Error(), c)
+			return
+		}
+
 		clanPublicID := c.Param("clanPublicID")
 		payload, game, status, err := getPayloadAndGame(app, c)
 		if err != nil {
@@ -364,7 +385,12 @@ func DeleteMembershipHandler(app *App) func(c *iris.Context) {
 // PromoteOrDemoteMembershipHandler is the handler responsible for promoting or demoting a member
 func PromoteOrDemoteMembershipHandler(app *App, action string) func(c *iris.Context) {
 	return func(c *iris.Context) {
-		db := GetCtxDB(c)
+		db, err := GetCtxDB(c)
+		if err != nil {
+			FailWith(500, err.Error(), c)
+			return
+		}
+
 		clanPublicID := c.Param("clanPublicID")
 		payload, game, status, err := getPayloadAndGame(app, c)
 		if err != nil {

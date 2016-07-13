@@ -36,7 +36,11 @@ func CreatePlayerHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
-		db := GetCtxDB(c)
+		db, err := GetCtxDB(c)
+		if err != nil {
+			FailWith(500, err.Error(), c)
+			return
+		}
 
 		player, err := models.CreatePlayer(
 			db,
@@ -77,7 +81,11 @@ func UpdatePlayerHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
-		db := GetCtxDB(c)
+		db, err := GetCtxDB(c)
+		if err != nil {
+			FailWith(500, err.Error(), c)
+			return
+		}
 
 		player, err := models.UpdatePlayer(
 			db,
@@ -101,7 +109,12 @@ func UpdatePlayerHandler(app *App) func(c *iris.Context) {
 // RetrievePlayerHandler is the handler responsible for returning details for a given player
 func RetrievePlayerHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
-		db := GetCtxDB(c)
+		db, err := GetCtxDB(c)
+		if err != nil {
+			FailWith(500, err.Error(), c)
+			return
+		}
+
 		gameID := c.Param("gameID")
 		publicID := c.Param("playerPublicID")
 
