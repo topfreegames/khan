@@ -160,7 +160,7 @@ func UpdateGameHandler(app *App) func(c *iris.Context) {
 
 		l := app.Logger.With(
 			zap.String("source", "gameHandler"),
-			zap.String("operation", "createGame"),
+			zap.String("operation", "updateGame"),
 			zap.String("gameID", gameID),
 		)
 
