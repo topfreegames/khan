@@ -124,11 +124,19 @@ func (l *LoggerMiddleware) Serve(ctx *iris.Context) {
 		zap.String("path", path),
 	)
 
-	//finally print the logs
+	//request failed
 	if status > 399 {
 		reqLog.Warn("Request failed.")
 		return
 	}
+
+	//request is ok, but server failed
+	if status > 500 {
+		reqLog.Error("Response failed.")
+		return
+	}
+
+	//Everything went ok
 	reqLog.Info("Request successful.")
 }
 
