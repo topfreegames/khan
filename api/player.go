@@ -76,9 +76,7 @@ func CreatePlayerHandler(app *App) func(c *iris.Context) {
 			"metadata": player.Metadata,
 		}
 
-		l.Debug("Dispatching player created hook...")
 		app.DispatchHooks(gameID, models.PlayerCreatedHook, player.Serialize())
-		l.Debug("Player created hook dispatched successfully.")
 
 		SucceedWith(result, c)
 	}
@@ -129,9 +127,7 @@ func UpdatePlayerHandler(app *App) func(c *iris.Context) {
 
 		l.Info("Player updated successfully.")
 
-		l.Debug("Dispatching player updated hook...")
 		app.DispatchHooks(gameID, models.PlayerUpdatedHook, player.Serialize())
-		l.Debug("Player updated hook dispatched successfully.")
 
 		SucceedWith(map[string]interface{}{}, c)
 	}

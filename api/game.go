@@ -228,9 +228,7 @@ func UpdateGameHandler(app *App) func(c *iris.Context) {
 			"maxMembers":                    payload.MaxMembers,
 			"maxClansPerPlayer":             payload.MaxClansPerPlayer,
 		}
-		l.Debug("Dispatching game updated hook...")
 		app.DispatchHooks(gameID, models.GameUpdatedHook, successPayload)
-		l.Debug("Game updated hook dispatched successfully.")
 
 		SucceedWith(map[string]interface{}{}, c)
 	}

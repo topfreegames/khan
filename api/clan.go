@@ -12,6 +12,7 @@ import (
 
 	"github.com/kataras/iris"
 	"github.com/topfreegames/khan/models"
+	"github.com/uber-go/zap"
 )
 
 // clanPayload maps the payload for the Create Clan route
@@ -43,24 +44,35 @@ func CreateClanHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
 		gameID := c.Param("gameID")
 
+		l := app.Logger.With(
+			zap.String("source", "clanHandler"),
+			zap.String("operation", "createClan"),
+			zap.String("gameID", gameID),
+		)
+
 		var payload clanPayload
-		if err := LoadJSONPayload(&payload, c); err != nil {
+		if err := LoadJSONPayload(&payload, c, l); err != nil {
 			FailWith(400, err.Error(), c)
 			return
 		}
 
 		game, err := app.GetGame(gameID)
 		if err != nil {
+			l.Warn("Could not find game.")
 			FailWith(404, err.Error(), c)
 			return
 		}
 
+		l.Debug("Getting DB connection...")
 		db, err := GetCtxDB(c)
 		if err != nil {
+			l.Error("Failed to connect to DB.", zap.Error(err))
 			FailWith(500, err.Error(), c)
 			return
 		}
+		l.Debug("DB Connection successful.")
 
+		l.Debug("Creating clan...")
 		clan, err := models.CreateClan(
 			db,
 			gameID,
@@ -74,9 +86,11 @@ func CreateClanHandler(app *App) func(c *iris.Context) {
 		)
 
 		if err != nil {
+			l.Error("Create clan failed.", zap.Error(err))
 			FailWith(500, err.Error(), c)
 			return
 		}
+		l.Info("Clan created successfully.")
 
 		result := map[string]interface{}{
 			"gameID":           gameID,
@@ -103,18 +117,29 @@ func UpdateClanHandler(app *App) func(c *iris.Context) {
 		gameID := c.Param("gameID")
 		publicID := c.Param("clanPublicID")
 
+		l := app.Logger.With(
+			zap.String("source", "clanHandler"),
+			zap.String("operation", "createClan"),
+			zap.String("gameID", gameID),
+			zap.String("clanPublicID", publicID),
+		)
+
 		var payload updateClanPayload
-		if err := LoadJSONPayload(&payload, c); err != nil {
+		if err := LoadJSONPayload(&payload, c, l); err != nil {
 			FailWith(400, err.Error(), c)
 			return
 		}
 
+		l.Debug("Getting DB connection...")
 		db, err := GetCtxDB(c)
 		if err != nil {
+			l.Error("Failed to connect to DB.", zap.Error(err))
 			FailWith(500, err.Error(), c)
 			return
 		}
+		l.Debug("DB Connection successful.")
 
+		l.Debug("Updating clan...")
 		clan, err := models.UpdateClan(
 			db,
 			gameID,
@@ -127,9 +152,11 @@ func UpdateClanHandler(app *App) func(c *iris.Context) {
 		)
 
 		if err != nil {
+			l.Error("Clan update failed.", zap.Error(err))
 			FailWith(500, err.Error(), c)
 			return
 		}
+		l.Info("Clan updated successfully.")
 
 		result := map[string]interface{}{
 			"gameID":           gameID,
@@ -175,12 +202,23 @@ func LeaveClanHandler(app *App) func(c *iris.Context) {
 		gameID := c.Param("gameID")
 		publicID := c.Param("clanPublicID")
 
+		l := app.Logger.With(
+			zap.String("source", "clanHandler"),
+			zap.String("operation", "createClan"),
+			zap.String("gameID", gameID),
+			zap.String("clanPublicID", publicID),
+		)
+
+		l.Debug("Getting DB connection...")
 		db, err := GetCtxDB(c)
 		if err != nil {
+			l.Error("Failed to connect to DB.", zap.Error(err))
 			FailWith(500, err.Error(), c)
 			return
 		}
+		l.Debug("DB Connection successful.")
 
+		l.Debug("Leaving clan...")
 		err = models.LeaveClan(
 			db,
 			gameID,
@@ -189,12 +227,15 @@ func LeaveClanHandler(app *App) func(c *iris.Context) {
 
 		if err != nil {
 			if strings.HasPrefix(err.Error(), "Clan was not found with id") {
+				l.Warn("Clan was not found.", zap.Error(err))
 				FailWith(400, (&models.ModelNotFoundError{Type: "Clan", ID: publicID}).Error(), c)
 			} else {
+				l.Error("Clan leave failed.", zap.Error(err))
 				FailWith(500, err.Error(), c)
 			}
 			return
 		}
+		l.Debug("Clan left successfully.")
 
 		err = dispatchClanOwnershipChangeHook(app, db, models.ClanLeftHook, gameID, publicID)
 		if err != nil {
@@ -211,24 +252,40 @@ func TransferOwnershipHandler(app *App) func(c *iris.Context) {
 		gameID := c.Param("gameID")
 		publicID := c.Param("clanPublicID")
 
+		l := app.Logger.With(
+			zap.String("source", "clanHandler"),
+			zap.String("operation", "createClan"),
+			zap.String("gameID", gameID),
+			zap.String("clanPublicID", publicID),
+		)
+
 		var payload transferClanOwnershipPayload
-		if err := LoadJSONPayload(&payload, c); err != nil {
+		if err := LoadJSONPayload(&payload, c, l); err != nil {
 			FailWith(400, err.Error(), c)
 			return
 		}
 
+		l = l.With(
+			zap.String("newOwnerPublicID", payload.PlayerPublicID),
+		)
+
 		game, err := app.GetGame(gameID)
 		if err != nil {
+			l.Warn("Could not find game.")
 			FailWith(404, err.Error(), c)
 			return
 		}
 
+		l.Debug("Getting DB connection...")
 		db, err := GetCtxDB(c)
 		if err != nil {
+			l.Error("Failed to connect to DB.", zap.Error(err))
 			FailWith(500, err.Error(), c)
 			return
 		}
+		l.Debug("DB Connection successful.")
 
+		l.Debug("Transferring clan ownership...")
 		err = models.TransferClanOwnership(
 			db,
 			gameID,
@@ -239,14 +296,18 @@ func TransferOwnershipHandler(app *App) func(c *iris.Context) {
 		)
 
 		if err != nil {
+			l.Error("Clan ownership transfer failed.", zap.Error(err))
 			FailWith(500, err.Error(), c)
 			return
 		}
 
 		err = dispatchClanOwnershipChangeHook(app, db, models.ClanOwnershipTransferredHook, gameID, publicID)
 		if err != nil {
+			l.Error("Clan ownership transfer hook dispatch failed.", zap.Error(err))
 			FailWith(500, err.Error(), c)
 		}
+
+		l.Info("Clan ownership transfer completed successfully.")
 
 		SucceedWith(map[string]interface{}{}, c)
 	}
@@ -255,24 +316,36 @@ func TransferOwnershipHandler(app *App) func(c *iris.Context) {
 // ListClansHandler is the handler responsible for returning a list of all clans
 func ListClansHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
+		gameID := c.Param("gameID")
+
+		l := app.Logger.With(
+			zap.String("source", "clanHandler"),
+			zap.String("operation", "createClan"),
+			zap.String("gameID", gameID),
+		)
+
+		l.Debug("Getting DB connection...")
 		db, err := GetCtxDB(c)
 		if err != nil {
+			l.Error("Failed to connect to DB.", zap.Error(err))
 			FailWith(500, err.Error(), c)
 			return
 		}
+		l.Debug("DB Connection successful.")
 
-		gameID := c.Param("gameID")
-
+		l.Debug("Retrieving all clans...")
 		clans, err := models.GetAllClans(
 			db,
 			gameID,
 		)
 
 		if err != nil {
+			l.Error("Retrieve all clans failed.", zap.Error(err))
 			FailWith(500, err.Error(), c)
 			return
 		}
 
+		l.Info("Retrieve all clans completed successfully.")
 		serializedClans := serializeClans(clans, true)
 		SucceedWith(map[string]interface{}{
 			"clans": serializedClans,
@@ -283,20 +356,32 @@ func ListClansHandler(app *App) func(c *iris.Context) {
 // SearchClansHandler is the handler responsible for searching for clans
 func SearchClansHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
-		db, err := GetCtxDB(c)
-		if err != nil {
-			FailWith(500, err.Error(), c)
-			return
-		}
-
 		gameID := c.Param("gameID")
 		term := c.URLParam("term")
 
+		l := app.Logger.With(
+			zap.String("source", "clanHandler"),
+			zap.String("operation", "createClan"),
+			zap.String("gameID", gameID),
+			zap.String("term", term),
+		)
+
+		l.Debug("Getting DB connection...")
+		db, err := GetCtxDB(c)
+		if err != nil {
+			l.Error("Failed to connect to DB.", zap.Error(err))
+			FailWith(500, err.Error(), c)
+			return
+		}
+		l.Debug("DB Connection successful.")
+
 		if term == "" {
+			l.Warn("Clan search failed due to empty term.")
 			FailWith(400, (&models.EmptySearchTermError{}).Error(), c)
 			return
 		}
 
+		l.Debug("Searching clans...")
 		clans, err := models.SearchClan(
 			db,
 			gameID,
@@ -304,10 +389,12 @@ func SearchClansHandler(app *App) func(c *iris.Context) {
 		)
 
 		if err != nil {
+			l.Error("Clan search failed.", zap.Error(err))
 			FailWith(500, err.Error(), c)
 			return
 		}
 
+		l.Debug("Clan search successful.")
 		serializedClans := serializeClans(clans, true)
 		SucceedWith(map[string]interface{}{
 			"clans": serializedClans,
@@ -318,20 +405,32 @@ func SearchClansHandler(app *App) func(c *iris.Context) {
 // RetrieveClanHandler is the handler responsible for returning details for a given clan
 func RetrieveClanHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
-		db, err := GetCtxDB(c)
-		if err != nil {
-			FailWith(500, err.Error(), c)
-			return
-		}
-
 		gameID := c.Param("gameID")
 		publicID := c.Param("clanPublicID")
 
+		l := app.Logger.With(
+			zap.String("source", "clanHandler"),
+			zap.String("operation", "createClan"),
+			zap.String("gameID", gameID),
+			zap.String("clanPublicID", publicID),
+		)
+
+		l.Debug("Getting DB connection...")
+		db, err := GetCtxDB(c)
+		if err != nil {
+			l.Error("Failed to connect to DB.", zap.Error(err))
+			FailWith(500, err.Error(), c)
+			return
+		}
+		l.Debug("DB Connection successful.")
+
 		game, err := app.GetGame(gameID)
 		if err != nil {
+			l.Warn("Could not find game.")
 			FailWith(404, err.Error(), c)
 		}
 
+		l.Debug("Retrieving clan details...")
 		clan, err := models.GetClanDetails(
 			db,
 			gameID,
@@ -340,10 +439,12 @@ func RetrieveClanHandler(app *App) func(c *iris.Context) {
 		)
 
 		if err != nil {
+			l.Error("Retrieve clan details failed.", zap.Error(err))
 			FailWith(500, err.Error(), c)
 			return
 		}
 
+		l.Info("Clan details retrieved successfully.")
 		SucceedWith(clan, c)
 	}
 }
@@ -351,15 +452,26 @@ func RetrieveClanHandler(app *App) func(c *iris.Context) {
 // RetrieveClanSummaryHandler is the handler responsible for returning details summary for a given clan
 func RetrieveClanSummaryHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
-		db, err := GetCtxDB(c)
-		if err != nil {
-			FailWith(500, err.Error(), c)
-			return
-		}
-
 		gameID := c.Param("gameID")
 		publicID := c.Param("clanPublicID")
 
+		l := app.Logger.With(
+			zap.String("source", "clanHandler"),
+			zap.String("operation", "createClan"),
+			zap.String("gameID", gameID),
+			zap.String("clanPublicID", publicID),
+		)
+
+		l.Debug("Getting DB connection...")
+		db, err := GetCtxDB(c)
+		if err != nil {
+			l.Error("Failed to connect to DB.", zap.Error(err))
+			FailWith(500, err.Error(), c)
+			return
+		}
+		l.Debug("DB Connection successful.")
+
+		l.Debug("Retrieving clan summary...")
 		clan, err := models.GetClanSummary(
 			db,
 			gameID,
@@ -367,10 +479,12 @@ func RetrieveClanSummaryHandler(app *App) func(c *iris.Context) {
 		)
 
 		if err != nil {
+			l.Error("Clan summary retrieval failed.", zap.Error(err))
 			FailWith(500, err.Error(), c)
 			return
 		}
 
+		l.Info("Clan summary retrieved successfully.")
 		SucceedWith(clan, c)
 	}
 }
