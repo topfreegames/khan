@@ -30,6 +30,7 @@ type clanDetailsDAO struct {
 	MembershipCreatedAt  sql.NullInt64
 	MembershipUpdatedAt  sql.NullInt64
 	MembershipApprovedAt sql.NullInt64
+	MembershipDeniedAt   sql.NullInt64
 
 	// Clan Owner Information
 	OwnerPublicID string
@@ -51,6 +52,10 @@ type clanDetailsDAO struct {
 	// Approver Information
 	ApproverPublicID sql.NullString
 	ApproverName     sql.NullString
+
+	// Denier Information
+	DenierPublicID sql.NullString
+	DenierName     sql.NullString
 }
 
 func (member *clanDetailsDAO) Serialize(includeMembershipLevel bool) map[string]interface{} {
@@ -75,6 +80,11 @@ func (member *clanDetailsDAO) Serialize(includeMembershipLevel bool) map[string]
 			"name":     member.ApproverName.String,
 			"publicID": member.ApproverPublicID.String,
 		}
+	} else if member.DenierName.Valid {
+		result["player"].(map[string]interface{})["denier"] = map[string]interface{}{
+			"name":     member.DenierName.String,
+			"publicID": member.DenierPublicID.String,
+		}
 	}
 	return result
 }
@@ -97,6 +107,7 @@ type playerDetailsDAO struct {
 	MembershipUpdatedAt  sql.NullInt64
 	MembershipDeletedAt  sql.NullInt64
 	MembershipApprovedAt sql.NullInt64
+	MembershipDeniedAt   sql.NullInt64
 
 	// Clan Details
 	ClanPublicID        sql.NullString
@@ -118,6 +129,12 @@ type playerDetailsDAO struct {
 	DBApproverMetadata sql.NullString
 	ApproverMetadata   map[string]interface{}
 
+	// Membership Denier Details
+	DenierName       sql.NullString
+	DenierPublicID   sql.NullString
+	DBDenierMetadata sql.NullString
+	DenierMetadata   map[string]interface{}
+
 	// Deleted by Details
 	DeletedByName     sql.NullString
 	DeletedByPublicID sql.NullString
@@ -133,6 +150,7 @@ func (p *playerDetailsDAO) Serialize() map[string]interface{} {
 		"updatedAt":  nullOrInt(p.MembershipUpdatedAt),
 		"deletedAt":  nullOrInt(p.MembershipDeletedAt),
 		"approvedAt": nullOrInt(p.MembershipApprovedAt),
+		"deniedAt":   nullOrInt(p.MembershipDeniedAt),
 		"clan": map[string]interface{}{
 			"publicID":        nullOrString(p.ClanPublicID),
 			"name":            nullOrString(p.ClanName),
@@ -175,7 +193,21 @@ func (p *playerDetailsDAO) Serialize() map[string]interface{} {
 		result["approver"] = map[string]interface{}{
 			"publicID": nullOrString(p.ApproverPublicID),
 			"name":     nullOrString(p.ApproverName),
-			"metadata": p.RequestorMetadata,
+			"metadata": p.ApproverMetadata,
+		}
+	}
+
+	if p.DenierPublicID.Valid {
+		if p.DBDenierMetadata.Valid {
+			json.Unmarshal([]byte(nullOrString(p.DBDenierMetadata)), &p.DenierMetadata)
+		} else {
+			p.DenierMetadata = map[string]interface{}{}
+		}
+
+		result["denier"] = map[string]interface{}{
+			"publicID": nullOrString(p.DenierPublicID),
+			"name":     nullOrString(p.DenierName),
+			"metadata": p.DenierMetadata,
 		}
 	}
 	return result

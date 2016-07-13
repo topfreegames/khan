@@ -626,6 +626,8 @@ func TestClanModel(t *testing.T) {
 					approver := player["approver"].(map[string]interface{})
 					g.Assert(approver["name"]).Equal(playerDict[pid].Name)
 					g.Assert(approver["publicID"]).Equal(playerDict[pid].PublicID)
+
+					g.Assert(player["denier"] == nil).IsTrue()
 				}
 
 				for _, playerData := range pendingInvites {
@@ -651,6 +653,13 @@ func TestClanModel(t *testing.T) {
 					name := player["name"].(string)
 					g.Assert(name).Equal(playerDict[pid].Name)
 					g.Assert(playerData["level"]).Equal(nil)
+
+					//Approval
+					denier := player["denier"].(map[string]interface{})
+					g.Assert(denier["name"]).Equal(playerDict[pid].Name)
+					g.Assert(denier["publicID"]).Equal(playerDict[pid].PublicID)
+
+					g.Assert(player["approver"] == nil).IsTrue()
 				}
 			})
 
