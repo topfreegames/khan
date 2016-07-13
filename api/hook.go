@@ -28,7 +28,11 @@ func CreateHookHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
-		db := GetCtxDB(c)
+		db, err := GetCtxDB(c)
+		if err != nil {
+			FailWith(500, err.Error(), c)
+			return
+		}
 
 		hook, err := models.CreateHook(
 			db,
@@ -54,9 +58,13 @@ func RemoveHookHandler(app *App) func(c *iris.Context) {
 		gameID := c.Param("gameID")
 		publicID := c.Param("publicID")
 
-		db := GetCtxDB(c)
+		db, err := GetCtxDB(c)
+		if err != nil {
+			FailWith(500, err.Error(), c)
+			return
+		}
 
-		err := models.RemoveHook(
+		err = models.RemoveHook(
 			db,
 			gameID,
 			publicID,

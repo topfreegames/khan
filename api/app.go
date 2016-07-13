@@ -14,7 +14,6 @@ import (
 
 	"gopkg.in/gorp.v1"
 
-	"github.com/iris-contrib/middleware/logger"
 	"github.com/kataras/iris"
 	"github.com/kataras/iris/config"
 	"github.com/rcrowley/go-metrics"
@@ -123,15 +122,24 @@ func (app *App) connectDatabase() {
 			zap.String("error", err.Error()),
 		)
 	}
+
+	_, err = db.SelectInt("select count(*) from games")
+	if err != nil {
+		l.Panic(
+			"Could not connect to postgres...",
+			zap.String("error", err.Error()),
+		)
+	}
+
 	l.Info("Connected to database successfully.")
 	app.Db = db
 }
 
-func (app *App) onErrorHandler(err interface{}, stack []byte) {
+func (app *App) onErrorHandler(err error, stack []byte) {
 	app.Logger.Error(
 		"Panic occurred.",
 		zap.String("source", "app"),
-		zap.Object("panicText", err),
+		zap.String("panicText", err.Error()),
 		zap.String("stack", string(stack)),
 	)
 }
@@ -144,9 +152,7 @@ func (app *App) configureApplication() {
 	app.App = iris.New(c)
 	a := app.App
 
-	if app.Debug {
-		a.Use(logger.New(iris.Logger))
-	}
+	a.Use(NewLoggerMiddleware(app.Logger))
 	a.Use(&RecoveryMiddleware{OnError: app.onErrorHandler})
 	a.Use(&TransactionMiddleware{App: app})
 	a.Use(&VersionMiddleware{App: app})

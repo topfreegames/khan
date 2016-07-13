@@ -88,7 +88,11 @@ func CreateGameHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
-		db := GetCtxDB(c)
+		db, err := GetCtxDB(c)
+		if err != nil {
+			FailWith(500, err.Error(), c)
+			return
+		}
 
 		game, err := models.CreateGame(
 			db,
@@ -133,9 +137,13 @@ func UpdateGameHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
-		db := GetCtxDB(c)
+		db, err := GetCtxDB(c)
+		if err != nil {
+			FailWith(500, err.Error(), c)
+			return
+		}
 
-		_, err := models.UpdateGame(
+		_, err = models.UpdateGame(
 			db,
 			gameID,
 			payload.Name,
