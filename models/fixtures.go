@@ -28,6 +28,8 @@ var GameFactory = factory.NewFactory(
 		MinLevelOffsetToDemoteMember:  1,
 		MaxClansPerPlayer:             1,
 		MaxMembers:                    100,
+		CooldownAfterDeny:             0,
+		CooldownAfterDelete:           0,
 	},
 ).Attr("PublicID", func(args factory.Args) (interface{}, error) {
 	return uuid.NewV4().String(), nil
@@ -168,6 +170,15 @@ var MembershipFactory = factory.NewFactory(
 		valid = true
 	}
 	return sql.NullInt64{Int64: int64(approverID), Valid: valid}, nil
+}).Attr("DenierID", func(args factory.Args) (interface{}, error) {
+	membership := args.Instance().(*Membership)
+	denierID := 0
+	valid := false
+	if membership.Denied {
+		denierID = membership.RequestorID
+		valid = true
+	}
+	return sql.NullInt64{Int64: int64(denierID), Valid: valid}, nil
 })
 
 // GetClanWithMemberships returns a clan filled with the number of memberships specified
@@ -299,6 +310,14 @@ func GetClanWithMemberships(
 
 				membership.ApproverID = sql.NullInt64{Int64: int64(approverID), Valid: true}
 				membership.ApprovedAt = time.Now().UnixNano()
+			} else if denied {
+				denierID := player.ID
+				if !pendingsAreInvites {
+					denierID = owner.ID
+				}
+
+				membership.DenierID = sql.NullInt64{Int64: int64(denierID), Valid: true}
+				membership.DeniedAt = time.Now().UnixNano()
 			}
 
 			err = db.Insert(membership)
@@ -545,6 +564,9 @@ func GetTestPlayerWithMemberships(db DB, gameID string, approvedMemberships, rej
 		if approved {
 			payload["ApproverID"] = sql.NullInt64{Int64: int64(player.ID), Valid: true}
 			payload["ApprovedAt"] = time.Now().UnixNano()
+		} else if denied {
+			payload["DenierID"] = sql.NullInt64{Int64: int64(player.ID), Valid: true}
+			payload["DeniedAt"] = time.Now().UnixNano()
 		}
 
 		membership := MembershipFactory.MustCreateWithOption(payload).(*Membership)

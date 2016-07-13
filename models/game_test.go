@@ -44,6 +44,8 @@ func TestGameModel(t *testing.T) {
 				g.Assert(dbGame.MinLevelOffsetToDemoteMember).Equal(game.MinLevelOffsetToDemoteMember)
 				g.Assert(dbGame.MaxMembers).Equal(game.MaxMembers)
 				g.Assert(dbGame.MaxClansPerPlayer).Equal(game.MaxClansPerPlayer)
+				g.Assert(dbGame.CooldownAfterDeny).Equal(game.CooldownAfterDeny)
+				g.Assert(dbGame.CooldownAfterDelete).Equal(game.CooldownAfterDelete)
 				for k, v := range dbGame.MembershipLevels {
 					g.Assert(int(v.(float64))).Equal(game.MembershipLevels[k].(int))
 				}
@@ -110,7 +112,7 @@ func TestGameModel(t *testing.T) {
 					"game-name",
 					map[string]interface{}{"Member": 1, "Elder": 2, "CoLeader": 3},
 					map[string]interface{}{},
-					8, 7, 8, 1, 2, 3, 100, 1,
+					8, 7, 8, 1, 2, 3, 100, 1, 0, 10,
 				)
 				g.Assert(err == nil).IsTrue()
 				g.Assert(game.ID != 0).IsTrue()
@@ -129,6 +131,8 @@ func TestGameModel(t *testing.T) {
 				g.Assert(dbGame.MinLevelOffsetToPromoteMember).Equal(game.MinLevelOffsetToPromoteMember)
 				g.Assert(dbGame.MinLevelOffsetToDemoteMember).Equal(game.MinLevelOffsetToDemoteMember)
 				g.Assert(dbGame.MaxMembers).Equal(game.MaxMembers)
+				g.Assert(dbGame.CooldownAfterDelete).Equal(game.CooldownAfterDelete)
+				g.Assert(dbGame.CooldownAfterDeny).Equal(game.CooldownAfterDeny)
 				for k, v := range dbGame.MembershipLevels {
 					g.Assert(int(v.(float64))).Equal(game.MembershipLevels[k].(int))
 				}
@@ -148,7 +152,7 @@ func TestGameModel(t *testing.T) {
 					"game-new-name",
 					map[string]interface{}{"Member": 1, "Elder": 2, "CoLeader": 3},
 					map[string]interface{}{"x": 1},
-					5, 4, 7, 1, 1, 1, 100, 1,
+					5, 4, 7, 1, 1, 1, 100, 1, 5, 15,
 				)
 
 				g.Assert(err == nil).IsTrue()
@@ -168,6 +172,8 @@ func TestGameModel(t *testing.T) {
 				g.Assert(dbGame.MinLevelOffsetToDemoteMember).Equal(updGame.MinLevelOffsetToDemoteMember)
 				g.Assert(dbGame.MaxMembers).Equal(updGame.MaxMembers)
 				g.Assert(dbGame.MaxClansPerPlayer).Equal(updGame.MaxClansPerPlayer)
+				g.Assert(dbGame.CooldownAfterDelete).Equal(updGame.CooldownAfterDelete)
+				g.Assert(dbGame.CooldownAfterDeny).Equal(updGame.CooldownAfterDeny)
 				for k, v := range dbGame.MembershipLevels {
 					g.Assert(int(v.(float64))).Equal(updGame.MembershipLevels[k].(int))
 				}
@@ -182,7 +188,7 @@ func TestGameModel(t *testing.T) {
 					gameID,
 					map[string]interface{}{"Member": 1, "Elder": 2, "CoLeader": 3},
 					map[string]interface{}{"x": 1},
-					5, 4, 7, 1, 1, 1, 100, 1,
+					5, 4, 7, 1, 1, 1, 100, 1, 10, 30,
 				)
 
 				g.Assert(err == nil).IsTrue()
@@ -200,6 +206,8 @@ func TestGameModel(t *testing.T) {
 				g.Assert(dbGame.MinLevelOffsetToPromoteMember).Equal(updGame.MinLevelOffsetToPromoteMember)
 				g.Assert(dbGame.MinLevelOffsetToDemoteMember).Equal(updGame.MinLevelOffsetToDemoteMember)
 				g.Assert(dbGame.MaxMembers).Equal(updGame.MaxMembers)
+				g.Assert(dbGame.CooldownAfterDelete).Equal(updGame.CooldownAfterDelete)
+				g.Assert(dbGame.CooldownAfterDeny).Equal(updGame.CooldownAfterDeny)
 				for k, v := range dbGame.MembershipLevels {
 					g.Assert(int(v.(float64))).Equal(updGame.MembershipLevels[k].(int))
 				}
@@ -217,7 +225,7 @@ func TestGameModel(t *testing.T) {
 					strings.Repeat("a", 256),
 					map[string]interface{}{"Member": 1, "Elder": 2, "CoLeader": 3},
 					map[string]interface{}{"x": 1},
-					5, 4, 7, 1, 1, 0, 100, 1,
+					5, 4, 7, 1, 1, 0, 100, 1, 0, 0,
 				)
 
 				g.Assert(err == nil).IsFalse()

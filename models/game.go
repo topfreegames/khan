@@ -35,6 +35,8 @@ type Game struct {
 	Metadata                      map[string]interface{} `db:"metadata"`
 	CreatedAt                     int64                  `db:"created_at"`
 	UpdatedAt                     int64                  `db:"updated_at"`
+	CooldownAfterDeny             int                    `db:"cooldown_after_deny"`
+	CooldownAfterDelete           int                    `db:"cooldown_after_delete"`
 }
 
 // PreInsert populates fields before inserting a new game
@@ -90,7 +92,7 @@ func GetAllGames(db DB) ([]*Game, error) {
 
 // CreateGame creates a new game
 func CreateGame(db DB, publicID, name string, levels, metadata map[string]interface{},
-	minLevelAccept, minLevelCreate, minLevelRemove, minOffsetRemove, minOffsetPromote, minOffsetDemote, maxMembers, maxClans int,
+	minLevelAccept, minLevelCreate, minLevelRemove, minOffsetRemove, minOffsetPromote, minOffsetDemote, maxMembers, maxClans, cooldownAfterDeny, cooldownAfterDelete int,
 ) (*Game, error) {
 	game := &Game{
 		PublicID: publicID,
@@ -105,6 +107,8 @@ func CreateGame(db DB, publicID, name string, levels, metadata map[string]interf
 		MaxClansPerPlayer:             maxClans,
 		MembershipLevels:              levels,
 		Metadata:                      metadata,
+		CooldownAfterDelete:           cooldownAfterDelete,
+		CooldownAfterDeny:             cooldownAfterDeny,
 	}
 	err := db.Insert(game)
 	if err != nil {
@@ -115,7 +119,7 @@ func CreateGame(db DB, publicID, name string, levels, metadata map[string]interf
 
 // UpdateGame updates an existing game
 func UpdateGame(db DB, publicID, name string, levels, metadata map[string]interface{},
-	minLevelAccept, minLevelCreate, minLevelRemove, minOffsetRemove, minOffsetPromote, minOffsetDemote, maxMembers, maxClans int,
+	minLevelAccept, minLevelCreate, minLevelRemove, minOffsetRemove, minOffsetPromote, minOffsetDemote, maxMembers, maxClans, cooldownAfterDeny, cooldownAfterDelete int,
 ) (*Game, error) {
 	game, err := GetGameByPublicID(db, publicID)
 
@@ -124,7 +128,7 @@ func UpdateGame(db DB, publicID, name string, levels, metadata map[string]interf
 			return CreateGame(
 				db, publicID, name, levels, metadata, minLevelAccept,
 				minLevelCreate, minLevelRemove, minOffsetRemove, minOffsetPromote,
-				minOffsetDemote, maxMembers, maxClans,
+				minOffsetDemote, maxMembers, maxClans, cooldownAfterDeny, cooldownAfterDelete,
 			)
 		}
 		return nil, err
@@ -141,6 +145,8 @@ func UpdateGame(db DB, publicID, name string, levels, metadata map[string]interf
 	game.MaxClansPerPlayer = maxClans
 	game.MembershipLevels = levels
 	game.Metadata = metadata
+	game.CooldownAfterDeny = cooldownAfterDeny
+	game.CooldownAfterDelete = cooldownAfterDelete
 
 	_, err = db.Update(game)
 
