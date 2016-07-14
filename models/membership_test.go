@@ -71,7 +71,7 @@ func TestMembershipModel(t *testing.T) {
 			_, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 			g.Assert(err == nil).IsTrue()
 
-			dbMembership, err := GetMembershipByClanAndPlayerPublicID(testDb, players[0].GameID, clan.PublicID, players[0].PublicID)
+			dbMembership, err := GetValidMembershipByClanAndPlayerPublicID(testDb, players[0].GameID, clan.PublicID, players[0].PublicID)
 			g.Assert(err == nil).IsTrue()
 			g.Assert(dbMembership.ID).Equal(memberships[0].ID)
 			g.Assert(dbMembership.PlayerID).Equal(players[0].ID)
@@ -89,7 +89,7 @@ func TestMembershipModel(t *testing.T) {
 				err = testDb.Insert(clan)
 				g.Assert(err == nil).IsTrue()
 
-				dbMembership, err := GetMembershipByClanAndPlayerPublicID(testDb, player.GameID, clan.PublicID, player.PublicID)
+				dbMembership, err := GetValidMembershipByClanAndPlayerPublicID(testDb, player.GameID, clan.PublicID, player.PublicID)
 				g.Assert(err != nil).IsTrue()
 				g.Assert(err.Error()).Equal(fmt.Sprintf("Membership was not found with id: %s", player.PublicID))
 				g.Assert(dbMembership == nil).IsTrue()
@@ -104,7 +104,7 @@ func TestMembershipModel(t *testing.T) {
 				_, err = testDb.Update(memberships[0])
 				g.Assert(err == nil).IsTrue()
 
-				dbMembership, err := GetMembershipByClanAndPlayerPublicID(testDb, clan.GameID, clan.PublicID, players[0].PublicID)
+				dbMembership, err := GetValidMembershipByClanAndPlayerPublicID(testDb, clan.GameID, clan.PublicID, players[0].PublicID)
 				g.Assert(err != nil).IsTrue()
 				g.Assert(dbMembership == nil).IsTrue()
 			})

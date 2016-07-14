@@ -198,7 +198,7 @@ func TransferClanOwnership(db DB, gameID, clanPublicID, playerPublicID string, l
 		return err
 	}
 
-	newOwnerMembership, err := GetMembershipByClanAndPlayerPublicID(db, gameID, clanPublicID, playerPublicID)
+	newOwnerMembership, err := GetValidMembershipByClanAndPlayerPublicID(db, gameID, clanPublicID, playerPublicID)
 	if err != nil {
 		return err
 	}

@@ -315,7 +315,7 @@ func migrations20160713185332_creategamecooldownafterdenyanddeleteSql() (*asset,
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "migrations/20160713185332_CreateGameCooldownAfterDenyAndDelete.sql", size: 425, mode: os.FileMode(420), modTime: time.Unix(1468446886, 0)}
+	info := bindataFileInfo{name: "migrations/20160713185332_CreateGameCooldownAfterDenyAndDelete.sql", size: 425, mode: os.FileMode(420), modTime: time.Unix(1468451926, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -335,7 +335,7 @@ func migrations20160713191703_createmembershipdenierfieldSql() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "migrations/20160713191703_CreateMembershipDenierField.sql", size: 401, mode: os.FileMode(420), modTime: time.Unix(1468448245, 0)}
+	info := bindataFileInfo{name: "migrations/20160713191703_CreateMembershipDenierField.sql", size: 401, mode: os.FileMode(420), modTime: time.Unix(1468451926, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }

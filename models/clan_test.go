@@ -432,7 +432,7 @@ func TestClanModel(t *testing.T) {
 					g.Assert(err == nil).IsTrue()
 					g.Assert(dbClan.OwnerID).Equal(players[0].ID)
 
-					oldOwnerMembership, err := GetMembershipByClanAndPlayerPublicID(testDb, clan.GameID, clan.PublicID, owner.PublicID)
+					oldOwnerMembership, err := GetValidMembershipByClanAndPlayerPublicID(testDb, clan.GameID, clan.PublicID, owner.PublicID)
 					g.Assert(err == nil).IsTrue()
 					g.Assert(oldOwnerMembership.CreatedAt).Equal(clan.CreatedAt)
 					g.Assert(oldOwnerMembership.Level).Equal("CoLeader")
@@ -482,7 +482,7 @@ func TestClanModel(t *testing.T) {
 					g.Assert(err == nil).IsTrue()
 					g.Assert(dbClan.OwnerID).Equal(players[1].ID)
 
-					firstOwnerMembership, err := GetMembershipByClanAndPlayerPublicID(testDb, clan.GameID, clan.PublicID, owner.PublicID)
+					firstOwnerMembership, err := GetValidMembershipByClanAndPlayerPublicID(testDb, clan.GameID, clan.PublicID, owner.PublicID)
 					g.Assert(err == nil).IsTrue()
 					g.Assert(firstOwnerMembership.CreatedAt).Equal(clan.CreatedAt)
 					g.Assert(firstOwnerMembership.Level).Equal("CoLeader")
