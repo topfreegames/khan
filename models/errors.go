@@ -130,3 +130,24 @@ type EmptySearchTermError struct{}
 func (e *EmptySearchTermError) Error() string {
 	return "A search term was not provided to find a clan."
 }
+
+// AlreadyHasValidMembershipError identifies that a player already has a valid membership for the given clan
+type AlreadyHasValidMembershipError struct {
+	PlayerID string
+	ClanID   string
+}
+
+func (e *AlreadyHasValidMembershipError) Error() string {
+	return fmt.Sprintf("Player %s already has a valid membership in clan %s.", e.PlayerID, e.ClanID)
+}
+
+// MustWaitMembershipCooldownError identifies that one must wait a number of seconds before creating the membership
+type MustWaitMembershipCooldownError struct {
+	Time     int
+	PlayerID string
+	ClanID   string
+}
+
+func (e *MustWaitMembershipCooldownError) Error() string {
+	return fmt.Sprintf("Player %s must wait %d seconds before creating a membership in clan %s.", e.PlayerID, e.Time, e.ClanID)
+}

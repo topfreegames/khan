@@ -126,7 +126,7 @@ func TestMembershipModel(t *testing.T) {
 			g.Assert(dbMembership.DeletedBy).Equal(players[0].ID)
 		})
 
-		g.It("Should get a deleted Membership by the player public ID using GetDeletedMembershipByClanAndPlayerPublicID", func() {
+		g.It("Should get a deleted Membership by the player public ID using GetMembershipByClanAndPlayerPublicID", func() {
 			_, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 			g.Assert(err == nil).IsTrue()
 
@@ -135,22 +135,22 @@ func TestMembershipModel(t *testing.T) {
 			_, err = testDb.Update(memberships[0])
 			g.Assert(err == nil).IsTrue()
 
-			dbMembership, err := GetDeletedMembershipByClanAndPlayerPublicID(testDb, clan.GameID, clan.PublicID, players[0].PublicID)
+			dbMembership, err := GetMembershipByClanAndPlayerPublicID(testDb, clan.GameID, clan.PublicID, players[0].PublicID)
 			g.Assert(err == nil).IsTrue()
 			g.Assert(dbMembership.ID).Equal(memberships[0].ID)
 			g.Assert(dbMembership.PlayerID).Equal(players[0].ID)
 			g.Assert(dbMembership.DeletedBy).Equal(players[0].ID)
 		})
 
-		g.It("Should not get a not deleted Membership by the player public ID using GetDeletedMembershipByClanAndPlayerPublicID", func() {
-			_, clan, _, players, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
+		g.It("Should get a denied Membership by the player public ID using GetMembershipByClanAndPlayerPublicID", func() {
+			_, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 0, 1, 0, 0, "", "")
 			g.Assert(err == nil).IsTrue()
 
-			dbMembership, err := GetDeletedMembershipByClanAndPlayerPublicID(testDb, clan.GameID, clan.PublicID, players[0].PublicID)
-			g.Assert(err != nil).IsTrue()
-			g.Assert(dbMembership == nil).IsTrue()
+			dbMembership, err := GetMembershipByClanAndPlayerPublicID(testDb, clan.GameID, clan.PublicID, players[0].PublicID)
+			g.Assert(err == nil).IsTrue()
+			g.Assert(dbMembership.ID).Equal(memberships[0].ID)
+			g.Assert(dbMembership.PlayerID).Equal(players[0].ID)
 		})
-
 		g.Describe("GetOldestMemberWithHighestLevel", func() {
 			g.It("Should get the member with the highest level", func() {
 				_, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 2, "", "")
@@ -272,7 +272,7 @@ func TestMembershipModel(t *testing.T) {
 					clan.PublicID,
 					players[0].PublicID,
 				)
-
+				fmt.Println(err)
 				g.Assert(err == nil).IsTrue()
 				g.Assert(membership.ID != 0).IsTrue()
 
@@ -459,9 +459,149 @@ func TestMembershipModel(t *testing.T) {
 				g.Assert(err == nil).IsTrue()
 				g.Assert(dbClan.MembershipCount).Equal(1)
 			})
+
+			g.It("If deleted previous membership, after waiting cooldown seconds", func() {
+				game, clan, owner, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
+				g.Assert(err == nil).IsTrue()
+
+				game.CooldownAfterDelete = 1
+				_, err = testDb.Update(game)
+				g.Assert(err == nil).IsTrue()
+
+				memberships[0].DeletedAt = time.Now().UnixNano() / 1000000
+				memberships[0].DeletedBy = memberships[0].PlayerID
+				memberships[0].Approved = false
+				memberships[0].Denied = false
+				_, err = testDb.Update(memberships[0])
+				g.Assert(err == nil).IsTrue()
+
+				time.Sleep(time.Second)
+				membership, err := CreateMembership(
+					testDb,
+					game,
+					players[0].GameID,
+					"Member",
+					players[0].PublicID,
+					clan.PublicID,
+					owner.PublicID,
+				)
+
+				g.Assert(err == nil).IsTrue()
+				g.Assert(membership.ID != 0).IsTrue()
+
+				dbMembership, err := GetMembershipByID(testDb, membership.ID)
+				g.Assert(err == nil).IsTrue()
+
+				g.Assert(dbMembership.GameID).Equal(membership.GameID)
+				g.Assert(dbMembership.PlayerID).Equal(players[0].ID)
+				g.Assert(dbMembership.RequestorID).Equal(owner.ID)
+				g.Assert(dbMembership.ClanID).Equal(clan.ID)
+				g.Assert(dbMembership.Approved).Equal(false)
+				g.Assert(dbMembership.Denied).Equal(false)
+
+				dbPlayer, err := GetPlayerByID(testDb, dbMembership.PlayerID)
+				g.Assert(err == nil).IsTrue()
+				g.Assert(dbPlayer.MembershipCount).Equal(0)
+
+				dbClan, err := GetClanByID(testDb, clan.ID)
+				g.Assert(err == nil).IsTrue()
+				g.Assert(dbClan.MembershipCount).Equal(1)
+			})
+
+			g.It("If denied previous membership, after waiting cooldown seconds", func() {
+				game, clan, owner, players, _, err := GetClanWithMemberships(testDb, 0, 1, 0, 0, "", "")
+				g.Assert(err == nil).IsTrue()
+
+				game.CooldownAfterDeny = 1
+				_, err = testDb.Update(game)
+				g.Assert(err == nil).IsTrue()
+
+				time.Sleep(time.Second)
+				membership, err := CreateMembership(
+					testDb,
+					game,
+					players[0].GameID,
+					"Member",
+					players[0].PublicID,
+					clan.PublicID,
+					owner.PublicID,
+				)
+				fmt.Println(err)
+				g.Assert(err == nil).IsTrue()
+				g.Assert(membership.ID != 0).IsTrue()
+
+				dbMembership, err := GetMembershipByID(testDb, membership.ID)
+				g.Assert(err == nil).IsTrue()
+
+				g.Assert(dbMembership.GameID).Equal(membership.GameID)
+				g.Assert(dbMembership.PlayerID).Equal(players[0].ID)
+				g.Assert(dbMembership.RequestorID).Equal(owner.ID)
+				g.Assert(dbMembership.ClanID).Equal(clan.ID)
+				g.Assert(dbMembership.Approved).Equal(false)
+				g.Assert(dbMembership.Denied).Equal(false)
+
+				dbPlayer, err := GetPlayerByID(testDb, dbMembership.PlayerID)
+				g.Assert(err == nil).IsTrue()
+				g.Assert(dbPlayer.MembershipCount).Equal(0)
+
+				dbClan, err := GetClanByID(testDb, clan.ID)
+				g.Assert(err == nil).IsTrue()
+				g.Assert(dbClan.MembershipCount).Equal(1)
+			})
 		})
 
 		g.Describe("Should not create a new Membership with CreateMembership if", func() {
+			g.It("If deleted previous membership, before waiting cooldown seconds", func() {
+				game, clan, owner, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
+				g.Assert(err == nil).IsTrue()
+
+				game.CooldownAfterDelete = 10
+				_, err = testDb.Update(game)
+				g.Assert(err == nil).IsTrue()
+
+				memberships[0].DeletedAt = time.Now().UnixNano() / 1000000
+				memberships[0].DeletedBy = memberships[0].PlayerID
+				memberships[0].Approved = false
+				memberships[0].Denied = false
+				_, err = testDb.Update(memberships[0])
+				g.Assert(err == nil).IsTrue()
+
+				_, err = CreateMembership(
+					testDb,
+					game,
+					players[0].GameID,
+					"Member",
+					players[0].PublicID,
+					clan.PublicID,
+					owner.PublicID,
+				)
+
+				g.Assert(err != nil).IsTrue()
+				g.Assert(err.Error()).Equal(fmt.Sprintf("Player %s must wait 10 seconds before creating a membership in clan %s.", players[0].PublicID, clan.PublicID))
+			})
+
+			g.It("If denied previous membership, before waiting cooldown seconds", func() {
+				game, clan, owner, players, _, err := GetClanWithMemberships(testDb, 0, 1, 0, 0, "", "")
+				g.Assert(err == nil).IsTrue()
+
+				game.CooldownAfterDeny = 10
+				_, err = testDb.Update(game)
+				g.Assert(err == nil).IsTrue()
+
+				_, err = CreateMembership(
+					testDb,
+					game,
+					players[0].GameID,
+					"Member",
+					players[0].PublicID,
+					clan.PublicID,
+					owner.PublicID,
+				)
+
+				g.Assert(err != nil).IsTrue()
+				g.Assert(err.Error()).Equal(fmt.Sprintf("Player %s must wait 10 seconds before creating a membership in clan %s.", players[0].PublicID, clan.PublicID))
+			})
+
 			g.It("If clan reached the game's MaxMembers", func() {
 				game, clan, owner, _, _, err := GetClanReachedMaxMemberships(testDb)
 				g.Assert(err == nil).IsTrue()
@@ -670,7 +810,7 @@ func TestMembershipModel(t *testing.T) {
 
 				g.Assert(membership == nil).IsTrue()
 				g.Assert(err != nil).IsTrue()
-				g.Assert(err.Error()).Equal("pq: duplicate key value violates unique constraint \"playerid_clanid\"")
+				g.Assert(err.Error()).Equal(fmt.Sprintf("Player %s already has a valid membership in clan %s.", players[0].PublicID, clan.PublicID))
 			})
 		})
 

@@ -309,7 +309,7 @@ func GetClanWithMemberships(
 				}
 
 				membership.ApproverID = sql.NullInt64{Int64: int64(approverID), Valid: true}
-				membership.ApprovedAt = time.Now().UnixNano()
+				membership.ApprovedAt = time.Now().UnixNano() / 1000000
 			} else if denied {
 				denierID := player.ID
 				if !pendingsAreInvites {
@@ -317,7 +317,7 @@ func GetClanWithMemberships(
 				}
 
 				membership.DenierID = sql.NullInt64{Int64: int64(denierID), Valid: true}
-				membership.DeniedAt = time.Now().UnixNano()
+				membership.DeniedAt = time.Now().UnixNano() / 1000000
 			}
 
 			err = db.Insert(membership)
@@ -396,7 +396,7 @@ func GetClanReachedMaxMemberships(db DB) (*Game, *Clan, *Player, []*Player, []*M
 		"Approved":    true,
 		"Level":       "Member",
 		"ApproverID":  sql.NullInt64{Int64: int64(players[0].ID), Valid: true},
-		"ApprovedAt":  time.Now().UnixNano(),
+		"ApprovedAt":  time.Now().UnixNano() / 1000000,
 	}).(*Membership)
 	err = db.Insert(membership)
 	if err != nil {
@@ -558,15 +558,15 @@ func GetTestPlayerWithMemberships(db DB, gameID string, approvedMemberships, rej
 			"Banned":      banned,
 		}
 		if banned {
-			payload["DeletedAt"] = time.Now().UnixNano()
+			payload["DeletedAt"] = time.Now().UnixNano() / 1000000
 			payload["DeletedBy"] = owner.ID
 		}
 		if approved {
 			payload["ApproverID"] = sql.NullInt64{Int64: int64(player.ID), Valid: true}
-			payload["ApprovedAt"] = time.Now().UnixNano()
+			payload["ApprovedAt"] = time.Now().UnixNano() / 1000000
 		} else if denied {
 			payload["DenierID"] = sql.NullInt64{Int64: int64(player.ID), Valid: true}
-			payload["DeniedAt"] = time.Now().UnixNano()
+			payload["DeniedAt"] = time.Now().UnixNano() / 1000000
 		}
 
 		membership := MembershipFactory.MustCreateWithOption(payload).(*Membership)
