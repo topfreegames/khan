@@ -404,6 +404,7 @@ func ApproveOrDenyMembershipInvitationHandler(app *App) func(c *iris.Context) {
 		)
 		if err != nil {
 			FailWith(500, err.Error(), c)
+			return
 		}
 
 		SucceedWith(map[string]interface{}{}, c)
