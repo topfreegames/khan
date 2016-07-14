@@ -64,7 +64,7 @@ build-dev-docker:
 	@cd dev && docker build -t khan-dev .
 
 run-docker:
-	@docker run -i -t --rm -e "KHAN_POSTGRES_HOST=10.0.20.81" -p 8080:8080 khan
+	@docker run -i -t --rm -e "KHAN_POSTGRES_HOST=`ifconfig | egrep inet | egrep -v inet6 | egrep -v 127.0.0.1 | awk ' { print $$2 } '`" -p 8080:8080 khan
 
 test: assets drop-test db-test
 	@go test $(PACKAGES)
