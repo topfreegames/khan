@@ -39,6 +39,8 @@ func getGamePayload(publicID, name string) map[string]interface{} {
 		"minLevelOffsetToDemoteMember":  1,
 		"maxMembers":                    100,
 		"maxClansPerPlayer":             1,
+		"cooldownAfterDeny":             30,
+		"cooldownAfterDelete":           30,
 	}
 }
 
