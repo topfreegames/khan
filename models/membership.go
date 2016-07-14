@@ -9,6 +9,7 @@ package models
 
 import (
 	"database/sql"
+	"fmt"
 	"time"
 
 	"gopkg.in/gorp.v1"
@@ -81,8 +82,8 @@ func GetValidMembershipByClanAndPlayerPublicID(db DB, gameID, clanPublicID, play
 	return &membership, nil
 }
 
-// GetDeletedMembershipByClanAndPlayerPublicID returns a deleted membership for the clan and the player with the given publicIDs
-func GetDeletedMembershipByClanAndPlayerPublicID(db DB, gameID, clanPublicID, playerPublicID string) (*Membership, error) {
+// GetMembershipByClanAndPlayerPublicID returns a deleted membership for the clan and the player with the given publicIDs
+func GetMembershipByClanAndPlayerPublicID(db DB, gameID, clanPublicID, playerPublicID string) (*Membership, error) {
 	var membership Membership
 	query := `
 	SELECT
@@ -90,8 +91,7 @@ func GetDeletedMembershipByClanAndPlayerPublicID(db DB, gameID, clanPublicID, pl
 	FROM memberships m
 		INNER JOIN clans c ON c.public_id=$1 AND c.id=m.clan_id
 		INNER JOIN players p ON p.public_id=$2 AND p.id=m.player_id
-	WHERE
-		m.deleted_at!=0 AND m.game_id=$3`
+	WHERE m.game_id=$3`
 
 	err := db.SelectOne(&membership, query, clanPublicID, playerPublicID, gameID)
 	if err != nil || &membership == nil {
@@ -246,9 +246,25 @@ func CreateMembership(db DB, game *Game, gameID, level, playerPublicID, clanPubl
 		return nil, &InvalidLevelForGameError{gameID, level}
 	}
 
-	membership, _ := GetDeletedMembershipByClanAndPlayerPublicID(db, gameID, clanPublicID, playerPublicID)
+	membership, _ := GetMembershipByClanAndPlayerPublicID(db, gameID, clanPublicID, playerPublicID)
 	if membership != nil {
 		previousMembership = true
+		nowInMilliseconds := time.Now().UnixNano() / 1000000
+		if membership.DeletedAt > 0 {
+			timeToBeReady := game.CooldownAfterDelete - int(nowInMilliseconds-membership.DeletedAt)/1000
+			fmt.Println(timeToBeReady, timeToBeReady > 0)
+			if timeToBeReady > 0 {
+				return nil, &MustWaitMembershipCooldownError{timeToBeReady, playerPublicID, clanPublicID}
+			}
+		} else if membership.Denied {
+			timeToBeReady := game.CooldownAfterDeny - int(nowInMilliseconds-membership.DeniedAt)/1000
+			if timeToBeReady > 0 {
+				return nil, &MustWaitMembershipCooldownError{timeToBeReady, playerPublicID, clanPublicID}
+			}
+		} else {
+			return nil, &AlreadyHasValidMembershipError{playerPublicID, clanPublicID}
+		}
+
 		playerID = membership.PlayerID
 		player, err := GetPlayerByID(db, playerID)
 		if err != nil {
@@ -282,7 +298,7 @@ func CreateMembership(db DB, game *Game, gameID, level, playerPublicID, clanPubl
 			return nil, reachedMaxMembersError
 		}
 		if previousMembership {
-			return recreateDeletedMembershipHelper(db, membership, level, membership.PlayerID, clan.AutoJoin)
+			return updatePreviousMembershipHelper(db, membership, level, membership.PlayerID, clan.AutoJoin)
 		}
 		return createMembershipHelper(db, gameID, level, playerID, clan.ID, playerID, clan.AutoJoin)
 	}
@@ -298,7 +314,7 @@ func CreateMembership(db DB, game *Game, gameID, level, playerPublicID, clanPubl
 			return nil, reachedMaxMembersError
 		}
 		if previousMembership {
-			return recreateDeletedMembershipHelper(db, membership, level, clan.OwnerID, false)
+			return updatePreviousMembershipHelper(db, membership, level, clan.OwnerID, false)
 		}
 		return createMembershipHelper(db, gameID, level, playerID, clan.ID, clan.OwnerID, false)
 	}
@@ -312,7 +328,7 @@ func CreateMembership(db DB, game *Game, gameID, level, playerPublicID, clanPubl
 
 	if isValidMember(reqMembership) && levelInt >= game.MinLevelToCreateInvitation {
 		if previousMembership {
-			return recreateDeletedMembershipHelper(db, membership, level, reqMembership.PlayerID, false)
+			return updatePreviousMembershipHelper(db, membership, level, reqMembership.PlayerID, false)
 		}
 		return createMembershipHelper(db, gameID, level, playerID, reqMembership.ClanID, reqMembership.PlayerID, false)
 	}
@@ -397,11 +413,11 @@ func approveOrDenyMembershipHelper(db DB, membership *Membership, action string,
 	if approve {
 		membership.Approved = true
 		membership.ApproverID = sql.NullInt64{Int64: int64(performer.ID), Valid: true}
-		membership.ApprovedAt = time.Now().UnixNano()
+		membership.ApprovedAt = time.Now().UnixNano() / 1000000
 	} else if action == "deny" {
 		membership.Denied = true
 		membership.DenierID = sql.NullInt64{Int64: int64(performer.ID), Valid: true}
-		membership.DeniedAt = time.Now().UnixNano()
+		membership.DeniedAt = time.Now().UnixNano() / 1000000
 
 	} else {
 		return nil, &InvalidMembershipActionError{action}
@@ -451,7 +467,7 @@ func createMembershipHelper(db DB, gameID, level string, playerID, clanID, reque
 	return membership, nil
 }
 
-func recreateDeletedMembershipHelper(db DB, membership *Membership, level string, requestorID int, approved bool) (*Membership, error) {
+func updatePreviousMembershipHelper(db DB, membership *Membership, level string, requestorID int, approved bool) (*Membership, error) {
 	membership.RequestorID = requestorID
 	membership.Level = level
 	membership.Approved = approved
