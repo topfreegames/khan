@@ -175,10 +175,24 @@ func UpdateClanHandler(app *App) func(c *iris.Context) {
 }
 
 func dispatchClanOwnershipChangeHook(app *App, db models.DB, hookType int, gameID, publicID string) error {
+	l := app.Logger.With(
+		zap.String("source", "clanHandler"),
+		zap.String("operation", "dispatchClanOwnershipChangeHook"),
+		zap.Int("hookType", hookType),
+		zap.String("gameID", gameID),
+		zap.String("clanPublicID", publicID),
+	)
+
+	l.Debug("Retrieve Clan Owner by PublicID...")
 	clan, newOwner, err := models.GetClanAndOwnerByPublicID(db, gameID, publicID)
 	if err != nil {
+		if strings.HasPrefix(err.Error(), "Clan was not found with id") {
+			l.Info("Clan was deleted.", zap.Error(err))
+			return nil
+		}
 		return err
 	}
+	l.Debug("Clan owner retrieval succeeded.")
 
 	newOwnerJSON := newOwner.Serialize()
 	delete(newOwnerJSON, "gameID")
@@ -191,7 +205,9 @@ func dispatchClanOwnershipChangeHook(app *App, db models.DB, hookType int, gameI
 		"clan":     clanJSON,
 		"newOwner": newOwnerJSON,
 	}
+	l.Debug("Dispatching hook...")
 	app.DispatchHooks(gameID, hookType, result)
+	l.Debug("Hook dispatch succeeded.")
 
 	return nil
 }

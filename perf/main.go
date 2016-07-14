@@ -36,6 +36,8 @@ func createGames(db models.DB, gameCount int) []string {
 		max_clans_per_player,
 		membership_levels,
 		metadata,
+		cooldown_after_deny,
+		cooldown_after_delete,
 		created_at,
 		updated_at) SELECT
 			uuid_generate_v4(),
@@ -52,6 +54,8 @@ func createGames(db models.DB, gameCount int) []string {
 			1, 
 			CAST(to_jsonb($1::text) as jsonb),
 			CAST(to_jsonb($2::text) as jsonb),
+			0,
+			0,
 			0,
 			0
 	FROM generate_series(1, $3)
