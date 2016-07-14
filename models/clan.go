@@ -10,7 +10,8 @@ package models
 import (
 	"fmt"
 	"strings"
-	"time"
+
+	"github.com/topfreegames/khan/util"
 
 	"gopkg.in/gorp.v1"
 )
@@ -40,14 +41,14 @@ type Clan struct {
 
 // PreInsert populates fields before inserting a new clan
 func (c *Clan) PreInsert(s gorp.SqlExecutor) error {
-	c.CreatedAt = time.Now().UnixNano() / 1000000
+	c.CreatedAt = util.NowMilli()
 	c.UpdatedAt = c.CreatedAt
 	return nil
 }
 
 // PreUpdate populates fields before updating a clan
 func (c *Clan) PreUpdate(s gorp.SqlExecutor) error {
-	c.UpdatedAt = time.Now().UnixNano() / 1000000
+	c.UpdatedAt = util.NowMilli()
 	return nil
 }
 
@@ -226,7 +227,7 @@ func TransferClanOwnership(db DB, gameID, clanPublicID, playerPublicID string, l
 			Denied:      false,
 			Banned:      false,
 			CreatedAt:   clan.CreatedAt,
-			UpdatedAt:   time.Now().UnixNano() / 1000000,
+			UpdatedAt:   util.NowMilli(),
 		})
 		if err != nil {
 			return err

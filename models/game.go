@@ -9,7 +9,6 @@ package models
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/topfreegames/khan/util"
 
@@ -45,7 +44,7 @@ func (g *Game) PreInsert(s gorp.SqlExecutor) error {
 	sortedLevels := util.SortLevels(g.MembershipLevels)
 	g.MinMembershipLevel = sortedLevels[0].Value
 	g.MaxMembershipLevel = sortedLevels[len(sortedLevels)-1].Value
-	g.CreatedAt = time.Now().UnixNano() / 1000000
+	g.CreatedAt = util.NowMilli()
 	g.UpdatedAt = g.CreatedAt
 	return nil
 }
@@ -55,7 +54,7 @@ func (g *Game) PreUpdate(s gorp.SqlExecutor) error {
 	sortedLevels := util.SortLevels(g.MembershipLevels)
 	g.MinMembershipLevel = sortedLevels[0].Value
 	g.MaxMembershipLevel = sortedLevels[len(sortedLevels)-1].Value
-	g.UpdatedAt = time.Now().UnixNano() / 1000000
+	g.UpdatedAt = util.NowMilli()
 	return nil
 }
 

@@ -16,6 +16,7 @@ import (
 
 	"github.com/Pallinder/go-randomdata"
 	. "github.com/franela/goblin"
+	"github.com/topfreegames/khan/util"
 )
 
 func TestClanModel(t *testing.T) {
@@ -369,7 +370,7 @@ func TestClanModel(t *testing.T) {
 					dbDeletedMembership, err := GetMembershipByID(testDb, memberships[0].ID)
 					g.Assert(err == nil).IsTrue()
 					g.Assert(dbDeletedMembership.DeletedBy).Equal(owner.ID)
-					g.Assert(dbDeletedMembership.DeletedAt > time.Now().UnixNano()/1000000-1000).IsTrue()
+					g.Assert(dbDeletedMembership.DeletedAt > util.NowMilli()-1000).IsTrue()
 
 					dbPlayer, err := GetPlayerByID(testDb, owner.ID)
 					g.Assert(err == nil).IsTrue()
@@ -441,7 +442,7 @@ func TestClanModel(t *testing.T) {
 					g.Assert(err == nil).IsTrue()
 					g.Assert(newOwnerMembership.Banned).IsFalse()
 					g.Assert(newOwnerMembership.DeletedBy).Equal(newOwnerMembership.PlayerID)
-					g.Assert(newOwnerMembership.DeletedAt > time.Now().UnixNano()/1000000-1000).IsTrue()
+					g.Assert(newOwnerMembership.DeletedAt > util.NowMilli()-1000).IsTrue()
 
 					dbPlayer, err := GetPlayerByID(testDb, owner.ID)
 					g.Assert(err == nil).IsTrue()
@@ -496,7 +497,7 @@ func TestClanModel(t *testing.T) {
 					g.Assert(err == nil).IsTrue()
 					g.Assert(newOwnerMembership.Banned).IsFalse()
 					g.Assert(newOwnerMembership.DeletedBy).Equal(newOwnerMembership.PlayerID)
-					g.Assert(newOwnerMembership.DeletedAt > time.Now().UnixNano()/1000000-1000).IsTrue()
+					g.Assert(newOwnerMembership.DeletedAt > util.NowMilli()-1000).IsTrue()
 
 					dbPlayer, err := GetPlayerByID(testDb, firstOwnerMembership.PlayerID)
 					g.Assert(err == nil).IsTrue()
@@ -669,7 +670,7 @@ func TestClanModel(t *testing.T) {
 				)
 				g.Assert(err == nil).IsTrue()
 
-				memberships[9].DeletedAt = time.Now().UnixNano() / 1000000
+				memberships[9].DeletedAt = util.NowMilli()
 				memberships[9].DeletedBy = clan.OwnerID
 				_, err = testDb.Update(memberships[9])
 				g.Assert(err == nil).IsTrue()
