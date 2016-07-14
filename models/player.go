@@ -9,7 +9,8 @@ package models
 
 import (
 	"fmt"
-	"time"
+
+	"github.com/topfreegames/khan/util"
 
 	"gopkg.in/gorp.v1"
 )
@@ -29,14 +30,14 @@ type Player struct {
 
 // PreInsert populates fields before inserting a new player
 func (p *Player) PreInsert(s gorp.SqlExecutor) error {
-	p.CreatedAt = time.Now().UnixNano() / 1000000
+	p.CreatedAt = util.NowMilli()
 	p.UpdatedAt = p.CreatedAt
 	return nil
 }
 
 // PreUpdate populates fields before updating a player
 func (p *Player) PreUpdate(s gorp.SqlExecutor) error {
-	p.UpdatedAt = time.Now().UnixNano() / 1000000
+	p.UpdatedAt = util.NowMilli()
 	return nil
 }
 

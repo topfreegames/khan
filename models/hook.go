@@ -8,9 +8,8 @@
 package models
 
 import (
-	"time"
-
 	"github.com/satori/go.uuid"
+	"github.com/topfreegames/khan/util"
 
 	"gopkg.in/gorp.v1"
 )
@@ -69,14 +68,14 @@ type Hook struct {
 
 // PreInsert populates fields before inserting a new hook
 func (h *Hook) PreInsert(s gorp.SqlExecutor) error {
-	h.CreatedAt = time.Now().UnixNano() / 1000000
+	h.CreatedAt = util.NowMilli()
 	h.UpdatedAt = h.CreatedAt
 	return nil
 }
 
 // PreUpdate populates fields before updating a hook
 func (h *Hook) PreUpdate(s gorp.SqlExecutor) error {
-	h.UpdatedAt = time.Now().UnixNano() / 1000000
+	h.UpdatedAt = util.NowMilli()
 	return nil
 }
 

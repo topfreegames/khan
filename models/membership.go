@@ -10,7 +10,8 @@ package models
 import (
 	"database/sql"
 	"fmt"
-	"time"
+
+	"github.com/topfreegames/khan/util"
 
 	"gopkg.in/gorp.v1"
 )
@@ -41,7 +42,7 @@ type Membership struct {
 // PreInsert populates fields before inserting a new clan
 func (m *Membership) PreInsert(s gorp.SqlExecutor) error {
 	if m.CreatedAt == 0 {
-		m.CreatedAt = time.Now().UnixNano() / 1000000
+		m.CreatedAt = util.NowMilli()
 	}
 	m.UpdatedAt = m.CreatedAt
 	return nil
@@ -49,7 +50,7 @@ func (m *Membership) PreInsert(s gorp.SqlExecutor) error {
 
 // PreUpdate populates fields before updating a clan
 func (m *Membership) PreUpdate(s gorp.SqlExecutor) error {
-	m.UpdatedAt = time.Now().UnixNano() / 1000000
+	m.UpdatedAt = util.NowMilli()
 	return nil
 }
 
@@ -249,7 +250,7 @@ func CreateMembership(db DB, game *Game, gameID, level, playerPublicID, clanPubl
 	membership, _ := GetMembershipByClanAndPlayerPublicID(db, gameID, clanPublicID, playerPublicID)
 	if membership != nil {
 		previousMembership = true
-		nowInMilliseconds := time.Now().UnixNano() / 1000000
+		nowInMilliseconds := util.NowMilli()
 		if membership.DeletedAt > 0 {
 			timeToBeReady := game.CooldownAfterDelete - int(nowInMilliseconds-membership.DeletedAt)/1000
 			fmt.Println(timeToBeReady, timeToBeReady > 0)
@@ -413,11 +414,11 @@ func approveOrDenyMembershipHelper(db DB, membership *Membership, action string,
 	if approve {
 		membership.Approved = true
 		membership.ApproverID = sql.NullInt64{Int64: int64(performer.ID), Valid: true}
-		membership.ApprovedAt = time.Now().UnixNano() / 1000000
+		membership.ApprovedAt = util.NowMilli()
 	} else if action == "deny" {
 		membership.Denied = true
 		membership.DenierID = sql.NullInt64{Int64: int64(performer.ID), Valid: true}
-		membership.DeniedAt = time.Now().UnixNano() / 1000000
+		membership.DeniedAt = util.NowMilli()
 
 	} else {
 		return nil, &InvalidMembershipActionError{action}
@@ -526,7 +527,7 @@ func deleteMembershipHelper(db DB, membership *Membership, deletedBy int) error 
 		}
 	}
 
-	membership.DeletedAt = time.Now().UnixNano() / 1000000
+	membership.DeletedAt = util.NowMilli()
 	membership.DeletedBy = deletedBy
 	membership.Approved = false
 	membership.Denied = false

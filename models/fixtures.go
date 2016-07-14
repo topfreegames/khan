@@ -10,11 +10,11 @@ package models
 import (
 	"database/sql"
 	"fmt"
-	"time"
 
 	"github.com/Pallinder/go-randomdata"
 	"github.com/bluele/factory-go/factory"
 	"github.com/satori/go.uuid"
+	"github.com/topfreegames/khan/util"
 )
 
 // GameFactory is responsible for constructing test game instances
@@ -309,7 +309,7 @@ func GetClanWithMemberships(
 				}
 
 				membership.ApproverID = sql.NullInt64{Int64: int64(approverID), Valid: true}
-				membership.ApprovedAt = time.Now().UnixNano() / 1000000
+				membership.ApprovedAt = util.NowMilli()
 			} else if denied {
 				denierID := player.ID
 				if !pendingsAreInvites {
@@ -317,7 +317,7 @@ func GetClanWithMemberships(
 				}
 
 				membership.DenierID = sql.NullInt64{Int64: int64(denierID), Valid: true}
-				membership.DeniedAt = time.Now().UnixNano() / 1000000
+				membership.DeniedAt = util.NowMilli()
 			}
 
 			err = db.Insert(membership)
@@ -396,7 +396,7 @@ func GetClanReachedMaxMemberships(db DB) (*Game, *Clan, *Player, []*Player, []*M
 		"Approved":    true,
 		"Level":       "Member",
 		"ApproverID":  sql.NullInt64{Int64: int64(players[0].ID), Valid: true},
-		"ApprovedAt":  time.Now().UnixNano() / 1000000,
+		"ApprovedAt":  util.NowMilli(),
 	}).(*Membership)
 	err = db.Insert(membership)
 	if err != nil {
@@ -558,15 +558,15 @@ func GetTestPlayerWithMemberships(db DB, gameID string, approvedMemberships, rej
 			"Banned":      banned,
 		}
 		if banned {
-			payload["DeletedAt"] = time.Now().UnixNano() / 1000000
+			payload["DeletedAt"] = util.NowMilli()
 			payload["DeletedBy"] = owner.ID
 		}
 		if approved {
 			payload["ApproverID"] = sql.NullInt64{Int64: int64(player.ID), Valid: true}
-			payload["ApprovedAt"] = time.Now().UnixNano() / 1000000
+			payload["ApprovedAt"] = util.NowMilli()
 		} else if denied {
 			payload["DenierID"] = sql.NullInt64{Int64: int64(player.ID), Valid: true}
-			payload["DeniedAt"] = time.Now().UnixNano() / 1000000
+			payload["DeniedAt"] = util.NowMilli()
 		}
 
 		membership := MembershipFactory.MustCreateWithOption(payload).(*Membership)
