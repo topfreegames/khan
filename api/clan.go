@@ -229,10 +229,10 @@ func LeaveClanHandler(app *App) func(c *iris.Context) {
 			if strings.HasPrefix(err.Error(), "Clan was not found with id") {
 				l.Warn("Clan was not found.", zap.Error(err))
 				FailWith(400, (&models.ModelNotFoundError{Type: "Clan", ID: publicID}).Error(), c)
-			} else {
-				l.Error("Clan leave failed.", zap.Error(err))
-				FailWith(500, err.Error(), c)
+				return
 			}
+			l.Error("Clan leave failed.", zap.Error(err))
+			FailWith(500, err.Error(), c)
 			return
 		}
 		l.Debug("Clan left successfully.")
@@ -240,6 +240,7 @@ func LeaveClanHandler(app *App) func(c *iris.Context) {
 		err = dispatchClanOwnershipChangeHook(app, db, models.ClanLeftHook, gameID, publicID)
 		if err != nil {
 			FailWith(500, err.Error(), c)
+			return
 		}
 
 		SucceedWith(map[string]interface{}{}, c)
@@ -305,6 +306,7 @@ func TransferOwnershipHandler(app *App) func(c *iris.Context) {
 		if err != nil {
 			l.Error("Clan ownership transfer hook dispatch failed.", zap.Error(err))
 			FailWith(500, err.Error(), c)
+			return
 		}
 
 		l.Info("Clan ownership transfer completed successfully.")
@@ -428,6 +430,7 @@ func RetrieveClanHandler(app *App) func(c *iris.Context) {
 		if err != nil {
 			l.Warn("Could not find game.")
 			FailWith(404, err.Error(), c)
+			return
 		}
 
 		l.Debug("Retrieving clan details...")
