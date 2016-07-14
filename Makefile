@@ -63,8 +63,15 @@ build-dev-docker:
 	@cp ./config/default.yaml ./dev
 	@cd dev && docker build -t khan-dev .
 
+# the crypto
 run-docker:
-	@docker run -i -t --rm -e "KHAN_POSTGRES_HOST=`ifconfig | egrep inet | egrep -v inet6 | egrep -v 127.0.0.1 | awk ' { print $$2 } '`" -p 8080:8080 khan
+	@docker run -i -t --rm \
+		-e "KHAN_POSTGRES_HOST=`ifconfig | egrep inet | egrep -v inet6 | egrep -v 127.0.0.1 | awk ' { print $$2 } '`" \
+		-e "SERVER_NAME=localhost" \
+		-e "AUTH_USERNAME=auth-username" \
+		-e "AUTH_PASSWORD=auth-password" \
+		-p 8080:80 \
+		khan
 
 test: assets drop-test db-test
 	@go test $(PACKAGES)
