@@ -21,13 +21,16 @@ ENV KHAN_POSTGRES_PORT 5432
 ENV KHAN_POSTGRES_USER khan
 ENV KHAN_POSTGRES_DBNAME khan
 ENV KHAN_SENTRY_URL ""
+ENV BASICAUTH_USERNAME khan
+ENV BASICAUTH_PASSWORD khan
+ENV USE_BASICAUTH false
+
+RUN mkdir -p /etc/nginx/sites-enabled
 
 # configure supervisord
 ADD ./docker/supervisord-khan.conf /etc/supervisord-khan.conf
 
 # Configure nginx
-ADD ./docker/nginx_default /etc/nginx/sites-enabled/default
 ADD ./docker/nginx_conf /etc/nginx/nginx.conf
-ADD ./docker/nginx_htpasswd /etc/nginx/.htpasswd
 
 CMD /bin/sh -l -c docker/start.sh
