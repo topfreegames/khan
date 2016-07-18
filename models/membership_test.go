@@ -273,7 +273,6 @@ func TestMembershipModel(t *testing.T) {
 					clan.PublicID,
 					players[0].PublicID,
 				)
-				fmt.Println(err)
 				g.Assert(err == nil).IsTrue()
 				g.Assert(membership.ID != 0).IsTrue()
 
@@ -527,7 +526,6 @@ func TestMembershipModel(t *testing.T) {
 					clan.PublicID,
 					owner.PublicID,
 				)
-				fmt.Println(err)
 				g.Assert(err == nil).IsTrue()
 				g.Assert(membership.ID != 0).IsTrue()
 

@@ -35,6 +35,7 @@ The following environment variables are available to you:
 * KHAN_POSTGRES_USER
 * KHAN_POSTGRES_PASSWORD
 * KHAN_POSTGRES_SSLMODE
+* KHAN_SENTRY_URL
 
 ## Running with docker
 

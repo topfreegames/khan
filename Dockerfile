@@ -20,6 +20,7 @@ ENV KHAN_POSTGRES_HOST 0.0.0.0
 ENV KHAN_POSTGRES_PORT 5432
 ENV KHAN_POSTGRES_USER khan
 ENV KHAN_POSTGRES_DBNAME khan
+ENV KHAN_SENTRY_URL ""
 
 # configure supervisord
 ADD ./docker/supervisord-khan.conf /etc/supervisord-khan.conf

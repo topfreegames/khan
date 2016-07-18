@@ -23,3 +23,4 @@ import:
 - package: github.com/uber-go/atomic
 - package: github.com/valyala/fasttemplate
 - package: github.com/iris-contrib/middleware
+- package: github.com/getsentry/raven-go
