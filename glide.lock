@@ -1,5 +1,5 @@
-hash: 3028880faaea34d91b6062172a505df6a85c87ca08d0afa8a70d15248fa88a6d
-updated: 2016-07-12T15:41:00.626387015-03:00
+hash: 31903df961693fcee58df5ac4b650a88816f19e85ce9ac6200cc2c244198286c
+updated: 2016-07-15T17:55:18.221784437-03:00
 imports:
 - name: github.com/ajg/form
   version: 7ff89c75808766205bfa4411abb436c98c33eb5e
@@ -46,6 +46,8 @@ imports:
   version: 35c8994667acb85dad8c454a2d231ebc1b782caf
 - name: github.com/gavv/monotime
   version: 259cd7b345f5aa080eff16f21d7866ef7dea9528
+- name: github.com/getsentry/raven-go
+  version: dffeb57df75d6a911f00232155194e43d79d38d7
 - name: github.com/go-sql-driver/mysql
   version: 3654d25ec346ee8ce71a68431025458d52a38ac0
 - name: github.com/google/go-querystring
@@ -81,8 +83,6 @@ imports:
   version: 32009bbc76eda475a6d1eb24787d1fdcdaf80e71
 - name: github.com/iris-contrib/middleware
   version: fd83c28d64e1de2f5a0d2021dbf214e3ef35de23
-  subpackages:
-  - logger
 - name: github.com/iris-contrib/websocket
   version: a2c30084384c39ce6595169df8b93d7298ac04cd
 - name: github.com/Joker/jade
@@ -94,8 +94,8 @@ imports:
   subpackages:
   - iris
   - config
-  - logger
   - context
+  - logger
   - render/rest
   - render/template
   - sessions
@@ -143,17 +143,6 @@ imports:
   version: b1479103caacaa39319f75e7f57fc545287fca0d
 - name: github.com/onsi/gomega
   version: 4dfabf7db2e4147ec99a86db32b2f2a3484cfee8
-  subpackages:
-  - internal/assertion
-  - internal/asyncassertion
-  - internal/testingtsupport
-  - matchers
-  - types
-  - format
-  - matchers/support/goraph/bipartitegraph
-  - matchers/support/goraph/edge
-  - matchers/support/goraph/node
-  - matchers/support/goraph/util
 - name: github.com/Pallinder/go-randomdata
   version: 104cc800bd6434e70cb0c3ad08c4541f4f2eb48b
 - name: github.com/pmezard/go-difflib
@@ -237,4 +226,4 @@ imports:
   version: c87af80f3cc5036b55b83d77171e156791085e2e
 - name: gopkg.in/yaml.v2
   version: a83829b6f1293c91addabc89d0571c246397bbf4
-testImports: []
+devImports: []

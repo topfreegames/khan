@@ -9,7 +9,6 @@ package models
 
 import (
 	"database/sql"
-	"fmt"
 
 	"github.com/topfreegames/khan/util"
 
@@ -253,7 +252,6 @@ func CreateMembership(db DB, game *Game, gameID, level, playerPublicID, clanPubl
 		nowInMilliseconds := util.NowMilli()
 		if membership.DeletedAt > 0 {
 			timeToBeReady := game.CooldownAfterDelete - int(nowInMilliseconds-membership.DeletedAt)/1000
-			fmt.Println(timeToBeReady, timeToBeReady > 0)
 			if timeToBeReady > 0 {
 				return nil, &MustWaitMembershipCooldownError{timeToBeReady, playerPublicID, clanPublicID}
 			}

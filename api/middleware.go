@@ -12,6 +12,7 @@ import (
 	"runtime/debug"
 	"time"
 
+	"github.com/getsentry/raven-go"
 	"github.com/kataras/iris"
 	"github.com/topfreegames/khan/models"
 	"github.com/uber-go/zap"
@@ -76,7 +77,12 @@ func (r RecoveryMiddleware) Serve(ctx *iris.Context) {
 	defer func() {
 		if err := recover(); err != nil {
 			if r.OnError != nil {
-				r.OnError(err.(error), debug.Stack())
+				switch err.(type) {
+				case error:
+					r.OnError(err.(error), debug.Stack())
+				default:
+					r.OnError(fmt.Errorf("%v", err), debug.Stack())
+				}
 			}
 			ctx.Panic()
 		}
@@ -125,13 +131,13 @@ func (l *LoggerMiddleware) Serve(ctx *iris.Context) {
 	)
 
 	//request failed
-	if status > 399 {
+	if status > 399 && status < 500 {
 		reqLog.Warn("Request failed.")
 		return
 	}
 
 	//request is ok, but server failed
-	if status > 500 {
+	if status > 499 {
 		reqLog.Error("Response failed.")
 		return
 	}
@@ -144,4 +150,23 @@ func (l *LoggerMiddleware) Serve(ctx *iris.Context) {
 func NewLoggerMiddleware(theLogger zap.Logger) iris.HandlerFunc {
 	l := &LoggerMiddleware{Logger: theLogger}
 	return l.Serve
+}
+
+//SentryMiddleware is responsible for sending all exceptions to sentry
+type SentryMiddleware struct {
+	App *App
+}
+
+// Serve serves the middleware
+func (l *SentryMiddleware) Serve(ctx *iris.Context) {
+	ctx.Next()
+
+	if ctx.Response.StatusCode() > 499 {
+		tags := map[string]string{
+			"source": "app",
+			"type":   "Internal server error",
+			"url":    ctx.Request.URI().String(),
+		}
+		raven.CaptureError(fmt.Errorf("%s", string(ctx.Response.Body())), tags)
+	}
 }

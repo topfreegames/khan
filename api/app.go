@@ -14,6 +14,7 @@ import (
 
 	"gopkg.in/gorp.v1"
 
+	"github.com/getsentry/raven-go"
 	"github.com/kataras/iris"
 	"github.com/kataras/iris/config"
 	"github.com/rcrowley/go-metrics"
@@ -55,9 +56,14 @@ func GetApp(host string, port int, configPath string, debug bool, logger zap.Log
 func (app *App) Configure() {
 	app.setConfigurationDefaults()
 	app.loadConfiguration()
+	app.configureSentry()
 	app.connectDatabase()
 	app.configureApplication()
 	app.initDispatcher()
+}
+
+func (app *App) configureSentry() {
+	raven.SetDSN(app.Config.GetString("sentry.url"))
 }
 
 func (app *App) setConfigurationDefaults() {
@@ -142,6 +148,11 @@ func (app *App) onErrorHandler(err error, stack []byte) {
 		zap.String("panicText", err.Error()),
 		zap.String("stack", string(stack)),
 	)
+	tags := map[string]string{
+		"source": "app",
+		"type":   "panic",
+	}
+	raven.CaptureError(err, tags)
 }
 
 func (app *App) configureApplication() {
@@ -156,6 +167,7 @@ func (app *App) configureApplication() {
 	a.Use(&RecoveryMiddleware{OnError: app.onErrorHandler})
 	a.Use(&TransactionMiddleware{App: app})
 	a.Use(&VersionMiddleware{App: app})
+	a.Use(&SentryMiddleware{App: app})
 
 	a.OnError(iris.StatusInternalServerError, func(ctx *iris.Context) {
 		app.Logger.Error(
