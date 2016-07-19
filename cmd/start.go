@@ -24,7 +24,7 @@ var startCmd = &cobra.Command{
 	Long: `Starts khan server with the specified arguments. You can use
 environment variables to override configuration keys.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		ll := zap.WarnLevel
+		ll := zap.InfoLevel
 		if debug {
 			ll = zap.DebugLevel
 		}

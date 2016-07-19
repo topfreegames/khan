@@ -63,7 +63,13 @@ func (app *App) Configure() {
 }
 
 func (app *App) configureSentry() {
-	raven.SetDSN(app.Config.GetString("sentry.url"))
+	l := app.Logger.With(
+		zap.String("source", "app"),
+		zap.String("operation", "configureSentry"),
+	)
+	sentryURL := app.Config.GetString("sentry.url")
+	l.Info(fmt.Sprintf("Configuring sentry with URL %s", sentryURL))
+	raven.SetDSN(sentryURL)
 }
 
 func (app *App) setConfigurationDefaults() {
