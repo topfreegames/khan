@@ -15,6 +15,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/satori/go.uuid"
 	"github.com/uber-go/zap"
 	"github.com/valyala/fasthttp"
 	"github.com/valyala/fasttemplate"
@@ -129,6 +130,9 @@ func (d *Dispatcher) finishJob() {
 //DispatchHook dispatches an event hook for eventType to gameID with the specified payload
 func (d *Dispatcher) DispatchHook(gameID string, eventType int, payload map[string]interface{}) {
 	payload["type"] = eventType
+	payload["id"] = uuid.NewV4()
+	payload["timestamp"] = int32(time.Now().Unix())
+
 	payloadJSON, _ := json.Marshal(payload)
 	defer d.startJob()
 	work := Dispatch{gameID: gameID, eventType: eventType, payload: payload, payloadJSON: payloadJSON}

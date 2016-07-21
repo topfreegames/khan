@@ -663,6 +663,10 @@ func TestClanHandler(t *testing.T) {
 			rClan := (*responses)[0]["payload"].(map[string]interface{})
 			g.Assert(rClan["gameID"]).Equal(hooks[0].GameID)
 			g.Assert(int(rClan["type"].(float64))).Equal(5)
+			g.Assert(rClan["id"] != nil).IsTrue()
+			_, err = uuid.FromString(rClan["id"].(string))
+			g.Assert(err == nil).IsTrue()
+			g.Assert(rClan["timestamp"] != nil).IsTrue()
 
 			clanDetails := rClan["clan"].(map[string]interface{})
 			g.Assert(clanDetails["publicID"]).Equal(clan.PublicID)
