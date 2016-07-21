@@ -131,7 +131,7 @@ func (d *Dispatcher) finishJob() {
 func (d *Dispatcher) DispatchHook(gameID string, eventType int, payload map[string]interface{}) {
 	payload["type"] = eventType
 	payload["id"] = uuid.NewV4()
-	payload["timestamp"] = int32(time.Now().Unix())
+	payload["timestamp"] = time.Now().Format(time.RFC3339)
 
 	payloadJSON, _ := json.Marshal(payload)
 	defer d.startJob()
