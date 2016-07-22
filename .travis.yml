@@ -25,6 +25,8 @@ addons:
 
 before_script:
   - sudo cp /etc/postgresql/9.4/main/pg_hba.conf /etc/postgresql/9.5/main/pg_hba.conf
+  - cat /etc/postgresql/9.5/main/pg_hba.conf
+  - cat /etc/postgresql/9.5/main/postgresql.conf
   - sudo /etc/init.d/postgresql restart
   - psql -U postgres -c 'create database "khan";'
   - psql -U postgres khan -c 'create extension "uuid-ossp";'
