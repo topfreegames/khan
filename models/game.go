@@ -9,6 +9,7 @@ package models
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/topfreegames/khan/util"
 
@@ -105,24 +106,21 @@ func CreateGame(
 	maxMembers, maxClans, cooldownAfterDeny, cooldownAfterDelete int,
 	upsert bool,
 ) (*Game, error) {
-	var game *Game
+	levelsJSON, err := json.Marshal(levels)
+	if err != nil {
+		return nil, err
+	}
 
-	if upsert {
-		levelsJSON, err := json.Marshal(levels)
-		if err != nil {
-			return nil, err
-		}
+	metadataJSON, err := json.Marshal(metadata)
+	if err != nil {
+		return nil, err
+	}
 
-		metadataJSON, err := json.Marshal(metadata)
-		if err != nil {
-			return nil, err
-		}
+	sortedLevels := util.SortLevels(levels)
+	minMembershipLevel := sortedLevels[0].Value
+	maxMembershipLevel := sortedLevels[len(sortedLevels)-1].Value
 
-		sortedLevels := util.SortLevels(levels)
-		minMembershipLevel := sortedLevels[0].Value
-		maxMembershipLevel := sortedLevels[len(sortedLevels)-1].Value
-
-		_, err = db.Exec(`
+	query := `
 			INSERT INTO games(
 				public_id,
 				name,
@@ -143,8 +141,8 @@ func CreateGame(
 				created_at,
 				updated_at
 			)
-			VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $17)
-			ON CONFLICT (public_id)
+			VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $17)%s`
+	onConflict := ` ON CONFLICT (public_id)
 			DO UPDATE set
 				name=$2,
 				min_level_to_accept_application=$3,
@@ -162,53 +160,37 @@ func CreateGame(
 				min_membership_level=$15,
 				max_membership_level=$16,
 				updated_at=$17
-			WHERE games.public_id=$1`,
-			publicID,            // $1
-			name,                // $2
-			minLevelAccept,      // $3
-			minLevelCreate,      // $4
-			minLevelRemove,      // $5
-			minOffsetRemove,     // $6
-			minOffsetPromote,    // $7
-			minOffsetDemote,     // $8
-			maxMembers,          // $9
-			maxClans,            // $10
-			levelsJSON,          // $11
-			metadataJSON,        // $12
-			cooldownAfterDelete, // $13
-			cooldownAfterDeny,   // $14
-			minMembershipLevel,  // $15
-			maxMembershipLevel,  // $16
-			util.NowMilli(),     // $17
-		)
-		if err != nil {
-			return nil, err
-		}
-		return GetGameByPublicID(db, publicID)
+			WHERE games.public_id=$1`
+
+	if upsert {
+		query = fmt.Sprintf(query, onConflict)
+	} else {
+		query = fmt.Sprintf(query, "")
 	}
 
-	game = &Game{
-		PublicID: publicID,
-		Name:     name,
-		MinLevelToAcceptApplication:   minLevelAccept,
-		MinLevelToCreateInvitation:    minLevelCreate,
-		MinLevelToRemoveMember:        minLevelRemove,
-		MinLevelOffsetToRemoveMember:  minOffsetRemove,
-		MinLevelOffsetToPromoteMember: minOffsetPromote,
-		MinLevelOffsetToDemoteMember:  minOffsetDemote,
-		MaxMembers:                    maxMembers,
-		MaxClansPerPlayer:             maxClans,
-		MembershipLevels:              levels,
-		Metadata:                      metadata,
-		CooldownAfterDelete:           cooldownAfterDelete,
-		CooldownAfterDeny:             cooldownAfterDeny,
-	}
-	err := db.Insert(game)
+	_, err = db.Exec(query,
+		publicID,            // $1
+		name,                // $2
+		minLevelAccept,      // $3
+		minLevelCreate,      // $4
+		minLevelRemove,      // $5
+		minOffsetRemove,     // $6
+		minOffsetPromote,    // $7
+		minOffsetDemote,     // $8
+		maxMembers,          // $9
+		maxClans,            // $10
+		levelsJSON,          // $11
+		metadataJSON,        // $12
+		cooldownAfterDelete, // $13
+		cooldownAfterDeny,   // $14
+		minMembershipLevel,  // $15
+		maxMembershipLevel,  // $16
+		util.NowMilli(),     // $17
+	)
 	if err != nil {
 		return nil, err
 	}
-
-	return game, nil
+	return GetGameByPublicID(db, publicID)
 }
 
 // UpdateGame updates an existing game

@@ -56,7 +56,10 @@ func (m *Membership) PreUpdate(s gorp.SqlExecutor) error {
 // GetMembershipByID returns a membership by id
 func GetMembershipByID(db DB, id int) (*Membership, error) {
 	obj, err := db.Get(Membership{}, id)
-	if err != nil || obj == nil {
+	if err != nil {
+		return nil, err
+	}
+	if obj == nil {
 		return nil, &ModelNotFoundError{"Membership", id}
 	}
 	return obj.(*Membership), nil
@@ -64,7 +67,7 @@ func GetMembershipByID(db DB, id int) (*Membership, error) {
 
 // GetValidMembershipByClanAndPlayerPublicID returns a non deleted membership for the clan and the player with the given publicIDs
 func GetValidMembershipByClanAndPlayerPublicID(db DB, gameID, clanPublicID, playerPublicID string) (*Membership, error) {
-	var membership Membership
+	var memberships []*Membership
 	query := `
 	SELECT
 		m.*
@@ -75,16 +78,18 @@ func GetValidMembershipByClanAndPlayerPublicID(db DB, gameID, clanPublicID, play
 		m.game_id=$3 AND
 		m.deleted_at=0`
 
-	err := db.SelectOne(&membership, query, clanPublicID, playerPublicID, gameID)
-	if err != nil || &membership == nil {
+	_, err := db.Select(&memberships, query, clanPublicID, playerPublicID, gameID)
+	if err != nil {
+	}
+	if memberships == nil || len(memberships) < 1 {
 		return nil, &ModelNotFoundError{"Membership", playerPublicID}
 	}
-	return &membership, nil
+	return memberships[0], nil
 }
 
 // GetMembershipByClanAndPlayerPublicID returns a deleted membership for the clan and the player with the given publicIDs
 func GetMembershipByClanAndPlayerPublicID(db DB, gameID, clanPublicID, playerPublicID string) (*Membership, error) {
-	var membership Membership
+	var memberships []*Membership
 	query := `
 	SELECT
 		m.*
@@ -93,16 +98,19 @@ func GetMembershipByClanAndPlayerPublicID(db DB, gameID, clanPublicID, playerPub
 		INNER JOIN players p ON p.public_id=$2 AND p.id=m.player_id
 	WHERE m.game_id=$3`
 
-	err := db.SelectOne(&membership, query, clanPublicID, playerPublicID, gameID)
-	if err != nil || &membership == nil {
+	_, err := db.Select(&memberships, query, clanPublicID, playerPublicID, gameID)
+	if err != nil {
+		return nil, err
+	}
+	if memberships == nil || len(memberships) < 1 {
 		return nil, &ModelNotFoundError{"Membership", playerPublicID}
 	}
-	return &membership, nil
+	return memberships[0], nil
 }
 
 // GetDeletedMembershipByPlayerID returns a deleted membership for the player with the given ID
 func GetDeletedMembershipByPlayerID(db DB, gameID string, playerID int) (*Membership, error) {
-	var membership Membership
+	var memberships []*Membership
 	query := `
 	SELECT
 		m.*
@@ -111,16 +119,19 @@ func GetDeletedMembershipByPlayerID(db DB, gameID string, playerID int) (*Member
 	WHERE
 		m.deleted_at!=0 AND m.game_id=$2`
 
-	err := db.SelectOne(&membership, query, playerID, gameID)
-	if err != nil || &membership == nil {
+	_, err := db.Select(&memberships, query, playerID, gameID)
+	if err != nil {
+		return nil, err
+	}
+	if memberships == nil || len(memberships) < 1 {
 		return nil, &ModelNotFoundError{"Membership", playerID}
 	}
-	return &membership, nil
+	return memberships[0], nil
 }
 
 // GetOldestMemberWithHighestLevel returns the member with highest level that has the oldest creation date
 func GetOldestMemberWithHighestLevel(db DB, gameID, clanPublicID string) (*Membership, error) {
-	var membership Membership
+	var memberships []*Membership
 	query := `
 	SELECT
 	 m.*
@@ -131,11 +142,14 @@ func GetOldestMemberWithHighestLevel(db DB, gameID, clanPublicID string) (*Membe
 	 g.membership_levels::json->>m.membership_level DESC,
 	 m.created_at ASC
 	LIMIT 1`
-	err := db.SelectOne(&membership, query, gameID, clanPublicID)
-	if err != nil || &membership == nil {
+	_, err := db.Select(&memberships, query, gameID, clanPublicID)
+	if err != nil {
+		return nil, err
+	}
+	if memberships == nil || len(memberships) < 1 {
 		return nil, &ClanHasNoMembersError{clanPublicID}
 	}
-	return &membership, nil
+	return memberships[0], nil
 }
 
 func clanReachedMaxMemberships(db DB, game *Game, clan *Clan, clanID int) error {

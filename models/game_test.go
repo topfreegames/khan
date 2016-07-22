@@ -134,7 +134,7 @@ func TestGameModel(t *testing.T) {
 				g.Assert(dbGame.CooldownAfterDelete).Equal(game.CooldownAfterDelete)
 				g.Assert(dbGame.CooldownAfterDeny).Equal(game.CooldownAfterDeny)
 				for k, v := range dbGame.MembershipLevels {
-					g.Assert(int(v.(float64))).Equal(game.MembershipLevels[k].(int))
+					g.Assert(v.(float64)).Equal(game.MembershipLevels[k].(float64))
 				}
 				g.Assert(dbGame.Metadata).Equal(game.Metadata)
 			})
