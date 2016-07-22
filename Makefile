@@ -100,7 +100,7 @@ db-test migrate-test:
 	@go run main.go migrate -c ./config/test.yaml
 
 drop-test:
-	@psql -d postgres -c "SELECT pg_terminate_backend(pid.pid) FROM pg_stat_activity, (SELECT pid FROM pg_stat_activity where pid <> pg_backend_pid()) pid WHERE datname='khan_test';"
+	@-psql -d postgres -c "SELECT pg_terminate_backend(pid.pid) FROM pg_stat_activity, (SELECT pid FROM pg_stat_activity where pid <> pg_backend_pid()) pid WHERE datname='khan_test';"
 	@psql -d postgres -f db/drop-test.sql > /dev/null
 	@echo "Test database created successfully!"
 
