@@ -94,6 +94,7 @@ func TestPlayerModel(t *testing.T) {
 					randomdata.FullName(randomdata.RandomGender),
 					"player-name",
 					map[string]interface{}{},
+					false,
 				)
 				g.Assert(err == nil).IsTrue()
 				g.Assert(player.ID != 0).IsTrue()

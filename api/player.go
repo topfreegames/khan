@@ -59,6 +59,7 @@ func CreatePlayerHandler(app *App) func(c *iris.Context) {
 			payload.PublicID,
 			payload.Name,
 			payload.Metadata,
+			false,
 		)
 
 		if err != nil {
