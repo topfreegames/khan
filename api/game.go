@@ -139,6 +139,7 @@ func CreateGameHandler(app *App) func(c *iris.Context) {
 			payload.MaxClansPerPlayer,
 			payload.CooldownAfterDeny,
 			payload.CooldownAfterDelete,
+			false,
 		)
 
 		if err != nil {

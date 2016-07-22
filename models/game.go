@@ -8,7 +8,7 @@
 package models
 
 import (
-	"fmt"
+	"encoding/json"
 
 	"github.com/topfreegames/khan/util"
 
@@ -61,7 +61,10 @@ func (g *Game) PreUpdate(s gorp.SqlExecutor) error {
 // GetGameByID returns a game by id
 func GetGameByID(db DB, id int) (*Game, error) {
 	obj, err := db.Get(Game{}, id)
-	if err != nil || obj == nil {
+	if err != nil {
+		return nil, err
+	}
+	if obj == nil {
 		return nil, &ModelNotFoundError{"Game", id}
 	}
 
@@ -71,12 +74,15 @@ func GetGameByID(db DB, id int) (*Game, error) {
 
 // GetGameByPublicID returns a game by their public id
 func GetGameByPublicID(db DB, publicID string) (*Game, error) {
-	var game Game
-	err := db.SelectOne(&game, "SELECT * FROM games WHERE public_id=$1", publicID)
-	if err != nil || &game == nil {
+	var games []*Game
+	_, err := db.Select(&games, "SELECT * FROM games WHERE public_id=$1", publicID)
+	if err != nil {
+		return nil, err
+	}
+	if games == nil || len(games) < 1 {
 		return nil, &ModelNotFoundError{"Game", publicID}
 	}
-	return &game, nil
+	return games[0], nil
 }
 
 // GetAllGames returns all games in the DB
@@ -90,10 +96,98 @@ func GetAllGames(db DB) ([]*Game, error) {
 }
 
 // CreateGame creates a new game
-func CreateGame(db DB, publicID, name string, levels, metadata map[string]interface{},
-	minLevelAccept, minLevelCreate, minLevelRemove, minOffsetRemove, minOffsetPromote, minOffsetDemote, maxMembers, maxClans, cooldownAfterDeny, cooldownAfterDelete int,
+func CreateGame(
+	db DB,
+	publicID, name string,
+	levels, metadata map[string]interface{},
+	minLevelAccept, minLevelCreate, minLevelRemove,
+	minOffsetRemove, minOffsetPromote, minOffsetDemote,
+	maxMembers, maxClans, cooldownAfterDeny, cooldownAfterDelete int,
+	upsert bool,
 ) (*Game, error) {
-	game := &Game{
+	var game *Game
+
+	if upsert {
+		levelsJSON, err := json.Marshal(levels)
+		if err != nil {
+			return nil, err
+		}
+
+		metadataJSON, err := json.Marshal(metadata)
+		if err != nil {
+			return nil, err
+		}
+
+		sortedLevels := util.SortLevels(levels)
+		minMembershipLevel := sortedLevels[0].Value
+		maxMembershipLevel := sortedLevels[len(sortedLevels)-1].Value
+
+		_, err = db.Exec(`
+			INSERT INTO games(
+				public_id,
+				name,
+				min_level_to_accept_application,
+				min_level_to_create_invitation,
+				min_level_to_remove_member,
+				min_level_offset_to_remove_member,
+				min_level_offset_to_promote_member,
+				min_level_offset_to_demote_member,
+				max_members,
+				max_clans_per_player,
+				membership_levels,
+				metadata,
+				cooldown_after_delete,
+				cooldown_after_deny,
+				min_membership_level,
+				max_membership_level,
+				created_at,
+				updated_at
+			)
+			VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $17)
+			ON CONFLICT (public_id)
+			DO UPDATE set
+				name=$2,
+				min_level_to_accept_application=$3,
+				min_level_to_create_invitation=$4,
+				min_level_to_remove_member=$5,
+				min_level_offset_to_remove_member=$6,
+				min_level_offset_to_promote_member=$7,
+				min_level_offset_to_demote_member=$8,
+				max_members=$9,
+				max_clans_per_player=$10,
+				membership_levels=$11,
+				metadata=$12,
+				cooldown_after_delete=$13,
+				cooldown_after_deny=$14,
+				min_membership_level=$15,
+				max_membership_level=$16,
+				updated_at=$17
+			WHERE games.public_id=$1`,
+			publicID,            // $1
+			name,                // $2
+			minLevelAccept,      // $3
+			minLevelCreate,      // $4
+			minLevelRemove,      // $5
+			minOffsetRemove,     // $6
+			minOffsetPromote,    // $7
+			minOffsetDemote,     // $8
+			maxMembers,          // $9
+			maxClans,            // $10
+			levelsJSON,          // $11
+			metadataJSON,        // $12
+			cooldownAfterDelete, // $13
+			cooldownAfterDeny,   // $14
+			minMembershipLevel,  // $15
+			maxMembershipLevel,  // $16
+			util.NowMilli(),     // $17
+		)
+		if err != nil {
+			return nil, err
+		}
+		return GetGameByPublicID(db, publicID)
+	}
+
+	game = &Game{
 		PublicID: publicID,
 		Name:     name,
 		MinLevelToAcceptApplication:   minLevelAccept,
@@ -113,6 +207,7 @@ func CreateGame(db DB, publicID, name string, levels, metadata map[string]interf
 	if err != nil {
 		return nil, err
 	}
+
 	return game, nil
 }
 
@@ -120,38 +215,9 @@ func CreateGame(db DB, publicID, name string, levels, metadata map[string]interf
 func UpdateGame(db DB, publicID, name string, levels, metadata map[string]interface{},
 	minLevelAccept, minLevelCreate, minLevelRemove, minOffsetRemove, minOffsetPromote, minOffsetDemote, maxMembers, maxClans, cooldownAfterDeny, cooldownAfterDelete int,
 ) (*Game, error) {
-	game, err := GetGameByPublicID(db, publicID)
-
-	if err != nil {
-		if err.Error() == fmt.Sprintf("Game was not found with id: %s", publicID) {
-			return CreateGame(
-				db, publicID, name, levels, metadata, minLevelAccept,
-				minLevelCreate, minLevelRemove, minOffsetRemove, minOffsetPromote,
-				minOffsetDemote, maxMembers, maxClans, cooldownAfterDeny, cooldownAfterDelete,
-			)
-		}
-		return nil, err
-	}
-
-	game.Name = name
-	game.MinLevelToAcceptApplication = minLevelAccept
-	game.MinLevelToCreateInvitation = minLevelCreate
-	game.MinLevelToRemoveMember = minLevelRemove
-	game.MinLevelOffsetToRemoveMember = minOffsetRemove
-	game.MinLevelOffsetToPromoteMember = minOffsetPromote
-	game.MinLevelOffsetToDemoteMember = minOffsetDemote
-	game.MaxMembers = maxMembers
-	game.MaxClansPerPlayer = maxClans
-	game.MembershipLevels = levels
-	game.Metadata = metadata
-	game.CooldownAfterDeny = cooldownAfterDeny
-	game.CooldownAfterDelete = cooldownAfterDelete
-
-	_, err = db.Update(game)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return game, nil
+	return CreateGame(
+		db, publicID, name, levels, metadata, minLevelAccept,
+		minLevelCreate, minLevelRemove, minOffsetRemove, minOffsetPromote,
+		minOffsetDemote, maxMembers, maxClans, cooldownAfterDeny, cooldownAfterDelete, true,
+	)
 }

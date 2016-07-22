@@ -8,7 +8,7 @@
 package models
 
 import (
-	"fmt"
+	"encoding/json"
 
 	"github.com/topfreegames/khan/util"
 
@@ -98,7 +98,10 @@ func IncrementPlayerOwnershipCount(db DB, id, by int) error {
 // GetPlayerByID returns a player by id
 func GetPlayerByID(db DB, id int) (*Player, error) {
 	obj, err := db.Get(Player{}, id)
-	if err != nil || obj == nil {
+	if err != nil {
+		return nil, err
+	}
+	if obj == nil {
 		return nil, &ModelNotFoundError{"Player", id}
 	}
 
@@ -108,23 +111,46 @@ func GetPlayerByID(db DB, id int) (*Player, error) {
 
 // GetPlayerByPublicID returns a player by their public id
 func GetPlayerByPublicID(db DB, gameID string, publicID string) (*Player, error) {
-	var player Player
-	err := db.SelectOne(&player, "SELECT * FROM players WHERE game_id=$1 AND public_id=$2", gameID, publicID)
-	if err != nil || &player == nil {
+	var players []*Player
+	_, err := db.Select(&players, "SELECT * FROM players WHERE game_id=$1 AND public_id=$2", gameID, publicID)
+	if err != nil {
+		return nil, err
+	}
+	if players == nil || len(players) < 1 {
 		return nil, &ModelNotFoundError{"Player", publicID}
 	}
-	return &player, nil
+	return players[0], nil
 }
 
 // CreatePlayer creates a new player
-func CreatePlayer(db DB, gameID, publicID, name string, metadata map[string]interface{}) (*Player, error) {
+func CreatePlayer(db DB, gameID, publicID, name string, metadata map[string]interface{}, upsert bool) (*Player, error) {
 	player := &Player{
 		GameID:   gameID,
 		PublicID: publicID,
 		Name:     name,
 		Metadata: metadata,
 	}
-	err := db.Insert(player)
+
+	metadataJSON, err := json.Marshal(metadata)
+	if err != nil {
+		return nil, err
+	}
+
+	if upsert {
+		_, err := db.Exec(`
+			INSERT INTO players(game_id, public_id, name, metadata, created_at, updated_at)
+						VALUES($1, $2, $3, $4, $5, $5)
+			ON CONFLICT (game_id, public_id)
+			DO UPDATE set name=$3, metadata=$4, updated_at=$5
+			WHERE players.game_id=$1 and players.public_id=$2`,
+			gameID, publicID, name, metadataJSON, util.NowMilli())
+		if err != nil {
+			return nil, err
+		}
+		return GetPlayerByPublicID(db, gameID, publicID)
+	}
+
+	err = db.Insert(player)
 	if err != nil {
 		return nil, err
 	}
@@ -133,25 +159,7 @@ func CreatePlayer(db DB, gameID, publicID, name string, metadata map[string]inte
 
 // UpdatePlayer updates an existing player
 func UpdatePlayer(db DB, gameID, publicID, name string, metadata map[string]interface{}) (*Player, error) {
-	player, err := GetPlayerByPublicID(db, gameID, publicID)
-
-	if err != nil {
-		if err.Error() == fmt.Sprintf("Player was not found with id: %s", publicID) {
-			return CreatePlayer(db, gameID, publicID, name, metadata)
-		}
-		return nil, err
-	}
-
-	player.Name = name
-	player.Metadata = metadata
-
-	_, err = db.Update(player)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return player, nil
+	return CreatePlayer(db, gameID, publicID, name, metadata, true)
 }
 
 // GetPlayerOwnershipDetails returns detailed information about a player owned clans

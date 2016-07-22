@@ -112,7 +112,7 @@ func TestGameModel(t *testing.T) {
 					"game-name",
 					map[string]interface{}{"Member": 1, "Elder": 2, "CoLeader": 3},
 					map[string]interface{}{},
-					8, 7, 8, 1, 2, 3, 100, 1, 0, 10,
+					8, 7, 8, 1, 2, 3, 100, 1, 0, 10, false,
 				)
 				g.Assert(err == nil).IsTrue()
 				g.Assert(game.ID != 0).IsTrue()
@@ -175,7 +175,7 @@ func TestGameModel(t *testing.T) {
 				g.Assert(dbGame.CooldownAfterDelete).Equal(updGame.CooldownAfterDelete)
 				g.Assert(dbGame.CooldownAfterDeny).Equal(updGame.CooldownAfterDeny)
 				for k, v := range dbGame.MembershipLevels {
-					g.Assert(int(v.(float64))).Equal(updGame.MembershipLevels[k].(int))
+					g.Assert(v.(float64)).Equal(updGame.MembershipLevels[k].(float64))
 				}
 				g.Assert(dbGame.Metadata).Equal(updGame.Metadata)
 			})
@@ -209,7 +209,7 @@ func TestGameModel(t *testing.T) {
 				g.Assert(dbGame.CooldownAfterDelete).Equal(updGame.CooldownAfterDelete)
 				g.Assert(dbGame.CooldownAfterDeny).Equal(updGame.CooldownAfterDeny)
 				for k, v := range dbGame.MembershipLevels {
-					g.Assert(int(v.(float64))).Equal(updGame.MembershipLevels[k].(int))
+					g.Assert(v.(float64)).Equal(updGame.MembershipLevels[k].(float64))
 				}
 				g.Assert(dbGame.Metadata).Equal(updGame.Metadata)
 			})
