@@ -89,7 +89,10 @@ func IncrementClanMembershipCount(db DB, id, by int) error {
 // GetClanByID returns a clan by id
 func GetClanByID(db DB, id int) (*Clan, error) {
 	obj, err := db.Get(Clan{}, id)
-	if err != nil || obj == nil {
+	if err != nil {
+		return nil, err
+	}
+	if obj == nil {
 		return nil, &ModelNotFoundError{"Clan", id}
 	}
 	return obj.(*Clan), nil
@@ -97,22 +100,28 @@ func GetClanByID(db DB, id int) (*Clan, error) {
 
 // GetClanByPublicID returns a clan by its public id
 func GetClanByPublicID(db DB, gameID, publicID string) (*Clan, error) {
-	var clan Clan
-	err := db.SelectOne(&clan, "SELECT * FROM clans WHERE game_id=$1 AND public_id=$2", gameID, publicID)
-	if err != nil || &clan == nil {
+	var clans []*Clan
+	_, err := db.Select(&clans, "SELECT * FROM clans WHERE game_id=$1 AND public_id=$2", gameID, publicID)
+	if err != nil {
+		return nil, err
+	}
+	if clans == nil || len(clans) < 1 {
 		return nil, &ModelNotFoundError{"Clan", publicID}
 	}
-	return &clan, nil
+	return clans[0], nil
 }
 
 // GetClanByPublicIDAndOwnerPublicID returns a clan by its public id and the owner public id
 func GetClanByPublicIDAndOwnerPublicID(db DB, gameID, publicID, ownerPublicID string) (*Clan, error) {
-	var clan Clan
-	err := db.SelectOne(&clan, "SELECT clans.* FROM clans, players WHERE clans.game_id=$1 AND clans.public_id=$2 AND clans.owner_id=players.id AND players.public_id=$3", gameID, publicID, ownerPublicID)
-	if err != nil || &clan == nil {
+	var clans []*Clan
+	_, err := db.Select(&clans, "SELECT clans.* FROM clans, players WHERE clans.game_id=$1 AND clans.public_id=$2 AND clans.owner_id=players.id AND players.public_id=$3", gameID, publicID, ownerPublicID)
+	if err != nil {
+		return nil, err
+	}
+	if clans == nil || len(clans) < 1 {
 		return nil, &ModelNotFoundError{"Clan", publicID}
 	}
-	return &clan, nil
+	return clans[0], nil
 }
 
 // CreateClan creates a new clan
