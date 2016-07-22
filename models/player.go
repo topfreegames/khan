@@ -9,6 +9,7 @@ package models
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/topfreegames/khan/util"
 
@@ -124,37 +125,29 @@ func GetPlayerByPublicID(db DB, gameID string, publicID string) (*Player, error)
 
 // CreatePlayer creates a new player
 func CreatePlayer(db DB, gameID, publicID, name string, metadata map[string]interface{}, upsert bool) (*Player, error) {
-	player := &Player{
-		GameID:   gameID,
-		PublicID: publicID,
-		Name:     name,
-		Metadata: metadata,
-	}
-
 	metadataJSON, err := json.Marshal(metadata)
 	if err != nil {
 		return nil, err
 	}
 
-	if upsert {
-		_, err := db.Exec(`
+	query := `
 			INSERT INTO players(game_id, public_id, name, metadata, created_at, updated_at)
-						VALUES($1, $2, $3, $4, $5, $5)
-			ON CONFLICT (game_id, public_id)
+						VALUES($1, $2, $3, $4, $5, $5)%s`
+	onConflict := ` ON CONFLICT (game_id, public_id)
 			DO UPDATE set name=$3, metadata=$4, updated_at=$5
-			WHERE players.game_id=$1 and players.public_id=$2`,
-			gameID, publicID, name, metadataJSON, util.NowMilli())
-		if err != nil {
-			return nil, err
-		}
-		return GetPlayerByPublicID(db, gameID, publicID)
-	}
+			WHERE players.game_id=$1 and players.public_id=$2`
 
-	err = db.Insert(player)
+	if upsert {
+		query = fmt.Sprintf(query, onConflict)
+	} else {
+		query = fmt.Sprintf(query, "")
+	}
+	_, err = db.Exec(query,
+		gameID, publicID, name, metadataJSON, util.NowMilli())
 	if err != nil {
 		return nil, err
 	}
-	return player, nil
+	return GetPlayerByPublicID(db, gameID, publicID)
 }
 
 // UpdatePlayer updates an existing player
