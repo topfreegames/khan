@@ -5,12 +5,29 @@ go:
 
 sudo: required
 
+env:
+  global:
+  - PGPORT=5432
+  - PGHOST=localhost
+
 services:
   - postgresql
   - docker
 
 addons:
-  postgresql: "9.5"
+  apt:
+    sources:
+    - precise-pgdg-9.5
+    packages:
+    - postgresql-9.5
+    - postgresql-contrib-9.5
+  postgresql: 9.5
+
+before_script:
+  - sudo cp /etc/postgresql/9.4/main/pg_hba.conf /etc/postgresql/9.5/main/pg_hba.conf
+  - sudo /etc/init.d/postgresql restart
+  - psql -U postgres -c 'create database "khan";'
+  - psql -U postgres travis-db-test -c 'create extension "uuid-ossp";'
 
 install:
   - make setup-ci
