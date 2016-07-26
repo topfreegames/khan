@@ -508,6 +508,58 @@ func RetrieveClanSummaryHandler(app *App) func(c *iris.Context) {
 	}
 }
 
+// RetrieveClansSummariesHandler is the handler responsible for returning details summary for a given
+// list of clans
+func RetrieveClansSummariesHandler(app *App) func(c *iris.Context) {
+	return func(c *iris.Context) {
+		gameID := c.Param("gameID")
+		publicIDsStr := c.URLParam("clanPublicIds")
+
+		publicIDs := strings.Split(publicIDsStr, ",")
+
+		l := app.Logger.With(
+			zap.String("source", "clanHandler"),
+			zap.String("operation", "RetrieveClansSummaries"),
+			zap.String("gameID", gameID),
+			zap.String("clanPublicIDsStr", publicIDsStr),
+		)
+
+		l.Debug("Getting DB connection...")
+		db, err := GetCtxDB(c)
+		if err != nil {
+			l.Error("Failed to connect to DB.", zap.Error(err))
+			FailWith(500, err.Error(), c)
+			return
+		}
+		l.Debug("DB Connection successful.")
+
+		l.Debug("Retrieving clans summaries...")
+		clans, err := models.GetClansSummaries(
+			db,
+			gameID,
+			publicIDs,
+		)
+
+		if err != nil {
+			if _, ok := err.(*models.CouldNotFindAllClansError); ok {
+				l.Error("Clans summaries retrieval failed, 404.", zap.Error(err))
+				FailWith(404, err.Error(), c)
+			} else {
+				l.Error("Clans summaries retrieval failed, 500.", zap.Error(err))
+				FailWith(500, err.Error(), c)
+			}
+			return
+		}
+
+		l.Info("Clans summaries retrieved successfully.")
+		clansResponse := map[string]interface{}{
+			"clans": clans,
+		}
+
+		SucceedWith(clansResponse, c)
+	}
+}
+
 func serializeClans(clans []models.Clan, includePublicID bool) []map[string]interface{} {
 	serializedClans := make([]map[string]interface{}, len(clans))
 	for i, clan := range clans {

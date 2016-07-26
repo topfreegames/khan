@@ -103,6 +103,67 @@ func TestClanModel(t *testing.T) {
 			})
 		})
 
+		g.Describe("Get By Public Ids", func() {
+			g.It("Should get existing Clans by Game and PublicIDs", func() {
+				_, clan1, _, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 0, "clan_summary1",
+					"clan_summary1_clan1")
+				g.Assert(err == nil).IsTrue()
+				_, clan2, _, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 0, "clan_summary1",
+					"clan_summary1_clan2", true)
+				g.Assert(err == nil).IsTrue()
+				_, clan3, _, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 0, "clan_summary1",
+					"clan_summary1_clan3", true)
+				g.Assert(err == nil).IsTrue()
+
+				clans := []*Clan{clan1, clan2, clan3}
+				clanIDs := []string{clan1.PublicID, clan2.PublicID, clan3.PublicID}
+
+				dbClans, err := GetClansByPublicIDs(testDb, clan1.GameID, clanIDs)
+				g.Assert(len(dbClans)).Equal(3)
+				g.Assert(err == nil).IsTrue()
+				for i, dbClan := range dbClans {
+					g.Assert(dbClan.ID).Equal(clans[i].ID)
+				}
+			})
+
+			g.It("Should get only existing Clans by Game and PublicIDs, unexistent ID", func() {
+				_, clan1, _, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 0, "clan_summary2",
+					"clan_summary2_clan1")
+				g.Assert(err == nil).IsTrue()
+				_, clan2, _, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 0, "clan_summary2",
+					"clan_summary2_clan2", true)
+				g.Assert(err == nil).IsTrue()
+				_, clan3, _, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 0, "clan_summary2",
+					"clan_summary2_clan3", true)
+				g.Assert(err == nil).IsTrue()
+
+				clanIDs := []string{"invalid_clan", clan1.PublicID, clan2.PublicID, clan3.PublicID}
+
+				dbClans, err := GetClansByPublicIDs(testDb, clan1.GameID, clanIDs)
+				g.Assert(err != nil).IsTrue()
+				g.Assert(len(dbClans)).Equal(3)
+				g.Assert(err.Error()).Equal(
+					"Could not find all requested clans or the given game. GameId: clan_summary2, Missing clans: invalid_clan",
+				)
+			})
+
+			g.It("Should get only existing Clans by Game and PublicIDs, unexistent Game", func() {
+				_, clan1, _, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 0, "clan_summary3",
+					"clan_summary3_clan1")
+				g.Assert(err == nil).IsTrue()
+
+				clanIDs := []string{clan1.PublicID}
+
+				dbClans, err := GetClansByPublicIDs(testDb, "invalid_game", clanIDs)
+				g.Assert(err != nil).IsTrue()
+				g.Assert(len(dbClans)).Equal(0)
+				g.Assert(err.Error()).Equal(fmt.Sprintf(
+					"Could not find all requested clans or the given game. GameId: invalid_game, Missing clans: %s",
+					strings.Join(clanIDs, ","),
+				))
+			})
+		})
+
 		g.Describe("Get By Public Id and OwnerPublicID", func() {
 			g.It("Should get an existing Clan by Game, PublicID and OwnerPublicID", func() {
 				player, clans, err := GetTestClans(testDb, "", "", 1)
@@ -750,6 +811,80 @@ func TestClanModel(t *testing.T) {
 				g.Assert(err.Error()).Equal("Clan was not found with id: fake-public-id")
 			})
 
+		})
+
+		g.Describe("Get Clans Summaries", func() {
+			g.It("Should get clan members", func() {
+				_, clan1, _, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 0, "clan_summary4",
+					"clan_summary4_clan1")
+				g.Assert(err == nil).IsTrue()
+				_, clan2, _, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 0, "clan_summary4",
+					"clan_summary4_clan2", true)
+				g.Assert(err == nil).IsTrue()
+				_, clan3, _, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 0, "clan_summary4",
+					"clan_summary4_clan3", true)
+				g.Assert(err == nil).IsTrue()
+
+				clans := []*Clan{clan1, clan2, clan3}
+				clanIDs := []string{clan1.PublicID, clan2.PublicID, clan3.PublicID}
+
+				clansSummaries, err := GetClansSummaries(testDb, clan1.GameID, clanIDs)
+				g.Assert(err == nil).IsTrue()
+
+				clansSummariesArr := clansSummaries
+				g.Assert(len(clansSummariesArr)).Equal(3)
+				for i, clanSummary := range clansSummariesArr {
+					g.Assert(clanSummary["membershipCount"]).Equal(clans[i].MembershipCount)
+					g.Assert(clanSummary["publicID"]).Equal(clans[i].PublicID)
+					g.Assert(clanSummary["metadata"]).Equal(clans[i].Metadata)
+					g.Assert(clanSummary["name"]).Equal(clans[i].Name)
+					g.Assert(clanSummary["allowApplication"]).Equal(clans[i].AllowApplication)
+					g.Assert(clanSummary["autoJoin"]).Equal(clans[i].AutoJoin)
+					g.Assert(len(clanSummary)).Equal(6)
+				}
+			})
+
+			g.It("Should retrieve only existent clans", func() {
+				_, clan1, _, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 0, "clan_summary5",
+					"clan_summary5_clan1")
+				g.Assert(err == nil).IsTrue()
+				_, clan2, _, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 0, "clan_summary5",
+					"clan_summary5_clan2", true)
+				g.Assert(err == nil).IsTrue()
+				_, clan3, _, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 0, "clan_summary5",
+					"clan_summary5_clan3", true)
+				g.Assert(err == nil).IsTrue()
+
+				clanIDs := []string{clan1.PublicID, clan2.PublicID, clan3.PublicID, "unexistent_clan"}
+
+				clansSummaries, err := GetClansSummaries(testDb, clan1.GameID, clanIDs)
+				g.Assert(err != nil).IsTrue()
+				g.Assert(err.Error()).Equal(
+					"Could not find all requested clans or the given game. GameId: clan_summary5, Missing clans: unexistent_clan",
+				)
+				fmt.Println(clansSummaries)
+				g.Assert(len(clansSummaries)).Equal(3)
+				for _, clanSummary := range clansSummaries {
+					clanSummaryObj := clanSummary
+					g.Assert(len(clanSummaryObj)).Equal(6)
+				}
+			})
+
+			g.It("Should fail if game does not exist", func() {
+				_, clan1, _, _, _, err1 := GetClanWithMemberships(testDb, 0, 0, 0, 0, "clan_summary6", "clan_summary6_clan")
+				g.Assert(err1 == nil).IsTrue()
+
+				clanIDs := []string{clan1.PublicID}
+
+				clansSummaries, err := GetClansSummaries(testDb, "unexistent_game", clanIDs)
+				g.Assert(err != nil).IsTrue()
+				g.Assert(err.Error()).Equal(fmt.Sprintf(
+					"Could not find all requested clans or the given game. GameId: unexistent_game, Missing clans: %s",
+					strings.Join(clanIDs, ","),
+				))
+
+				g.Assert(len(clansSummaries)).Equal(0)
+			})
 		})
 
 		g.Describe("Clan Search", func() {

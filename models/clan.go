@@ -111,6 +111,76 @@ func GetClanByPublicID(db DB, gameID, publicID string) (*Clan, error) {
 	return clans[0], nil
 }
 
+func sliceDiff(slice1 []string, slice2 []string) []string {
+	var diff []string
+
+	// Loop two times, first to find slice1 strings not in slice2,
+	// second loop to find slice2 strings not in slice1
+	for i := 0; i < 2; i++ {
+		for _, s1 := range slice1 {
+			found := false
+			for _, s2 := range slice2 {
+				if s1 == s2 {
+					found = true
+					break
+				}
+			}
+			// String not found. We add it to return slice
+			if !found {
+				diff = append(diff, s1)
+			}
+		}
+		// Swap the slices, only if it was the first loop
+		if i == 0 {
+			slice1, slice2 = slice2, slice1
+		}
+	}
+
+	return diff
+}
+
+// GetClansByPublicIDs returns clans by their public ids
+func GetClansByPublicIDs(db DB, gameID string, publicIDs []string) ([]Clan, error) {
+	var clans []Clan
+
+	query := `
+  SELECT *
+  FROM clans
+  WHERE game_id=$1
+    AND public_id IN (%s)`
+
+	// Build query with correct interpolation params to avoid sql injection
+	startInterpolationAt := 2
+	queryParams := []string{}
+	for i := range publicIDs {
+		queryParams = append(queryParams, fmt.Sprintf("$%d", i+startInterpolationAt))
+	}
+	query = fmt.Sprintf(query, strings.Join(queryParams, ","))
+
+	params := []interface{}{gameID}
+	for _, publicID := range publicIDs {
+		params = append(params, publicID)
+	}
+
+	_, err := db.Select(&clans, query, params...)
+	if err != nil {
+		return nil, err
+	}
+
+	clanIDs := make([]string, len(clans))
+	for i, clan := range clans {
+		clanIDs[i] = clan.PublicID
+	}
+	diff := sliceDiff(publicIDs, clanIDs)
+	if len(diff) != 0 {
+		if len(clans) == 0 {
+			return clans, &CouldNotFindAllClansError{gameID, publicIDs}
+		}
+		return clans, &CouldNotFindAllClansError{gameID, diff}
+	}
+	return clans, nil
+}
+
 // GetClanByPublicIDAndOwnerPublicID returns a clan by its public id and the owner public id
 func GetClanByPublicIDAndOwnerPublicID(db DB, gameID, publicID, ownerPublicID string) (*Clan, error) {
 	var clans []*Clan
@@ -436,6 +506,31 @@ func GetClanSummary(db DB, gameID, publicID string) (map[string]interface{}, err
 	result["allowApplication"] = clan.AllowApplication
 	result["autoJoin"] = clan.AutoJoin
 	return result, nil
+}
+
+// GetClansSummaries returns a summary of the clans details for a given list of clans by their game
+// id and public ids
+func GetClansSummaries(db DB, gameID string, publicIDs []string) ([]map[string]interface{}, error) {
+	clans, err := GetClansByPublicIDs(db, gameID, publicIDs)
+	resultClans := make([]map[string]interface{}, len(clans))
+
+	for i := range clans {
+		result := map[string]interface{}{
+			"membershipCount":  clans[i].MembershipCount,
+			"publicID":         clans[i].PublicID,
+			"metadata":         clans[i].Metadata,
+			"name":             clans[i].Name,
+			"allowApplication": clans[i].AllowApplication,
+			"autoJoin":         clans[i].AutoJoin,
+		}
+		resultClans[i] = result
+	}
+
+	if err != nil {
+		return resultClans, err
+	}
+
+	return resultClans, nil
 }
 
 // SearchClan returns a list of clans for a given term (by name or publicID)

@@ -212,6 +212,7 @@ func (app *App) configureApplication() {
 	a.Get("/games/:gameID/clan-search", SearchClansHandler(app))
 	a.Get("/games/:gameID/clans", ListClansHandler(app))
 	a.Post("/games/:gameID/clans", CreateClanHandler(app))
+	a.Get("/games/:gameID/clans-summary", RetrieveClansSummariesHandler(app))
 	a.Get("/games/:gameID/clans/:clanPublicID", RetrieveClanHandler(app))
 	a.Get("/games/:gameID/clans/:clanPublicID/summary", RetrieveClanSummaryHandler(app))
 	a.Put("/games/:gameID/clans/:clanPublicID", UpdateClanHandler(app))
