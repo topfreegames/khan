@@ -25,27 +25,29 @@ import (
 
 // App is a struct that represents a Khan API Application
 type App struct {
-	Debug      bool
-	Port       int
-	Host       string
-	ConfigPath string
-	Errors     metrics.EWMA
-	App        *iris.Framework
-	Db         models.DB
-	Config     *viper.Viper
-	Dispatcher *Dispatcher
-	Logger     zap.Logger
+	Debug          bool
+	Port           int
+	Host           string
+	ConfigPath     string
+	Errors         metrics.EWMA
+	App            *iris.Framework
+	Db             models.DB
+	Config         *viper.Viper
+	Dispatcher     *Dispatcher
+	Logger         zap.Logger
+	ReadBufferSize int
 }
 
 // GetApp returns a new Khan API Application
 func GetApp(host string, port int, configPath string, debug bool, logger zap.Logger) *App {
 	app := &App{
-		Host:       host,
-		Port:       port,
-		ConfigPath: configPath,
-		Config:     viper.New(),
-		Debug:      debug,
-		Logger:     logger,
+		Host:           host,
+		Port:           port,
+		ConfigPath:     configPath,
+		Config:         viper.New(),
+		Debug:          debug,
+		Logger:         logger,
+		ReadBufferSize: 30000,
 	}
 
 	app.Configure()
@@ -359,5 +361,10 @@ func (app *App) Start() {
 
 	defer app.finalizeApp()
 	l.Debug("App started.", zap.String("host", app.Host), zap.Int("port", app.Port))
-	app.App.Listen(fmt.Sprintf("%s:%d", app.Host, app.Port))
+
+	cfg := config.Server{
+		ListeningAddr:  fmt.Sprintf("%s:%d", app.Host, app.Port),
+		ReadBufferSize: app.ReadBufferSize,
+	}
+	app.App.Must(app.App.ListenTo(cfg))
 }

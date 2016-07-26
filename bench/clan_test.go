@@ -10,6 +10,7 @@ package bench
 import (
 	"fmt"
 	"net/http"
+	"strings"
 	"testing"
 
 	"github.com/satori/go.uuid"
@@ -128,6 +129,39 @@ func BenchmarkRetrieveClanSummary(b *testing.B) {
 
 	for i := 0; i < b.N; i++ {
 		route := getRoute(fmt.Sprintf("/games/%s/clans/%s/summary", gameID, clan.PublicID))
+		res, err := get(route)
+		validateResp(res, err)
+		res.Body.Close()
+
+		result = res
+	}
+}
+
+func BenchmarkRetrieveClansSummary(b *testing.B) {
+	db, err := models.GetPerfDB()
+	if err != nil {
+		panic(err.Error())
+	}
+
+	game, owner, err := getGameAndPlayer(db)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	clans, err := createClans(db, game, owner, 500)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	var clanIDs []string
+	for _, clan := range clans {
+		clanIDs = append(clanIDs, clan.PublicID)
+	}
+	qs := strings.Join(clanIDs, ",")
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		route := getRoute(fmt.Sprintf("/games/%s/clans-summary?clanPublicIds=%s", game.PublicID, qs))
 		res, err := get(route)
 		validateResp(res, err)
 		res.Body.Close()
