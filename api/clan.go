@@ -524,6 +524,14 @@ func RetrieveClansSummariesHandler(app *App) func(c *iris.Context) {
 			zap.String("clanPublicIDsStr", publicIDsStr),
 		)
 
+		// split of an empty string returns an array with an empty string
+		if len(publicIDs) == 1 && publicIDs[0] == "" {
+			l.Debug("Empty query string provided.")
+			l.Error("Clans summaries retrieval failed, Empty query string provided.")
+			FailWith(400, "No clanPublicIds provided", c)
+			return
+		}
+
 		l.Debug("Getting DB connection...")
 		db, err := GetCtxDB(c)
 		if err != nil {

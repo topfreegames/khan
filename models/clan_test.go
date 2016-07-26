@@ -862,7 +862,6 @@ func TestClanModel(t *testing.T) {
 				g.Assert(err.Error()).Equal(
 					"Could not find all requested clans or the given game. GameId: clan_summary5, Missing clans: unexistent_clan",
 				)
-				fmt.Println(clansSummaries)
 				g.Assert(len(clansSummaries)).Equal(3)
 				for _, clanSummary := range clansSummaries {
 					clanSummaryObj := clanSummary

@@ -501,9 +501,21 @@ func TestClanHandler(t *testing.T) {
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 
 			g.Assert(result["success"]).IsFalse()
-
-			fmt.Println(result)
 			g.Assert(res.Raw().StatusCode).Equal(http.StatusNotFound)
+		})
+
+		g.It("Should fail with 400 if empty query string", func() {
+			a := GetDefaultTestApp()
+
+			_, clan1, _, _, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 0, "clans_handler13", "clan1")
+			AssertNotError(g, err)
+
+			res := Get(a, GetGameRoute(clan1.GameID, "clans-summary"), t)
+			g.Assert(res.Raw().StatusCode).Equal(http.StatusBadRequest)
+			var result map[string]interface{}
+			json.Unmarshal([]byte(res.Body().Raw()), &result)
+			g.Assert(result["success"]).IsFalse()
+			g.Assert(result["reason"]).Equal("No clanPublicIds provided")
 		})
 	})
 
