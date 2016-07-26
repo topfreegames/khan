@@ -435,6 +435,78 @@ func TestClanHandler(t *testing.T) {
 		})
 	})
 
+	g.Describe("Retrieve Clans Handler", func() {
+		g.It("Should get details for clans", func() {
+			a := GetDefaultTestApp()
+
+			_, clan1, _, _, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 0, "clans_handler1", "clan1")
+			AssertNotError(g, err)
+			_, clan2, _, _, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 0, "clans_handler1", "clan2", true)
+			AssertNotError(g, err)
+			_, clan3, _, _, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 0, "clans_handler1", "clan3", true)
+			AssertNotError(g, err)
+
+			clanIDs := []string{clan1.PublicID, clan2.PublicID, clan3.PublicID}
+			qs := map[string]interface{}{
+				"clanPublicIds": strings.Join(clanIDs, ","),
+			}
+
+			res := Get(a, GetGameRoute(clan1.GameID, "clans-summary"), t, qs)
+			g.Assert(res.Raw().StatusCode).Equal(http.StatusOK)
+
+			var result map[string]interface{}
+			json.Unmarshal([]byte(res.Body().Raw()), &result)
+			g.Assert(result["success"]).IsTrue()
+
+			resultClans := result["clans"].([]interface{})
+			g.Assert(len(resultClans)).Equal(3)
+
+			for _, resultClan := range resultClans {
+				resultClanMap := resultClan.(map[string]interface{})
+				g.Assert(resultClanMap["membershipCount"] == nil).IsFalse()
+				g.Assert(resultClanMap["publicID"] == nil).IsFalse()
+				g.Assert(resultClanMap["metadata"] == nil).IsFalse()
+				g.Assert(resultClanMap["name"] == nil).IsFalse()
+				g.Assert(resultClanMap["allowApplication"] == nil).IsFalse()
+				g.Assert(resultClanMap["autoJoin"] == nil).IsFalse()
+				g.Assert(len(resultClanMap)).Equal(6)
+
+				idExist := false
+				// check if publicID is in clanIDs
+				for _, clanID := range clanIDs {
+					if resultClanMap["publicID"] == clanID {
+						idExist = true
+					}
+				}
+				g.Assert(idExist).IsTrue()
+			}
+		})
+
+		g.It("Should not get details for clans for unexistent game", func() {
+			a := GetDefaultTestApp()
+
+			_, clan, _, _, _, err := models.GetClanWithMemberships(
+				testDb, 10, 0, 0, 0, "clans_handler2", "clan-details-api-clan",
+			)
+			AssertNotError(g, err)
+
+			clanIDs := []string{clan.PublicID}
+			qs := map[string]interface{}{
+				"clanPublicIds": strings.Join(clanIDs, ","),
+			}
+
+			res := Get(a, GetGameRoute("unexistent_game", "clans-summary"), t, qs)
+
+			var result map[string]interface{}
+			json.Unmarshal([]byte(res.Body().Raw()), &result)
+
+			g.Assert(result["success"]).IsFalse()
+
+			fmt.Println(result)
+			g.Assert(res.Raw().StatusCode).Equal(http.StatusNotFound)
+		})
+	})
+
 	g.Describe("Retrieve Clan Summary Handler", func() {
 		g.It("Should get details for clan", func() {
 			_, clan, _, _, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")

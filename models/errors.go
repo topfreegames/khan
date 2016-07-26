@@ -7,7 +7,10 @@
 
 package models
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 // ModelNotFoundError identifies that a given model was not found in the Database with the given ID
 type ModelNotFoundError struct {
@@ -150,4 +153,19 @@ type MustWaitMembershipCooldownError struct {
 
 func (e *MustWaitMembershipCooldownError) Error() string {
 	return fmt.Sprintf("Player %s must wait %d seconds before creating a membership in clan %s.", e.PlayerID, e.Time, e.ClanID)
+}
+
+// CouldNotFindAllClansError identifies that one or more of the requested clans do not exist
+type CouldNotFindAllClansError struct {
+	gameID  string
+	clanIDs []string
+}
+
+func (e *CouldNotFindAllClansError) Error() string {
+	commaSeparatedClanIDs := strings.Join(e.clanIDs, ",")
+	return fmt.Sprintf(
+		"Could not find all requested clans or the given game. GameId: %s, Missing clans: %s",
+		e.gameID,
+		commaSeparatedClanIDs,
+	)
 }
