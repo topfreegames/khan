@@ -763,6 +763,78 @@ Khan API
       }
       ```
 
+  ### Clans Summary
+  `GET /games/:gameID/clans-summary?clanPublicIds=clan1,clan2,clan3`
+
+  Returns a summary of the details for each one of the clans with the given publicIDs.
+
+  * Success Response
+    * Code: `200`
+    * Content:
+      ```
+      {
+        "success": true,
+        clans: [
+          {
+            "publicID": [string],
+            "name": [string],
+            "metadata": [JSON],
+            "allowApplication": [bool],
+            "autoJoin": [bool],
+            "membershipCount": [int]
+          },
+          {
+            "publicID": [string],
+            "name": [string],
+            "metadata": [JSON],
+            "allowApplication": [bool],
+            "autoJoin": [bool],
+            "membershipCount": [int]
+          },
+          ...    
+        ]
+      }
+      ```
+
+  If no clanPublicIDs are provided:
+
+  * Error Response
+
+    * Code: `400`
+    * Content:
+      ```
+      {
+        "success": false,
+        "reason": [string]
+      }
+      ```
+
+  If at least one of the clan was not found:
+
+  * Error Response
+
+    * Code: `404`
+    * Content:
+      ```
+      {
+        "success": false,
+        "reason": [string]
+      }
+      ```
+
+  In case of other errors:
+
+  * Error Response
+
+    * Code: `500`
+    * Content:
+      ```
+      {
+        "success": false,
+        "reason": [string]
+      }
+      ```
+
   ### List Clans
   `GET /games/:gameID/clans`
 
