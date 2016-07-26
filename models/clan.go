@@ -166,22 +166,26 @@ func LeaveClan(db DB, gameID, publicID string) error {
 		return err
 	}
 
-	err = IncrementPlayerOwnershipCount(db, clan.OwnerID, -1)
+	oldOwnerID := clan.OwnerID
+	err = IncrementPlayerOwnershipCount(db, oldOwnerID, -1)
 	if err != nil {
 		return err
 	}
 
 	newOwnerMembership, err := GetOldestMemberWithHighestLevel(db, gameID, publicID)
 	if err != nil {
-		// Clan has no members, delete it
-		_, err = db.Delete(clan)
-		if err != nil {
-			return err
+		noMembersError := &ClanHasNoMembersError{publicID}
+		if err.Error() == noMembersError.Error() {
+			// Clan has no members, delete it
+			_, err = db.Delete(clan)
+			if err != nil {
+				return err
+			}
+			return nil
 		}
-		return nil
+		return err
 	}
 
-	oldOwnerID := clan.OwnerID
 	clan.OwnerID = newOwnerMembership.PlayerID
 
 	_, err = db.Update(clan)
@@ -189,10 +193,11 @@ func LeaveClan(db DB, gameID, publicID string) error {
 		return err
 	}
 
-	err = deleteMembershipHelper(db, newOwnerMembership, oldOwnerID)
+	err = deleteMembershipHelper(db, newOwnerMembership, newOwnerMembership.PlayerID)
 	if err != nil {
 		return err
 	}
+
 	err = IncrementPlayerOwnershipCount(db, newOwnerMembership.PlayerID, 1)
 	if err != nil {
 		return err
