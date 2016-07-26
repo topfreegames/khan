@@ -369,7 +369,7 @@ func TestClanModel(t *testing.T) {
 					g.Assert(dbClan.OwnerID).Equal(memberships[0].PlayerID)
 					dbDeletedMembership, err := GetMembershipByID(testDb, memberships[0].ID)
 					g.Assert(err == nil).IsTrue()
-					g.Assert(dbDeletedMembership.DeletedBy).Equal(owner.ID)
+					g.Assert(dbDeletedMembership.DeletedBy).Equal(memberships[0].PlayerID)
 					g.Assert(dbDeletedMembership.DeletedAt > util.NowMilli()-1000).IsTrue()
 
 					dbPlayer, err := GetPlayerByID(testDb, owner.ID)
