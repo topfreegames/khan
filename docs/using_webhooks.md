@@ -108,8 +108,10 @@ Payload:
                                                     // future operations.
         "name": [string],                           // Player Name
         "metadata": [JSON],                         // JSON Object containing player metadata
-		"membershipCount": [int],                   // Number of clans this player is a member of
-		"ownershipCount":  [int]                    // Number of clans this player is an owner of
+        "membershipCount": [int],                   // Number of clans this player is a member of
+        "ownershipCount":  [int],                   // Number of clans this player is an owner of
+        "id": [UUID],                               // unique id that identifies the hook
+        "timestamp": [timestamp]                    // timestamp in the RFC3339 format
     }
 
 #### Player Updated
@@ -126,8 +128,10 @@ Payload:
                                                     // future operations.
         "name": [string],                           // Player Name
         "metadata": [JSON],                         // JSON Object containing player metadata
-		"membershipCount": [int],                   // Number of clans this player is a member of
-		"ownershipCount":  [int]                    // Number of clans this player is an owner of
+        "membershipCount": [int],                   // Number of clans this player is a member of
+        "ownershipCount":  [int],                   // Number of clans this player is an owner of
+        "id": [UUID],                               // unique id that identifies the hook
+        "timestamp": [timestamp]                    // timestamp in the RFC3339 format
     }
 
 
@@ -142,14 +146,18 @@ Payload:
     {
         "gameID":  [string],                        // Game ID
         "type": 3,                                  // Event Type
-        "publicID": [string],                       // Created Clan PublicID This id should
+        "clan": {          
+          "publicID": [string],                     // Created Clan PublicID This id should
                                                     // be used when referring to the clan in
                                                     // future operations.
-        "name": [string],                           // Clan Name
-        "metadata": [JSON],                         // JSON Object containing clan's metadata
-        "allowApplication": [bool]                  // Indicates whether this clan acceps applications
-        "autoJoin": [bool]                          // Indicates whether this clan automatically
+          "name": [string],                         // Clan Name
+          "metadata": [JSON],                       // JSON Object containing clan's metadata
+          "allowApplication": [bool],               // Indicates whether this clan acceps applications
+          "autoJoin": [bool]                        // Indicates whether this clan automatically
                                                     // accepts applications
+        }
+        "id": [UUID],                               // unique id that identifies the hook
+        "timestamp": [timestamp]                    // timestamp in the RFC3339 format
     }
 
 #### Clan Updated
@@ -161,14 +169,18 @@ Payload:
     {
         "gameID":  [string],                        // Game ID
         "type": 4,                                  // Event Type
-        "publicID": [string],                       // Updated Clan PublicID This id should
+        "clan": {
+          "publicID": [string],                     // Updated Clan PublicID This id should
                                                     // be used when referring to the clan in
                                                     // future operations.
-        "name": [string],                           // Clan Name
-        "metadata": [JSON],                         // JSON Object containing clan's metadata
-        "allowApplication": [bool]                  // Indicates whether this clan acceps applications
-        "autoJoin": [bool]                          // Indicates whether this clan automatically
+          "name": [string],                         // Clan Name
+          "metadata": [JSON],                       // JSON Object containing clan's metadata
+          "allowApplication": [bool],               // Indicates whether this clan acceps applications
+          "autoJoin": [bool]                        // Indicates whether this clan automatically
                                                     // accepts applications
+        }
+        "id": [UUID],                               // unique id that identifies the hook
+        "timestamp": [timestamp]                    // timestamp in the RFC3339 format
     }
 
 #### Clan Owner Left
@@ -195,7 +207,9 @@ Payload:
             "metadata": [JSON],                         // JSON Object containing player metadata
             "membershipCount": [int],                   // Number of clans this player is a member of
             "ownershipCount":  [int]                    // Number of clans this player is an owner of
-        }
+        },
+        "id": [UUID],                                   // unique id that identifies the hook
+        "timestamp": [timestamp]                        // timestamp in the RFC3339 format
     }
 
 #### Clan Ownership Transferred to Another Player
@@ -222,7 +236,9 @@ Payload:
             "metadata": [JSON],                         // JSON Object containing player metadata
             "membershipCount": [int],                   // Number of clans this player is a member of
             "ownershipCount":  [int]                    // Number of clans this player is an owner of
-        }
+        },
+        "id": [UUID],                                   // unique id that identifies the hook
+        "timestamp": [timestamp]                        // timestamp in the RFC3339 format
     }
 
 ### Membership Hooks
@@ -260,7 +276,9 @@ Payload:
             "metadata": [JSON],                         // JSON Object containing player metadata
             "membershipCount": [int],                   // Number of clans this player is a member of
             "ownershipCount":  [int]                    // Number of clans this player is an owner of
-        }
+        },
+        "id": [UUID],                                   // unique id that identifies the hook
+        "timestamp": [timestamp]                        // timestamp in the RFC3339 format
     }
 
 #### Membership Approved
@@ -296,7 +314,9 @@ Payload:
             "metadata": [JSON],                         // JSON Object containing player metadata
             "membershipCount": [int],                   // Number of clans this player is a member of
             "ownershipCount":  [int]                    // Number of clans this player is an owner of
-        }
+        },
+        "id": [UUID],                                   // unique id that identifies the hook
+        "timestamp": [timestamp]                        // timestamp in the RFC3339 format
     }
 
 #### Membership Denied
@@ -332,7 +352,9 @@ Payload:
             "metadata": [JSON],                         // JSON Object containing player metadata
             "membershipCount": [int],                   // Number of clans this player is a member of
             "ownershipCount":  [int]                    // Number of clans this player is an owner of
-        }
+        },
+        "id": [UUID],                                   // unique id that identifies the hook
+        "timestamp": [timestamp]                        // timestamp in the RFC3339 format
     }
 
 #### Member Promoted
@@ -366,7 +388,9 @@ Payload:
             "metadata": [JSON],                         // JSON Object containing player metadata
             "membershipCount": [int],                   // Number of clans this player is a member of
             "ownershipCount":  [int]                    // Number of clans this player is an owner of
-        }
+        },
+        "id": [UUID],                                   // unique id that identifies the hook
+        "timestamp": [timestamp]                        // timestamp in the RFC3339 format
     }
 
 #### Member Demoted
@@ -400,7 +424,9 @@ Payload:
             "metadata": [JSON],                         // JSON Object containing player metadata
             "membershipCount": [int],                   // Number of clans this player is a member of
             "ownershipCount":  [int]                    // Number of clans this player is an owner of
-        }
+        },
+        "id": [UUID],                                   // unique id that identifies the hook
+        "timestamp": [timestamp]                        // timestamp in the RFC3339 format
     }
 
 #### Member Left
@@ -435,5 +461,7 @@ Payload:
             "metadata": [JSON],                         // JSON Object containing player metadata
             "membershipCount": [int],                   // Number of clans this player is a member of
             "ownershipCount":  [int]                    // Number of clans this player is an owner of
-        }
+        },
+        "id": [UUID],                                   // unique id that identifies the hook
+        "timestamp": [timestamp]                        // timestamp in the RFC3339 format
     }
