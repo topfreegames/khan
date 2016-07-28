@@ -92,8 +92,7 @@ func CreateClanHandler(app *App) func(c *iris.Context) {
 		}
 		l.Info("Clan created successfully.")
 
-		result := map[string]interface{}{
-			"gameID":           gameID,
+		clanJSON := map[string]interface{}{
 			"publicID":         clan.PublicID,
 			"name":             clan.Name,
 			"membershipCount":  clan.MembershipCount,
@@ -101,6 +100,11 @@ func CreateClanHandler(app *App) func(c *iris.Context) {
 			"metadata":         clan.Metadata,
 			"allowApplication": clan.AllowApplication,
 			"autoJoin":         clan.AutoJoin,
+		}
+
+		result := map[string]interface{}{
+			"gameID": gameID,
+			"clan":   clanJSON,
 		}
 
 		app.DispatchHooks(gameID, models.ClanCreatedHook, result)
@@ -158,16 +162,21 @@ func UpdateClanHandler(app *App) func(c *iris.Context) {
 		}
 		l.Info("Clan updated successfully.")
 
-		result := map[string]interface{}{
-			"gameID":           gameID,
+		clanJSON := map[string]interface{}{
 			"publicID":         clan.PublicID,
 			"name":             clan.Name,
-			"ownerPublicID":    payload.OwnerPublicID,
 			"membershipCount":  clan.MembershipCount,
+			"ownerPublicID":    payload.OwnerPublicID,
 			"metadata":         clan.Metadata,
-			"allowApplication": payload.AllowApplication,
-			"autoJoin":         payload.AutoJoin,
+			"allowApplication": clan.AllowApplication,
+			"autoJoin":         clan.AutoJoin,
 		}
+
+		result := map[string]interface{}{
+			"gameID": gameID,
+			"clan":   clanJSON,
+		}
+
 		app.DispatchHooks(gameID, models.ClanUpdatedHook, result)
 
 		SucceedWith(map[string]interface{}{}, c)
