@@ -221,6 +221,7 @@ func TestMembershipModel(t *testing.T) {
 					player.PublicID,
 					clan.PublicID,
 					player.PublicID,
+					"Please accept me",
 				)
 
 				g.Assert(err == nil).IsTrue()
@@ -235,6 +236,7 @@ func TestMembershipModel(t *testing.T) {
 				g.Assert(dbMembership.ClanID).Equal(clan.ID)
 				g.Assert(dbMembership.Approved).Equal(false)
 				g.Assert(dbMembership.Denied).Equal(false)
+				g.Assert(dbMembership.Message).Equal("Please accept me")
 
 				dbPlayer, err := GetPlayerByID(testDb, player.ID)
 				g.Assert(err == nil).IsTrue()
@@ -272,6 +274,7 @@ func TestMembershipModel(t *testing.T) {
 					players[0].PublicID,
 					clan.PublicID,
 					players[0].PublicID,
+					"Please accept me",
 				)
 				g.Assert(err == nil).IsTrue()
 				g.Assert(membership.ID != 0).IsTrue()
@@ -286,6 +289,7 @@ func TestMembershipModel(t *testing.T) {
 				g.Assert(dbMembership.Approved).Equal(false)
 				g.Assert(dbMembership.Denied).Equal(false)
 				g.Assert(dbMembership.DeletedAt).Equal(int64(0))
+				g.Assert(dbMembership.Message).Equal("Please accept me")
 
 				dbPlayer, err := GetPlayerByID(testDb, players[0].ID)
 				g.Assert(err == nil).IsTrue()
@@ -319,6 +323,7 @@ func TestMembershipModel(t *testing.T) {
 					player.PublicID,
 					clan.PublicID,
 					player.PublicID,
+					"Please accept me",
 				)
 
 				g.Assert(err == nil).IsTrue()
@@ -333,6 +338,7 @@ func TestMembershipModel(t *testing.T) {
 				g.Assert(dbMembership.ClanID).Equal(clan.ID)
 				g.Assert(dbMembership.Approved).Equal(true)
 				g.Assert(dbMembership.Denied).Equal(false)
+				g.Assert(dbMembership.Message).Equal("Please accept me")
 
 				dbPlayer, err := GetPlayerByID(testDb, player.ID)
 				g.Assert(err == nil).IsTrue()
@@ -361,6 +367,7 @@ func TestMembershipModel(t *testing.T) {
 					player.PublicID,
 					clan.PublicID,
 					owner.PublicID,
+					"Please accept me",
 				)
 
 				g.Assert(err == nil).IsTrue()
@@ -375,6 +382,7 @@ func TestMembershipModel(t *testing.T) {
 				g.Assert(dbMembership.ClanID).Equal(clan.ID)
 				g.Assert(dbMembership.Approved).Equal(false)
 				g.Assert(dbMembership.Denied).Equal(false)
+				g.Assert(dbMembership.Message).Equal("Please accept me")
 			})
 
 			g.It("If requestor is a member of the clan with level greater than the min level", func() {
@@ -401,6 +409,7 @@ func TestMembershipModel(t *testing.T) {
 					player.PublicID,
 					clan.PublicID,
 					players[0].PublicID,
+					"Please accept me",
 				)
 
 				g.Assert(err == nil).IsTrue()
@@ -415,6 +424,7 @@ func TestMembershipModel(t *testing.T) {
 				g.Assert(dbMembership.ClanID).Equal(clan.ID)
 				g.Assert(dbMembership.Approved).Equal(false)
 				g.Assert(dbMembership.Denied).Equal(false)
+				g.Assert(dbMembership.Message).Equal("Please accept me")
 			})
 
 			g.It("If deleted previous membership", func() {
@@ -436,6 +446,7 @@ func TestMembershipModel(t *testing.T) {
 					players[0].PublicID,
 					clan.PublicID,
 					owner.PublicID,
+					"Please accept me",
 				)
 
 				g.Assert(err == nil).IsTrue()
@@ -450,6 +461,7 @@ func TestMembershipModel(t *testing.T) {
 				g.Assert(dbMembership.ClanID).Equal(clan.ID)
 				g.Assert(dbMembership.Approved).Equal(false)
 				g.Assert(dbMembership.Denied).Equal(false)
+				g.Assert(dbMembership.Message).Equal("Please accept me")
 
 				dbPlayer, err := GetPlayerByID(testDb, dbMembership.PlayerID)
 				g.Assert(err == nil).IsTrue()
@@ -484,6 +496,7 @@ func TestMembershipModel(t *testing.T) {
 					players[0].PublicID,
 					clan.PublicID,
 					owner.PublicID,
+					"Please accept me",
 				)
 
 				g.Assert(err == nil).IsTrue()
@@ -498,6 +511,7 @@ func TestMembershipModel(t *testing.T) {
 				g.Assert(dbMembership.ClanID).Equal(clan.ID)
 				g.Assert(dbMembership.Approved).Equal(false)
 				g.Assert(dbMembership.Denied).Equal(false)
+				g.Assert(dbMembership.Message).Equal("Please accept me")
 
 				dbPlayer, err := GetPlayerByID(testDb, dbMembership.PlayerID)
 				g.Assert(err == nil).IsTrue()
@@ -525,6 +539,7 @@ func TestMembershipModel(t *testing.T) {
 					players[0].PublicID,
 					clan.PublicID,
 					owner.PublicID,
+					"Please accept me",
 				)
 				g.Assert(err == nil).IsTrue()
 				g.Assert(membership.ID != 0).IsTrue()
@@ -538,6 +553,7 @@ func TestMembershipModel(t *testing.T) {
 				g.Assert(dbMembership.ClanID).Equal(clan.ID)
 				g.Assert(dbMembership.Approved).Equal(false)
 				g.Assert(dbMembership.Denied).Equal(false)
+				g.Assert(dbMembership.Message).Equal("Please accept me")
 
 				dbPlayer, err := GetPlayerByID(testDb, dbMembership.PlayerID)
 				g.Assert(err == nil).IsTrue()
@@ -573,6 +589,7 @@ func TestMembershipModel(t *testing.T) {
 					players[0].PublicID,
 					clan.PublicID,
 					owner.PublicID,
+					"Please accept me",
 				)
 
 				g.Assert(err != nil).IsTrue()
@@ -595,6 +612,7 @@ func TestMembershipModel(t *testing.T) {
 					players[0].PublicID,
 					clan.PublicID,
 					owner.PublicID,
+					"Please accept me",
 				)
 
 				g.Assert(err != nil).IsTrue()
@@ -619,6 +637,7 @@ func TestMembershipModel(t *testing.T) {
 					player.PublicID,
 					clan.PublicID,
 					owner.PublicID,
+					"Please accept me",
 				)
 
 				g.Assert(err != nil).IsTrue()
@@ -646,6 +665,7 @@ func TestMembershipModel(t *testing.T) {
 					players[0].PublicID,
 					anotherClan.PublicID,
 					owner.PublicID,
+					"Please accept me",
 				)
 
 				g.Assert(err != nil).IsTrue()
@@ -673,6 +693,7 @@ func TestMembershipModel(t *testing.T) {
 					players[0].PublicID,
 					anotherClan.PublicID,
 					owner.PublicID,
+					"Please accept me",
 				)
 
 				g.Assert(err != nil).IsTrue()
@@ -697,6 +718,7 @@ func TestMembershipModel(t *testing.T) {
 					player.PublicID,
 					clan.PublicID,
 					player.PublicID,
+					"Please accept me",
 				)
 
 				g.Assert(err != nil).IsTrue()
@@ -718,6 +740,7 @@ func TestMembershipModel(t *testing.T) {
 					playerPublicID,
 					clan.PublicID,
 					owner.PublicID,
+					"Please accept me",
 				)
 
 				g.Assert(err != nil).IsTrue()
@@ -737,6 +760,7 @@ func TestMembershipModel(t *testing.T) {
 					player.PublicID,
 					clanPublicID,
 					player.PublicID,
+					"Please accept me",
 				)
 
 				g.Assert(err != nil).IsTrue()
@@ -763,6 +787,7 @@ func TestMembershipModel(t *testing.T) {
 					player.PublicID,
 					clan.PublicID,
 					requestorPublicID,
+					"Please accept me",
 				)
 
 				g.Assert(err != nil).IsTrue()
@@ -787,6 +812,7 @@ func TestMembershipModel(t *testing.T) {
 					player.PublicID,
 					clan.PublicID,
 					players[0].PublicID,
+					"Please accept me",
 				)
 
 				g.Assert(err != nil).IsTrue()
@@ -805,6 +831,7 @@ func TestMembershipModel(t *testing.T) {
 					players[0].PublicID,
 					clan.PublicID,
 					owner.PublicID,
+					"Please accept me",
 				)
 
 				g.Assert(membership == nil).IsTrue()

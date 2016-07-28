@@ -13,6 +13,7 @@
 // migrations/20160708192007_CreateOwnerIndex.sql
 // migrations/20160713185332_CreateGameCooldownAfterDenyAndDelete.sql
 // migrations/20160713191703_CreateMembershipDenierField.sql
+// migrations/20160728195902_CreateMembershipMessageField.sql
 // DO NOT EDIT!
 
 package db
@@ -340,6 +341,26 @@ func migrations20160713191703_createmembershipdenierfieldSql() (*asset, error) {
 	return a, nil
 }
 
+var _migrations20160728195902_createmembershipmessagefieldSql = []byte("\x1f\x8b\x08\x00\x00\x09\x6e\x88\x00\xff\x8c\xce\xb1\x4e\x85\x30\x14\xc6\xf1\xbd\x4f\xf1\x6d\x68\x0c\x8b\x09\x13\x13\x5a\xb6\x0a\x8a\xf4\x01\x4a\x39\xa1\x8d\xd0\x36\x2d\x8a\x8f\x6f\x31\xd1\x18\x93\x9b\xdc\xf1\xfb\x9f\x33\xfc\x58\x59\xe2\x6e\xf1\x3e\x11\x64\x38\xc7\xeb\x8b\x80\x75\x48\xa4\x77\xeb\x1d\x0a\x19\x0a\xd8\x04\xfa\x24\xfd\xbe\xd3\x8c\xc3\x90\xc3\x6e\x72\xda\xec\x12\xd5\xf7\x53\x1e\x2a\x84\xd5\xd2\xcc\x1a\x31\xb6\x03\xc6\xe6\x41\xb4\xd8\x68\x9b\x28\x26\x63\x43\x42\xc3\x39\x1e\x7b\x21\x9f\xba\x9c\x53\x52\x0b\xe1\x43\x45\x6d\x54\xbc\xb9\xaf\xaa\x5b\x74\xfd\x88\x4e\x0a\x51\x33\xf6\x87\xc4\xfd\xe1\x7e\x50\xbf\xa2\x33\x5e\x65\x8a\x7e\x5d\xf3\x75\x52\xfa\xed\xa2\x8b\x0f\xfd\xf3\x3f\x58\xcd\xbe\x02\x00\x00\xff\xff\x50\xeb\x5a\xce\x15\x01\x00\x00")
+
+func migrations20160728195902_createmembershipmessagefieldSqlBytes() ([]byte, error) {
+	return bindataRead(
+		_migrations20160728195902_createmembershipmessagefieldSql,
+		"migrations/20160728195902_CreateMembershipMessageField.sql",
+	)
+}
+
+func migrations20160728195902_createmembershipmessagefieldSql() (*asset, error) {
+	bytes, err := migrations20160728195902_createmembershipmessagefieldSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "migrations/20160728195902_CreateMembershipMessageField.sql", size: 277, mode: os.FileMode(420), modTime: time.Unix(1469735988, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
 // Asset loads and returns the asset for the given name.
 // It returns an error if the asset could not be found or
 // could not be loaded.
@@ -405,6 +426,7 @@ var _bindata = map[string]func() (*asset, error){
 	"migrations/20160708192007_CreateOwnerIndex.sql": migrations20160708192007_createownerindexSql,
 	"migrations/20160713185332_CreateGameCooldownAfterDenyAndDelete.sql": migrations20160713185332_creategamecooldownafterdenyanddeleteSql,
 	"migrations/20160713191703_CreateMembershipDenierField.sql": migrations20160713191703_createmembershipdenierfieldSql,
+	"migrations/20160728195902_CreateMembershipMessageField.sql": migrations20160728195902_createmembershipmessagefieldSql,
 }
 
 // AssetDir returns the file names below a certain
@@ -461,6 +483,7 @@ var _bintree = &bintree{nil, map[string]*bintree{
 		"20160708192007_CreateOwnerIndex.sql": &bintree{migrations20160708192007_createownerindexSql, map[string]*bintree{}},
 		"20160713185332_CreateGameCooldownAfterDenyAndDelete.sql": &bintree{migrations20160713185332_creategamecooldownafterdenyanddeleteSql, map[string]*bintree{}},
 		"20160713191703_CreateMembershipDenierField.sql": &bintree{migrations20160713191703_createmembershipdenierfieldSql, map[string]*bintree{}},
+		"20160728195902_CreateMembershipMessageField.sql": &bintree{migrations20160728195902_createmembershipmessagefieldSql, map[string]*bintree{}},
 	}},
 }}
 

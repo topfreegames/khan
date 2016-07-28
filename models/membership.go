@@ -36,6 +36,7 @@ type Membership struct {
 	DeletedAt   int64         `db:"deleted_at"`
 	ApprovedAt  int64         `db:"approved_at"`
 	DeniedAt    int64         `db:"denied_at"`
+	Message     string        `db:"message"`
 }
 
 // PreInsert populates fields before inserting a new clan
@@ -254,7 +255,7 @@ func ApproveOrDenyMembershipApplication(db DB, game *Game, gameID, playerPublicI
 }
 
 // CreateMembership creates a new membership
-func CreateMembership(db DB, game *Game, gameID, level, playerPublicID, clanPublicID, requestorPublicID string) (*Membership, error) {
+func CreateMembership(db DB, game *Game, gameID, level, playerPublicID, clanPublicID, requestorPublicID, message string) (*Membership, error) {
 	previousMembership := false
 	var playerID int
 	if _, levelValid := game.MembershipLevels[level]; !levelValid {
@@ -312,9 +313,9 @@ func CreateMembership(db DB, game *Game, gameID, level, playerPublicID, clanPubl
 			return nil, reachedMaxMembersError
 		}
 		if previousMembership {
-			return updatePreviousMembershipHelper(db, membership, level, membership.PlayerID, clan.AutoJoin)
+			return updatePreviousMembershipHelper(db, membership, level, membership.PlayerID, message, clan.AutoJoin)
 		}
-		return createMembershipHelper(db, gameID, level, playerID, clan.ID, playerID, clan.AutoJoin)
+		return createMembershipHelper(db, gameID, level, playerID, clan.ID, playerID, message, clan.AutoJoin)
 	}
 
 	reqMembership, _ := GetValidMembershipByClanAndPlayerPublicID(db, gameID, clanPublicID, requestorPublicID)
@@ -328,9 +329,9 @@ func CreateMembership(db DB, game *Game, gameID, level, playerPublicID, clanPubl
 			return nil, reachedMaxMembersError
 		}
 		if previousMembership {
-			return updatePreviousMembershipHelper(db, membership, level, clan.OwnerID, false)
+			return updatePreviousMembershipHelper(db, membership, level, clan.OwnerID, message, false)
 		}
-		return createMembershipHelper(db, gameID, level, playerID, clan.ID, clan.OwnerID, false)
+		return createMembershipHelper(db, gameID, level, playerID, clan.ID, clan.OwnerID, message, false)
 	}
 
 	reachedMaxMembersError := clanReachedMaxMemberships(db, game, nil, reqMembership.ClanID)
@@ -342,9 +343,9 @@ func CreateMembership(db DB, game *Game, gameID, level, playerPublicID, clanPubl
 
 	if isValidMember(reqMembership) && levelInt >= game.MinLevelToCreateInvitation {
 		if previousMembership {
-			return updatePreviousMembershipHelper(db, membership, level, reqMembership.PlayerID, false)
+			return updatePreviousMembershipHelper(db, membership, level, reqMembership.PlayerID, message, false)
 		}
-		return createMembershipHelper(db, gameID, level, playerID, reqMembership.ClanID, reqMembership.PlayerID, false)
+		return createMembershipHelper(db, gameID, level, playerID, reqMembership.ClanID, reqMembership.PlayerID, message, false)
 	}
 	return nil, &PlayerCannotCreateMembershipError{requestorPublicID, clanPublicID}
 }
@@ -453,7 +454,7 @@ func approveOrDenyMembershipHelper(db DB, membership *Membership, action string,
 	return membership, nil
 }
 
-func createMembershipHelper(db DB, gameID, level string, playerID, clanID, requestorID int, approved bool) (*Membership, error) {
+func createMembershipHelper(db DB, gameID, level string, playerID, clanID, requestorID int, message string, approved bool) (*Membership, error) {
 	membership := &Membership{
 		GameID:      gameID,
 		ClanID:      clanID,
@@ -462,6 +463,7 @@ func createMembershipHelper(db DB, gameID, level string, playerID, clanID, reque
 		Level:       level,
 		Approved:    approved,
 		Denied:      false,
+		Message:     message,
 	}
 
 	err := db.Insert(membership)
@@ -481,7 +483,7 @@ func createMembershipHelper(db DB, gameID, level string, playerID, clanID, reque
 	return membership, nil
 }
 
-func updatePreviousMembershipHelper(db DB, membership *Membership, level string, requestorID int, approved bool) (*Membership, error) {
+func updatePreviousMembershipHelper(db DB, membership *Membership, level string, requestorID int, message string, approved bool) (*Membership, error) {
 	membership.RequestorID = requestorID
 	membership.Level = level
 	membership.Approved = approved
@@ -489,6 +491,7 @@ func updatePreviousMembershipHelper(db DB, membership *Membership, level string,
 	membership.Banned = false
 	membership.DeletedAt = 0
 	membership.DeletedBy = 0
+	membership.Message = message
 
 	_, err := db.Update(membership)
 	if err != nil {
