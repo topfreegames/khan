@@ -330,8 +330,8 @@ Khan API
 
     ```
     {
-      "publicID":                      [string],  // 255 characters max, must be unique for a given game
-      "name":                          [string],  // 2000 characters max
+      "publicID":                      [string],   // 255 characters max, must be unique for a given game
+      "name":                          [string],   // 2000 characters max
       "metadata":                      [JSON]
     }
     ```
