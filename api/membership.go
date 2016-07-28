@@ -8,6 +8,8 @@
 package api
 
 import (
+	"encoding/json"
+
 	"github.com/kataras/iris"
 	"github.com/topfreegames/khan/models"
 	"github.com/uber-go/zap"
@@ -16,6 +18,10 @@ import (
 type applyForMembershipPayload struct {
 	Level          string
 	PlayerPublicID string
+}
+
+type messagePayload struct {
+	Message string
 }
 
 type inviteForMembershipPayload struct {
@@ -52,10 +58,10 @@ func dispatchMembershipHookByPublicID(app *App, db models.DB, hookType int, game
 		}
 	}
 
-	return dispatchMembershipHook(app, db, hookType, gameID, clan, player, requestor)
+	return dispatchMembershipHook(app, db, hookType, gameID, clan, player, requestor, "")
 }
 
-func dispatchMembershipHookByID(app *App, db models.DB, hookType int, gameID string, clanID, playerID, requestorID int) error {
+func dispatchMembershipHookByID(app *App, db models.DB, hookType int, gameID string, clanID, playerID, requestorID int, message string) error {
 	clan, err := models.GetClanByID(db, clanID)
 	if err != nil {
 		return err
@@ -74,10 +80,10 @@ func dispatchMembershipHookByID(app *App, db models.DB, hookType int, gameID str
 		}
 	}
 
-	return dispatchMembershipHook(app, db, hookType, gameID, clan, player, requestor)
+	return dispatchMembershipHook(app, db, hookType, gameID, clan, player, requestor, message)
 }
 
-func dispatchMembershipHook(app *App, db models.DB, hookType int, gameID string, clan *models.Clan, player *models.Player, requestor *models.Player) error {
+func dispatchMembershipHook(app *App, db models.DB, hookType int, gameID string, clan *models.Clan, player *models.Player, requestor *models.Player, message string) error {
 	clanJSON := clan.Serialize()
 	delete(clanJSON, "gameID")
 
@@ -92,6 +98,10 @@ func dispatchMembershipHook(app *App, db models.DB, hookType int, gameID string,
 		"clan":      clanJSON,
 		"player":    playerJSON,
 		"requestor": requestorJSON,
+	}
+
+	if message != "" {
+		result["message"] = message
 	}
 	app.DispatchHooks(gameID, hookType, result)
 
@@ -115,6 +125,21 @@ func ApplyForMembershipHandler(app *App) func(c *iris.Context) {
 		if err := LoadJSONPayload(&payload, c, l); err != nil {
 			FailWith(400, err.Error(), c)
 			return
+		}
+
+		data := c.RequestCtx.Request.Body()
+		var jsonPayload map[string]interface{}
+		err := json.Unmarshal(data, &jsonPayload)
+		if err != nil {
+			FailWith(400, err.Error(), c)
+			return
+		}
+
+		var message string
+		if val, ok := jsonPayload["message"]; ok {
+			message = val.(string)
+		} else {
+			message = ""
 		}
 
 		l = l.With(
@@ -147,6 +172,7 @@ func ApplyForMembershipHandler(app *App) func(c *iris.Context) {
 			payload.PlayerPublicID,
 			clanPublicID,
 			payload.PlayerPublicID,
+			message,
 		)
 
 		if err != nil {
@@ -160,7 +186,7 @@ func ApplyForMembershipHandler(app *App) func(c *iris.Context) {
 		err = dispatchMembershipHookByID(
 			app, db, models.MembershipApplicationCreatedHook,
 			membership.GameID, membership.ClanID, membership.PlayerID,
-			membership.RequestorID,
+			membership.RequestorID, membership.Message,
 		)
 		if err != nil {
 			l.Error("Membership application created dispatch hook failed.", zap.Error(err))
@@ -222,6 +248,7 @@ func InviteForMembershipHandler(app *App) func(c *iris.Context) {
 			payload.PlayerPublicID,
 			clanPublicID,
 			payload.RequestorPublicID,
+			"",
 		)
 
 		if err != nil {
@@ -234,7 +261,7 @@ func InviteForMembershipHandler(app *App) func(c *iris.Context) {
 		err = dispatchMembershipHookByID(
 			app, db, models.MembershipApplicationCreatedHook,
 			membership.GameID, membership.ClanID, membership.PlayerID,
-			membership.RequestorID,
+			membership.RequestorID, membership.Message,
 		)
 		if err != nil {
 			l.Error("Membership invitation dispatch hook failed.", zap.Error(err))
@@ -322,7 +349,7 @@ func ApproveOrDenyMembershipApplicationHandler(app *App) func(c *iris.Context) {
 		err = dispatchMembershipHookByID(
 			app, db, hookType,
 			membership.GameID, membership.ClanID, membership.PlayerID,
-			requestor.ID,
+			requestor.ID, membership.Message,
 		)
 		if err != nil {
 			l.Error("Membership approved/denied dispatch hook failed.", zap.Error(err))
@@ -400,7 +427,7 @@ func ApproveOrDenyMembershipInvitationHandler(app *App) func(c *iris.Context) {
 		err = dispatchMembershipHookByID(
 			app, db, hookType,
 			membership.GameID, membership.ClanID, membership.PlayerID,
-			membership.PlayerID,
+			membership.PlayerID, membership.Message,
 		)
 		if err != nil {
 			FailWith(500, err.Error(), c)
@@ -560,7 +587,7 @@ func PromoteOrDemoteMembershipHandler(app *App, action string) func(c *iris.Cont
 		err = dispatchMembershipHookByID(
 			app, db, hookType,
 			membership.GameID, membership.ClanID, membership.PlayerID,
-			requestor.ID,
+			requestor.ID, membership.Message,
 		)
 		if err != nil {
 			l.Error("Promote/Demote member hook dispatch failed.", zap.Error(err))
