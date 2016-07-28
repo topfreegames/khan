@@ -395,7 +395,7 @@ func GetClanDetails(db DB, gameID, publicID string, maxClansPerPlayer int) (map[
 		c.allow_application ClanAllowApplication, c.auto_join ClanAutoJoin,
 		c.membership_count ClanMembershipCount,
 		m.membership_level MembershipLevel, m.approved MembershipApproved, m.denied MembershipDenied,
-		m.banned MembershipBanned,
+		m.banned MembershipBanned, m.message MembershipMessage,
 		m.created_at MembershipCreatedAt, m.updated_at MembershipUpdatedAt,
 		m.approved_at MembershipApprovedAt, m.denied_at MembershipDeniedAt,
 		o.public_id OwnerPublicID, o.name OwnerName, o.metadata OwnerMetadata,
@@ -461,6 +461,7 @@ func GetClanDetails(db DB, gameID, publicID string, maxClansPerPlayer int) (map[
 				memberData := member.Serialize(true)
 				if member.MembershipCount+member.OwnershipCount < maxClansPerPlayer {
 					if member.PlayerPublicID == member.RequestorPublicID {
+						memberData["message"] = nullOrString(member.MembershipMessage)
 						memberships["pendingApplications"] = append(memberships["pendingApplications"].([]map[string]interface{}), memberData)
 					} else {
 						memberships["pendingInvites"] = append(memberships["pendingInvites"].([]map[string]interface{}), memberData)

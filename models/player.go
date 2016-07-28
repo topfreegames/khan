@@ -232,6 +232,7 @@ func GetPlayerMembershipDetails(db DB, gameID, publicID string) (map[string]inte
 		m.updated_at MembershipUpdatedAt,
 		m.deleted_at MembershipDeletedAt,
 		m.approved_at MembershipApprovedAt, m.denied_at MembershipDeniedAt,
+		m.message MembershipMessage,
 		d.name DeletedByName, d.public_id DeletedByPublicID
 	FROM players p
 		LEFT OUTER JOIN memberships m on m.player_id = p.id

@@ -31,6 +31,7 @@ type clanDetailsDAO struct {
 	MembershipUpdatedAt  sql.NullInt64
 	MembershipApprovedAt sql.NullInt64
 	MembershipDeniedAt   sql.NullInt64
+	MembershipMessage    sql.NullString
 
 	// Clan Owner Information
 	OwnerPublicID string
@@ -108,6 +109,7 @@ type playerDetailsDAO struct {
 	MembershipDeletedAt  sql.NullInt64
 	MembershipApprovedAt sql.NullInt64
 	MembershipDeniedAt   sql.NullInt64
+	MembershipMessage    sql.NullString
 
 	// Clan Details
 	ClanPublicID        sql.NullString
@@ -151,6 +153,7 @@ func (p *playerDetailsDAO) Serialize() map[string]interface{} {
 		"deletedAt":  nullOrInt(p.MembershipDeletedAt),
 		"approvedAt": nullOrInt(p.MembershipApprovedAt),
 		"deniedAt":   nullOrInt(p.MembershipDeniedAt),
+		"message":    nullOrString(p.MembershipMessage),
 		"clan": map[string]interface{}{
 			"publicID":        nullOrString(p.ClanPublicID),
 			"name":            nullOrString(p.ClanName),
