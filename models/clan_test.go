@@ -701,6 +701,17 @@ func TestClanModel(t *testing.T) {
 					g.Assert(membershipLevel).Equal(membershipDict[playerDict[pid].ID].Level)
 				}
 
+				for _, playerData := range pendingApplications {
+					player := playerData["player"].(map[string]interface{})
+					pid := player["publicID"].(string)
+					name := player["name"].(string)
+					message := player["message"].(string)
+					g.Assert(name).Equal(playerDict[pid].Name)
+					membershipLevel := playerData["level"]
+					g.Assert(membershipLevel).Equal(membershipDict[playerDict[pid].ID].Level)
+					g.Assert(message).Equal("Accept me")
+				}
+
 				for _, playerData := range banned {
 					player := playerData["player"].(map[string]interface{})
 					pid := player["publicID"].(string)

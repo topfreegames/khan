@@ -286,8 +286,10 @@ func GetClanWithMemberships(
 			players = append(players, player)
 
 			requestorID := owner.ID
+			message := ""
 			if !pendingsAreInvites {
 				requestorID = player.ID
+				message = "Accept me"
 			}
 
 			membership := MembershipFactory.MustCreateWithOption(map[string]interface{}{
@@ -300,6 +302,7 @@ func GetClanWithMemberships(
 				"Approved":    approved,
 				"Denied":      denied,
 				"Banned":      banned,
+				"Message":     message,
 			}).(*Membership)
 
 			if approved {

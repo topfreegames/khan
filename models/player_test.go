@@ -216,6 +216,7 @@ func TestPlayerModel(t *testing.T) {
 
 				g.Assert(approvedMembership["approvedAt"] != nil).IsTrue()
 				g.Assert(approvedMembership["approvedAt"].(int64) > 0).IsTrue()
+				g.Assert(approvedMembership["message"]).Equal("")
 
 				deniedMembership := playerDetails["memberships"].([]map[string]interface{})[6]
 				g.Assert(deniedMembership["denier"] != nil).IsTrue()
@@ -226,7 +227,7 @@ func TestPlayerModel(t *testing.T) {
 
 				g.Assert(deniedMembership["deniedAt"] != nil).IsTrue()
 				g.Assert(deniedMembership["deniedAt"].(int64) > 0).IsTrue()
-
+				g.Assert(deniedMembership["message"]).Equal("")
 			})
 
 			g.It("Should get Player Details without memberships that were deleted by the player", func() {
