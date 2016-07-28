@@ -511,6 +511,9 @@ Khan API
 
             "level": [string],    // level of the player in this clan
 
+            "message": [string], // empty if membership not created using an application
+                                 // or the application message otherwise
+
             // Player that requested membership
             // If the player was invited, this should be another player.
             // Otherwise, this is the same as the player.
@@ -674,6 +677,8 @@ Khan API
 
     {
         "level": [int],  // not returned for denied/banned memberships
+        "message": [string], // the message sent with the application
+                             // or "" if the membership was not created with and application
         "player": {
           "publicID": [string],
           "name":     [string],
@@ -1002,8 +1007,9 @@ Khan API
 
     ```
     {
-      "level": [string],         // the level of the membership
-      "playerPublicID": [string] // the player's public id
+      "level": [string],          // the level of the membership
+      "playerPublicID": [string], // the player's public id
+      "message": [string]         // optional, a message sent by the player
     }
     ```
 
