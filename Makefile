@@ -132,10 +132,9 @@ migrate-perf:
 	@go run main.go migrate -c ./config/perf.yaml
 
 static:
-	@go vet $(PACKAGES)
+	@-go vet $(PACKAGES)
 	@-gocyclo -over 5 . | egrep -v vendor/
-	@#golint
-	@for pkg in $$(go list ./... |grep -v /vendor/) ; do \
+	@for pkg in $$(go list ./... | grep -v /vendor/ | grep -v "/db") ; do \
         golint $$pkg ; \
     done
 	@#ineffassign

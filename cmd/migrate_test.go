@@ -13,13 +13,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	. "github.com/topfreegames/khan/cmd"
-	"github.com/topfreegames/khan/models"
 )
-
-// GetTestDB returns a connection to the test database
-func GetTestDB() (models.DB, error) {
-	return models.GetDB("localhost", "khan_test", 5432, "disable", "khan_test", "")
-}
 
 func dropDB() error {
 	cmd := exec.Cmd{
@@ -38,14 +32,8 @@ func dropDB() error {
 }
 
 var _ = Describe("Migrate Command", func() {
-	var testDb models.DB
-
 	BeforeEach(func() {
-		var err error
-		testDb, err = GetTestDB()
-		Expect(err).NotTo(HaveOccurred())
-
-		err = dropDB()
+		err := dropDB()
 		Expect(err).NotTo(HaveOccurred())
 	})
 
