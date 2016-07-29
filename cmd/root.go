@@ -49,7 +49,7 @@ func init() {
 	)
 }
 
-// initConfig reads in config file and ENV variables if set.
+// InitConfig reads in config file and ENV variables if set.
 func InitConfig() {
 	if ConfigFile != "" { // enable ability to specify config file via flag
 		viper.SetConfigFile(ConfigFile)

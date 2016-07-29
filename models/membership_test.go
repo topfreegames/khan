@@ -21,14 +21,11 @@ import (
 
 var _ = Describe("Hook Model", func() {
 	var testDb DB
-	var faultyDb DB
 
 	BeforeEach(func() {
 		var err error
 		testDb, err = GetTestDB()
 		Expect(err).NotTo(HaveOccurred())
-
-		faultyDb = GetFaultyTestDB()
 	})
 
 	Describe("Membership Model", func() {

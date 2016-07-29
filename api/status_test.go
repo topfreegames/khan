@@ -13,18 +13,9 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/topfreegames/khan/models"
 )
 
 var _ = Describe("Status API Handler", func() {
-	var testDb models.DB
-
-	BeforeEach(func() {
-		var err error
-		testDb, err = GetTestDB()
-		Expect(err).NotTo(HaveOccurred())
-	})
-
 	Describe("Status Handler", func() {
 		It("Should respond with status", func() {
 			a := GetDefaultTestApp()

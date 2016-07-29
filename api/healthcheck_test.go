@@ -12,18 +12,9 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/topfreegames/khan/models"
 )
 
 var _ = Describe("Healthcheck API Handler", func() {
-	var testDb models.DB
-
-	BeforeEach(func() {
-		var err error
-		testDb, err = GetTestDB()
-		Expect(err).NotTo(HaveOccurred())
-	})
-
 	Describe("Healthcheck Handler", func() {
 		It("Should respond with default WORKING string", func() {
 			a := GetDefaultTestApp()
