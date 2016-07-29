@@ -5,98 +5,100 @@
 // http://www.opensource.org/licenses/mit-license
 // Copyright © 2016 Top Free Games <backend@tfgco.com>
 
-package api
+package api_test
 
 import (
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
-	"testing"
 
-	. "github.com/franela/goblin"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 	"github.com/topfreegames/khan/models"
 )
 
-func TestHookHandler(t *testing.T) {
-	g := Goblin(t)
+var _ = Describe("Healthcheck API Handler", func() {
+	var testDb models.DB
 
-	testDb, err := models.GetTestDB()
+	BeforeEach(func() {
+		var err error
+		testDb, err = GetTestDB()
+		Expect(err).NotTo(HaveOccurred())
+	})
 
-	g.Assert(err == nil).IsTrue()
-
-	g.Describe("Create Hook Handler", func() {
-		g.It("Should create hook", func() {
+	Describe("Create Hook Handler", func() {
+		It("Should create hook", func() {
 			a := GetDefaultTestApp()
 			game := models.GameFactory.MustCreate().(*models.Game)
 			err := a.Db.Insert(game)
-			AssertNotError(g, err)
+			Expect(err).NotTo(HaveOccurred())
 
 			payload := map[string]interface{}{
 				"type":    models.GameUpdatedHook,
 				"hookURL": "http://test/create",
 			}
-			res := PostJSON(a, GetGameRoute(game.PublicID, "/hooks"), t, payload)
+			res := PostJSON(a, GetGameRoute(game.PublicID, "/hooks"), payload)
 
-			g.Assert(res.Raw().StatusCode).Equal(http.StatusOK)
+			Expect(res.Raw().StatusCode).To(Equal(http.StatusOK))
 			var result map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
-			g.Assert(result["success"]).IsTrue()
-			g.Assert(result["publicID"] != "").IsTrue()
+			Expect(result["success"]).To(BeTrue())
+			Expect(result["publicID"]).NotTo(BeEquivalentTo(""))
 
 			dbHook, err := models.GetHookByPublicID(
 				a.Db, game.PublicID, result["publicID"].(string),
 			)
-			AssertNotError(g, err)
-			g.Assert(dbHook.GameID).Equal(game.PublicID)
-			g.Assert(dbHook.PublicID).Equal(result["publicID"])
-			g.Assert(dbHook.EventType).Equal(payload["type"])
-			g.Assert(dbHook.URL).Equal(payload["hookURL"])
+			Expect(err).NotTo(HaveOccurred())
+			Expect(dbHook.GameID).To(Equal(game.PublicID))
+			Expect(dbHook.PublicID).To(Equal(result["publicID"]))
+			Expect(dbHook.EventType).To(Equal(payload["type"]))
+			Expect(dbHook.URL).To(Equal(payload["hookURL"]))
 		})
 
-		g.It("Should not create hook if missing parameters", func() {
+		It("Should not create hook if missing parameters", func() {
 			a := GetDefaultTestApp()
 			route := GetGameRoute("game-id", "/hooks")
-			res := PostJSON(a, route, t, map[string]interface{}{})
+			res := PostJSON(a, route, map[string]interface{}{})
 
-			g.Assert(res.Raw().StatusCode).Equal(http.StatusBadRequest)
+			Expect(res.Raw().StatusCode).To(Equal(http.StatusBadRequest))
 			var result map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
-			g.Assert(result["success"]).IsFalse()
-			g.Assert(result["reason"]).Equal("type is required, hookURL is required")
+			Expect(result["success"]).To(BeFalse())
+			Expect(result["reason"]).To(Equal("type is required, hookURL is required"))
 		})
 
-		g.It("Should not create hook if invalid payload", func() {
+		It("Should not create hook if invalid payload", func() {
 			a := GetDefaultTestApp()
 			route := GetGameRoute("game-id", "/hooks")
-			res := PostBody(a, route, t, "invalid")
+			res := PostBody(a, route, "invalid")
 
-			g.Assert(res.Raw().StatusCode).Equal(http.StatusBadRequest)
+			Expect(res.Raw().StatusCode).To(Equal(http.StatusBadRequest))
 			var result map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
-			g.Assert(result["success"]).IsFalse()
-			g.Assert(strings.Contains(result["reason"].(string), "While trying to read JSON")).IsTrue()
+			Expect(result["success"]).To(BeFalse())
+			Expect(strings.Contains(result["reason"].(string), "While trying to read JSON")).To(BeTrue())
 		})
 	})
 
-	g.Describe("Delete Hook Handler", func() {
-		g.It("Should delete hook", func() {
+	Describe("Delete Hook Handler", func() {
+		It("Should delete hook", func() {
 			a := GetDefaultTestApp()
 
 			hook, err := models.CreateHookFactory(testDb, "", models.GameUpdatedHook, "http://test/update")
-			g.Assert(err == nil).IsTrue()
+			Expect(err).NotTo(HaveOccurred())
 
-			res := Delete(a, GetGameRoute(hook.GameID, fmt.Sprintf("/hooks/%s", hook.PublicID)), t)
+			res := Delete(a, GetGameRoute(hook.GameID, fmt.Sprintf("/hooks/%s", hook.PublicID)))
 
-			g.Assert(res.Raw().StatusCode).Equal(http.StatusOK)
+			Expect(res.Raw().StatusCode).To(Equal(http.StatusOK))
 
 			var result map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
-			g.Assert(result["success"]).IsTrue()
+			Expect(result["success"]).To(BeTrue())
 
 			number, err := testDb.SelectInt("select count(*) from hooks where id=$1", hook.ID)
-			g.Assert(err == nil).IsTrue()
-			g.Assert(number == 0).IsTrue()
+			Expect(err).NotTo(HaveOccurred())
+			Expect(number == 0).To(BeTrue())
 		})
 	})
-}
+})

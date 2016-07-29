@@ -74,15 +74,13 @@ run-docker:
 		khan
 
 test: assets drop-test db-test
-	@go test $(PACKAGES)
+	@ginkgo --cover $(GODIRS)
 
-coverage: drop-test db-test
+test-coverage coverage: test
 	@echo "mode: count" > coverage-all.out
-	@$(foreach pkg,$(PACKAGES),\
-		go test -coverprofile=coverage.out -covermode=count $(pkg) && \
-		tail -n +2 coverage.out >> coverage-all.out;)
+	@bash -c 'for f in $$(find . -name "*.coverprofile"); do tail -n +2 $$f >> coverage-all.out; done'
 
-coverage-html:
+test-coverage-html coverage-html: test-coverage
 	@go tool cover -html=coverage-all.out
 
 db migrate:

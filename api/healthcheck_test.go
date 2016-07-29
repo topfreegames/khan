@@ -5,38 +5,41 @@
 // http://www.opensource.org/licenses/mit-license
 // Copyright © 2016 Top Free Games <backend@tfgco.com>
 
-package api
+package api_test
 
 import (
 	"net/http"
-	"testing"
 
-	. "github.com/franela/goblin"
+	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/topfreegames/khan/models"
 )
 
-func TestHealthcheckHandler(t *testing.T) {
-	g := Goblin(t)
+var _ = Describe("Healthcheck API Handler", func() {
+	var testDb models.DB
 
-	// special hook for gomega
-	RegisterFailHandler(func(m string, _ ...int) { g.Fail(m) })
+	BeforeEach(func() {
+		var err error
+		testDb, err = GetTestDB()
+		Expect(err).NotTo(HaveOccurred())
+	})
 
-	g.Describe("Healthcheck Handler", func() {
-		g.It("Should respond with default WORKING string", func() {
+	Describe("Healthcheck Handler", func() {
+		It("Should respond with default WORKING string", func() {
 			a := GetDefaultTestApp()
-			res := Get(a, "/healthcheck", t)
+			res := Get(a, "/healthcheck")
 
-			g.Assert(res.Raw().StatusCode).Equal(http.StatusOK)
-			res.Body().Equal("WORKING")
+			Expect(res.Raw().StatusCode).To(Equal(http.StatusOK))
+			Expect(res.Body().Raw()).To(Equal("WORKING"))
 		})
 
-		g.It("Should respond with customized WORKING string", func() {
+		It("Should respond with customized WORKING string", func() {
 			a := GetDefaultTestApp()
 			a.Config.SetDefault("healthcheck.workingText", "OTHERWORKING")
-			res := Get(a, "/healthcheck", t)
+			res := Get(a, "/healthcheck")
 
-			g.Assert(res.Raw().StatusCode).Equal(http.StatusOK)
-			res.Body().Equal("OTHERWORKING")
+			Expect(res.Raw().StatusCode).To(Equal(http.StatusOK))
+			Expect(res.Body().Raw()).To(Equal("OTHERWORKING"))
 		})
 	})
-}
+})

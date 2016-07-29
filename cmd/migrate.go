@@ -95,7 +95,8 @@ func (err *MigrationError) Error() string {
 	return fmt.Sprintf("Could not run migrations: %s", err.Message)
 }
 
-func runMigrations(migrationVersion int64) error {
+//RunMigrations in selected DB
+func RunMigrations(migrationVersion int64) error {
 	conf := getGooseConf()
 	defer os.RemoveAll(conf.MigrationsDir)
 	db, err := getDatabase()
@@ -128,8 +129,8 @@ var migrateCmd = &cobra.Command{
 	Short: "migrates the database up or down",
 	Long:  `Migrate the database specified in the configuration file to the given version (or latest if none provided)`,
 	Run: func(cmd *cobra.Command, args []string) {
-		initConfig()
-		err := runMigrations(migrationVersion)
+		InitConfig()
+		err := RunMigrations(migrationVersion)
 		if err != nil {
 			panic(err.Error())
 		}

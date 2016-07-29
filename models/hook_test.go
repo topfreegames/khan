@@ -5,108 +5,119 @@
 // http://www.opensource.org/licenses/mit-license
 // Copyright © 2016 Top Free Games <backend@tfgco.com>
 
-package models
+package models_test
 
 import (
-	"testing"
 	"time"
 
-	. "github.com/franela/goblin"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 	"github.com/satori/go.uuid"
+	. "github.com/topfreegames/khan/models"
 )
 
-func TestHookModel(t *testing.T) {
-	g := Goblin(t)
-	testDb, err := GetTestDB()
+var _ = Describe("Hook Model", func() {
+	var testDb DB
+	var faultyDb DB
 
-	g.Assert(err == nil).IsTrue()
+	BeforeEach(func() {
+		var err error
+		testDb, err = GetTestDB()
+		Expect(err).NotTo(HaveOccurred())
 
-	g.Describe("Hook Model", func() {
+		faultyDb = GetFaultyTestDB()
+	})
 
-		g.Describe("Model Basic Tests", func() {
-			g.It("Should create a new Hook", func() {
+	Describe("Hook Model", func() {
+
+		Describe("Model Basic Tests", func() {
+			It("Should create a new Hook", func() {
 				hook, err := CreateHookFactory(testDb, "", GameUpdatedHook, "http://test/created")
-				g.Assert(err == nil).IsTrue()
-				g.Assert(hook.ID != 0).IsTrue()
+				Expect(err).NotTo(HaveOccurred())
+				Expect(hook.ID).NotTo(BeEquivalentTo(0))
 
 				dbHook, err := GetHookByID(testDb, hook.ID)
-				g.Assert(err == nil).IsTrue()
+				Expect(err).NotTo(HaveOccurred())
 
-				g.Assert(dbHook.GameID).Equal(hook.GameID)
-				g.Assert(dbHook.URL).Equal(hook.URL)
-				g.Assert(dbHook.EventType).Equal(hook.EventType)
+				Expect(dbHook.GameID).To(Equal(hook.GameID))
+				Expect(dbHook.URL).To(Equal(hook.URL))
+				Expect(dbHook.EventType).To(Equal(hook.EventType))
 			})
 
-			g.It("Should update a Hook", func() {
+			It("Should update a Hook", func() {
 				hook, err := CreateHookFactory(testDb, "", GameUpdatedHook, "http://test/updated")
-				g.Assert(err == nil).IsTrue()
+				Expect(err).NotTo(HaveOccurred())
 				dt := hook.UpdatedAt
 				hook.URL = "http://test/updated2"
 
 				time.Sleep(time.Millisecond)
 
 				count, err := testDb.Update(hook)
-				g.Assert(err == nil).IsTrue()
-				g.Assert(int(count)).Equal(1)
-				g.Assert(hook.UpdatedAt > dt).IsTrue()
-				g.Assert(hook.URL).Equal("http://test/updated2")
+				Expect(err).NotTo(HaveOccurred())
+				Expect(count).To(BeEquivalentTo(1))
+				Expect(hook.UpdatedAt).To(BeNumerically(">", dt))
+				Expect(hook.URL).To(Equal("http://test/updated2"))
 			})
 		})
 
-		g.Describe("Get Hook By ID", func() {
-			g.It("Should get existing Hook", func() {
+		Describe("Get Hook By ID", func() {
+			It("Should get existing Hook", func() {
 				hook, err := CreateHookFactory(testDb, "", GameUpdatedHook, "http://test/getbyid")
-				g.Assert(err == nil).IsTrue()
+				Expect(err).NotTo(HaveOccurred())
 
 				dbHook, err := GetHookByID(testDb, hook.ID)
-				g.Assert(err == nil).IsTrue()
-				g.Assert(dbHook.ID).Equal(hook.ID)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(dbHook.ID).To(Equal(hook.ID))
 			})
 
-			g.It("Should not get non-existing Hook", func() {
+			It("Should not get non-existing Hook", func() {
 				_, err := GetHookByID(testDb, -1)
-				g.Assert(err != nil).IsTrue()
-				g.Assert(err.Error()).Equal("Hook was not found with id: -1")
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(Equal("Hook was not found with id: -1"))
 			})
 		})
 
-		g.Describe("Get Hook By Public ID", func() {
-			g.It("Should get existing Hook", func() {
+		Describe("Get Hook By Public ID", func() {
+			It("Should get existing Hook", func() {
 				hook, err := CreateHookFactory(testDb, "", GameUpdatedHook, "http://test/getbyid")
-				g.Assert(err == nil).IsTrue()
+				Expect(err).NotTo(HaveOccurred())
 
 				dbHook, err := GetHookByPublicID(testDb, hook.GameID, hook.PublicID)
-				g.Assert(err == nil).IsTrue()
-				g.Assert(dbHook.ID).Equal(hook.ID)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(dbHook.ID).To(Equal(hook.ID))
 			})
 
-			g.It("Should not get non-existing Hook", func() {
+			It("Should not get non-existing Hook", func() {
 				_, err := GetHookByPublicID(testDb, "invalid", "key")
-				g.Assert(err != nil).IsTrue()
-				g.Assert(err.Error()).Equal("Hook was not found with id: key")
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(Equal("Hook was not found with id: key"))
 			})
 		})
 
-		g.Describe("Create Hook", func() {
-			g.It("Should create a new Hook with CreateHook", func() {
+		Describe("Create Hook", func() {
+			It("Should create a new Hook with CreateHook", func() {
+				game := GameFactory.MustCreate().(*Game)
+				err := testDb.Insert(game)
+				Expect(err).NotTo(HaveOccurred())
+
 				hook, err := CreateHook(
 					testDb,
-					"create-1",
+					game.PublicID,
 					GameUpdatedHook,
 					"http://test/created",
 				)
-				g.Assert(err == nil).IsTrue()
-				g.Assert(hook.ID != 0).IsTrue()
+				Expect(err).NotTo(HaveOccurred())
+				Expect(hook.ID).NotTo(BeEquivalentTo(0))
 
 				dbHook, err := GetHookByID(testDb, hook.ID)
-				g.Assert(err == nil).IsTrue()
+				Expect(err).NotTo(HaveOccurred())
 
-				g.Assert(dbHook.GameID).Equal(hook.GameID)
-				g.Assert(dbHook.EventType).Equal(hook.EventType)
-				g.Assert(dbHook.URL).Equal(hook.URL)
+				Expect(dbHook.GameID).To(Equal(hook.GameID))
+				Expect(dbHook.EventType).To(Equal(hook.EventType))
+				Expect(dbHook.URL).To(Equal(hook.URL))
 			})
 
-			g.It("Create same Hook works fine", func() {
+			It("Create same Hook works fine", func() {
 				gameID := uuid.NewV4().String()
 				hook, err := CreateHookFactory(testDb, gameID, GameUpdatedHook, "http://test/created")
 
@@ -116,23 +127,23 @@ func TestHookModel(t *testing.T) {
 					GameUpdatedHook,
 					"http://test/created",
 				)
-				g.Assert(err == nil).IsTrue()
-				g.Assert(hook2.ID == hook.ID).IsTrue()
+				Expect(err).NotTo(HaveOccurred())
+				Expect(hook2.ID == hook.ID).To(BeTrue())
 
 				dbHook, err := GetHookByID(testDb, hook.ID)
-				g.Assert(err == nil).IsTrue()
+				Expect(err).NotTo(HaveOccurred())
 
-				g.Assert(dbHook.GameID).Equal(hook.GameID)
-				g.Assert(dbHook.EventType).Equal(hook.EventType)
-				g.Assert(dbHook.URL).Equal(hook.URL)
+				Expect(dbHook.GameID).To(Equal(hook.GameID))
+				Expect(dbHook.EventType).To(Equal(hook.EventType))
+				Expect(dbHook.URL).To(Equal(hook.URL))
 			})
 
 		})
 
-		g.Describe("Remove Hook", func() {
-			g.It("Should remove a Hook with RemoveHook", func() {
+		Describe("Remove Hook", func() {
+			It("Should remove a Hook with RemoveHook", func() {
 				hook, err := CreateHookFactory(testDb, "", GameUpdatedHook, "http://test/update")
-				g.Assert(err == nil).IsTrue()
+				Expect(err).NotTo(HaveOccurred())
 
 				err = RemoveHook(
 					testDb,
@@ -140,25 +151,26 @@ func TestHookModel(t *testing.T) {
 					hook.PublicID,
 				)
 
-				g.Assert(err == nil).IsTrue()
+				Expect(err).NotTo(HaveOccurred())
 
 				number, err := testDb.SelectInt("select count(*) from hooks where id=$1", hook.ID)
-				g.Assert(err == nil).IsTrue()
-				g.Assert(number == 0).IsTrue()
+				Expect(err).NotTo(HaveOccurred())
+				Expect(number == 0).To(BeTrue())
 			})
 		})
 
-		g.Describe("Get All Hooks", func() {
-			g.It("Should get all hooks", func() {
-				_, err := GetTestHooks(testDb, "", 5)
-				g.Assert(err == nil).IsTrue()
+		Describe("Get All Hooks", func() {
+			It("Should get all hooks", func() {
+				gameID := uuid.NewV4().String()
+				_, err := GetTestHooks(testDb, gameID, 5)
+				Expect(err).NotTo(HaveOccurred())
 
 				hooks, err := GetAllHooks(testDb)
 
-				g.Assert(err == nil).IsTrue()
-				g.Assert(len(hooks) > 10).IsTrue()
+				Expect(err).NotTo(HaveOccurred())
+				Expect(len(hooks)).To(BeNumerically(">", 10))
 			})
 		})
 
 	})
-}
+})
