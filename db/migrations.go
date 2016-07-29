@@ -358,7 +358,7 @@ func migrations20160728180524_createmaxpendinginvitesfieldSql() (*asset, error) 
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "migrations/20160728180524_CreateMaxPendingInvitesField.sql", size: 336, mode: os.FileMode(420), modTime: time.Unix(1469807852, 0)}
+	info := bindataFileInfo{name: "migrations/20160728180524_CreateMaxPendingInvitesField.sql", size: 336, mode: os.FileMode(420), modTime: time.Unix(1469810580, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -378,7 +378,7 @@ func migrations20160728195902_createmembershipmessagefieldSql() (*asset, error) 
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "migrations/20160728195902_CreateMembershipMessageField.sql", size: 273, mode: os.FileMode(420), modTime: time.Unix(1469740109, 0)}
+	info := bindataFileInfo{name: "migrations/20160728195902_CreateMembershipMessageField.sql", size: 273, mode: os.FileMode(420), modTime: time.Unix(1469810580, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -398,7 +398,7 @@ func migrations20160729154028_fixmembershipmessagefieldSql() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "migrations/20160729154028_FixMembershipMessageField.sql", size: 285, mode: os.FileMode(420), modTime: time.Unix(1469806885, 0)}
+	info := bindataFileInfo{name: "migrations/20160729154028_FixMembershipMessageField.sql", size: 285, mode: os.FileMode(420), modTime: time.Unix(1469810580, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
