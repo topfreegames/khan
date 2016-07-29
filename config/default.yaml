@@ -9,7 +9,7 @@ khan:
   maxPendingInvites: -1
 
 healthcheck:
-  text: "WORKING"
+  workingText: "WORKING"
 
 webhooks:
   timeout: 2
