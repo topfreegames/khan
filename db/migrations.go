@@ -13,6 +13,7 @@
 // migrations/20160708192007_CreateOwnerIndex.sql
 // migrations/20160713185332_CreateGameCooldownAfterDenyAndDelete.sql
 // migrations/20160713191703_CreateMembershipDenierField.sql
+// migrations/20160728180524_CreateMaxPendingInvitesField.sql
 // migrations/20160728195902_CreateMembershipMessageField.sql
 // migrations/20160729154028_FixMembershipMessageField.sql
 // DO NOT EDIT!
@@ -97,7 +98,7 @@ func migrations20160608133902_creategametableSql() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "migrations/20160608133902_CreateGameTable.sql", size: 1193, mode: os.FileMode(420), modTime: time.Unix(1466797802, 0)}
+	info := bindataFileInfo{name: "migrations/20160608133902_CreateGameTable.sql", size: 1193, mode: os.FileMode(420), modTime: time.Unix(1466798697, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -117,7 +118,7 @@ func migrations20160608150958_createplayertableSql() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "migrations/20160608150958_CreatePlayerTable.sql", size: 730, mode: os.FileMode(420), modTime: time.Unix(1466707165, 0)}
+	info := bindataFileInfo{name: "migrations/20160608150958_CreatePlayerTable.sql", size: 730, mode: os.FileMode(420), modTime: time.Unix(1466707272, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -137,7 +138,7 @@ func migrations20160608174439_createclantableSql() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "migrations/20160608174439_CreateClanTable.sql", size: 906, mode: os.FileMode(420), modTime: time.Unix(1466707165, 0)}
+	info := bindataFileInfo{name: "migrations/20160608174439_CreateClanTable.sql", size: 906, mode: os.FileMode(420), modTime: time.Unix(1466707272, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -157,7 +158,7 @@ func migrations20160608182307_createmembershiptableSql() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "migrations/20160608182307_CreateMembershipTable.sql", size: 1018, mode: os.FileMode(420), modTime: time.Unix(1466787920, 0)}
+	info := bindataFileInfo{name: "migrations/20160608182307_CreateMembershipTable.sql", size: 1018, mode: os.FileMode(420), modTime: time.Unix(1466792887, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -177,7 +178,7 @@ func migrations20160621161411_createhookstableSql() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "migrations/20160621161411_CreateHooksTable.sql", size: 700, mode: os.FileMode(420), modTime: time.Unix(1466601889, 0)}
+	info := bindataFileInfo{name: "migrations/20160621161411_CreateHooksTable.sql", size: 700, mode: os.FileMode(420), modTime: time.Unix(1466538319, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -197,7 +198,7 @@ func migrations20160627110742_loaduuidmoduleSql() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "migrations/20160627110742_LoadUUIDModule.sql", size: 75, mode: os.FileMode(420), modTime: time.Unix(1467060502, 0)}
+	info := bindataFileInfo{name: "migrations/20160627110742_LoadUUIDModule.sql", size: 75, mode: os.FileMode(420), modTime: time.Unix(1467036481, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -217,7 +218,7 @@ func migrations20160627153918_createretrieveclanindexesSql() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "migrations/20160627153918_CreateRetrieveClanIndexes.sql", size: 674, mode: os.FileMode(420), modTime: time.Unix(1467060534, 0)}
+	info := bindataFileInfo{name: "migrations/20160627153918_CreateRetrieveClanIndexes.sql", size: 674, mode: os.FileMode(420), modTime: time.Unix(1467054354, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -237,7 +238,7 @@ func migrations20160627155249_createplayermembershipandownershipcountSql() (*ass
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "migrations/20160627155249_CreatePlayerMembershipAndOwnershipCount.sql", size: 415, mode: os.FileMode(420), modTime: time.Unix(1467060707, 0)}
+	info := bindataFileInfo{name: "migrations/20160627155249_CreatePlayerMembershipAndOwnershipCount.sql", size: 415, mode: os.FileMode(420), modTime: time.Unix(1467061932, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -257,7 +258,7 @@ func migrations20160628181530_createclanmembershipcountSql() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "migrations/20160628181530_CreateClanMembershipCount.sql", size: 287, mode: os.FileMode(420), modTime: time.Unix(1467154167, 0)}
+	info := bindataFileInfo{name: "migrations/20160628181530_CreateClanMembershipCount.sql", size: 287, mode: os.FileMode(420), modTime: time.Unix(1467237210, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -277,7 +278,7 @@ func migrations20160708161944_createmembershipapproverfieldSql() (*asset, error)
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "migrations/20160708161944_CreateMembershipApproverField.sql", size: 409, mode: os.FileMode(420), modTime: time.Unix(1468017766, 0)}
+	info := bindataFileInfo{name: "migrations/20160708161944_CreateMembershipApproverField.sql", size: 409, mode: os.FileMode(420), modTime: time.Unix(1468011708, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -297,7 +298,7 @@ func migrations20160708192007_createownerindexSql() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "migrations/20160708192007_CreateOwnerIndex.sql", size: 250, mode: os.FileMode(420), modTime: time.Unix(1468017766, 0)}
+	info := bindataFileInfo{name: "migrations/20160708192007_CreateOwnerIndex.sql", size: 250, mode: os.FileMode(420), modTime: time.Unix(1468016466, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -317,7 +318,7 @@ func migrations20160713185332_creategamecooldownafterdenyanddeleteSql() (*asset,
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "migrations/20160713185332_CreateGameCooldownAfterDenyAndDelete.sql", size: 425, mode: os.FileMode(420), modTime: time.Unix(1468451926, 0)}
+	info := bindataFileInfo{name: "migrations/20160713185332_CreateGameCooldownAfterDenyAndDelete.sql", size: 425, mode: os.FileMode(420), modTime: time.Unix(1468506203, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -337,12 +338,32 @@ func migrations20160713191703_createmembershipdenierfieldSql() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "migrations/20160713191703_CreateMembershipDenierField.sql", size: 401, mode: os.FileMode(420), modTime: time.Unix(1468451926, 0)}
+	info := bindataFileInfo{name: "migrations/20160713191703_CreateMembershipDenierField.sql", size: 401, mode: os.FileMode(420), modTime: time.Unix(1468506203, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
 
-var _migrations20160728195902_createmembershipmessagefieldSql = []byte("\x1f\x8b\x08\x00\x00\x09\x6e\x88\x00\xff\x8c\xce\xb1\x4e\x85\x30\x14\xc6\xf1\xbd\x4f\xf1\x6d\x68\x0c\x8b\x09\x13\x13\x5a\xb6\x0a\x8a\xf4\x01\x4a\x39\xa1\x8d\xd0\x36\x2d\x8a\x8f\x6f\x31\xd1\x18\x93\x9b\xdc\xf1\xfb\x9f\x33\xfc\x58\x59\xe2\x6e\xf1\x3e\x11\x64\x38\xc7\xeb\x8b\x80\x75\x48\xa4\x77\xeb\x1d\x0a\x19\x0a\xd8\x04\xfa\x24\xfd\xbe\xd3\x8c\xc3\x90\xc3\x6e\x72\xda\xec\x12\xd5\xf7\x53\x1e\x2a\x84\xd5\xd2\xcc\x1a\x31\xb6\x03\xc6\xe6\x41\xb4\xd8\x68\x9b\x28\x26\x63\x43\x42\xc3\x39\x1e\x7b\x21\x9f\xba\x9c\x53\x52\x0b\xe1\x43\x45\x6d\x54\xbc\xb9\xaf\xaa\x5b\x74\xfd\x88\x4e\x0a\x51\x33\xf6\x87\xc4\xfd\xe1\x7e\x50\xbf\xa2\x33\x5e\x65\x8a\x7e\x5d\xf3\x75\x52\xfa\xed\xa2\x8b\x0f\xfd\xf3\x3f\x58\xcd\xbe\x02\x00\x00\xff\xff\x50\xeb\x5a\xce\x15\x01\x00\x00")
+var _migrations20160728180524_createmaxpendinginvitesfieldSql = []byte("\x1f\x8b\x08\x00\x00\x09\x6e\x88\x00\xff\x8c\xcf\x31\x4f\xc3\x30\x10\x05\xe0\xdd\xbf\xe2\x6d\x1d\x50\x86\xce\x11\x83\xc1\x61\x32\x49\x69\xed\xb9\x32\xc9\xc9\x3d\x91\xd8\x56\x62\x68\x7f\x3e\x2e\x52\x11\x43\x84\x3a\xde\x7b\xa7\x27\x7d\xa2\xaa\xf0\xe0\x63\x5c\x08\x36\x5d\x8f\xc3\x9b\x06\x07\x2c\xd4\x67\x8e\x01\x1b\x9b\x36\xe0\x05\x74\xa1\xfe\x33\xd3\x80\xf3\x89\x02\xf2\xa9\x44\x13\xfb\xd9\xfd\x3c\x95\xc3\xa5\x34\x32\x0d\x42\x6a\xd3\xec\x61\xe4\x93\x6e\xe0\xdd\x44\x0b\xa4\x52\x78\xee\xb4\x7d\x6d\x31\xb9\xcb\x31\x51\x18\x38\xf8\x23\x87\x2f\xce\xa5\xe6\x90\xc9\xd3\x0c\xd5\xbc\x48\xab\x0d\xaa\x2d\xda\xce\xa0\xb5\x5a\xd7\xc2\xee\x94\x34\xb7\xa1\x43\x63\xd6\x16\x1e\xab\x6d\x2d\xc4\x1f\x87\x8a\xe7\x70\x93\xfc\x32\xae\xe1\x5d\x90\x39\x8e\x63\x69\xdf\x5d\xff\xb1\x82\x51\xfb\x6e\xf7\x8f\xa6\x16\xdf\x01\x00\x00\xff\xff\x87\x15\x75\x7b\x50\x01\x00\x00")
+
+func migrations20160728180524_createmaxpendinginvitesfieldSqlBytes() ([]byte, error) {
+	return bindataRead(
+		_migrations20160728180524_createmaxpendinginvitesfieldSql,
+		"migrations/20160728180524_CreateMaxPendingInvitesField.sql",
+	)
+}
+
+func migrations20160728180524_createmaxpendinginvitesfieldSql() (*asset, error) {
+	bytes, err := migrations20160728180524_createmaxpendinginvitesfieldSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "migrations/20160728180524_CreateMaxPendingInvitesField.sql", size: 336, mode: os.FileMode(420), modTime: time.Unix(1469807852, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _migrations20160728195902_createmembershipmessagefieldSql = []byte("\x1f\x8b\x08\x00\x00\x09\x6e\x88\x00\xff\x8c\xce\xb1\xae\x82\x30\x14\xc6\xf1\xbd\x4f\x71\x36\xee\xcd\x0d\xcb\x4d\x98\x98\xd0\xb2\x55\x50\xa4\x0f\x50\xca\x09\x6d\x84\xb6\x69\x51\x7c\x7c\x8b\x89\xc6\x98\x98\x38\x7e\xff\x73\x86\x1f\x49\x53\xf8\x1b\xac\x0d\x08\xdc\xad\xe3\x78\x60\xa0\x0d\x04\x94\xb3\xb6\x06\x12\xee\x12\xd0\x01\xf0\x8a\xf2\x3c\x63\x0f\x8b\x42\x03\xb3\x8a\x69\xd2\x83\x17\xf7\xa7\x38\x84\x73\xa3\xc6\x9e\x14\xac\x2d\x1b\x68\x8b\x0d\x2b\x61\xc2\xa9\x43\x1f\x94\x76\x01\x0a\x4a\x61\x5b\x33\xbe\xab\x62\x0e\x41\x0c\x08\x17\xe1\xa5\x12\xfe\xe7\x3f\xcb\x7e\xa1\xe2\x8c\xe5\x84\xbc\x70\xa8\x5d\xcc\x03\xf4\xd4\xac\xf1\x2b\x8f\xb7\xe3\x18\xaf\x9d\x90\xa7\x8f\x26\xda\xd4\xfb\x37\x54\x4e\x6e\x01\x00\x00\xff\xff\x21\x9a\x91\x88\x11\x01\x00\x00")
 
 func migrations20160728195902_createmembershipmessagefieldSqlBytes() ([]byte, error) {
 	return bindataRead(
@@ -357,7 +378,7 @@ func migrations20160728195902_createmembershipmessagefieldSql() (*asset, error) 
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "migrations/20160728195902_CreateMembershipMessageField.sql", size: 277, mode: os.FileMode(420), modTime: time.Unix(1469735988, 0)}
+	info := bindataFileInfo{name: "migrations/20160728195902_CreateMembershipMessageField.sql", size: 273, mode: os.FileMode(420), modTime: time.Unix(1469740109, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -447,6 +468,7 @@ var _bindata = map[string]func() (*asset, error){
 	"migrations/20160708192007_CreateOwnerIndex.sql": migrations20160708192007_createownerindexSql,
 	"migrations/20160713185332_CreateGameCooldownAfterDenyAndDelete.sql": migrations20160713185332_creategamecooldownafterdenyanddeleteSql,
 	"migrations/20160713191703_CreateMembershipDenierField.sql": migrations20160713191703_createmembershipdenierfieldSql,
+	"migrations/20160728180524_CreateMaxPendingInvitesField.sql": migrations20160728180524_createmaxpendinginvitesfieldSql,
 	"migrations/20160728195902_CreateMembershipMessageField.sql": migrations20160728195902_createmembershipmessagefieldSql,
 	"migrations/20160729154028_FixMembershipMessageField.sql": migrations20160729154028_fixmembershipmessagefieldSql,
 }
@@ -505,6 +527,7 @@ var _bintree = &bintree{nil, map[string]*bintree{
 		"20160708192007_CreateOwnerIndex.sql": &bintree{migrations20160708192007_createownerindexSql, map[string]*bintree{}},
 		"20160713185332_CreateGameCooldownAfterDenyAndDelete.sql": &bintree{migrations20160713185332_creategamecooldownafterdenyanddeleteSql, map[string]*bintree{}},
 		"20160713191703_CreateMembershipDenierField.sql": &bintree{migrations20160713191703_createmembershipdenierfieldSql, map[string]*bintree{}},
+		"20160728180524_CreateMaxPendingInvitesField.sql": &bintree{migrations20160728180524_createmaxpendinginvitesfieldSql, map[string]*bintree{}},
 		"20160728195902_CreateMembershipMessageField.sql": &bintree{migrations20160728195902_createmembershipmessagefieldSql, map[string]*bintree{}},
 		"20160729154028_FixMembershipMessageField.sql": &bintree{migrations20160729154028_fixmembershipmessagefieldSql, map[string]*bintree{}},
 	}},

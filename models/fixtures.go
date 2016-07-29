@@ -30,6 +30,7 @@ var GameFactory = factory.NewFactory(
 		MaxMembers:                    100,
 		CooldownAfterDeny:             0,
 		CooldownAfterDelete:           0,
+		MaxPendingInvites:             20,
 	},
 ).Attr("PublicID", func(args factory.Args) (interface{}, error) {
 	return uuid.NewV4().String(), nil

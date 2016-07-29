@@ -106,13 +106,40 @@ func TestGameModel(t *testing.T) {
 
 		g.Describe("Create Game", func() {
 			g.It("Should create a new Game with CreateGame", func() {
+				publicID := "create-1"
+				name := "game-name"
+				levels := map[string]interface{}{"Member": 1, "Elder": 2, "CoLeader": 3}
+				metadata := map[string]interface{}{}
+				minLevelToAcceptApplication := 8
+				minLevelToCreateInvitation := 7
+				minLevelToRemoveMember := 8
+				minLevelOffsetToRemoveMember := 1
+				minLevelOffsetToPromoteMember := 2
+				minLevelOffsetToDemoteMember := 3
+				maxMembers := 100
+				maxClansPerPlayer := 1
+				cooldownAfterDeny := 5
+				cooldownAfterDelete := 10
+				maxPendingInvites := 20
+
 				game, err := CreateGame(
 					testDb,
-					"create-1",
-					"game-name",
-					map[string]interface{}{"Member": 1, "Elder": 2, "CoLeader": 3},
-					map[string]interface{}{},
-					8, 7, 8, 1, 2, 3, 100, 1, 0, 10, false,
+					publicID,
+					name,
+					levels,
+					metadata,
+					minLevelToAcceptApplication,
+					minLevelToCreateInvitation,
+					minLevelToRemoveMember,
+					minLevelOffsetToRemoveMember,
+					minLevelOffsetToPromoteMember,
+					minLevelOffsetToDemoteMember,
+					maxMembers,
+					maxClansPerPlayer,
+					cooldownAfterDeny,
+					cooldownAfterDelete,
+					maxPendingInvites,
+					false,
 				)
 				g.Assert(err == nil).IsTrue()
 				g.Assert(game.ID != 0).IsTrue()
@@ -120,19 +147,22 @@ func TestGameModel(t *testing.T) {
 				dbGame, err := GetGameByID(testDb, game.ID)
 				g.Assert(err == nil).IsTrue()
 
-				g.Assert(dbGame.PublicID).Equal(game.PublicID)
-				g.Assert(dbGame.Name).Equal(game.Name)
-				g.Assert(dbGame.MinMembershipLevel).Equal(game.MinMembershipLevel)
-				g.Assert(dbGame.MaxMembershipLevel).Equal(game.MaxMembershipLevel)
-				g.Assert(dbGame.MinLevelToAcceptApplication).Equal(game.MinLevelToAcceptApplication)
-				g.Assert(dbGame.MinLevelToCreateInvitation).Equal(game.MinLevelToCreateInvitation)
-				g.Assert(dbGame.MinLevelToRemoveMember).Equal(game.MinLevelToRemoveMember)
-				g.Assert(dbGame.MinLevelOffsetToRemoveMember).Equal(game.MinLevelOffsetToRemoveMember)
-				g.Assert(dbGame.MinLevelOffsetToPromoteMember).Equal(game.MinLevelOffsetToPromoteMember)
-				g.Assert(dbGame.MinLevelOffsetToDemoteMember).Equal(game.MinLevelOffsetToDemoteMember)
-				g.Assert(dbGame.MaxMembers).Equal(game.MaxMembers)
-				g.Assert(dbGame.CooldownAfterDelete).Equal(game.CooldownAfterDelete)
-				g.Assert(dbGame.CooldownAfterDeny).Equal(game.CooldownAfterDeny)
+				g.Assert(dbGame.PublicID).Equal(publicID)
+				g.Assert(dbGame.Name).Equal(name)
+				g.Assert(dbGame.MinMembershipLevel).Equal(1)
+				g.Assert(dbGame.MaxMembershipLevel).Equal(3)
+				g.Assert(dbGame.MinLevelToAcceptApplication).Equal(minLevelToAcceptApplication)
+				g.Assert(dbGame.MinLevelToCreateInvitation).Equal(minLevelToCreateInvitation)
+				g.Assert(dbGame.MinLevelToRemoveMember).Equal(minLevelToRemoveMember)
+				g.Assert(dbGame.MinLevelOffsetToRemoveMember).Equal(minLevelOffsetToRemoveMember)
+				g.Assert(dbGame.MinLevelOffsetToPromoteMember).Equal(minLevelOffsetToPromoteMember)
+				g.Assert(dbGame.MinLevelOffsetToDemoteMember).Equal(minLevelOffsetToDemoteMember)
+				g.Assert(dbGame.MaxMembers).Equal(maxMembers)
+				g.Assert(dbGame.MaxClansPerPlayer).Equal(maxClansPerPlayer)
+				g.Assert(dbGame.CooldownAfterDelete).Equal(cooldownAfterDelete)
+				g.Assert(dbGame.CooldownAfterDeny).Equal(cooldownAfterDeny)
+				g.Assert(dbGame.MaxPendingInvites).Equal(maxPendingInvites)
+
 				for k, v := range dbGame.MembershipLevels {
 					g.Assert(v.(float64)).Equal(game.MembershipLevels[k].(float64))
 				}
@@ -152,7 +182,7 @@ func TestGameModel(t *testing.T) {
 					"game-new-name",
 					map[string]interface{}{"Member": 1, "Elder": 2, "CoLeader": 3},
 					map[string]interface{}{"x": 1},
-					5, 4, 7, 1, 1, 1, 100, 1, 5, 15,
+					5, 4, 7, 1, 1, 1, 100, 1, 5, 15, 20,
 				)
 
 				g.Assert(err == nil).IsTrue()
@@ -174,6 +204,7 @@ func TestGameModel(t *testing.T) {
 				g.Assert(dbGame.MaxClansPerPlayer).Equal(updGame.MaxClansPerPlayer)
 				g.Assert(dbGame.CooldownAfterDelete).Equal(updGame.CooldownAfterDelete)
 				g.Assert(dbGame.CooldownAfterDeny).Equal(updGame.CooldownAfterDeny)
+				g.Assert(dbGame.MaxPendingInvites).Equal(updGame.MaxPendingInvites)
 				for k, v := range dbGame.MembershipLevels {
 					g.Assert(v.(float64)).Equal(updGame.MembershipLevels[k].(float64))
 				}
@@ -188,7 +219,7 @@ func TestGameModel(t *testing.T) {
 					gameID,
 					map[string]interface{}{"Member": 1, "Elder": 2, "CoLeader": 3},
 					map[string]interface{}{"x": 1},
-					5, 4, 7, 1, 1, 1, 100, 1, 10, 30,
+					5, 4, 7, 1, 1, 1, 100, 1, 10, 30, 20,
 				)
 
 				g.Assert(err == nil).IsTrue()
@@ -208,6 +239,7 @@ func TestGameModel(t *testing.T) {
 				g.Assert(dbGame.MaxMembers).Equal(updGame.MaxMembers)
 				g.Assert(dbGame.CooldownAfterDelete).Equal(updGame.CooldownAfterDelete)
 				g.Assert(dbGame.CooldownAfterDeny).Equal(updGame.CooldownAfterDeny)
+				g.Assert(dbGame.MaxPendingInvites).Equal(updGame.MaxPendingInvites)
 				for k, v := range dbGame.MembershipLevels {
 					g.Assert(v.(float64)).Equal(updGame.MembershipLevels[k].(float64))
 				}
@@ -225,7 +257,7 @@ func TestGameModel(t *testing.T) {
 					strings.Repeat("a", 256),
 					map[string]interface{}{"Member": 1, "Elder": 2, "CoLeader": 3},
 					map[string]interface{}{"x": 1},
-					5, 4, 7, 1, 1, 0, 100, 1, 0, 0,
+					5, 4, 7, 1, 1, 0, 100, 1, 0, 0, 20,
 				)
 
 				g.Assert(err == nil).IsFalse()

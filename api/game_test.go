@@ -34,8 +34,8 @@ func getGamePayload(publicID, name string) map[string]interface{} {
 		"membershipLevels":              map[string]interface{}{"Member": 1, "Elder": 2, "CoLeader": 3},
 		"metadata":                      map[string]interface{}{"x": "a"},
 		"minLevelToAcceptApplication":   1,
-		"minLevelToCreateInvitation":    1,
-		"minLevelToRemoveMember":        1,
+		"minLevelToCreateInvitation":    2,
+		"minLevelToRemoveMember":        3,
 		"minLevelOffsetToRemoveMember":  1,
 		"minLevelOffsetToPromoteMember": 1,
 		"minLevelOffsetToDemoteMember":  1,
@@ -43,6 +43,7 @@ func getGamePayload(publicID, name string) map[string]interface{} {
 		"maxClansPerPlayer":             1,
 		"cooldownAfterDeny":             30,
 		"cooldownAfterDelete":           30,
+		"maxPendingInvites":             30,
 	}
 }
 
