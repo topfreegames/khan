@@ -8,6 +8,7 @@
 package api
 
 import (
+	"encoding/json"
 	"reflect"
 	"strings"
 	"time"
@@ -106,6 +107,21 @@ func CreateGameHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
+		data := c.RequestCtx.Request.Body()
+		var jsonPayload map[string]interface{}
+		err := json.Unmarshal(data, &jsonPayload)
+		if err != nil {
+			FailWith(400, err.Error(), c)
+			return
+		}
+
+		var maxPendingInvites int
+		if val, ok := jsonPayload["maxPendingInvites"]; ok {
+			maxPendingInvites = int(val.(float64))
+		} else {
+			maxPendingInvites = app.Config.GetInt("khan.MaxPendingInvites")
+		}
+
 		if payloadErrors := validateGamePayload(payload); len(payloadErrors) != 0 {
 			logPayloadErrors(l, payloadErrors)
 			errorString := strings.Join(payloadErrors[:], ", ")
@@ -129,7 +145,7 @@ func CreateGameHandler(app *App) func(c *iris.Context) {
 			payload.Name,
 			payload.MembershipLevels,
 			payload.Metadata,
-			payload.MinLevelToRemoveMember,
+			payload.MinLevelToAcceptApplication,
 			payload.MinLevelToCreateInvitation,
 			payload.MinLevelToRemoveMember,
 			payload.MinLevelOffsetToRemoveMember,
@@ -139,6 +155,7 @@ func CreateGameHandler(app *App) func(c *iris.Context) {
 			payload.MaxClansPerPlayer,
 			payload.CooldownAfterDeny,
 			payload.CooldownAfterDelete,
+			maxPendingInvites,
 			false,
 		)
 
@@ -177,6 +194,22 @@ func UpdateGameHandler(app *App) func(c *iris.Context) {
 			FailWith(400, err.Error(), c)
 			return
 		}
+
+		data := c.RequestCtx.Request.Body()
+		var jsonPayload map[string]interface{}
+		err := json.Unmarshal(data, &jsonPayload)
+		if err != nil {
+			FailWith(400, err.Error(), c)
+			return
+		}
+
+		var maxPendingInvites int
+		if val, ok := jsonPayload["maxPendingInvites"]; ok {
+			maxPendingInvites = int(val.(float64))
+		} else {
+			maxPendingInvites = app.Config.GetInt("khan.MaxPendingInvites")
+		}
+
 		if payloadErrors := validateGamePayload(payload); len(payloadErrors) != 0 {
 			logPayloadErrors(l, payloadErrors)
 			errorString := strings.Join(payloadErrors[:], ", ")
@@ -210,6 +243,7 @@ func UpdateGameHandler(app *App) func(c *iris.Context) {
 			payload.MaxClansPerPlayer,
 			payload.CooldownAfterDeny,
 			payload.CooldownAfterDelete,
+			maxPendingInvites,
 		)
 
 		if err != nil {

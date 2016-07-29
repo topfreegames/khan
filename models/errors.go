@@ -49,6 +49,15 @@ func (e *PlayerReachedMaxClansError) Error() string {
 	return fmt.Sprintf("Player %s reached max clans", e.ID)
 }
 
+// PlayerReachedMaxInvitesError identifies that a given player already reached the max number of pending invites allowed
+type PlayerReachedMaxInvitesError struct {
+	ID string
+}
+
+func (e *PlayerReachedMaxInvitesError) Error() string {
+	return fmt.Sprintf("Player %s reached max number of pending invites", e.ID)
+}
+
 // PlayerCannotCreateMembershipError identifies that a given player is not allowed to create a membership
 type PlayerCannotCreateMembershipError struct {
 	PlayerID interface{}

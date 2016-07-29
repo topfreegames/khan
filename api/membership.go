@@ -20,10 +20,6 @@ type applyForMembershipPayload struct {
 	PlayerPublicID string
 }
 
-type messagePayload struct {
-	Message string
-}
-
 type inviteForMembershipPayload struct {
 	Level             string
 	PlayerPublicID    string

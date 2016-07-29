@@ -24,20 +24,102 @@ func TestMembershipModel(t *testing.T) {
 	g.Assert(_error == nil).IsTrue()
 
 	g.Describe("Membership Model", func() {
-		g.It("Should create a new Membership", func() {
-			_, _, _, _, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
-			g.Assert(err == nil).IsTrue()
+		g.Describe("Get Number of Pending Invites", func() {
+			g.It("Should get number of pending invites", func() {
+				player, err := GetTestPlayerWithMemberships(testDb, uuid.NewV4().String(), 0, 0, 0, 20)
+				g.Assert(err == nil).IsTrue()
+				g.Assert(player != nil).IsTrue()
 
-			membership := memberships[0]
+				totalInvites, err := GetNumberOfPendingInvites(testDb, player)
+				fmt.Println(err)
+				g.Assert(err == nil).IsTrue()
+				g.Assert(totalInvites).Equal(20)
+			})
+		})
+		g.Describe("Create Membership", func() {
+			g.It("Should create a new Membership", func() {
+				_, _, _, _, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
+				g.Assert(err == nil).IsTrue()
 
-			g.Assert(membership.ID != 0).IsTrue()
+				membership := memberships[0]
 
-			dbMembership, err := GetMembershipByID(testDb, membership.ID)
-			g.Assert(err == nil).IsTrue()
+				g.Assert(membership.ID != 0).IsTrue()
 
-			g.Assert(dbMembership.GameID).Equal(membership.GameID)
-			g.Assert(dbMembership.PlayerID).Equal(membership.PlayerID)
-			g.Assert(dbMembership.ClanID).Equal(membership.ClanID)
+				dbMembership, err := GetMembershipByID(testDb, membership.ID)
+				g.Assert(err == nil).IsTrue()
+
+				g.Assert(dbMembership.GameID).Equal(membership.GameID)
+				g.Assert(dbMembership.PlayerID).Equal(membership.PlayerID)
+				g.Assert(dbMembership.ClanID).Equal(membership.ClanID)
+			})
+
+			g.It("Should not create a new membership for a member with max number of invitations", func() {
+				gameID := "max-invitations-game"
+				player, err := GetTestPlayerWithMemberships(testDb, gameID, 0, 0, 0, 20)
+				g.Assert(err == nil).IsTrue()
+				g.Assert(player != nil).IsTrue()
+
+				game, err := GetGameByPublicID(testDb, gameID)
+				g.Assert(err == nil).IsTrue()
+				g.Assert(game != nil).IsTrue()
+
+				_, clan, owner, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, gameID, "", true)
+				g.Assert(err == nil).IsTrue()
+				g.Assert(clan != nil).IsTrue()
+
+				_, err = CreateMembership(
+					testDb,
+					game,
+					game.PublicID,
+					"Member",
+					player.PublicID,
+					clan.PublicID,
+					owner.PublicID,
+					"",
+				)
+
+				g.Assert(err != nil).IsTrue()
+
+				expected := fmt.Sprintf(
+					"Player %s reached max number of pending invites",
+					player.PublicID,
+				)
+				g.Assert(err.Error()).Equal(expected)
+			})
+
+			g.It("Should create a new membership for a member when game MaxPendingInvites is -1", func() {
+				gameID := "max-invitations-game-2"
+				player, err := GetTestPlayerWithMemberships(testDb, gameID, 0, 0, 0, 20)
+				g.Assert(err == nil).IsTrue()
+				g.Assert(player != nil).IsTrue()
+
+				game, err := GetGameByPublicID(testDb, gameID)
+				g.Assert(err == nil).IsTrue()
+				g.Assert(game != nil).IsTrue()
+				game.MaxPendingInvites = -1
+				_, err = testDb.Update(game)
+				g.Assert(err == nil).IsTrue()
+
+				_, clan, owner, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, gameID, "", true)
+				g.Assert(err == nil).IsTrue()
+				g.Assert(clan != nil).IsTrue()
+
+				membership, err := CreateMembership(
+					testDb,
+					game,
+					game.PublicID,
+					"Member",
+					player.PublicID,
+					clan.PublicID,
+					owner.PublicID,
+					"",
+				)
+
+				g.Assert(err == nil).IsTrue()
+				g.Assert(membership.GameID).Equal(game.PublicID)
+				g.Assert(membership.PlayerID).Equal(player.ID)
+				g.Assert(membership.ClanID).Equal(clan.ID)
+			})
 		})
 
 		g.It("Should update a Membership", func() {

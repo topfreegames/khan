@@ -79,7 +79,8 @@ Khan API
       "maxMembers":                    [int],
       "maxClansPerPlayer":             [int],
       "cooldownAfterDeny":             [int],
-      "cooldownAfterDelete":           [int]
+      "cooldownAfterDelete":           [int],
+      "maxPendingInvites":             [int]
     }
     ```
 
@@ -114,6 +115,8 @@ Khan API
       **cooldownAfterDeny**: Time (in seconds) the player must wait before applying/being invited to a new membership after the last membership application/invite was denied.
 
       **cooldownAfterDelete**:  Time (in seconds) the player must wait before applying/being invited to a new membership after the last membership application/invite was deleted.
+
+      **maxPendingInvites**:  Maximum number of pending invites each player can have withstanding. Set this value to -1 if your game has no limits on maximum pending invites.
 
   * Success Response
     * Code: `200`

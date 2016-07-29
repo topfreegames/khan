@@ -37,6 +37,7 @@ type Game struct {
 	UpdatedAt                     int64                  `db:"updated_at"`
 	CooldownAfterDeny             int                    `db:"cooldown_after_deny"`
 	CooldownAfterDelete           int                    `db:"cooldown_after_delete"`
+	MaxPendingInvites             int                    `db:"max_pending_invites"`
 }
 
 // PreInsert populates fields before inserting a new game
@@ -102,8 +103,8 @@ func CreateGame(
 	publicID, name string,
 	levels, metadata map[string]interface{},
 	minLevelAccept, minLevelCreate, minLevelRemove,
-	minOffsetRemove, minOffsetPromote, minOffsetDemote,
-	maxMembers, maxClans, cooldownAfterDeny, cooldownAfterDelete int,
+	minOffsetRemove, minOffsetPromote, minOffsetDemote, maxMembers,
+	maxClans, cooldownAfterDeny, cooldownAfterDelete, maxPendingInvites int,
 	upsert bool,
 ) (*Game, error) {
 	levelsJSON, err := json.Marshal(levels)
@@ -138,10 +139,11 @@ func CreateGame(
 				cooldown_after_deny,
 				min_membership_level,
 				max_membership_level,
+				max_pending_invites,
 				created_at,
 				updated_at
 			)
-			VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $17)%s`
+			VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $18)%s`
 	onConflict := ` ON CONFLICT (public_id)
 			DO UPDATE set
 				name=$2,
@@ -159,7 +161,8 @@ func CreateGame(
 				cooldown_after_deny=$14,
 				min_membership_level=$15,
 				max_membership_level=$16,
-				updated_at=$17
+				max_pending_invites=$17,
+				updated_at=$18
 			WHERE games.public_id=$1`
 
 	if upsert {
@@ -185,7 +188,8 @@ func CreateGame(
 		cooldownAfterDeny,   // $14
 		minMembershipLevel,  // $15
 		maxMembershipLevel,  // $16
-		util.NowMilli(),     // $17
+		maxPendingInvites,   // $17
+		util.NowMilli(),     // $18
 	)
 	if err != nil {
 		return nil, err
@@ -195,11 +199,11 @@ func CreateGame(
 
 // UpdateGame updates an existing game
 func UpdateGame(db DB, publicID, name string, levels, metadata map[string]interface{},
-	minLevelAccept, minLevelCreate, minLevelRemove, minOffsetRemove, minOffsetPromote, minOffsetDemote, maxMembers, maxClans, cooldownAfterDeny, cooldownAfterDelete int,
+	minLevelAccept, minLevelCreate, minLevelRemove, minOffsetRemove, minOffsetPromote, minOffsetDemote, maxMembers, maxClans, cooldownAfterDeny, cooldownAfterDelete, maxPendingInvites int,
 ) (*Game, error) {
 	return CreateGame(
-		db, publicID, name, levels, metadata, minLevelAccept,
-		minLevelCreate, minLevelRemove, minOffsetRemove, minOffsetPromote,
-		minOffsetDemote, maxMembers, maxClans, cooldownAfterDeny, cooldownAfterDelete, true,
+		db, publicID, name, levels, metadata, minLevelAccept, minLevelCreate,
+		minLevelRemove, minOffsetRemove, minOffsetPromote, minOffsetDemote,
+		maxMembers, maxClans, cooldownAfterDeny, cooldownAfterDelete, maxPendingInvites, true,
 	)
 }
