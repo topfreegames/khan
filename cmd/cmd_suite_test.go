@@ -5,4 +5,16 @@
 // http://www.opensource.org/licenses/mit-license
 // Copyright © 2016 Top Free Games <backend@tfgco.com>
 
-package cmd
+package cmd_test
+
+import (
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
+
+	"testing"
+)
+
+func TestApi(t *testing.T) {
+	RegisterFailHandler(Fail)
+	RunSpecs(t, "Khan - CMD Suite")
+}

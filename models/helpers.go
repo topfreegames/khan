@@ -41,17 +41,6 @@ func GetPerfDB() (DB, error) {
 	return GetDB("localhost", "khan_perf", 5432, "disable", "khan_perf", "")
 }
 
-// GetTestDB returns a connection to the test database
-func GetTestDB() (DB, error) {
-	return GetDB("localhost", "khan_test", 5432, "disable", "khan_test", "")
-}
-
-// GetFaultyTestDB returns an ill-configured test database
-func GetFaultyTestDB() DB {
-	faultyDb, _ := InitDb("localhost", "khan_tet", 5432, "disable", "khan_test", "")
-	return faultyDb
-}
-
 // GetDB returns a DbMap connection to the database specified in the arguments
 func GetDB(host string, user string, port int, sslmode string, dbName string, password string) (DB, error) {
 	if _db == nil {

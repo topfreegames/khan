@@ -30,3 +30,4 @@ docs/_build
 /bin
 khan-perf.dump
 /dev/default.yaml
+*.coverprofile

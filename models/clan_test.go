@@ -5,55 +5,65 @@
 // http://www.opensource.org/licenses/mit-license
 // Copyright © 2016 Top Free Games <backend@tfgco.com>
 
-package models
+package models_test
 
 import (
 	"fmt"
 	"sort"
 	"strings"
-	"testing"
 	"time"
 
-	"github.com/Pallinder/go-randomdata"
-	. "github.com/franela/goblin"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
+	"github.com/satori/go.uuid"
+	. "github.com/topfreegames/khan/models"
 	"github.com/topfreegames/khan/util"
+
+	"github.com/Pallinder/go-randomdata"
 )
 
-func TestClanModel(t *testing.T) {
-	g := Goblin(t)
-	testDb, _err := GetTestDB()
-	g.Assert(_err == nil).IsTrue()
-	faultyDb := GetFaultyTestDB()
+var _ = Describe("Clan Model", func() {
+	var testDb DB
+	var faultyDb DB
 
-	g.Describe("Clan Model", func() {
-		g.Describe("Basic Operations", func() {
-			g.It("Should sort clans by name", func() {
-				_, clans, err := GetTestClans(testDb, "test", "test-sort-clan", 10)
-				g.Assert(err == nil).IsTrue()
+	BeforeEach(func() {
+		var err error
+		testDb, err = GetTestDB()
+		Expect(err).NotTo(HaveOccurred())
+
+		faultyDb = GetFaultyTestDB()
+	})
+
+	Describe("Clan Model", func() {
+		Describe("Basic Operations", func() {
+			It("Should sort clans by name", func() {
+				gameID := uuid.NewV4().String()
+				_, clans, err := GetTestClans(testDb, gameID, "test-sort-clan", 10)
+				Expect(err).NotTo(HaveOccurred())
 
 				sort.Sort(ClanByName(clans))
 
 				for i := 0; i < 10; i++ {
-					g.Assert(clans[i].Name).Equal(fmt.Sprintf("💩clán-test-sort-clan-%d", i))
+					Expect(clans[i].Name).To(Equal(fmt.Sprintf("💩clán-test-sort-clan-%d", i)))
 				}
 			})
 
-			g.It("Should create a new Clan", func() {
+			It("Should create a new Clan", func() {
 				_, clans, err := GetTestClans(testDb, "", "", 1)
-				g.Assert(err == nil).IsTrue()
+				Expect(err).NotTo(HaveOccurred())
 				clan := clans[0]
-				g.Assert(clan.ID != 0).IsTrue()
+				Expect(clan.ID).NotTo(BeEquivalentTo(0))
 
 				dbClan, err := GetClanByID(testDb, clan.ID)
-				g.Assert(err == nil).IsTrue()
+				Expect(err).NotTo(HaveOccurred())
 
-				g.Assert(dbClan.GameID).Equal(clan.GameID)
-				g.Assert(dbClan.PublicID).Equal(clan.PublicID)
+				Expect(dbClan.GameID).To(Equal(clan.GameID))
+				Expect(dbClan.PublicID).To(Equal(clan.PublicID))
 			})
 
-			g.It("Should update a Clan", func() {
+			It("Should update a Clan", func() {
 				_, clans, err := GetTestClans(testDb, "", "", 1)
-				g.Assert(err == nil).IsTrue()
+				Expect(err).NotTo(HaveOccurred())
 				clan := clans[0]
 
 				dt := clan.UpdatedAt
@@ -61,177 +71,185 @@ func TestClanModel(t *testing.T) {
 
 				clan.Metadata = map[string]interface{}{"x": 1}
 				count, err := testDb.Update(clan)
-				g.Assert(err == nil).IsTrue()
-				g.Assert(int(count)).Equal(1)
-				g.Assert(clan.UpdatedAt > dt).IsTrue()
+				Expect(err).NotTo(HaveOccurred())
+				Expect(count).To(BeEquivalentTo(1))
+				Expect(clan.UpdatedAt).To(BeNumerically(">", dt))
 			})
 		})
 
-		g.Describe("Get By Id", func() {
-			g.It("Should get existing Clan", func() {
+		Describe("Get By Id", func() {
+			It("Should get existing Clan", func() {
 				_, clans, err := GetTestClans(testDb, "", "", 1)
-				g.Assert(err == nil).IsTrue()
+				Expect(err).NotTo(HaveOccurred())
 				clan := clans[0]
 
 				dbClan, err := GetClanByID(testDb, clan.ID)
-				g.Assert(err == nil).IsTrue()
-				g.Assert(dbClan.ID).Equal(clan.ID)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(dbClan.ID).To(Equal(clan.ID))
 			})
 
-			g.It("Should not get non-existing Clan", func() {
+			It("Should not get non-existing Clan", func() {
 				_, err := GetClanByID(testDb, -1)
-				g.Assert(err != nil).IsTrue()
-				g.Assert(err.Error()).Equal("Clan was not found with id: -1")
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(Equal("Clan was not found with id: -1"))
 			})
 		})
 
-		g.Describe("Get By Public Id", func() {
-			g.It("Should get an existing Clan by Game and PublicID", func() {
+		Describe("Get By Public Id", func() {
+			It("Should get an existing Clan by Game and PublicID", func() {
 				_, clans, err := GetTestClans(testDb, "", "", 1)
-				g.Assert(err == nil).IsTrue()
+				Expect(err).NotTo(HaveOccurred())
 				clan := clans[0]
 
 				dbClan, err := GetClanByPublicID(testDb, clan.GameID, clan.PublicID)
-				g.Assert(err == nil).IsTrue()
-				g.Assert(dbClan.ID).Equal(clan.ID)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(dbClan.ID).To(Equal(clan.ID))
 			})
 
-			g.It("Should not get a non-existing Clan by Game and PublicID", func() {
+			It("Should not get a non-existing Clan by Game and PublicID", func() {
 				_, err := GetClanByPublicID(testDb, "invalid-game", "invalid-clan")
-				g.Assert(err != nil).IsTrue()
-				g.Assert(err.Error()).Equal("Clan was not found with id: invalid-clan")
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(Equal("Clan was not found with id: invalid-clan"))
 			})
 		})
 
-		g.Describe("Get By Public Ids", func() {
-			g.It("Should get existing Clans by Game and PublicIDs", func() {
-				_, clan1, _, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 0, "clan_summary1",
-					"clan_summary1_clan1")
-				g.Assert(err == nil).IsTrue()
-				_, clan2, _, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 0, "clan_summary1",
-					"clan_summary1_clan2", true)
-				g.Assert(err == nil).IsTrue()
-				_, clan3, _, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 0, "clan_summary1",
-					"clan_summary1_clan3", true)
-				g.Assert(err == nil).IsTrue()
+		Describe("Get By Public Ids", func() {
+			It("Should get existing Clans by Game and PublicIDs", func() {
+				gameID := uuid.NewV4().String()
+				_, clan1, _, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 0, gameID,
+					uuid.NewV4().String())
+				Expect(err).NotTo(HaveOccurred())
+				_, clan2, _, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 0, gameID,
+					uuid.NewV4().String(), true)
+				Expect(err).NotTo(HaveOccurred())
+				_, clan3, _, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 0, gameID,
+					uuid.NewV4().String(), true)
+				Expect(err).NotTo(HaveOccurred())
 
-				clans := []*Clan{clan1, clan2, clan3}
+				clans := map[string]*Clan{
+					clan1.PublicID: clan1,
+					clan2.PublicID: clan2,
+					clan3.PublicID: clan3,
+				}
 				clanIDs := []string{clan1.PublicID, clan2.PublicID, clan3.PublicID}
 
 				dbClans, err := GetClansByPublicIDs(testDb, clan1.GameID, clanIDs)
-				g.Assert(len(dbClans)).Equal(3)
-				g.Assert(err == nil).IsTrue()
-				for i, dbClan := range dbClans {
-					g.Assert(dbClan.ID).Equal(clans[i].ID)
+				Expect(len(dbClans)).To(Equal(3))
+				Expect(err).NotTo(HaveOccurred())
+				for _, dbClan := range dbClans {
+					Expect(dbClan.ID).To(Equal(clans[dbClan.PublicID].ID))
 				}
 			})
 
-			g.It("Should get only existing Clans by Game and PublicIDs, unexistent ID", func() {
-				_, clan1, _, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 0, "clan_summary2",
-					"clan_summary2_clan1")
-				g.Assert(err == nil).IsTrue()
-				_, clan2, _, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 0, "clan_summary2",
-					"clan_summary2_clan2", true)
-				g.Assert(err == nil).IsTrue()
-				_, clan3, _, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 0, "clan_summary2",
-					"clan_summary2_clan3", true)
-				g.Assert(err == nil).IsTrue()
+			It("Should get only existing Clans by Game and PublicIDs, unexistent ID", func() {
+				gameID := uuid.NewV4().String()
+				_, clan1, _, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 0, gameID,
+					uuid.NewV4().String())
+				Expect(err).NotTo(HaveOccurred())
+				_, clan2, _, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 0, gameID,
+					uuid.NewV4().String(), true)
+				Expect(err).NotTo(HaveOccurred())
+				_, clan3, _, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 0, gameID,
+					uuid.NewV4().String(), true)
+				Expect(err).NotTo(HaveOccurred())
 
 				clanIDs := []string{"invalid_clan", clan1.PublicID, clan2.PublicID, clan3.PublicID}
 
 				dbClans, err := GetClansByPublicIDs(testDb, clan1.GameID, clanIDs)
-				g.Assert(err != nil).IsTrue()
-				g.Assert(len(dbClans)).Equal(3)
-				g.Assert(err.Error()).Equal(
-					"Could not find all requested clans or the given game. GameId: clan_summary2, Missing clans: invalid_clan",
-				)
+				Expect(err).To(HaveOccurred())
+				Expect(len(dbClans)).To(Equal(3))
+				Expect(err.Error()).To(Equal(fmt.Sprintf(
+					"Could not find all requested clans or the given game. GameId: %s, Missing clans: invalid_clan",
+					gameID,
+				)))
 			})
 
-			g.It("Should get only existing Clans by Game and PublicIDs, unexistent Game", func() {
-				_, clan1, _, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 0, "clan_summary3",
-					"clan_summary3_clan1")
-				g.Assert(err == nil).IsTrue()
+			It("Should get only existing Clans by Game and PublicIDs, unexistent Game", func() {
+				gameID := uuid.NewV4().String()
+				_, clan1, _, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 0, gameID,
+					uuid.NewV4().String())
+				Expect(err).NotTo(HaveOccurred())
 
 				clanIDs := []string{clan1.PublicID}
 
 				dbClans, err := GetClansByPublicIDs(testDb, "invalid_game", clanIDs)
-				g.Assert(err != nil).IsTrue()
-				g.Assert(len(dbClans)).Equal(0)
-				g.Assert(err.Error()).Equal(fmt.Sprintf(
+				Expect(err).To(HaveOccurred())
+				Expect(len(dbClans)).To(Equal(0))
+				Expect(err.Error()).To(Equal(fmt.Sprintf(
 					"Could not find all requested clans or the given game. GameId: invalid_game, Missing clans: %s",
 					strings.Join(clanIDs, ","),
-				))
+				)))
 			})
 		})
 
-		g.Describe("Get By Public Id and OwnerPublicID", func() {
-			g.It("Should get an existing Clan by Game, PublicID and OwnerPublicID", func() {
+		Describe("Get By Public Id and OwnerPublicID", func() {
+			It("Should get an existing Clan by Game, PublicID and OwnerPublicID", func() {
 				player, clans, err := GetTestClans(testDb, "", "", 1)
-				g.Assert(err == nil).IsTrue()
+				Expect(err).NotTo(HaveOccurred())
 				clan := clans[0]
 
 				dbClan, err := GetClanByPublicIDAndOwnerPublicID(testDb, clan.GameID, clan.PublicID, player.PublicID)
-				g.Assert(err == nil).IsTrue()
-				g.Assert(dbClan.ID).Equal(clan.ID)
-				g.Assert(dbClan.GameID).Equal(clan.GameID)
-				g.Assert(dbClan.PublicID).Equal(clan.PublicID)
-				g.Assert(dbClan.Name).Equal(clan.Name)
-				g.Assert(dbClan.OwnerID).Equal(clan.OwnerID)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(dbClan.ID).To(Equal(clan.ID))
+				Expect(dbClan.GameID).To(Equal(clan.GameID))
+				Expect(dbClan.PublicID).To(Equal(clan.PublicID))
+				Expect(dbClan.Name).To(Equal(clan.Name))
+				Expect(dbClan.OwnerID).To(Equal(clan.OwnerID))
 			})
 
-			g.It("Should not get a non-existing Clan by Game, PublicID and OwnerPublicID", func() {
+			It("Should not get a non-existing Clan by Game, PublicID and OwnerPublicID", func() {
 				_, err := GetClanByPublicIDAndOwnerPublicID(testDb, "invalid-game", "invalid-clan", "invalid-owner-public-id")
-				g.Assert(err != nil).IsTrue()
-				g.Assert(err.Error()).Equal("Clan was not found with id: invalid-clan")
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(Equal("Clan was not found with id: invalid-clan"))
 			})
 
-			g.It("Should not get a existing Clan by Game, PublicID and OwnerPublicID if not Clan owner", func() {
+			It("Should not get a existing Clan by Game, PublicID and OwnerPublicID if not Clan owner", func() {
 				_, clans, err := GetTestClans(testDb, "", "", 1)
-				g.Assert(err == nil).IsTrue()
+				Expect(err).NotTo(HaveOccurred())
 				clan := clans[0]
 
 				_, err = GetClanByPublicIDAndOwnerPublicID(testDb, clan.GameID, clan.PublicID, "invalid-owner-public-id")
-				g.Assert(err != nil).IsTrue()
-				g.Assert(err.Error()).Equal(fmt.Sprintf("Clan was not found with id: %s", clan.PublicID))
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(Equal(fmt.Sprintf("Clan was not found with id: %s", clan.PublicID)))
 			})
 
-			g.Describe("Increment Clan Membership Count", func() {
-				g.It("Should work if positive value", func() {
+			Describe("Increment Clan Membership Count", func() {
+				It("Should work if positive value", func() {
 					amount := 1
 					_, clans, err := GetTestClans(testDb, "", "", 1)
-					g.Assert(err == nil).IsTrue()
+					Expect(err).NotTo(HaveOccurred())
 
 					err = IncrementClanMembershipCount(testDb, clans[0].ID, amount)
-					g.Assert(err == nil).IsTrue()
+					Expect(err).NotTo(HaveOccurred())
 					dbClan, err := GetClanByID(testDb, clans[0].ID)
-					g.Assert(err == nil).IsTrue()
-					g.Assert(dbClan.MembershipCount).Equal(clans[0].MembershipCount + amount)
+					Expect(err).NotTo(HaveOccurred())
+					Expect(dbClan.MembershipCount).To(Equal(clans[0].MembershipCount + amount))
 				})
 
-				g.It("Should work if negative value", func() {
+				It("Should work if negative value", func() {
 					amount := -1
 					_, clans, err := GetTestClans(testDb, "", "", 1)
-					g.Assert(err == nil).IsTrue()
+					Expect(err).NotTo(HaveOccurred())
 
 					err = IncrementClanMembershipCount(testDb, clans[0].ID, amount)
-					g.Assert(err == nil).IsTrue()
+					Expect(err).NotTo(HaveOccurred())
 					dbClan, err := GetClanByID(testDb, clans[0].ID)
-					g.Assert(err == nil).IsTrue()
-					g.Assert(dbClan.MembershipCount).Equal(clans[0].MembershipCount + amount)
+					Expect(err).NotTo(HaveOccurred())
+					Expect(dbClan.MembershipCount).To(Equal(clans[0].MembershipCount + amount))
 				})
 
-				g.It("Should not work if non-existing Player", func() {
+				It("Should not work if non-existing Player", func() {
 					err := IncrementClanMembershipCount(testDb, -1, 1)
-					g.Assert(err != nil).IsTrue()
-					g.Assert(err.Error()).Equal("Clan was not found with id: -1")
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(Equal("Clan was not found with id: -1"))
 				})
 			})
 		})
 
-		g.Describe("Create Clan", func() {
-			g.It("Should create a new Clan with CreateClan", func() {
+		Describe("Create Clan", func() {
+			It("Should create a new Clan with CreateClan", func() {
 				game, player, err := CreatePlayerFactory(testDb, "")
-				g.Assert(err == nil).IsTrue()
+				Expect(err).NotTo(HaveOccurred())
 
 				clan, err := CreateClan(
 					testDb,
@@ -245,24 +263,24 @@ func TestClanModel(t *testing.T) {
 					game.MaxClansPerPlayer,
 				)
 
-				g.Assert(err == nil).IsTrue()
-				g.Assert(clan.ID != 0).IsTrue()
+				Expect(err).NotTo(HaveOccurred())
+				Expect(clan.ID).NotTo(BeEquivalentTo(0))
 
 				dbClan, err := GetClanByID(testDb, clan.ID)
-				g.Assert(err == nil).IsTrue()
+				Expect(err).NotTo(HaveOccurred())
 
-				g.Assert(dbClan.GameID).Equal(clan.GameID)
-				g.Assert(dbClan.PublicID).Equal(clan.PublicID)
-				g.Assert(dbClan.MembershipCount).Equal(1)
+				Expect(dbClan.GameID).To(Equal(clan.GameID))
+				Expect(dbClan.PublicID).To(Equal(clan.PublicID))
+				Expect(dbClan.MembershipCount).To(Equal(1))
 
 				dbPlayer, err := GetPlayerByID(testDb, player.ID)
-				g.Assert(err == nil).IsTrue()
-				g.Assert(dbPlayer.OwnershipCount).Equal(1)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(dbPlayer.OwnershipCount).To(Equal(1))
 			})
 
-			g.It("Should not create a new Clan with CreateClan if invalid data", func() {
+			It("Should not create a new Clan with CreateClan if invalid data", func() {
 				game, player, err := CreatePlayerFactory(testDb, "")
-				g.Assert(err == nil).IsTrue()
+				Expect(err).NotTo(HaveOccurred())
 
 				_, err = CreateClan(
 					testDb,
@@ -276,13 +294,13 @@ func TestClanModel(t *testing.T) {
 					game.MaxClansPerPlayer,
 				)
 
-				g.Assert(err != nil).IsTrue()
-				g.Assert(err.Error()).Equal("pq: value too long for type character varying(255)")
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(Equal("pq: value too long for type character varying(255)"))
 			})
 
-			g.It("Should not create a new Clan with CreateClan if reached MaxClansPerPlayer - owner", func() {
+			It("Should not create a new Clan with CreateClan if reached MaxClansPerPlayer - owner", func() {
 				game, _, owner, _, _, err := GetClanWithMemberships(testDb, 1, 0, 0, 0, "", "")
-				g.Assert(err == nil).IsTrue()
+				Expect(err).NotTo(HaveOccurred())
 
 				_, err = CreateClan(
 					testDb,
@@ -296,13 +314,13 @@ func TestClanModel(t *testing.T) {
 					game.MaxClansPerPlayer,
 				)
 
-				g.Assert(err != nil).IsTrue()
-				g.Assert(err.Error()).Equal(fmt.Sprintf("Player %s reached max clans", owner.PublicID))
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(Equal(fmt.Sprintf("Player %s reached max clans", owner.PublicID)))
 			})
 
-			g.It("Should not create a new Clan with CreateClan if reached MaxClansPerPlayer - member", func() {
+			It("Should not create a new Clan with CreateClan if reached MaxClansPerPlayer - member", func() {
 				game, _, _, players, _, err := GetClanWithMemberships(testDb, 1, 0, 0, 0, "", "")
-				g.Assert(err == nil).IsTrue()
+				Expect(err).NotTo(HaveOccurred())
 
 				_, err = CreateClan(
 					testDb,
@@ -316,11 +334,11 @@ func TestClanModel(t *testing.T) {
 					game.MaxClansPerPlayer,
 				)
 
-				g.Assert(err != nil).IsTrue()
-				g.Assert(err.Error()).Equal(fmt.Sprintf("Player %s reached max clans", players[0].PublicID))
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(Equal(fmt.Sprintf("Player %s reached max clans", players[0].PublicID)))
 			})
 
-			g.It("Should not create a new Clan with CreateClan if unexistent player", func() {
+			It("Should not create a new Clan with CreateClan if unexistent player", func() {
 				game, _, err := CreatePlayerFactory(testDb, "")
 				playerPublicID := randomdata.FullName(randomdata.RandomGender)
 				_, err = CreateClan(
@@ -335,15 +353,15 @@ func TestClanModel(t *testing.T) {
 					game.MaxClansPerPlayer,
 				)
 
-				g.Assert(err != nil).IsTrue()
-				g.Assert(err.Error()).Equal(fmt.Sprintf("Player was not found with id: %s", playerPublicID))
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(Equal(fmt.Sprintf("Player was not found with id: %s", playerPublicID)))
 			})
 		})
 
-		g.Describe("Update Clan", func() {
-			g.It("Should update a Clan with UpdateClan", func() {
+		Describe("Update Clan", func() {
+			It("Should update a Clan with UpdateClan", func() {
 				player, clans, err := GetTestClans(testDb, "", "", 1)
-				g.Assert(err == nil).IsTrue()
+				Expect(err).NotTo(HaveOccurred())
 				clan := clans[0]
 
 				metadata := map[string]interface{}{"x": 1}
@@ -360,23 +378,23 @@ func TestClanModel(t *testing.T) {
 					autoJoin,
 				)
 
-				g.Assert(err == nil).IsTrue()
-				g.Assert(updClan.ID).Equal(clan.ID)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(updClan.ID).To(Equal(clan.ID))
 
 				dbClan, err := GetClanByPublicID(testDb, clan.GameID, clan.PublicID)
-				g.Assert(err == nil).IsTrue()
-				g.Assert(dbClan.Metadata).Equal(metadata)
-				g.Assert(dbClan.AllowApplication).Equal(allowApplication)
-				g.Assert(dbClan.AutoJoin).Equal(autoJoin)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(dbClan.Metadata["x"]).To(BeEquivalentTo(metadata["x"]))
+				Expect(dbClan.AllowApplication).To(Equal(allowApplication))
+				Expect(dbClan.AutoJoin).To(Equal(autoJoin))
 			})
 
-			g.It("Should not update a Clan if player is not the clan owner with UpdateClan", func() {
+			It("Should not update a Clan if player is not the clan owner with UpdateClan", func() {
 				_, clans, err := GetTestClans(testDb, "", "", 1)
-				g.Assert(err == nil).IsTrue()
+				Expect(err).NotTo(HaveOccurred())
 				clan := clans[0]
 
 				_, player, err := CreatePlayerFactory(testDb, "")
-				g.Assert(err == nil).IsTrue()
+				Expect(err).NotTo(HaveOccurred())
 
 				metadata := map[string]interface{}{"x": 1}
 				_, err = UpdateClan(
@@ -390,13 +408,13 @@ func TestClanModel(t *testing.T) {
 					clan.AutoJoin,
 				)
 
-				g.Assert(err == nil).IsFalse()
-				g.Assert(err.Error()).Equal(fmt.Sprintf("Clan was not found with id: %s", clan.PublicID))
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(Equal(fmt.Sprintf("Clan was not found with id: %s", clan.PublicID)))
 			})
 
-			g.It("Should not update a Clan with Invalid Data with UpdateClan", func() {
+			It("Should not update a Clan with Invalid Data with UpdateClan", func() {
 				player, clans, err := GetTestClans(testDb, "", "", 1)
-				g.Assert(err == nil).IsTrue()
+				Expect(err).NotTo(HaveOccurred())
 				clan := clans[0]
 
 				metadata := map[string]interface{}{}
@@ -411,75 +429,75 @@ func TestClanModel(t *testing.T) {
 					clan.AutoJoin,
 				)
 
-				g.Assert(err == nil).IsFalse()
-				g.Assert(err.Error()).Equal("pq: value too long for type character varying(255)")
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(Equal("pq: value too long for type character varying(255)"))
 			})
 		})
 
-		g.Describe("Leave Clan", func() {
-			g.Describe("Should leave a Clan with LeaveClan if clan owner", func() {
-				g.It("And clan has memberships", func() {
+		Describe("Leave Clan", func() {
+			Describe("Should leave a Clan with LeaveClan if clan owner", func() {
+				It("And clan has memberships", func() {
 					_, clan, owner, _, memberships, err := GetClanWithMemberships(testDb, 1, 0, 0, 0, "", "")
-					g.Assert(err == nil).IsTrue()
+					Expect(err).NotTo(HaveOccurred())
 
 					err = LeaveClan(testDb, clan.GameID, clan.PublicID)
-					g.Assert(err == nil).IsTrue()
+					Expect(err).NotTo(HaveOccurred())
 
 					dbClan, err := GetClanByPublicID(testDb, clan.GameID, clan.PublicID)
-					g.Assert(err == nil).IsTrue()
-					g.Assert(dbClan.OwnerID).Equal(memberships[0].PlayerID)
+					Expect(err).NotTo(HaveOccurred())
+					Expect(dbClan.OwnerID).To(Equal(memberships[0].PlayerID))
 					dbDeletedMembership, err := GetMembershipByID(testDb, memberships[0].ID)
-					g.Assert(err == nil).IsTrue()
-					g.Assert(dbDeletedMembership.DeletedBy).Equal(memberships[0].PlayerID)
-					g.Assert(dbDeletedMembership.DeletedAt > util.NowMilli()-1000).IsTrue()
+					Expect(err).NotTo(HaveOccurred())
+					Expect(dbDeletedMembership.DeletedBy).To(Equal(memberships[0].PlayerID))
+					Expect(dbDeletedMembership.DeletedAt).To(BeNumerically(">", util.NowMilli()-1000))
 
 					dbPlayer, err := GetPlayerByID(testDb, owner.ID)
-					g.Assert(err == nil).IsTrue()
-					g.Assert(dbPlayer.OwnershipCount).Equal(0)
+					Expect(err).NotTo(HaveOccurred())
+					Expect(dbPlayer.OwnershipCount).To(Equal(0))
 
 					dbPlayer, err = GetPlayerByID(testDb, memberships[0].PlayerID)
-					g.Assert(err == nil).IsTrue()
-					g.Assert(dbPlayer.OwnershipCount).Equal(1)
-					g.Assert(dbPlayer.MembershipCount).Equal(0)
+					Expect(err).NotTo(HaveOccurred())
+					Expect(dbPlayer.OwnershipCount).To(Equal(1))
+					Expect(dbPlayer.MembershipCount).To(Equal(0))
 
 					dbClan, err = GetClanByID(testDb, clan.ID)
-					g.Assert(err == nil).IsTrue()
-					g.Assert(dbClan.MembershipCount).Equal(1)
+					Expect(err).NotTo(HaveOccurred())
+					Expect(dbClan.MembershipCount).To(Equal(1))
 				})
 
-				g.It("And clan has no memberships", func() {
+				It("And clan has no memberships", func() {
 					_, clan, owner, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
-					g.Assert(err == nil).IsTrue()
+					Expect(err).NotTo(HaveOccurred())
 
 					err = LeaveClan(testDb, clan.GameID, clan.PublicID)
-					g.Assert(err == nil).IsTrue()
+					Expect(err).NotTo(HaveOccurred())
 					_, err = GetClanByPublicID(testDb, clan.GameID, clan.PublicID)
-					g.Assert(err != nil).IsTrue()
-					g.Assert(err.Error()).Equal(fmt.Sprintf("Clan was not found with id: %s", clan.PublicID))
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(Equal(fmt.Sprintf("Clan was not found with id: %s", clan.PublicID)))
 
 					dbPlayer, err := GetPlayerByID(testDb, owner.ID)
-					g.Assert(err == nil).IsTrue()
-					g.Assert(dbPlayer.OwnershipCount).Equal(0)
+					Expect(err).NotTo(HaveOccurred())
+					Expect(dbPlayer.OwnershipCount).To(Equal(0))
 				})
 			})
 
-			g.Describe("Should not leave a Clan with LeaveClan if", func() {
-				g.It("Clan does not exist", func() {
+			Describe("Should not leave a Clan with LeaveClan if", func() {
+				It("Clan does not exist", func() {
 					_, clan, _, _, _, err := GetClanWithMemberships(testDb, 1, 0, 0, 0, "", "")
-					g.Assert(err == nil).IsTrue()
+					Expect(err).NotTo(HaveOccurred())
 
 					err = LeaveClan(testDb, clan.GameID, "-1")
-					g.Assert(err != nil).IsTrue()
-					g.Assert(err.Error()).Equal("Clan was not found with id: -1")
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(Equal("Clan was not found with id: -1"))
 				})
 			})
 		})
 
-		g.Describe("Transfer Clan Ownership", func() {
-			g.Describe("Should transfer the Clan ownership with TransferClanOwnership if clan owner", func() {
-				g.It("And first clan owner and next owner memberhip exists", func() {
+		Describe("Transfer Clan Ownership", func() {
+			Describe("Should transfer the Clan ownership with TransferClanOwnership if clan owner", func() {
+				It("And first clan owner and next owner memberhip exists", func() {
 					game, clan, owner, players, memberships, err := GetClanWithMemberships(testDb, 1, 0, 0, 0, "", "")
-					g.Assert(err == nil).IsTrue()
+					Expect(err).NotTo(HaveOccurred())
 					err = TransferClanOwnership(
 						testDb,
 						clan.GameID,
@@ -488,37 +506,37 @@ func TestClanModel(t *testing.T) {
 						game.MembershipLevels,
 						game.MaxMembershipLevel,
 					)
-					g.Assert(err == nil).IsTrue()
+					Expect(err).NotTo(HaveOccurred())
 
 					dbClan, err := GetClanByPublicID(testDb, clan.GameID, clan.PublicID)
-					g.Assert(err == nil).IsTrue()
-					g.Assert(dbClan.OwnerID).Equal(players[0].ID)
+					Expect(err).NotTo(HaveOccurred())
+					Expect(dbClan.OwnerID).To(Equal(players[0].ID))
 
 					oldOwnerMembership, err := GetValidMembershipByClanAndPlayerPublicID(testDb, clan.GameID, clan.PublicID, owner.PublicID)
-					g.Assert(err == nil).IsTrue()
-					g.Assert(oldOwnerMembership.CreatedAt).Equal(clan.CreatedAt)
-					g.Assert(oldOwnerMembership.Level).Equal("CoLeader")
+					Expect(err).NotTo(HaveOccurred())
+					Expect(oldOwnerMembership.CreatedAt).To(Equal(clan.CreatedAt))
+					Expect(oldOwnerMembership.Level).To(Equal("CoLeader"))
 
 					newOwnerMembership, err := GetMembershipByID(testDb, memberships[0].ID)
-					g.Assert(err == nil).IsTrue()
-					g.Assert(newOwnerMembership.Banned).IsFalse()
-					g.Assert(newOwnerMembership.DeletedBy).Equal(newOwnerMembership.PlayerID)
-					g.Assert(newOwnerMembership.DeletedAt > util.NowMilli()-1000).IsTrue()
+					Expect(err).NotTo(HaveOccurred())
+					Expect(newOwnerMembership.Banned).To(BeFalse())
+					Expect(newOwnerMembership.DeletedBy).To(Equal(newOwnerMembership.PlayerID))
+					Expect(newOwnerMembership.DeletedAt).To(BeNumerically(">", util.NowMilli()-1000))
 
 					dbPlayer, err := GetPlayerByID(testDb, owner.ID)
-					g.Assert(err == nil).IsTrue()
-					g.Assert(dbPlayer.OwnershipCount).Equal(0)
-					g.Assert(dbPlayer.MembershipCount).Equal(1)
+					Expect(err).NotTo(HaveOccurred())
+					Expect(dbPlayer.OwnershipCount).To(Equal(0))
+					Expect(dbPlayer.MembershipCount).To(Equal(1))
 
 					dbPlayer, err = GetPlayerByID(testDb, newOwnerMembership.PlayerID)
-					g.Assert(err == nil).IsTrue()
-					g.Assert(dbPlayer.OwnershipCount).Equal(1)
-					g.Assert(dbPlayer.MembershipCount).Equal(0)
+					Expect(err).NotTo(HaveOccurred())
+					Expect(dbPlayer.OwnershipCount).To(Equal(1))
+					Expect(dbPlayer.MembershipCount).To(Equal(0))
 				})
 
-				g.It("And not first clan owner and next owner membership exists", func() {
+				It("And not first clan owner and next owner membership exists", func() {
 					game, clan, owner, players, memberships, err := GetClanWithMemberships(testDb, 2, 0, 0, 0, "", "")
-					g.Assert(err == nil).IsTrue()
+					Expect(err).NotTo(HaveOccurred())
 
 					err = TransferClanOwnership(
 						testDb,
@@ -528,7 +546,7 @@ func TestClanModel(t *testing.T) {
 						game.MembershipLevels,
 						game.MaxMembershipLevel,
 					)
-					g.Assert(err == nil).IsTrue()
+					Expect(err).NotTo(HaveOccurred())
 
 					err = TransferClanOwnership(
 						testDb,
@@ -538,49 +556,49 @@ func TestClanModel(t *testing.T) {
 						game.MembershipLevels,
 						game.MaxMembershipLevel,
 					)
-					g.Assert(err == nil).IsTrue()
+					Expect(err).NotTo(HaveOccurred())
 
 					dbClan, err := GetClanByPublicID(testDb, clan.GameID, clan.PublicID)
-					g.Assert(err == nil).IsTrue()
-					g.Assert(dbClan.OwnerID).Equal(players[1].ID)
+					Expect(err).NotTo(HaveOccurred())
+					Expect(dbClan.OwnerID).To(Equal(players[1].ID))
 
 					firstOwnerMembership, err := GetValidMembershipByClanAndPlayerPublicID(testDb, clan.GameID, clan.PublicID, owner.PublicID)
-					g.Assert(err == nil).IsTrue()
-					g.Assert(firstOwnerMembership.CreatedAt).Equal(clan.CreatedAt)
-					g.Assert(firstOwnerMembership.Level).Equal("CoLeader")
+					Expect(err).NotTo(HaveOccurred())
+					Expect(firstOwnerMembership.CreatedAt).To(Equal(clan.CreatedAt))
+					Expect(firstOwnerMembership.Level).To(Equal("CoLeader"))
 
 					previousOwnerMembership, err := GetMembershipByID(testDb, memberships[0].ID)
-					g.Assert(err == nil).IsTrue()
-					g.Assert(previousOwnerMembership.CreatedAt).Equal(memberships[0].CreatedAt)
-					g.Assert(previousOwnerMembership.Level).Equal("CoLeader")
+					Expect(err).NotTo(HaveOccurred())
+					Expect(previousOwnerMembership.CreatedAt).To(Equal(memberships[0].CreatedAt))
+					Expect(previousOwnerMembership.Level).To(Equal("CoLeader"))
 
 					newOwnerMembership, err := GetMembershipByID(testDb, memberships[1].ID)
-					g.Assert(err == nil).IsTrue()
-					g.Assert(newOwnerMembership.Banned).IsFalse()
-					g.Assert(newOwnerMembership.DeletedBy).Equal(newOwnerMembership.PlayerID)
-					g.Assert(newOwnerMembership.DeletedAt > util.NowMilli()-1000).IsTrue()
+					Expect(err).NotTo(HaveOccurred())
+					Expect(newOwnerMembership.Banned).To(BeFalse())
+					Expect(newOwnerMembership.DeletedBy).To(Equal(newOwnerMembership.PlayerID))
+					Expect(newOwnerMembership.DeletedAt).To(BeNumerically(">", util.NowMilli()-1000))
 
 					dbPlayer, err := GetPlayerByID(testDb, firstOwnerMembership.PlayerID)
-					g.Assert(err == nil).IsTrue()
-					g.Assert(dbPlayer.OwnershipCount).Equal(0)
-					g.Assert(dbPlayer.MembershipCount).Equal(1)
+					Expect(err).NotTo(HaveOccurred())
+					Expect(dbPlayer.OwnershipCount).To(Equal(0))
+					Expect(dbPlayer.MembershipCount).To(Equal(1))
 
 					dbPlayer, err = GetPlayerByID(testDb, previousOwnerMembership.PlayerID)
-					g.Assert(err == nil).IsTrue()
-					g.Assert(dbPlayer.OwnershipCount).Equal(0)
-					g.Assert(dbPlayer.MembershipCount).Equal(1)
+					Expect(err).NotTo(HaveOccurred())
+					Expect(dbPlayer.OwnershipCount).To(Equal(0))
+					Expect(dbPlayer.MembershipCount).To(Equal(1))
 
 					dbPlayer, err = GetPlayerByID(testDb, newOwnerMembership.PlayerID)
-					g.Assert(err == nil).IsTrue()
-					g.Assert(dbPlayer.OwnershipCount).Equal(1)
-					g.Assert(dbPlayer.MembershipCount).Equal(0)
+					Expect(err).NotTo(HaveOccurred())
+					Expect(dbPlayer.OwnershipCount).To(Equal(1))
+					Expect(dbPlayer.MembershipCount).To(Equal(0))
 				})
 			})
 
-			g.Describe("Should not transfer the Clan ownership with TransferClanOwnership if", func() {
-				g.It("Clan does not exist", func() {
+			Describe("Should not transfer the Clan ownership with TransferClanOwnership if", func() {
+				It("Clan does not exist", func() {
 					game, clan, _, players, _, err := GetClanWithMemberships(testDb, 1, 0, 0, 0, "", "")
-					g.Assert(err == nil).IsTrue()
+					Expect(err).NotTo(HaveOccurred())
 
 					err = TransferClanOwnership(
 						testDb,
@@ -590,13 +608,13 @@ func TestClanModel(t *testing.T) {
 						game.MembershipLevels,
 						game.MaxMembershipLevel,
 					)
-					g.Assert(err != nil).IsTrue()
-					g.Assert(err.Error()).Equal("Clan was not found with id: -1")
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(Equal("Clan was not found with id: -1"))
 				})
 
-				g.It("Membership does not exist", func() {
+				It("Membership does not exist", func() {
 					game, clan, _, _, _, err := GetClanWithMemberships(testDb, 1, 0, 0, 0, "", "")
-					g.Assert(err == nil).IsTrue()
+					Expect(err).NotTo(HaveOccurred())
 
 					err = TransferClanOwnership(
 						testDb,
@@ -606,65 +624,66 @@ func TestClanModel(t *testing.T) {
 						game.MembershipLevels,
 						game.MaxMembershipLevel,
 					)
-					g.Assert(err != nil).IsTrue()
-					g.Assert(err.Error()).Equal("Membership was not found with id: some-random-player")
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(Equal("Membership was not found with id: some-random-player"))
 				})
 			})
 		})
 
-		g.Describe("Get List of Clans", func() {
-			g.It("Should get all clans", func() {
+		Describe("Get List of Clans", func() {
+			It("Should get all clans", func() {
 				player, _, err := GetTestClans(testDb, "", "", 10)
-				g.Assert(err == nil).IsTrue()
+				Expect(err).NotTo(HaveOccurred())
 
 				clans, err := GetAllClans(testDb, player.GameID)
-				g.Assert(err == nil).IsTrue()
-				g.Assert(len(clans)).Equal(10)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(len(clans)).To(Equal(10))
 			})
 
-			g.It("Should fail when game id is empty", func() {
+			It("Should fail when game id is empty", func() {
 				clans, err := GetAllClans(testDb, "")
-				g.Assert(clans == nil).IsTrue()
-				g.Assert(err != nil).IsTrue()
-				g.Assert(err.Error()).Equal("Game ID is required to retrieve Clan!")
+				Expect(clans).To(BeNil())
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(Equal("Game ID is required to retrieve Clan!"))
 			})
 
-			g.It("Should fail when connection fails", func() {
+			It("Should fail when connection fails", func() {
 				clans, err := GetAllClans(faultyDb, "game-id")
-				g.Assert(clans == nil).IsTrue()
-				g.Assert(err != nil).IsTrue()
-				g.Assert(err.Error()).Equal("pq: role \"khan_tet\" does not exist")
+				Expect(clans).To(BeNil())
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(Equal("pq: role \"khan_tet\" does not exist"))
 			})
 		})
 
-		g.Describe("Get Clan Details", func() {
-			g.It("Should get clan members", func() {
+		Describe("Get Clan Details", func() {
+			It("Should get clan members", func() {
+				gameID := uuid.NewV4().String()
 				_, clan, owner, players, memberships, err := GetClanWithMemberships(
-					testDb, 10, 3, 4, 5, "clan-details", "clan-details-clan",
+					testDb, 10, 3, 4, 5, gameID, uuid.NewV4().String(),
 				)
-				g.Assert(err == nil).IsTrue()
+				Expect(err).NotTo(HaveOccurred())
 
 				clanData, err := GetClanDetails(testDb, clan.GameID, clan.PublicID, 1)
-				g.Assert(err == nil).IsTrue()
-				g.Assert(clanData["name"]).Equal(clan.Name)
-				g.Assert(clanData["metadata"]).Equal(clan.Metadata)
-				g.Assert(clanData["membershipCount"]).Equal(11)
-				g.Assert(clanData["owner"].(map[string]interface{})["publicID"]).Equal(owner.PublicID)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(clanData["name"]).To(Equal(clan.Name))
+				Expect(clanData["metadata"]).To(Equal(clan.Metadata))
+				Expect(clanData["membershipCount"]).To(Equal(11))
+				Expect(clanData["owner"].(map[string]interface{})["publicID"]).To(Equal(owner.PublicID))
 
 				roster := clanData["roster"].([]map[string]interface{})
-				g.Assert(len(roster)).Equal(10)
+				Expect(len(roster)).To(Equal(10))
 
 				pendingApplications := clanData["memberships"].(map[string]interface{})["pendingApplications"].([]map[string]interface{})
-				g.Assert(len(pendingApplications)).Equal(0)
+				Expect(len(pendingApplications)).To(Equal(0))
 
 				pendingInvites := clanData["memberships"].(map[string]interface{})["pendingInvites"].([]map[string]interface{})
-				g.Assert(len(pendingInvites)).Equal(5)
+				Expect(len(pendingInvites)).To(Equal(5))
 
 				banned := clanData["memberships"].(map[string]interface{})["banned"].([]map[string]interface{})
-				g.Assert(len(banned)).Equal(4)
+				Expect(len(banned)).To(Equal(4))
 
 				denied := clanData["memberships"].(map[string]interface{})["denied"].([]map[string]interface{})
-				g.Assert(len(denied)).Equal(3)
+				Expect(len(denied)).To(Equal(3))
 
 				playerDict := map[string]*Player{}
 				for i := 0; i < 22; i++ {
@@ -680,25 +699,25 @@ func TestClanModel(t *testing.T) {
 					player := playerData["player"].(map[string]interface{})
 					pid := player["publicID"].(string)
 					name := player["name"].(string)
-					g.Assert(name).Equal(playerDict[pid].Name)
+					Expect(name).To(Equal(playerDict[pid].Name))
 					membershipLevel := playerData["level"]
-					g.Assert(membershipLevel).Equal(membershipDict[playerDict[pid].ID].Level)
+					Expect(membershipLevel).To(Equal(membershipDict[playerDict[pid].ID].Level))
 
 					//Approval
 					approver := player["approver"].(map[string]interface{})
-					g.Assert(approver["name"]).Equal(playerDict[pid].Name)
-					g.Assert(approver["publicID"]).Equal(playerDict[pid].PublicID)
+					Expect(approver["name"]).To(Equal(playerDict[pid].Name))
+					Expect(approver["publicID"]).To(Equal(playerDict[pid].PublicID))
 
-					g.Assert(player["denier"] == nil).IsTrue()
+					Expect(player["denier"]).To(BeNil())
 				}
 
 				for _, playerData := range pendingInvites {
 					player := playerData["player"].(map[string]interface{})
 					pid := player["publicID"].(string)
 					name := player["name"].(string)
-					g.Assert(name).Equal(playerDict[pid].Name)
+					Expect(name).To(Equal(playerDict[pid].Name))
 					membershipLevel := playerData["level"]
-					g.Assert(membershipLevel).Equal(membershipDict[playerDict[pid].ID].Level)
+					Expect(membershipLevel).To(Equal(membershipDict[playerDict[pid].ID].Level))
 				}
 
 				for _, playerData := range pendingApplications {
@@ -706,54 +725,55 @@ func TestClanModel(t *testing.T) {
 					pid := player["publicID"].(string)
 					name := player["name"].(string)
 					message := player["message"].(string)
-					g.Assert(name).Equal(playerDict[pid].Name)
+					Expect(name).To(Equal(playerDict[pid].Name))
 					membershipLevel := playerData["level"]
-					g.Assert(membershipLevel).Equal(membershipDict[playerDict[pid].ID].Level)
-					g.Assert(message).Equal("Accept me")
+					Expect(membershipLevel).To(Equal(membershipDict[playerDict[pid].ID].Level))
+					Expect(message).To(Equal("Accept me"))
 				}
 
 				for _, playerData := range banned {
 					player := playerData["player"].(map[string]interface{})
 					pid := player["publicID"].(string)
 					name := player["name"].(string)
-					g.Assert(name).Equal(playerDict[pid].Name)
-					g.Assert(playerData["level"]).Equal(nil)
+					Expect(name).To(Equal(playerDict[pid].Name))
+					Expect(playerData["level"]).To(BeNil())
 				}
 
 				for _, playerData := range denied {
 					player := playerData["player"].(map[string]interface{})
 					pid := player["publicID"].(string)
 					name := player["name"].(string)
-					g.Assert(name).Equal(playerDict[pid].Name)
-					g.Assert(playerData["level"]).Equal(nil)
+					Expect(name).To(Equal(playerDict[pid].Name))
+					Expect(playerData["level"]).To(BeNil())
 
 					//Approval
 					denier := player["denier"].(map[string]interface{})
-					g.Assert(denier["name"]).Equal(playerDict[pid].Name)
-					g.Assert(denier["publicID"]).Equal(playerDict[pid].PublicID)
+					Expect(denier["name"]).To(Equal(playerDict[pid].Name))
+					Expect(denier["publicID"]).To(Equal(playerDict[pid].PublicID))
 
-					g.Assert(player["approver"] == nil).IsTrue()
+					Expect(player["approver"]).To(BeNil())
 				}
 			})
 
-			g.It("Should not get deleted clan members", func() {
+			It("Should not get deleted clan members", func() {
+				gameID := uuid.NewV4().String()
 				_, clan, _, players, memberships, err := GetClanWithMemberships(
-					testDb, 10, 0, 0, 0, "more-clan-details", "more-clan-details-clan",
+					testDb, 10, 0, 0, 0, gameID, uuid.NewV4().String(),
 				)
-				g.Assert(err == nil).IsTrue()
+				Expect(err).NotTo(HaveOccurred())
 
 				memberships[9].DeletedAt = util.NowMilli()
 				memberships[9].DeletedBy = clan.OwnerID
 				_, err = testDb.Update(memberships[9])
-				g.Assert(err == nil).IsTrue()
+				Expect(err).NotTo(HaveOccurred())
 
 				clanData, err := GetClanDetails(testDb, clan.GameID, clan.PublicID, 1)
-				g.Assert(err == nil).IsTrue()
-				g.Assert(clanData["name"]).Equal(clan.Name)
-				g.Assert(clanData["metadata"]).Equal(clan.Metadata)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(clanData["name"]).To(Equal(clan.Name))
+				Expect(clanData["metadata"]).To(Equal(clan.Metadata))
 
 				roster := clanData["roster"].([]map[string]interface{})
-				g.Assert(len(roster)).Equal(9)
+				Expect(len(roster)).To(Equal(9))
 
 				playerDict := map[string]*Player{}
 				for i := 0; i < len(roster); i++ {
@@ -764,195 +784,208 @@ func TestClanModel(t *testing.T) {
 					player := roster[i]["player"].(map[string]interface{})
 					pid := player["publicID"].(string)
 					name := player["name"].(string)
-					g.Assert(name).Equal(playerDict[pid].Name)
+					Expect(name).To(Equal(playerDict[pid].Name))
 				}
 			})
 
-			g.It("Should get clan details even if no members", func() {
+			It("Should get clan details even if no members", func() {
+				gameID := uuid.NewV4().String()
 				_, clan, _, _, _, err := GetClanWithMemberships(
-					testDb, 0, 0, 0, 0, "clan-details-2", "clan-details-2-clan",
+					testDb, 0, 0, 0, 0, gameID, uuid.NewV4().String(),
 				)
-				g.Assert(err == nil).IsTrue()
+				Expect(err).NotTo(HaveOccurred())
 				clan.AllowApplication = true
 				clan.AutoJoin = true
 				_, err = testDb.Update(clan)
-				g.Assert(err == nil).IsTrue()
+				Expect(err).NotTo(HaveOccurred())
 
 				clanData, err := GetClanDetails(testDb, clan.GameID, clan.PublicID, 1)
-				g.Assert(err == nil).IsTrue()
-				g.Assert(clanData["name"]).Equal(clan.Name)
-				g.Assert(clanData["metadata"]).Equal(clan.Metadata)
-				g.Assert(clanData["allowApplication"]).Equal(clan.AllowApplication)
-				g.Assert(clanData["autoJoin"]).Equal(clan.AutoJoin)
-				g.Assert(clanData["membershipCount"]).Equal(1)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(clanData["name"]).To(Equal(clan.Name))
+				Expect(clanData["metadata"]).To(Equal(clan.Metadata))
+				Expect(clanData["allowApplication"]).To(Equal(clan.AllowApplication))
+				Expect(clanData["autoJoin"]).To(Equal(clan.AutoJoin))
+				Expect(clanData["membershipCount"]).To(Equal(1))
 				roster := clanData["roster"].([]map[string]interface{})
-				g.Assert(len(roster)).Equal(0)
+				Expect(len(roster)).To(Equal(0))
 			})
 
-			g.It("Should fail if clan does not exist", func() {
+			It("Should fail if clan does not exist", func() {
 				clanData, err := GetClanDetails(testDb, "fake-game-id", "fake-public-id", 1)
-				g.Assert(clanData == nil).IsTrue()
-				g.Assert(err != nil).IsTrue()
-				g.Assert(err.Error()).Equal("Clan was not found with id: fake-public-id")
+				Expect(clanData).To(BeNil())
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(Equal("Clan was not found with id: fake-public-id"))
 			})
 		})
 
-		g.Describe("Get Clan Summary", func() {
-			g.It("Should get clan members", func() {
+		Describe("Get Clan Summary", func() {
+			It("Should get clan members", func() {
+				gameID := uuid.NewV4().String()
 				_, clan, _, _, _, err := GetClanWithMemberships(
-					testDb, 10, 3, 4, 5, "clan-summary", "clan-summary-clan",
+					testDb, 10, 3, 4, 5, gameID, uuid.NewV4().String(),
 				)
-				g.Assert(err == nil).IsTrue()
+				Expect(err).NotTo(HaveOccurred())
 
 				clanData, err := GetClanSummary(testDb, clan.GameID, clan.PublicID)
-				g.Assert(err == nil).IsTrue()
-				g.Assert(clanData["membershipCount"]).Equal(clan.MembershipCount)
-				g.Assert(clanData["publicID"]).Equal(clan.PublicID)
-				g.Assert(clanData["metadata"]).Equal(clan.Metadata)
-				g.Assert(clanData["name"]).Equal(clan.Name)
-				g.Assert(clanData["allowApplication"]).Equal(clan.AllowApplication)
-				g.Assert(clanData["autoJoin"]).Equal(clan.AutoJoin)
-				g.Assert(len(clanData)).Equal(6)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(clanData["membershipCount"]).To(Equal(clan.MembershipCount))
+				Expect(clanData["publicID"]).To(Equal(clan.PublicID))
+				Expect(clanData["metadata"]).To(Equal(clan.Metadata))
+				Expect(clanData["name"]).To(Equal(clan.Name))
+				Expect(clanData["allowApplication"]).To(Equal(clan.AllowApplication))
+				Expect(clanData["autoJoin"]).To(Equal(clan.AutoJoin))
+				Expect(len(clanData)).To(Equal(6))
 			})
 
-			g.It("Should fail if clan does not exist", func() {
+			It("Should fail if clan does not exist", func() {
 				clanData, err := GetClanDetails(testDb, "fake-game-id", "fake-public-id", 1)
-				g.Assert(clanData == nil).IsTrue()
-				g.Assert(err != nil).IsTrue()
-				g.Assert(err.Error()).Equal("Clan was not found with id: fake-public-id")
+				Expect(clanData).To(BeNil())
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(Equal("Clan was not found with id: fake-public-id"))
 			})
 
 		})
 
-		g.Describe("Get Clans Summaries", func() {
-			g.It("Should get clan members", func() {
-				_, clan1, _, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 0, "clan_summary4",
-					"clan_summary4_clan1")
-				g.Assert(err == nil).IsTrue()
-				_, clan2, _, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 0, "clan_summary4",
-					"clan_summary4_clan2", true)
-				g.Assert(err == nil).IsTrue()
-				_, clan3, _, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 0, "clan_summary4",
-					"clan_summary4_clan3", true)
-				g.Assert(err == nil).IsTrue()
+		Describe("Get Clans Summaries", func() {
+			It("Should get clan members", func() {
+				gameID := uuid.NewV4().String()
 
-				clans := []*Clan{clan1, clan2, clan3}
+				_, clan1, _, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 0, gameID,
+					uuid.NewV4().String())
+				Expect(err).NotTo(HaveOccurred())
+				_, clan2, _, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 0, gameID,
+					uuid.NewV4().String(), true)
+				Expect(err).NotTo(HaveOccurred())
+				_, clan3, _, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 0, gameID,
+					uuid.NewV4().String(), true)
+				Expect(err).NotTo(HaveOccurred())
+
+				clans := map[string]*Clan{
+					clan1.PublicID: clan1,
+					clan2.PublicID: clan2,
+					clan3.PublicID: clan3,
+				}
 				clanIDs := []string{clan1.PublicID, clan2.PublicID, clan3.PublicID}
 
 				clansSummaries, err := GetClansSummaries(testDb, clan1.GameID, clanIDs)
-				g.Assert(err == nil).IsTrue()
+				Expect(err).NotTo(HaveOccurred())
 
 				clansSummariesArr := clansSummaries
-				g.Assert(len(clansSummariesArr)).Equal(3)
-				for i, clanSummary := range clansSummariesArr {
-					g.Assert(clanSummary["membershipCount"]).Equal(clans[i].MembershipCount)
-					g.Assert(clanSummary["publicID"]).Equal(clans[i].PublicID)
-					g.Assert(clanSummary["metadata"]).Equal(clans[i].Metadata)
-					g.Assert(clanSummary["name"]).Equal(clans[i].Name)
-					g.Assert(clanSummary["allowApplication"]).Equal(clans[i].AllowApplication)
-					g.Assert(clanSummary["autoJoin"]).Equal(clans[i].AutoJoin)
-					g.Assert(len(clanSummary)).Equal(6)
+				Expect(len(clansSummariesArr)).To(Equal(3))
+				for _, clanSummary := range clansSummariesArr {
+					clan := clans[clanSummary["publicID"].(string)]
+					Expect(clanSummary["membershipCount"]).To(Equal(clan.MembershipCount))
+					Expect(clanSummary["metadata"]).To(Equal(clan.Metadata))
+					Expect(clanSummary["name"]).To(Equal(clan.Name))
+					Expect(clanSummary["allowApplication"]).To(Equal(clan.AllowApplication))
+					Expect(clanSummary["autoJoin"]).To(Equal(clan.AutoJoin))
+					Expect(len(clanSummary)).To(Equal(6))
 				}
 			})
 
-			g.It("Should retrieve only existent clans", func() {
-				_, clan1, _, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 0, "clan_summary5",
-					"clan_summary5_clan1")
-				g.Assert(err == nil).IsTrue()
-				_, clan2, _, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 0, "clan_summary5",
-					"clan_summary5_clan2", true)
-				g.Assert(err == nil).IsTrue()
-				_, clan3, _, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 0, "clan_summary5",
-					"clan_summary5_clan3", true)
-				g.Assert(err == nil).IsTrue()
+			It("Should retrieve only existent clans", func() {
+				gameID := uuid.NewV4().String()
+
+				_, clan1, _, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 0, gameID,
+					uuid.NewV4().String())
+				Expect(err).NotTo(HaveOccurred())
+				_, clan2, _, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 0, gameID,
+					uuid.NewV4().String(), true)
+				Expect(err).NotTo(HaveOccurred())
+				_, clan3, _, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 0, gameID,
+					uuid.NewV4().String(), true)
+				Expect(err).NotTo(HaveOccurred())
 
 				clanIDs := []string{clan1.PublicID, clan2.PublicID, clan3.PublicID, "unexistent_clan"}
 
 				clansSummaries, err := GetClansSummaries(testDb, clan1.GameID, clanIDs)
-				g.Assert(err != nil).IsTrue()
-				g.Assert(err.Error()).Equal(
-					"Could not find all requested clans or the given game. GameId: clan_summary5, Missing clans: unexistent_clan",
-				)
-				g.Assert(len(clansSummaries)).Equal(3)
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(Equal(fmt.Sprintf(
+					"Could not find all requested clans or the given game. GameId: %s, Missing clans: unexistent_clan",
+					gameID,
+				)))
+				Expect(len(clansSummaries)).To(Equal(3))
 				for _, clanSummary := range clansSummaries {
 					clanSummaryObj := clanSummary
-					g.Assert(len(clanSummaryObj)).Equal(6)
+					Expect(len(clanSummaryObj)).To(Equal(6))
 				}
 			})
 
-			g.It("Should fail if game does not exist", func() {
-				_, clan1, _, _, _, err1 := GetClanWithMemberships(testDb, 0, 0, 0, 0, "clan_summary6", "clan_summary6_clan")
-				g.Assert(err1 == nil).IsTrue()
+			It("Should fail if game does not exist", func() {
+				gameID := uuid.NewV4().String()
+				clanID := uuid.NewV4().String()
+				_, clan1, _, _, _, err1 := GetClanWithMemberships(testDb, 0, 0, 0, 0, gameID, clanID)
+				Expect(err1).To(BeNil())
 
 				clanIDs := []string{clan1.PublicID}
 
 				clansSummaries, err := GetClansSummaries(testDb, "unexistent_game", clanIDs)
-				g.Assert(err != nil).IsTrue()
-				g.Assert(err.Error()).Equal(fmt.Sprintf(
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(Equal(fmt.Sprintf(
 					"Could not find all requested clans or the given game. GameId: unexistent_game, Missing clans: %s",
 					strings.Join(clanIDs, ","),
-				))
+				)))
 
-				g.Assert(len(clansSummaries)).Equal(0)
+				Expect(len(clansSummaries)).To(Equal(0))
 			})
 		})
 
-		g.Describe("Clan Search", func() {
-			g.It("Should return clan by search term", func() {
+		Describe("Clan Search", func() {
+			It("Should return clan by search term", func() {
 				player, _, err := GetTestClans(
 					testDb, "", "clan-search-clan", 10,
 				)
-				g.Assert(err == nil).IsTrue()
+				Expect(err).NotTo(HaveOccurred())
 
 				clans, err := SearchClan(testDb, player.GameID, "SEARCH")
-				g.Assert(err == nil).IsTrue()
+				Expect(err).NotTo(HaveOccurred())
 
-				g.Assert(len(clans)).Equal(10)
+				Expect(len(clans)).To(Equal(10))
 			})
 
-			g.It("Should return clan by unicode search term", func() {
+			It("Should return clan by unicode search term", func() {
 				player, _, err := GetTestClans(
 					testDb, "", "clan-search-clan", 10,
 				)
-				g.Assert(err == nil).IsTrue()
+				Expect(err).NotTo(HaveOccurred())
 
 				clans, err := SearchClan(testDb, player.GameID, "💩clán")
-				g.Assert(err == nil).IsTrue()
+				Expect(err).NotTo(HaveOccurred())
 
-				g.Assert(len(clans)).Equal(10)
+				Expect(len(clans)).To(Equal(10))
 			})
 
-			g.It("Should return empty list if search term is not found", func() {
+			It("Should return empty list if search term is not found", func() {
 				player, _, err := GetTestClans(
 					testDb, "", "clan-search-clan-2", 10,
 				)
-				g.Assert(err == nil).IsTrue()
+				Expect(err).NotTo(HaveOccurred())
 
 				clans, err := SearchClan(testDb, player.GameID, "qwfjur")
-				g.Assert(err == nil).IsTrue()
+				Expect(err).NotTo(HaveOccurred())
 
-				g.Assert(len(clans)).Equal(0)
+				Expect(len(clans)).To(Equal(0))
 			})
 
-			g.It("Should return invalid response if empty term", func() {
+			It("Should return invalid response if empty term", func() {
 				_, err := SearchClan(testDb, "some-game-id", "")
-				g.Assert(err != nil).IsTrue()
-				g.Assert(err.Error()).Equal("A search term was not provided to find a clan.")
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(Equal("A search term was not provided to find a clan."))
 			})
 		})
 
-		g.Describe("Get Clan and Owner", func() {
-			g.It("Should return clan and owner", func() {
+		Describe("Get Clan and Owner", func() {
+			It("Should return clan and owner", func() {
 				_, clan, owner, _, _, err := GetClanWithMemberships(
 					testDb, 10, 3, 4, 5, "", "",
 				)
-				g.Assert(err == nil).IsTrue()
+				Expect(err).NotTo(HaveOccurred())
 
 				dbClan, dbOwner, err := GetClanAndOwnerByPublicID(testDb, clan.GameID, clan.PublicID)
-				g.Assert(err == nil).IsTrue()
-				g.Assert(dbClan.ID).Equal(clan.ID)
-				g.Assert(dbOwner.ID).Equal(owner.ID)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(dbClan.ID).To(Equal(clan.ID))
+				Expect(dbOwner.ID).To(Equal(owner.ID))
 			})
 		})
 	})
-}
+})

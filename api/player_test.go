@@ -5,108 +5,111 @@
 // http://www.opensource.org/licenses/mit-license
 // Copyright © 2016 Top Free Games <backend@tfgco.com>
 
-package api
+package api_test
 
 import (
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
-	"testing"
 	"time"
 
 	"github.com/Pallinder/go-randomdata"
-	. "github.com/franela/goblin"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 	"github.com/satori/go.uuid"
 	"github.com/topfreegames/khan/models"
 )
 
-func TestPlayerHandler(t *testing.T) {
-	g := Goblin(t)
+var _ = Describe("Player API Handler", func() {
+	var testDb models.DB
 
-	testDb, err := models.GetTestDB()
-	g.Assert(err == nil).IsTrue()
+	BeforeEach(func() {
+		var err error
+		testDb, err = GetTestDB()
+		Expect(err).NotTo(HaveOccurred())
+	})
 
-	g.Describe("Create Player Handler", func() {
-		g.It("Should create player", func() {
+	Describe("Create Player Handler", func() {
+		It("Should create player", func() {
 			a := GetDefaultTestApp()
 			game := models.GameFactory.MustCreate().(*models.Game)
 			err := a.Db.Insert(game)
-			AssertNotError(g, err)
+			Expect(err).NotTo(HaveOccurred())
 
 			payload := map[string]interface{}{
 				"publicID": randomdata.FullName(randomdata.RandomGender),
 				"name":     randomdata.FullName(randomdata.RandomGender),
 				"metadata": map[string]interface{}{"x": 1},
 			}
-			res := PostJSON(a, GetGameRoute(game.PublicID, "/players"), t, payload)
+			res := PostJSON(a, GetGameRoute(game.PublicID, "/players"), payload)
 
-			g.Assert(res.Raw().StatusCode).Equal(http.StatusOK)
+			Expect(res.Raw().StatusCode).To(Equal(http.StatusOK))
 			var result map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
-			g.Assert(result["success"]).IsTrue()
-			g.Assert(result["publicID"]).Equal(payload["publicID"].(string))
+			Expect(result["success"]).To(BeTrue())
+			Expect(result["publicID"]).To(Equal(payload["publicID"].(string)))
 
 			dbPlayer, err := models.GetPlayerByPublicID(
 				a.Db, game.PublicID, payload["publicID"].(string),
 			)
-			AssertNotError(g, err)
-			g.Assert(dbPlayer.GameID).Equal(game.PublicID)
-			g.Assert(dbPlayer.PublicID).Equal(payload["publicID"])
-			g.Assert(dbPlayer.Name).Equal(payload["name"])
-			g.Assert(dbPlayer.Metadata).Equal(payload["metadata"])
+			Expect(err).NotTo(HaveOccurred())
+			Expect(dbPlayer.GameID).To(Equal(game.PublicID))
+			Expect(dbPlayer.PublicID).To(Equal(payload["publicID"]))
+			Expect(dbPlayer.Name).To(Equal(payload["name"]))
+			Expect(dbPlayer.Metadata["x"]).To(BeEquivalentTo(payload["metadata"].(map[string]interface{})["x"]))
 		})
 
-		g.It("Should not create player if missing parameters", func() {
+		It("Should not create player if missing parameters", func() {
 			a := GetDefaultTestApp()
 			route := GetGameRoute("game-id", "/players")
-			res := PostJSON(a, route, t, map[string]interface{}{})
+			res := PostJSON(a, route, map[string]interface{}{})
 
-			g.Assert(res.Raw().StatusCode).Equal(http.StatusBadRequest)
+			Expect(res.Raw().StatusCode).To(Equal(http.StatusBadRequest))
 			var result map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
-			g.Assert(result["success"]).IsFalse()
-			g.Assert(result["reason"]).Equal("publicID is required, name is required, metadata is required")
+			Expect(result["success"]).To(BeFalse())
+			Expect(result["reason"]).To(Equal("publicID is required, name is required, metadata is required"))
 		})
 
-		g.It("Should not create player if invalid payload", func() {
+		It("Should not create player if invalid payload", func() {
 			a := GetDefaultTestApp()
 			route := GetGameRoute("game-id", "/players")
-			res := PostBody(a, route, t, "invalid")
+			res := PostBody(a, route, "invalid")
 
-			g.Assert(res.Raw().StatusCode).Equal(http.StatusBadRequest)
+			Expect(res.Raw().StatusCode).To(Equal(http.StatusBadRequest))
 			var result map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
-			g.Assert(result["success"]).IsFalse()
-			g.Assert(strings.Contains(result["reason"].(string), "While trying to read JSON")).IsTrue()
+			Expect(result["success"]).To(BeFalse())
+			Expect(strings.Contains(result["reason"].(string), "While trying to read JSON")).To(BeTrue())
 		})
 
-		g.It("Should not create player if invalid data", func() {
+		It("Should not create player if invalid data", func() {
 			a := GetDefaultTestApp()
 			game := models.GameFactory.MustCreate().(*models.Game)
 			err := a.Db.Insert(game)
-			AssertNotError(g, err)
+			Expect(err).NotTo(HaveOccurred())
 
 			payload := map[string]interface{}{
 				"publicID": strings.Repeat("s", 256),
 				"name":     randomdata.FullName(randomdata.RandomGender),
 				"metadata": map[string]interface{}{"x": 1},
 			}
-			res := PostJSON(a, GetGameRoute(game.PublicID, "/players"), t, payload)
+			res := PostJSON(a, GetGameRoute(game.PublicID, "/players"), payload)
 
-			g.Assert(res.Raw().StatusCode).Equal(http.StatusInternalServerError)
+			Expect(res.Raw().StatusCode).To(Equal(http.StatusInternalServerError))
 			var result map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
-			g.Assert(result["success"]).IsFalse()
-			g.Assert(result["reason"]).Equal("pq: value too long for type character varying(255)")
+			Expect(result["success"]).To(BeFalse())
+			Expect(result["reason"]).To(Equal("pq: value too long for type character varying(255)"))
 		})
 	})
 
-	g.Describe("Update Player Handler", func() {
-		g.It("Should update player", func() {
+	Describe("Update Player Handler", func() {
+		It("Should update player", func() {
 			a := GetDefaultTestApp()
 			_, player, err := models.CreatePlayerFactory(a.Db, "")
-			AssertNotError(g, err)
+			Expect(err).NotTo(HaveOccurred())
 
 			metadata := map[string]interface{}{"y": 10}
 			payload := map[string]interface{}{
@@ -115,48 +118,48 @@ func TestPlayerHandler(t *testing.T) {
 			}
 
 			route := GetGameRoute(player.GameID, fmt.Sprintf("/players/%s", player.PublicID))
-			res := PutJSON(a, route, t, payload)
-			g.Assert(res.Raw().StatusCode).Equal(http.StatusOK)
+			res := PutJSON(a, route, payload)
+			Expect(res.Raw().StatusCode).To(Equal(http.StatusOK))
 			var result map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
-			g.Assert(result["success"]).IsTrue()
+			Expect(result["success"]).To(BeTrue())
 
 			dbPlayer, err := models.GetPlayerByPublicID(a.Db, player.GameID, player.PublicID)
-			AssertNotError(g, err)
-			g.Assert(dbPlayer.GameID).Equal(player.GameID)
-			g.Assert(dbPlayer.PublicID).Equal(player.PublicID)
-			g.Assert(dbPlayer.Name).Equal(player.Name)
-			g.Assert(dbPlayer.Metadata).Equal(metadata)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(dbPlayer.GameID).To(Equal(player.GameID))
+			Expect(dbPlayer.PublicID).To(Equal(player.PublicID))
+			Expect(dbPlayer.Name).To(Equal(player.Name))
+			Expect(dbPlayer.Metadata["y"]).To(BeEquivalentTo(metadata["y"]))
 		})
 
-		g.It("Should not update player if missing parameters", func() {
+		It("Should not update player if missing parameters", func() {
 			a := GetDefaultTestApp()
 			route := GetGameRoute("game-id", "/players/player-id")
-			res := PutJSON(a, route, t, map[string]interface{}{})
+			res := PutJSON(a, route, map[string]interface{}{})
 
-			g.Assert(res.Raw().StatusCode).Equal(http.StatusBadRequest)
+			Expect(res.Raw().StatusCode).To(Equal(http.StatusBadRequest))
 			var result map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
-			g.Assert(result["success"]).IsFalse()
-			g.Assert(result["reason"]).Equal("name is required, metadata is required")
+			Expect(result["success"]).To(BeFalse())
+			Expect(result["reason"]).To(Equal("name is required, metadata is required"))
 		})
 
-		g.It("Should not update player if invalid payload", func() {
+		It("Should not update player if invalid payload", func() {
 			a := GetDefaultTestApp()
 			route := GetGameRoute("game-id", "/players/fake")
-			res := PutBody(a, route, t, "invalid")
+			res := PutBody(a, route, "invalid")
 
-			g.Assert(res.Raw().StatusCode).Equal(http.StatusBadRequest)
+			Expect(res.Raw().StatusCode).To(Equal(http.StatusBadRequest))
 			var result map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
-			g.Assert(result["success"]).IsFalse()
-			g.Assert(strings.Contains(result["reason"].(string), "While trying to read JSON")).IsTrue()
+			Expect(result["success"]).To(BeFalse())
+			Expect(strings.Contains(result["reason"].(string), "While trying to read JSON")).To(BeTrue())
 		})
 
-		g.It("Should not update player if invalid data", func() {
+		It("Should not update player if invalid data", func() {
 			a := GetDefaultTestApp()
 			_, player, err := models.CreatePlayerFactory(a.Db, "")
-			AssertNotError(g, err)
+			Expect(err).NotTo(HaveOccurred())
 
 			payload := map[string]interface{}{
 				"publicID": player.PublicID,
@@ -164,38 +167,38 @@ func TestPlayerHandler(t *testing.T) {
 				"metadata": map[string]interface{}{},
 			}
 			route := GetGameRoute(player.GameID, fmt.Sprintf("/players/%s", player.PublicID))
-			res := PutJSON(a, route, t, payload)
+			res := PutJSON(a, route, payload)
 
-			g.Assert(res.Raw().StatusCode).Equal(http.StatusInternalServerError)
+			Expect(res.Raw().StatusCode).To(Equal(http.StatusInternalServerError))
 			var result map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
-			g.Assert(result["success"]).IsFalse()
-			g.Assert(result["reason"]).Equal("pq: value too long for type character varying(255)")
+			Expect(result["success"]).To(BeFalse())
+			Expect(result["reason"]).To(Equal("pq: value too long for type character varying(255)"))
 		})
 	})
 
-	g.Describe("Retrieve Player", func() {
-		g.It("Should retrieve player", func() {
+	Describe("Retrieve Player", func() {
+		It("Should retrieve player", func() {
 			a := GetDefaultTestApp()
 			gameID := uuid.NewV4().String()
 			player, err := models.GetTestPlayerWithMemberships(testDb, gameID, 5, 2, 3, 8)
-			g.Assert(err == nil).IsTrue()
+			Expect(err).NotTo(HaveOccurred())
 
 			route := GetGameRoute(player.GameID, fmt.Sprintf("/players/%s", player.PublicID))
-			res := Get(a, route, t)
+			res := Get(a, route)
 
-			g.Assert(res.Raw().StatusCode).Equal(http.StatusOK)
+			Expect(res.Raw().StatusCode).To(Equal(http.StatusOK))
 			var playerDetails map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &playerDetails)
-			g.Assert(playerDetails["success"]).IsTrue()
+			Expect(playerDetails["success"]).To(BeTrue())
 
 			// Player Details
-			g.Assert(playerDetails["publicID"]).Equal(player.PublicID)
-			g.Assert(playerDetails["name"]).Equal(player.Name)
-			g.Assert(playerDetails["metadata"] != nil).IsTrue()
+			Expect(playerDetails["publicID"]).To(Equal(player.PublicID))
+			Expect(playerDetails["name"]).To(Equal(player.Name))
+			Expect(playerDetails["metadata"]).NotTo(BeEquivalentTo(nil))
 
 			//Memberships
-			g.Assert(len(playerDetails["memberships"].([]interface{}))).Equal(18)
+			Expect(len(playerDetails["memberships"].([]interface{}))).To(Equal(18))
 
 			clans := playerDetails["clans"].(map[string]interface{}) // can't be map[string]interface{}
 			approved := clans["approved"].([]interface{})
@@ -204,32 +207,32 @@ func TestPlayerHandler(t *testing.T) {
 			pendingApplications := clans["pendingApplications"].([]interface{})
 			pendingInvites := clans["pendingInvites"].([]interface{})
 
-			g.Assert(len(approved)).Equal(5)
-			g.Assert(len(denied)).Equal(2)
-			g.Assert(len(banned)).Equal(3)
-			g.Assert(len(pendingApplications)).Equal(0)
-			g.Assert(len(pendingInvites)).Equal(8)
+			Expect(len(approved)).To(Equal(5))
+			Expect(len(denied)).To(Equal(2))
+			Expect(len(banned)).To(Equal(3))
+			Expect(len(pendingApplications)).To(Equal(0))
+			Expect(len(pendingInvites)).To(Equal(8))
 		})
-		g.It("Should return 404 for invalid player", func() {
+		It("Should return 404 for invalid player", func() {
 			a := GetDefaultTestApp()
 			route := GetGameRoute("some-game", "/players/invalid-player")
-			res := Get(a, route, t)
+			res := Get(a, route)
 
-			g.Assert(res.Raw().StatusCode).Equal(http.StatusNotFound)
+			Expect(res.Raw().StatusCode).To(Equal(http.StatusNotFound))
 
 			var playerDetails map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &playerDetails)
-			g.Assert(playerDetails["success"]).IsFalse()
-			g.Assert(playerDetails["reason"]).Equal("Player was not found with id: invalid-player")
+			Expect(playerDetails["success"]).To(BeFalse())
+			Expect(playerDetails["reason"]).To(Equal("Player was not found with id: invalid-player"))
 		})
 	})
 
-	g.Describe("Player Hooks", func() {
-		g.It("Should call create player hook", func() {
+	Describe("Player Hooks", func() {
+		It("Should call create player hook", func() {
 			hooks, err := models.GetHooksForRoutes(testDb, []string{
 				"http://localhost:52525/playercreated",
 			}, models.PlayerCreatedHook)
-			g.Assert(err == nil).IsTrue()
+			Expect(err).NotTo(HaveOccurred())
 			responses := startRouteHandler([]string{"/playercreated"}, 52525)
 
 			app := GetDefaultTestApp()
@@ -241,41 +244,41 @@ func TestPlayerHandler(t *testing.T) {
 				"name":     randomdata.FullName(randomdata.RandomGender),
 				"metadata": map[string]interface{}{"x": "a"},
 			}
-			res := PostJSON(app, GetGameRoute(gameID, "/players"), t, payload)
+			res := PostJSON(app, GetGameRoute(gameID, "/players"), payload)
 
-			g.Assert(res.Raw().StatusCode).Equal(http.StatusOK)
+			Expect(res.Raw().StatusCode).To(Equal(http.StatusOK))
 			var result map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
-			g.Assert(result["success"]).IsTrue()
-			g.Assert(result["publicID"]).Equal(payload["publicID"].(string))
+			Expect(result["success"]).To(BeTrue())
+			Expect(result["publicID"]).To(Equal(payload["publicID"].(string)))
 
 			app.Dispatcher.Wait()
 
-			g.Assert(len(*responses)).Equal(1)
+			Expect(len(*responses)).To(Equal(1))
 
 			player := (*responses)[0]["payload"].(map[string]interface{})
-			g.Assert(player["gameID"]).Equal(gameID)
-			g.Assert(player["publicID"]).Equal(payload["publicID"])
-			g.Assert(player["name"]).Equal(payload["name"])
-			g.Assert(str(player["membershipCount"])).Equal("0")
-			g.Assert(str(player["ownershipCount"])).Equal("0")
+			Expect(player["gameID"]).To(Equal(gameID))
+			Expect(player["publicID"]).To(Equal(payload["publicID"]))
+			Expect(player["name"]).To(Equal(payload["name"]))
+			Expect(str(player["membershipCount"])).To(Equal("0"))
+			Expect(str(player["ownershipCount"])).To(Equal("0"))
 			playerMetadata := player["metadata"].(map[string]interface{})
 			metadata := payload["metadata"].(map[string]interface{})
 			for k, v := range playerMetadata {
-				g.Assert(v).Equal(metadata[k])
+				Expect(v).To(Equal(metadata[k]))
 			}
 		})
 
-		g.It("Should call update player hook", func() {
+		It("Should call update player hook", func() {
 			hooks, err := models.GetHooksForRoutes(testDb, []string{
 				"http://localhost:52525/updated",
 			}, models.PlayerUpdatedHook)
-			g.Assert(err == nil).IsTrue()
+			Expect(err).NotTo(HaveOccurred())
 			responses := startRouteHandler([]string{"/updated"}, 52525)
 
 			player := models.PlayerFactory.MustCreateWithOption(map[string]interface{}{"GameID": hooks[0].GameID}).(*models.Player)
 			err = testDb.Insert(player)
-			AssertNotError(g, err)
+			Expect(err).NotTo(HaveOccurred())
 
 			app := GetDefaultTestApp()
 			time.Sleep(time.Second)
@@ -286,27 +289,27 @@ func TestPlayerHandler(t *testing.T) {
 				"name":     player.Name,
 				"metadata": player.Metadata,
 			}
-			res := PutJSON(app, GetGameRoute(gameID, fmt.Sprintf("/players/%s", player.PublicID)), t, payload)
+			res := PutJSON(app, GetGameRoute(gameID, fmt.Sprintf("/players/%s", player.PublicID)), payload)
 
-			g.Assert(res.Raw().StatusCode).Equal(http.StatusOK)
+			Expect(res.Raw().StatusCode).To(Equal(http.StatusOK))
 			var result map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
-			g.Assert(result["success"]).IsTrue()
+			Expect(result["success"]).To(BeTrue())
 
 			app.Dispatcher.Wait()
-			g.Assert(len(*responses)).Equal(1)
+			Expect(len(*responses)).To(Equal(1))
 
 			playerPayload := (*responses)[0]["payload"].(map[string]interface{})
-			g.Assert(playerPayload["gameID"]).Equal(gameID)
-			g.Assert(playerPayload["publicID"]).Equal(payload["publicID"])
-			g.Assert(playerPayload["name"]).Equal(payload["name"])
-			g.Assert(str(playerPayload["membershipCount"])).Equal("0")
-			g.Assert(str(playerPayload["ownershipCount"])).Equal("0")
+			Expect(playerPayload["gameID"]).To(Equal(gameID))
+			Expect(playerPayload["publicID"]).To(Equal(payload["publicID"]))
+			Expect(playerPayload["name"]).To(Equal(payload["name"]))
+			Expect(str(playerPayload["membershipCount"])).To(Equal("0"))
+			Expect(str(playerPayload["ownershipCount"])).To(Equal("0"))
 			playerMetadata := playerPayload["metadata"].(map[string]interface{})
 			metadata := payload["metadata"].(map[string]interface{})
 			for k, v := range playerMetadata {
-				g.Assert(v).Equal(metadata[k])
+				Expect(v).To(Equal(metadata[k]))
 			}
 		})
 	})
-}
+})
