@@ -181,7 +181,8 @@ Khan API
       "maxMembers":                    [int],
       "maxClansPerPlayer":             [int],
       "cooldownAfterDeny":             [int],
-      "cooldownAfterDelete":           [int]
+      "cooldownAfterDelete":           [int],
+      "maxPendingInvites":             [int]
     }
     ```
 
