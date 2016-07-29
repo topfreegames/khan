@@ -27,6 +27,7 @@ setup-ci:
 	@sudo apt-get install -y glide
 	@go get github.com/topfreegames/goose/cmd/goose
 	@go get github.com/mattn/goveralls
+	@go get github.com/onsi/ginkgo/ginkgo
 	@glide install
 
 build:
