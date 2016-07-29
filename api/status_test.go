@@ -5,36 +5,43 @@
 // http://www.opensource.org/licenses/mit-license
 // Copyright © 2016 Top Free Games <backend@tfgco.com>
 
-package api
+package api_test
 
 import (
 	"encoding/json"
 	"net/http"
-	"testing"
 
-	. "github.com/franela/goblin"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
+	"github.com/topfreegames/khan/models"
 )
 
-func TestStatusHandler(t *testing.T) {
-	g := Goblin(t)
+var _ = Describe("Status API Handler", func() {
+	var testDb models.DB
 
-	g.Describe("Status Handler", func() {
-		g.It("Should respond with status", func() {
+	BeforeEach(func() {
+		var err error
+		testDb, err = GetTestDB()
+		Expect(err).NotTo(HaveOccurred())
+	})
+
+	Describe("Status Handler", func() {
+		It("Should respond with status", func() {
 			a := GetDefaultTestApp()
-			res := Get(a, "/status", t)
+			res := Get(a, "/status")
 
-			g.Assert(res.Raw().StatusCode).Equal(http.StatusOK)
+			Expect(res.Raw().StatusCode).To(Equal(http.StatusOK))
 
 			var result map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 
-			g.Assert(result["app"] != nil).IsTrue()
+			Expect(result["app"]).NotTo(BeEquivalentTo(nil))
 			app := result["app"].(map[string]interface{})
-			g.Assert(app["errorRate"]).Equal(0.0)
+			Expect(app["errorRate"]).To(Equal(0.0))
 
-			g.Assert(result["dispatch"] != nil).IsTrue()
+			Expect(result["dispatch"]).NotTo(BeEquivalentTo(nil))
 			dispatch := result["dispatch"].(map[string]interface{})
-			g.Assert(int(dispatch["pendingJobs"].(float64))).Equal(0)
+			Expect(dispatch["pendingJobs"].(float64)).To(BeEquivalentTo(0))
 		})
 	})
-}
+})

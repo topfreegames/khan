@@ -1,5 +1,5 @@
-hash: 31903df961693fcee58df5ac4b650a88816f19e85ce9ac6200cc2c244198286c
-updated: 2016-07-15T17:55:18.221784437-03:00
+hash: d26bdaed95b3f0eeb7f21dbf7e202164b28ab7c226d0e860b7a7a1a3c63f6a48
+updated: 2016-07-29T13:49:38.407535068-03:00
 imports:
 - name: github.com/ajg/form
   version: 7ff89c75808766205bfa4411abb436c98c33eb5e
@@ -7,8 +7,8 @@ imports:
   version: a2232af10b53ef1ae5a767f5178db3a6c1dab655
   subpackages:
   - ast
-  - parser
   - lexer
+  - parser
 - name: github.com/bluele/factory-go
   version: d6a4ddee8ba43b1d900c1e0d093397811e2b5dd8
   subpackages:
@@ -29,15 +29,13 @@ imports:
   version: be738c8546f55b34e60125afa50ed73a9a9c460e
 - name: github.com/flosch/pongo2
   version: 7f5515449ea9bbeb00256d9cbb654c556e7d0146
-- name: github.com/franela/goblin
-  version: efa9910a3ea4ccb7ee4b977571318af2e51ba05f
 - name: github.com/fsnotify/fsnotify
   version: a8a77c9133d2d6fd8334f3260d06f60e8d80a5fb
 - name: github.com/garyburd/redigo
   version: b8dc90050f24c1a73a52f107f3f575be67b21b7c
   subpackages:
-  - redis
   - internal
+  - redis
 - name: github.com/gavv/gojsondiff
   version: 36046c6e558e7f854ebd3fd97d1e9812ebe8709b
   subpackages:
@@ -65,10 +63,10 @@ imports:
   subpackages:
   - hcl/ast
   - hcl/parser
-  - hcl/token
-  - json/parser
   - hcl/scanner
   - hcl/strconv
+  - hcl/token
+  - json/parser
   - json/scanner
   - json/token
 - name: github.com/imdario/mergo
@@ -92,30 +90,30 @@ imports:
 - name: github.com/kataras/iris
   version: 0995331f7877bd8d239254c136af1d25849c4bff
   subpackages:
-  - iris
   - config
   - context
+  - iris
   - logger
   - render/rest
   - render/template
-  - sessions
-  - sessions/providers/memory
-  - sessions/providers/redis
-  - sessions/store
-  - utils
-  - websocket
   - render/template/engine/amber
   - render/template/engine/handlebars
   - render/template/engine/html
   - render/template/engine/jade
   - render/template/engine/markdown
   - render/template/engine/pongo
+  - sessions
+  - sessions/providers/memory
+  - sessions/providers/redis
   - sessions/providers/redis/service
+  - sessions/store
+  - utils
+  - websocket
 - name: github.com/klauspost/compress
   version: 14eb9c4951195779ecfbec34431a976de7335b0a
   subpackages:
-  - gzip
   - flate
+  - gzip
   - zlib
 - name: github.com/klauspost/cpuid
   version: 09cded8978dc9e80714c4d85b0322337b0a1e5e0
@@ -141,8 +139,21 @@ imports:
   version: d2dd0262208475919e1a362f675cfc0e7c10e905
 - name: github.com/moul/http2curl
   version: b1479103caacaa39319f75e7f57fc545287fca0d
+- name: github.com/onsi/ginkgo
+  version: 462326b1628e124b23f42e87a8f2750e3c4e2d24
 - name: github.com/onsi/gomega
   version: 4dfabf7db2e4147ec99a86db32b2f2a3484cfee8
+  subpackages:
+  - format
+  - internal/assertion
+  - internal/asyncassertion
+  - internal/testingtsupport
+  - matchers
+  - matchers/support/goraph/bipartitegraph
+  - matchers/support/goraph/edge
+  - matchers/support/goraph/node
+  - matchers/support/goraph/util
+  - types
 - name: github.com/Pallinder/go-randomdata
   version: 104cc800bd6434e70cb0c3ad08c4541f4f2eb48b
 - name: github.com/pmezard/go-difflib
@@ -213,9 +224,9 @@ imports:
 - name: golang.org/x/net
   version: f841c39de738b1d0df95b5a7187744f0e03d8112
   subpackages:
-  - publicsuffix
   - html
   - html/atom
+  - publicsuffix
 - name: golang.org/x/sys
   version: a408501be4d17ee978c04a618e7a1b22af058c0e
   subpackages:
@@ -226,4 +237,4 @@ imports:
   version: c87af80f3cc5036b55b83d77171e156791085e2e
 - name: gopkg.in/yaml.v2
   version: a83829b6f1293c91addabc89d0571c246397bbf4
-devImports: []
+testImports: []
