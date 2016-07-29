@@ -5,112 +5,120 @@
 // http://www.opensource.org/licenses/mit-license
 // Copyright © 2016 Top Free Games <backend@tfgco.com>
 
-package models
+package models_test
 
 import (
-	"testing"
 	"time"
 
-	"github.com/Pallinder/go-randomdata"
-	. "github.com/franela/goblin"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
+	. "github.com/topfreegames/khan/models"
+
 	"github.com/satori/go.uuid"
 )
 
-func TestPlayerModel(t *testing.T) {
-	g := Goblin(t)
-	testDb, err := GetTestDB()
+var _ = Describe("Player Model", func() {
+	var testDb DB
 
-	g.Assert(err == nil).IsTrue()
+	BeforeEach(func() {
+		var err error
+		testDb, err = GetTestDB()
+		Expect(err).NotTo(HaveOccurred())
+	})
+	Describe("Player Model", func() {
 
-	g.Describe("Player Model", func() {
-
-		g.Describe("Model Basic Tests", func() {
-			g.It("Should create a new Player", func() {
+		Describe("Model Basic Tests", func() {
+			It("Should create a new Player", func() {
 				_, player, err := CreatePlayerFactory(testDb, "")
-				g.Assert(err == nil).IsTrue()
-				g.Assert(player.ID != 0).IsTrue()
+				Expect(err).NotTo(HaveOccurred())
+				Expect(player.ID).NotTo(Equal(0))
 
 				dbPlayer, err := GetPlayerByID(testDb, player.ID)
-				g.Assert(err == nil).IsTrue()
+				Expect(err).NotTo(HaveOccurred())
 
-				g.Assert(dbPlayer.GameID).Equal(player.GameID)
-				g.Assert(dbPlayer.PublicID).Equal(player.PublicID)
+				Expect(dbPlayer.GameID).To(Equal(player.GameID))
+				Expect(dbPlayer.PublicID).To(Equal(player.PublicID))
 			})
 
-			g.It("Should update a new Player", func() {
+			It("Should update a new Player", func() {
 				_, player, err := CreatePlayerFactory(testDb, "")
-				g.Assert(err == nil).IsTrue()
+				Expect(err).NotTo(HaveOccurred())
 				dt := player.UpdatedAt
 
 				time.Sleep(time.Millisecond)
 
 				player.Metadata = map[string]interface{}{"x": 1}
 				count, err := testDb.Update(player)
-				g.Assert(err == nil).IsTrue()
-				g.Assert(int(count)).Equal(1)
-				g.Assert(player.UpdatedAt > dt).IsTrue()
+				Expect(err).NotTo(HaveOccurred())
+				Expect(int(count)).To(Equal(1))
+				Expect(player.UpdatedAt).To(BeNumerically(">", dt))
 			})
 		})
 
-		g.Describe("Get Player By ID", func() {
-			g.It("Should get existing Player", func() {
+		Describe("Get Player By ID", func() {
+			It("Should get existing Player", func() {
 				_, player, err := CreatePlayerFactory(testDb, "")
-				g.Assert(err == nil).IsTrue()
+				Expect(err).NotTo(HaveOccurred())
 
 				dbPlayer, err := GetPlayerByID(testDb, player.ID)
-				g.Assert(err == nil).IsTrue()
-				g.Assert(dbPlayer.ID).Equal(player.ID)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(dbPlayer.ID).To(Equal(player.ID))
 			})
 
-			g.It("Should not get non-existing Player", func() {
+			It("Should not get non-existing Player", func() {
 				_, err := GetPlayerByID(testDb, -1)
-				g.Assert(err != nil).IsTrue()
-				g.Assert(err.Error()).Equal("Player was not found with id: -1")
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(Equal("Player was not found with id: -1"))
 			})
 		})
 
-		g.Describe("Get Player By Public ID", func() {
-			g.It("Should get existing Player by Game and Player", func() {
+		Describe("Get Player By Public ID", func() {
+			It("Should get existing Player by Game and Player", func() {
 				_, player, err := CreatePlayerFactory(testDb, "")
-				g.Assert(err == nil).IsTrue()
+				Expect(err).NotTo(HaveOccurred())
 
 				dbPlayer, err := GetPlayerByPublicID(testDb, player.GameID, player.PublicID)
-				g.Assert(err == nil).IsTrue()
-				g.Assert(dbPlayer.ID).Equal(player.ID)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(dbPlayer.ID).To(Equal(player.ID))
 			})
 
-			g.It("Should not get non-existing Player by Game and Player", func() {
+			It("Should not get non-existing Player by Game and Player", func() {
 				_, err := GetPlayerByPublicID(testDb, "invalid-game", "invalid-player")
-				g.Assert(err != nil).IsTrue()
-				g.Assert(err.Error()).Equal("Player was not found with id: invalid-player")
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(Equal("Player was not found with id: invalid-player"))
 			})
 		})
 
-		g.Describe("Create Player", func() {
-			g.It("Should create a new Player with CreatePlayer", func() {
+		Describe("Create Player", func() {
+			It("Should create a new Player with CreatePlayer", func() {
+				game := GameFactory.MustCreate().(*Game)
+				err := testDb.Insert(game)
+				Expect(err).NotTo(HaveOccurred())
+
+				playerID := uuid.NewV4().String()
 				player, err := CreatePlayer(
 					testDb,
-					"create-1",
-					randomdata.FullName(randomdata.RandomGender),
+					game.PublicID,
+					playerID,
 					"player-name",
 					map[string]interface{}{},
 					false,
 				)
-				g.Assert(err == nil).IsTrue()
-				g.Assert(player.ID != 0).IsTrue()
+				Expect(err).NotTo(HaveOccurred())
+				Expect(player.ID).NotTo(BeEquivalentTo(0))
 
 				dbPlayer, err := GetPlayerByID(testDb, player.ID)
-				g.Assert(err == nil).IsTrue()
+				Expect(err).NotTo(HaveOccurred())
 
-				g.Assert(dbPlayer.GameID).Equal(player.GameID)
-				g.Assert(dbPlayer.PublicID).Equal(player.PublicID)
+				Expect(dbPlayer.GameID).To(Equal(player.GameID))
+				Expect(dbPlayer.PublicID).To(Equal(player.PublicID))
 			})
 		})
 
-		g.Describe("Update Player", func() {
-			g.It("Should update a Player with UpdatePlayer", func() {
+		Describe("Update Player", func() {
+			It("Should update a Player with UpdatePlayer", func() {
 				_, player, err := CreatePlayerFactory(testDb, "")
-				g.Assert(err == nil).IsTrue()
+				Expect(err).NotTo(HaveOccurred())
 
 				metadata := map[string]interface{}{"x": 1}
 				updPlayer, err := UpdatePlayer(
@@ -121,19 +129,19 @@ func TestPlayerModel(t *testing.T) {
 					metadata,
 				)
 
-				g.Assert(err == nil).IsTrue()
-				g.Assert(updPlayer.ID).Equal(player.ID)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(updPlayer.ID).To(Equal(player.ID))
 
 				dbPlayer, err := GetPlayerByPublicID(testDb, player.GameID, player.PublicID)
-				g.Assert(err == nil).IsTrue()
+				Expect(err).NotTo(HaveOccurred())
 
-				g.Assert(dbPlayer.Metadata).Equal(metadata)
+				Expect(dbPlayer.Metadata["x"]).To(BeEquivalentTo(metadata["x"]))
 			})
 
-			g.It("Should create Player with UpdatePlayer if player does not exist", func() {
+			It("Should create Player with UpdatePlayer if player does not exist", func() {
 				game := GameFactory.MustCreate().(*Game)
 				err := testDb.Insert(game)
-				g.Assert(err == nil).IsTrue()
+				Expect(err).NotTo(HaveOccurred())
 
 				gameID := game.PublicID
 				publicID := uuid.NewV4().String()
@@ -147,16 +155,16 @@ func TestPlayerModel(t *testing.T) {
 					metadata,
 				)
 
-				g.Assert(err == nil).IsTrue()
-				g.Assert(updPlayer.ID > 0).IsTrue()
+				Expect(err).NotTo(HaveOccurred())
+				Expect(updPlayer.ID).To(BeNumerically(">", 0))
 
 				dbPlayer, err := GetPlayerByPublicID(testDb, updPlayer.GameID, updPlayer.PublicID)
-				g.Assert(err == nil).IsTrue()
+				Expect(err).NotTo(HaveOccurred())
 
-				g.Assert(dbPlayer.Metadata).Equal(metadata)
+				Expect(dbPlayer.Metadata).To(Equal(metadata))
 			})
 
-			g.It("Should not update a Player with Invalid Data with UpdatePlayer", func() {
+			It("Should not update a Player with Invalid Data with UpdatePlayer", func() {
 				_, err := UpdatePlayer(
 					testDb,
 					"-1",
@@ -165,15 +173,15 @@ func TestPlayerModel(t *testing.T) {
 					map[string]interface{}{},
 				)
 
-				g.Assert(err == nil).IsFalse()
+				Expect(err).To(HaveOccurred())
 			})
 		})
 
-		g.Describe("Get Player Details", func() {
-			g.It("Should get Player Details", func() {
-				gameID := "player-details"
+		Describe("Get Player Details", func() {
+			It("Should get Player Details", func() {
+				gameID := uuid.NewV4().String()
 				player, err := GetTestPlayerWithMemberships(testDb, gameID, 5, 2, 3, 8)
-				g.Assert(err == nil).IsTrue()
+				Expect(err).NotTo(HaveOccurred())
 
 				playerDetails, err := GetPlayerDetails(
 					testDb,
@@ -181,17 +189,17 @@ func TestPlayerModel(t *testing.T) {
 					player.PublicID,
 				)
 
-				g.Assert(err == nil).IsTrue()
+				Expect(err).NotTo(HaveOccurred())
 
 				// Player Details
-				g.Assert(playerDetails["publicID"]).Equal(player.PublicID)
-				g.Assert(playerDetails["name"]).Equal(player.Name)
-				g.Assert(playerDetails["metadata"]).Equal(player.Metadata)
-				g.Assert(playerDetails["createdAt"]).Equal(player.CreatedAt)
-				g.Assert(playerDetails["updatedAt"]).Equal(player.UpdatedAt)
+				Expect(playerDetails["publicID"]).To(Equal(player.PublicID))
+				Expect(playerDetails["name"]).To(Equal(player.Name))
+				Expect(playerDetails["metadata"]).To(Equal(player.Metadata))
+				Expect(playerDetails["createdAt"]).To(Equal(player.CreatedAt))
+				Expect(playerDetails["updatedAt"]).To(Equal(player.UpdatedAt))
 
 				//Memberships
-				g.Assert(len(playerDetails["memberships"].([]map[string]interface{}))).Equal(18)
+				Expect(len(playerDetails["memberships"].([]map[string]interface{}))).To(Equal(18))
 
 				clans := playerDetails["clans"].(map[string]interface{})
 				approved := clans["approved"].([]map[string]interface{})
@@ -200,39 +208,39 @@ func TestPlayerModel(t *testing.T) {
 				pendingApplications := clans["pendingApplications"].([]map[string]interface{})
 				pendingInvites := clans["pendingInvites"].([]map[string]interface{})
 
-				g.Assert(len(approved)).Equal(5)
-				g.Assert(len(denied)).Equal(2)
-				g.Assert(len(banned)).Equal(3)
-				g.Assert(len(pendingApplications)).Equal(0)
-				g.Assert(len(pendingInvites)).Equal(8)
+				Expect(len(approved)).To(Equal(5))
+				Expect(len(denied)).To(Equal(2))
+				Expect(len(banned)).To(Equal(3))
+				Expect(len(pendingApplications)).To(Equal(0))
+				Expect(len(pendingInvites)).To(Equal(8))
 
 				approvedMembership := playerDetails["memberships"].([]map[string]interface{})[0]
 
-				g.Assert(approvedMembership["approver"] != nil).IsTrue()
+				Expect(approvedMembership["approver"]).NotTo(BeEquivalentTo(nil))
 				approver := approvedMembership["approver"].(map[string]interface{})
-				g.Assert(approver["name"]).Equal(player.Name)
-				g.Assert(approver["publicID"]).Equal(player.PublicID)
-				g.Assert(approvedMembership["denier"] == nil).IsTrue()
+				Expect(approver["name"]).To(Equal(player.Name))
+				Expect(approver["publicID"]).To(Equal(player.PublicID))
+				Expect(approvedMembership["denier"]).To(BeNil())
 
-				g.Assert(approvedMembership["approvedAt"] != nil).IsTrue()
-				g.Assert(approvedMembership["approvedAt"].(int64) > 0).IsTrue()
-				g.Assert(approvedMembership["message"]).Equal("")
+				Expect(approvedMembership["approvedAt"]).NotTo(BeEquivalentTo(nil))
+				Expect(approvedMembership["approvedAt"].(int64)).To(BeNumerically(">", 0))
+				Expect(approvedMembership["message"]).To(Equal(""))
 
 				deniedMembership := playerDetails["memberships"].([]map[string]interface{})[6]
-				g.Assert(deniedMembership["denier"] != nil).IsTrue()
+				Expect(deniedMembership["denier"]).NotTo(BeEquivalentTo(nil))
 				denier := deniedMembership["denier"].(map[string]interface{})
-				g.Assert(denier["name"]).Equal(player.Name)
-				g.Assert(denier["publicID"]).Equal(player.PublicID)
-				g.Assert(deniedMembership["approver"] == nil).IsTrue()
+				Expect(denier["name"]).To(Equal(player.Name))
+				Expect(denier["publicID"]).To(Equal(player.PublicID))
+				Expect(deniedMembership["approver"]).To(BeNil())
 
-				g.Assert(deniedMembership["deniedAt"] != nil).IsTrue()
-				g.Assert(deniedMembership["deniedAt"].(int64) > 0).IsTrue()
-				g.Assert(deniedMembership["message"]).Equal("")
+				Expect(deniedMembership["deniedAt"]).NotTo(BeEquivalentTo(nil))
+				Expect(deniedMembership["deniedAt"].(int64)).To(BeNumerically(">", 0))
+				Expect(deniedMembership["message"]).To(Equal(""))
 			})
 
-			g.It("Should get Player Details without memberships that were deleted by the player", func() {
+			It("Should get Player Details without memberships that were deleted by the player", func() {
 				game, clan, _, players, _, err := GetClanWithMemberships(testDb, 1, 0, 0, 0, "", "")
-				g.Assert(err == nil).IsTrue()
+				Expect(err).NotTo(HaveOccurred())
 
 				err = DeleteMembership(
 					testDb,
@@ -242,7 +250,7 @@ func TestPlayerModel(t *testing.T) {
 					clan.PublicID,
 					players[0].PublicID,
 				)
-				g.Assert(err == nil).IsTrue()
+				Expect(err).NotTo(HaveOccurred())
 
 				playerDetails, err := GetPlayerDetails(
 					testDb,
@@ -250,17 +258,17 @@ func TestPlayerModel(t *testing.T) {
 					players[0].PublicID,
 				)
 
-				g.Assert(err == nil).IsTrue()
+				Expect(err).NotTo(HaveOccurred())
 
 				// Player Details
-				g.Assert(playerDetails["publicID"]).Equal(players[0].PublicID)
-				g.Assert(playerDetails["name"]).Equal(players[0].Name)
-				g.Assert(playerDetails["metadata"]).Equal(players[0].Metadata)
-				g.Assert(playerDetails["createdAt"]).Equal(players[0].CreatedAt)
-				g.Assert(playerDetails["updatedAt"]).Equal(players[0].UpdatedAt)
+				Expect(playerDetails["publicID"]).To(Equal(players[0].PublicID))
+				Expect(playerDetails["name"]).To(Equal(players[0].Name))
+				Expect(playerDetails["metadata"]).To(Equal(players[0].Metadata))
+				Expect(playerDetails["createdAt"]).To(Equal(players[0].CreatedAt))
+				Expect(playerDetails["updatedAt"]).To(Equal(players[0].UpdatedAt))
 
 				//Memberships
-				g.Assert(len(playerDetails["memberships"].([]map[string]interface{}))).Equal(0)
+				Expect(len(playerDetails["memberships"].([]map[string]interface{}))).To(Equal(0))
 
 				clans := playerDetails["clans"].(map[string]interface{})
 				approved := clans["approved"].([]map[string]interface{})
@@ -269,16 +277,16 @@ func TestPlayerModel(t *testing.T) {
 				pendingApplications := clans["pendingApplications"].([]map[string]interface{})
 				pendingInvites := clans["pendingInvites"].([]map[string]interface{})
 
-				g.Assert(len(approved)).Equal(0)
-				g.Assert(len(denied)).Equal(0)
-				g.Assert(len(banned)).Equal(0)
-				g.Assert(len(pendingApplications)).Equal(0)
-				g.Assert(len(pendingInvites)).Equal(0)
+				Expect(len(approved)).To(Equal(0))
+				Expect(len(denied)).To(Equal(0))
+				Expect(len(banned)).To(Equal(0))
+				Expect(len(pendingApplications)).To(Equal(0))
+				Expect(len(pendingInvites)).To(Equal(0))
 			})
 
-			g.It("Should get owned clans as not deleted if there are deleted memberships of other clans (a.k.a fix John's bug)", func() {
+			It("Should get owned clans as not deleted if there are deleted memberships of other clans (a.k.a fix John's bug)", func() {
 				game, clan, _, players, _, err := GetClanWithMemberships(testDb, 1, 0, 0, 0, "", "")
-				g.Assert(err == nil).IsTrue()
+				Expect(err).NotTo(HaveOccurred())
 
 				err = DeleteMembership(
 					testDb,
@@ -288,7 +296,7 @@ func TestPlayerModel(t *testing.T) {
 					clan.PublicID,
 					players[0].PublicID,
 				)
-				g.Assert(err == nil).IsTrue()
+				Expect(err).NotTo(HaveOccurred())
 
 				c, err := CreateClan(
 					testDb,
@@ -301,8 +309,8 @@ func TestPlayerModel(t *testing.T) {
 					false,
 					1,
 				)
-				g.Assert(err == nil).IsTrue()
-				g.Assert(c.OwnerID).Equal(players[0].ID)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(c.OwnerID).To(Equal(players[0].ID))
 
 				playerDetails, err := GetPlayerDetails(
 					testDb,
@@ -310,17 +318,17 @@ func TestPlayerModel(t *testing.T) {
 					players[0].PublicID,
 				)
 
-				g.Assert(err == nil).IsTrue()
+				Expect(err).NotTo(HaveOccurred())
 
 				// Player Details
-				g.Assert(playerDetails["publicID"]).Equal(players[0].PublicID)
-				g.Assert(playerDetails["name"]).Equal(players[0].Name)
-				g.Assert(playerDetails["metadata"]).Equal(players[0].Metadata)
-				g.Assert(playerDetails["createdAt"]).Equal(players[0].CreatedAt)
-				g.Assert(playerDetails["updatedAt"]).Equal(players[0].UpdatedAt)
+				Expect(playerDetails["publicID"]).To(Equal(players[0].PublicID))
+				Expect(playerDetails["name"]).To(Equal(players[0].Name))
+				Expect(playerDetails["metadata"]).To(Equal(players[0].Metadata))
+				Expect(playerDetails["createdAt"]).To(Equal(players[0].CreatedAt))
+				Expect(playerDetails["updatedAt"]).To(Equal(players[0].UpdatedAt))
 
 				//Memberships
-				g.Assert(len(playerDetails["memberships"].([]map[string]interface{}))).Equal(1)
+				Expect(len(playerDetails["memberships"].([]map[string]interface{}))).To(Equal(1))
 
 				clans := playerDetails["clans"].(map[string]interface{})
 				owned := clans["owned"].([]map[string]interface{})
@@ -330,21 +338,21 @@ func TestPlayerModel(t *testing.T) {
 				pendingApplications := clans["pendingApplications"].([]map[string]interface{})
 				pendingInvites := clans["pendingInvites"].([]map[string]interface{})
 
-				g.Assert(len(owned)).Equal(1)
-				g.Assert(len(approved)).Equal(0)
-				g.Assert(len(denied)).Equal(0)
-				g.Assert(len(banned)).Equal(0)
-				g.Assert(len(pendingApplications)).Equal(0)
-				g.Assert(len(pendingInvites)).Equal(0)
+				Expect(len(owned)).To(Equal(1))
+				Expect(len(approved)).To(Equal(0))
+				Expect(len(denied)).To(Equal(0))
+				Expect(len(banned)).To(Equal(0))
+				Expect(len(pendingApplications)).To(Equal(0))
+				Expect(len(pendingInvites)).To(Equal(0))
 			})
 
-			g.It("Should get Player Details including owned clans", func() {
+			It("Should get Player Details including owned clans", func() {
 				game, clan, _, players, _, err := GetClanWithMemberships(testDb, 1, 0, 0, 0, "", "")
-				g.Assert(err == nil).IsTrue()
+				Expect(err).NotTo(HaveOccurred())
 
 				game.MaxClansPerPlayer = 2
 				_, err = testDb.Update(game)
-				g.Assert(err == nil).IsTrue()
+				Expect(err).NotTo(HaveOccurred())
 
 				ownedClan := ClanFactory.MustCreateWithOption(map[string]interface{}{
 					"GameID":          players[0].GameID,
@@ -354,7 +362,7 @@ func TestPlayerModel(t *testing.T) {
 					"MembershipCount": 1,
 				}).(*Clan)
 				err = testDb.Insert(ownedClan)
-				g.Assert(err == nil).IsTrue()
+				Expect(err).NotTo(HaveOccurred())
 
 				playerDetails, err := GetPlayerDetails(
 					testDb,
@@ -362,22 +370,22 @@ func TestPlayerModel(t *testing.T) {
 					players[0].PublicID,
 				)
 
-				g.Assert(err == nil).IsTrue()
+				Expect(err).NotTo(HaveOccurred())
 
 				// Player Details
-				g.Assert(playerDetails["publicID"]).Equal(players[0].PublicID)
-				g.Assert(playerDetails["name"]).Equal(players[0].Name)
-				g.Assert(playerDetails["metadata"]).Equal(players[0].Metadata)
-				g.Assert(playerDetails["createdAt"]).Equal(players[0].CreatedAt)
-				g.Assert(playerDetails["updatedAt"]).Equal(players[0].UpdatedAt)
+				Expect(playerDetails["publicID"]).To(Equal(players[0].PublicID))
+				Expect(playerDetails["name"]).To(Equal(players[0].Name))
+				Expect(playerDetails["metadata"]).To(Equal(players[0].Metadata))
+				Expect(playerDetails["createdAt"]).To(Equal(players[0].CreatedAt))
+				Expect(playerDetails["updatedAt"]).To(Equal(players[0].UpdatedAt))
 
 				//Memberships
-				g.Assert(len(playerDetails["memberships"].([]map[string]interface{}))).Equal(2)
-				g.Assert(playerDetails["memberships"].([]map[string]interface{})[0]["level"]).Equal("Member")
-				g.Assert(playerDetails["memberships"].([]map[string]interface{})[0]["clan"].(map[string]interface{})["publicID"]).Equal(clan.PublicID)
-				g.Assert(playerDetails["memberships"].([]map[string]interface{})[1]["level"]).Equal("owner")
-				g.Assert(playerDetails["memberships"].([]map[string]interface{})[1]["approved"]).IsTrue()
-				g.Assert(playerDetails["memberships"].([]map[string]interface{})[1]["clan"].(map[string]interface{})["publicID"]).Equal(ownedClan.PublicID)
+				Expect(len(playerDetails["memberships"].([]map[string]interface{}))).To(Equal(2))
+				Expect(playerDetails["memberships"].([]map[string]interface{})[0]["level"]).To(Equal("Member"))
+				Expect(playerDetails["memberships"].([]map[string]interface{})[0]["clan"].(map[string]interface{})["publicID"]).To(Equal(clan.PublicID))
+				Expect(playerDetails["memberships"].([]map[string]interface{})[1]["level"]).To(Equal("owner"))
+				Expect(playerDetails["memberships"].([]map[string]interface{})[1]["approved"]).To(BeTrue())
+				Expect(playerDetails["memberships"].([]map[string]interface{})[1]["clan"].(map[string]interface{})["publicID"]).To(Equal(ownedClan.PublicID))
 
 				clans := playerDetails["clans"].(map[string]interface{})
 				owned := clans["owned"].([]map[string]interface{})
@@ -387,25 +395,25 @@ func TestPlayerModel(t *testing.T) {
 				pendingApplications := clans["pendingApplications"].([]map[string]interface{})
 				pendingInvites := clans["pendingInvites"].([]map[string]interface{})
 
-				g.Assert(len(owned)).Equal(1)
-				g.Assert(len(approved)).Equal(1)
-				g.Assert(len(denied)).Equal(0)
-				g.Assert(len(banned)).Equal(0)
-				g.Assert(len(pendingApplications)).Equal(0)
-				g.Assert(len(pendingInvites)).Equal(0)
+				Expect(len(owned)).To(Equal(1))
+				Expect(len(approved)).To(Equal(1))
+				Expect(len(denied)).To(Equal(0))
+				Expect(len(banned)).To(Equal(0))
+				Expect(len(pendingApplications)).To(Equal(0))
+				Expect(len(pendingInvites)).To(Equal(0))
 
-				g.Assert(approved[0]["publicID"]).Equal(clan.PublicID)
-				g.Assert(approved[0]["name"]).Equal(clan.Name)
+				Expect(approved[0]["publicID"]).To(Equal(clan.PublicID))
+				Expect(approved[0]["name"]).To(Equal(clan.Name))
 
-				g.Assert(owned[0]["publicID"]).Equal(ownedClan.PublicID)
-				g.Assert(owned[0]["name"]).Equal(ownedClan.Name)
+				Expect(owned[0]["publicID"]).To(Equal(ownedClan.PublicID))
+				Expect(owned[0]["name"]).To(Equal(ownedClan.Name))
 
-				g.Assert(int(playerDetails["memberships"].([]map[string]interface{})[0]["clan"].(map[string]interface{})["membershipCount"].(int64))).Equal(clan.MembershipCount)
+				Expect(int(playerDetails["memberships"].([]map[string]interface{})[0]["clan"].(map[string]interface{})["membershipCount"].(int64))).To(Equal(clan.MembershipCount))
 			})
 
-			g.It("Should get Player Details when player has no affiliations", func() {
+			It("Should get Player Details when player has no affiliations", func() {
 				_, player, err := CreatePlayerFactory(testDb, "")
-				g.Assert(err == nil).IsTrue()
+				Expect(err).NotTo(HaveOccurred())
 
 				playerDetails, err := GetPlayerDetails(
 					testDb,
@@ -413,17 +421,17 @@ func TestPlayerModel(t *testing.T) {
 					player.PublicID,
 				)
 
-				g.Assert(err == nil).IsTrue()
+				Expect(err).NotTo(HaveOccurred())
 
 				// Player Details
-				g.Assert(playerDetails["publicID"]).Equal(player.PublicID)
-				g.Assert(playerDetails["name"]).Equal(player.Name)
-				g.Assert(playerDetails["metadata"]).Equal(player.Metadata)
-				g.Assert(playerDetails["createdAt"]).Equal(player.CreatedAt)
-				g.Assert(playerDetails["updatedAt"]).Equal(player.UpdatedAt)
+				Expect(playerDetails["publicID"]).To(Equal(player.PublicID))
+				Expect(playerDetails["name"]).To(Equal(player.Name))
+				Expect(playerDetails["metadata"]).To(Equal(player.Metadata))
+				Expect(playerDetails["createdAt"]).To(Equal(player.CreatedAt))
+				Expect(playerDetails["updatedAt"]).To(Equal(player.UpdatedAt))
 
 				//Memberships
-				g.Assert(len(playerDetails["memberships"].([]map[string]interface{}))).Equal(0)
+				Expect(len(playerDetails["memberships"].([]map[string]interface{}))).To(Equal(0))
 
 				clans := playerDetails["clans"].(map[string]interface{})
 				approved := clans["approved"].([]map[string]interface{})
@@ -432,88 +440,88 @@ func TestPlayerModel(t *testing.T) {
 				pendingApplications := clans["pendingApplications"].([]map[string]interface{})
 				pendingInvites := clans["pendingInvites"].([]map[string]interface{})
 
-				g.Assert(len(approved)).Equal(0)
-				g.Assert(len(denied)).Equal(0)
-				g.Assert(len(banned)).Equal(0)
-				g.Assert(len(pendingApplications)).Equal(0)
-				g.Assert(len(pendingInvites)).Equal(0)
+				Expect(len(approved)).To(Equal(0))
+				Expect(len(denied)).To(Equal(0))
+				Expect(len(banned)).To(Equal(0))
+				Expect(len(pendingApplications)).To(Equal(0))
+				Expect(len(pendingInvites)).To(Equal(0))
 			})
 
-			g.It("Should return error if Player does not exist", func() {
+			It("Should return error if Player does not exist", func() {
 				playerDetails, err := GetPlayerDetails(
 					testDb,
 					"game-id",
 					"invalid-player-id",
 				)
 
-				g.Assert(playerDetails == nil).IsTrue()
-				g.Assert(err != nil).IsTrue()
-				g.Assert(err.Error()).Equal("Player was not found with id: invalid-player-id")
+				Expect(playerDetails).To(BeNil())
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(Equal("Player was not found with id: invalid-player-id"))
 			})
 		})
 
-		g.Describe("Increment Player Membership Count", func() {
-			g.It("Should work if positive value", func() {
+		Describe("Increment Player Membership Count", func() {
+			It("Should work if positive value", func() {
 				amount := 1
 				_, player, err := CreatePlayerFactory(testDb, "")
-				g.Assert(err == nil).IsTrue()
+				Expect(err).NotTo(HaveOccurred())
 
 				err = IncrementPlayerMembershipCount(testDb, player.ID, amount)
-				g.Assert(err == nil).IsTrue()
+				Expect(err).NotTo(HaveOccurred())
 				dbPlayer, err := GetPlayerByID(testDb, player.ID)
-				g.Assert(err == nil).IsTrue()
-				g.Assert(dbPlayer.MembershipCount).Equal(player.MembershipCount + amount)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(dbPlayer.MembershipCount).To(Equal(player.MembershipCount + amount))
 			})
 
-			g.It("Should work if negative value", func() {
+			It("Should work if negative value", func() {
 				amount := -1
 				_, player, err := CreatePlayerFactory(testDb, "")
-				g.Assert(err == nil).IsTrue()
+				Expect(err).NotTo(HaveOccurred())
 
 				err = IncrementPlayerMembershipCount(testDb, player.ID, amount)
-				g.Assert(err == nil).IsTrue()
+				Expect(err).NotTo(HaveOccurred())
 				dbPlayer, err := GetPlayerByID(testDb, player.ID)
-				g.Assert(err == nil).IsTrue()
-				g.Assert(dbPlayer.MembershipCount).Equal(player.MembershipCount + amount)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(dbPlayer.MembershipCount).To(Equal(player.MembershipCount + amount))
 			})
 
-			g.It("Should not work if non-existing Player", func() {
+			It("Should not work if non-existing Player", func() {
 				err := IncrementPlayerMembershipCount(testDb, -1, 1)
-				g.Assert(err != nil).IsTrue()
-				g.Assert(err.Error()).Equal("Player was not found with id: -1")
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(Equal("Player was not found with id: -1"))
 			})
 		})
 
-		g.Describe("Increment Player Ownership Count", func() {
-			g.It("Should work if positive value", func() {
+		Describe("Increment Player Ownership Count", func() {
+			It("Should work if positive value", func() {
 				amount := 1
 				_, player, err := CreatePlayerFactory(testDb, "")
-				g.Assert(err == nil).IsTrue()
+				Expect(err).NotTo(HaveOccurred())
 
 				err = IncrementPlayerOwnershipCount(testDb, player.ID, amount)
-				g.Assert(err == nil).IsTrue()
+				Expect(err).NotTo(HaveOccurred())
 				dbPlayer, err := GetPlayerByID(testDb, player.ID)
-				g.Assert(err == nil).IsTrue()
-				g.Assert(dbPlayer.OwnershipCount).Equal(player.OwnershipCount + amount)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(dbPlayer.OwnershipCount).To(Equal(player.OwnershipCount + amount))
 			})
 
-			g.It("Should work if negative value", func() {
+			It("Should work if negative value", func() {
 				amount := -1
 				_, player, err := CreatePlayerFactory(testDb, "")
-				g.Assert(err == nil).IsTrue()
+				Expect(err).NotTo(HaveOccurred())
 
 				err = IncrementPlayerOwnershipCount(testDb, player.ID, amount)
-				g.Assert(err == nil).IsTrue()
+				Expect(err).NotTo(HaveOccurred())
 				dbPlayer, err := GetPlayerByID(testDb, player.ID)
-				g.Assert(err == nil).IsTrue()
-				g.Assert(dbPlayer.OwnershipCount).Equal(player.OwnershipCount + amount)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(dbPlayer.OwnershipCount).To(Equal(player.OwnershipCount + amount))
 			})
 
-			g.It("Should not work if non-existing Player", func() {
+			It("Should not work if non-existing Player", func() {
 				err := IncrementPlayerOwnershipCount(testDb, -1, 1)
-				g.Assert(err != nil).IsTrue()
-				g.Assert(err.Error()).Equal("Player was not found with id: -1")
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(Equal("Player was not found with id: -1"))
 			})
 		})
 	})
-}
+})

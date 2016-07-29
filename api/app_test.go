@@ -5,18 +5,19 @@
 // http://www.opensource.org/licenses/mit-license
 // Copyright © 2016 Top Free Games <backend@tfgco.com>
 
-package api
+package api_test
 
 import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"testing"
 	"time"
 
-	. "github.com/franela/goblin"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 	"github.com/satori/go.uuid"
+	. "github.com/topfreegames/khan/api"
 	"github.com/topfreegames/khan/models"
 	kt "github.com/topfreegames/khan/testing"
 )
@@ -53,71 +54,73 @@ func startRouteHandler(routes []string, port int) *[]map[string]interface{} {
 	return &responses
 }
 
-func TestApp(t *testing.T) {
-	g := Goblin(t)
+var _ = Describe("API Application", func() {
+	var testDb models.DB
 
-	testDb, err := models.GetTestDB()
+	BeforeEach(func() {
+		var err error
+		testDb, err = GetTestDB()
+		Expect(err).NotTo(HaveOccurred())
+	})
 
-	g.Assert(err == nil).IsTrue()
-
-	g.Describe("App Struct", func() {
-		g.It("should create app with custom arguments", func() {
+	Describe("App Struct", func() {
+		It("should create app with custom arguments", func() {
 			l := kt.NewMockLogger()
 			app := GetApp("127.0.0.1", 9999, "../config/test.yaml", false, l)
-			g.Assert(app.Port).Equal(9999)
-			g.Assert(app.Host).Equal("127.0.0.1")
+			Expect(app.Port).To(Equal(9999))
+			Expect(app.Host).To(Equal("127.0.0.1"))
 		})
 	})
 
-	g.Describe("App Games", func() {
-		g.It("should load all games", func() {
+	Describe("App Games", func() {
+		It("should load all games", func() {
 			game := models.GameFactory.MustCreate().(*models.Game)
 			err := testDb.Insert(game)
-			g.Assert(err == nil).IsTrue()
+			Expect(err).NotTo(HaveOccurred())
 
 			app := GetDefaultTestApp()
 
 			appGame, err := app.GetGame(game.PublicID)
-			g.Assert(err == nil).IsTrue()
-			g.Assert(appGame.ID).Equal(game.ID)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(appGame.ID).To(Equal(game.ID))
 		})
 
-		g.It("should get game by Public ID", func() {
+		It("should get game by Public ID", func() {
 			game := models.GameFactory.MustCreate().(*models.Game)
 			err := testDb.Insert(game)
-			g.Assert(err == nil).IsTrue()
+			Expect(err).NotTo(HaveOccurred())
 
 			app := GetDefaultTestApp()
 
 			appGame, err := app.GetGame(game.PublicID)
-			g.Assert(err == nil).IsTrue()
+			Expect(err).NotTo(HaveOccurred())
 
-			g.Assert(appGame.ID).Equal(game.ID)
+			Expect(appGame.ID).To(Equal(game.ID))
 		})
 	})
 
-	g.Describe("App Load Hooks", func() {
-		g.It("should load all hooks", func() {
+	Describe("App Load Hooks", func() {
+		It("should load all hooks", func() {
 			gameID := uuid.NewV4().String()
 			_, err := models.GetTestHooks(testDb, gameID, 2)
-			g.Assert(err == nil).IsTrue()
+			Expect(err).NotTo(HaveOccurred())
 
 			app := GetDefaultTestApp()
 
 			hooks := app.GetHooks()
-			g.Assert(len(hooks[gameID])).Equal(2)
-			g.Assert(len(hooks[gameID][0])).Equal(2)
-			g.Assert(len(hooks[gameID][1])).Equal(2)
+			Expect(len(hooks[gameID])).To(Equal(2))
+			Expect(len(hooks[gameID][0])).To(Equal(2))
+			Expect(len(hooks[gameID][1])).To(Equal(2))
 		})
 	})
 
-	g.Describe("App Dispatch Hook", func() {
-		g.It("should dispatch hooks", func() {
+	Describe("App Dispatch Hook", func() {
+		It("should dispatch hooks", func() {
 			hooks, err := models.GetHooksForRoutes(testDb, []string{
 				"http://localhost:52525/created",
 				"http://localhost:52525/created2",
 			}, models.GameUpdatedHook)
-			g.Assert(err == nil).IsTrue()
+			Expect(err).NotTo(HaveOccurred())
 			responses := startRouteHandler([]string{"/created", "/created2"}, 52525)
 
 			app := GetDefaultTestApp()
@@ -128,20 +131,20 @@ func TestApp(t *testing.T) {
 				"publicID": hooks[0].GameID,
 			}
 			err = app.DispatchHooks(hooks[0].GameID, models.GameUpdatedHook, resultingPayload)
-			g.Assert(err == nil).IsTrue()
+			Expect(err).NotTo(HaveOccurred())
 			app.Dispatcher.Wait()
-			g.Assert(len(*responses)).Equal(2)
+			Expect(len(*responses)).To(Equal(2))
 			app.Errors.Tick()
-			g.Assert(app.Errors.Rate()).Equal(0.0)
+			Expect(app.Errors.Rate()).To(Equal(0.0))
 		})
 
-		g.It("should encode hook parameters", func() {
+		It("should encode hook parameters", func() {
 			hooks, err := models.GetHooksForRoutes(
 				testDb, []string{
 					"http://localhost:52525/encoding?url={{url}}",
 				}, models.GameUpdatedHook,
 			)
-			g.Assert(err == nil).IsTrue()
+			Expect(err).NotTo(HaveOccurred())
 			responses := startRouteHandler(
 				[]string{"/encoding"},
 				52525,
@@ -160,25 +163,25 @@ func TestApp(t *testing.T) {
 				models.GameUpdatedHook,
 				resultingPayload,
 			)
-			g.Assert(err == nil).IsTrue()
+			Expect(err).NotTo(HaveOccurred())
 			app.Dispatcher.Wait()
-			g.Assert(len(*responses)).Equal(1)
+			Expect(len(*responses)).To(Equal(1))
 
 			resp := (*responses)[0]
 			req := resp["request"].(*http.Request)
 
 			url := req.URL.Query().Get("url")
-			g.Assert(url).Equal("http://some-url.com")
+			Expect(url).To(Equal("http://some-url.com"))
 
 			app.Errors.Tick()
-			g.Assert(app.Errors.Rate()).Equal(0.0)
+			Expect(app.Errors.Rate()).To(Equal(0.0))
 		})
 
-		g.It("should dispatch hooks using template", func() {
+		It("should dispatch hooks using template", func() {
 			hooks, err := models.GetHooksForRoutes(testDb, []string{
 				"http://localhost:52525/created/{{publicID}}",
 			}, models.GameUpdatedHook)
-			g.Assert(err == nil).IsTrue()
+			Expect(err).NotTo(HaveOccurred())
 			responses := startRouteHandler([]string{fmt.Sprintf("/created/%s", hooks[0].GameID)}, 52525)
 
 			app := GetDefaultTestApp()
@@ -189,18 +192,18 @@ func TestApp(t *testing.T) {
 				"publicID": hooks[0].GameID,
 			}
 			err = app.DispatchHooks(hooks[0].GameID, models.GameUpdatedHook, resultingPayload)
-			g.Assert(err == nil).IsTrue()
+			Expect(err).NotTo(HaveOccurred())
 			app.Dispatcher.Wait()
-			g.Assert(len(*responses)).Equal(1)
+			Expect(len(*responses)).To(Equal(1))
 			app.Errors.Tick()
-			g.Assert(app.Errors.Rate()).Equal(0.0)
+			Expect(app.Errors.Rate()).To(Equal(0.0))
 		})
 
-		g.It("should dispatch hooks using second-level key", func() {
+		It("should dispatch hooks using second-level key", func() {
 			hooks, err := models.GetHooksForRoutes(testDb, []string{
 				"http://localhost:52525/{{playerPosition}}/créated/{{player.publicID}}",
 			}, models.GameUpdatedHook)
-			g.Assert(err == nil).IsTrue()
+			Expect(err).NotTo(HaveOccurred())
 			responses := startRouteHandler([]string{fmt.Sprintf("/1/créated/%s", hooks[0].GameID)}, 52525)
 
 			app := GetDefaultTestApp()
@@ -214,18 +217,18 @@ func TestApp(t *testing.T) {
 				},
 			}
 			err = app.DispatchHooks(hooks[0].GameID, models.GameUpdatedHook, resultingPayload)
-			g.Assert(err == nil).IsTrue()
+			Expect(err).NotTo(HaveOccurred())
 			app.Dispatcher.Wait()
-			g.Assert(len(*responses)).Equal(1)
+			Expect(len(*responses)).To(Equal(1))
 			app.Errors.Tick()
-			g.Assert(app.Errors.Rate()).Equal(0.0)
+			Expect(app.Errors.Rate()).To(Equal(0.0))
 		})
 
-		g.It("should fail dispatch hooks if invalid key", func() {
+		It("should fail dispatch hooks if invalid key", func() {
 			hooks, err := models.GetHooksForRoutes(testDb, []string{
 				"http://localhost:52525/invalid/{{player.publicID.invalid}}",
 			}, models.GameUpdatedHook)
-			g.Assert(err == nil).IsTrue()
+			Expect(err).NotTo(HaveOccurred())
 			responses := startRouteHandler([]string{fmt.Sprintf("/invalid/%s", hooks[0].GameID)}, 52525)
 
 			app := GetDefaultTestApp()
@@ -238,11 +241,11 @@ func TestApp(t *testing.T) {
 				},
 			}
 			err = app.DispatchHooks(hooks[0].GameID, models.GameUpdatedHook, resultingPayload)
-			g.Assert(err == nil).IsTrue()
+			Expect(err).NotTo(HaveOccurred())
 			app.Dispatcher.Wait(50)
-			g.Assert(len(*responses)).Equal(0)
+			Expect(len(*responses)).To(Equal(0))
 			app.Errors.Tick()
-			g.Assert(app.Errors.Rate() > 0.0).IsTrue()
+			Expect(app.Errors.Rate()).To(BeNumerically(">", 0.0))
 		})
 	})
-}
+})

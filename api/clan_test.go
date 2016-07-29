@@ -5,7 +5,7 @@
 // http://www.opensource.org/licenses/mit-license
 // Copyright © 2016 Top Free Games <backend@tfgco.com>
 
-package api
+package api_test
 
 import (
 	"encoding/json"
@@ -13,35 +13,27 @@ import (
 	"net/http"
 	"sort"
 	"strings"
-	"testing"
 
 	"github.com/Pallinder/go-randomdata"
-	. "github.com/franela/goblin"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 	"github.com/satori/go.uuid"
 	"github.com/topfreegames/khan/models"
 )
 
-// AssertError asserts that the specified error is not nil
-func AssertError(g *G, err error) {
-	g.Assert(err == nil).IsFalse("Expected error to exist, but it was nil")
-}
+var _ = Describe("Healthcheck API Handler", func() {
+	var testDb models.DB
 
-// AssertNotError asserts that the specified error is nil
-func AssertNotError(g *G, err error) {
-	if err != nil {
-		g.Assert(err == nil).IsTrue(err.Error())
-	}
-}
+	BeforeEach(func() {
+		var err error
+		testDb, err = GetTestDB()
+		Expect(err).NotTo(HaveOccurred())
+	})
 
-func TestClanHandler(t *testing.T) {
-	g := Goblin(t)
-	testDb, err := models.GetTestDB()
-	AssertNotError(g, err)
-
-	g.Describe("Create Clan Handler", func() {
-		g.It("Should create clan", func() {
+	Describe("Create Clan Handler", func() {
+		It("Should create clan", func() {
 			_, player, err := models.CreatePlayerFactory(testDb, "")
-			AssertNotError(g, err)
+			Expect(err).NotTo(HaveOccurred())
 
 			clanPublicID := randomdata.FullName(randomdata.RandomGender)
 			payload := map[string]interface{}{
@@ -53,28 +45,30 @@ func TestClanHandler(t *testing.T) {
 				"autoJoin":         true,
 			}
 			a := GetDefaultTestApp()
-			res := PostJSON(a, GetGameRoute(player.GameID, "/clans"), t, payload)
+			res := PostJSON(a, GetGameRoute(player.GameID, "/clans"), payload)
 
-			g.Assert(res.Raw().StatusCode).Equal(http.StatusOK)
+			Expect(res.Raw().StatusCode).To(Equal(http.StatusOK))
 			var result map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
-			g.Assert(result["success"]).IsTrue()
-			g.Assert(result["publicID"]).Equal(clanPublicID)
+			Expect(result["success"]).To(BeTrue())
+			Expect(result["publicID"]).To(Equal(clanPublicID))
 
 			dbClan, err := models.GetClanByPublicID(a.Db, player.GameID, clanPublicID)
-			AssertNotError(g, err)
-			g.Assert(dbClan.GameID).Equal(player.GameID)
-			g.Assert(dbClan.OwnerID).Equal(player.ID)
-			g.Assert(dbClan.PublicID).Equal(payload["publicID"])
-			g.Assert(dbClan.Name).Equal(payload["name"])
-			g.Assert(dbClan.Metadata).Equal(payload["metadata"])
-			g.Assert(dbClan.AllowApplication).Equal(payload["allowApplication"])
-			g.Assert(dbClan.AutoJoin).Equal(payload["autoJoin"])
+			Expect(err).NotTo(HaveOccurred())
+			Expect(dbClan.GameID).To(Equal(player.GameID))
+			Expect(dbClan.OwnerID).To(Equal(player.ID))
+			Expect(dbClan.PublicID).To(Equal(payload["publicID"]))
+			Expect(dbClan.Name).To(Equal(payload["name"]))
+			Expect(dbClan.Metadata["x"]).To(
+				BeEquivalentTo(payload["metadata"].(map[string]interface{})["x"]),
+			)
+			Expect(dbClan.AllowApplication).To(Equal(payload["allowApplication"]))
+			Expect(dbClan.AutoJoin).To(Equal(payload["autoJoin"]))
 		})
 
-		g.It("Should not create clan if missing parameters", func() {
+		It("Should not create clan if missing parameters", func() {
 			_, player, err := models.CreatePlayerFactory(testDb, "")
-			AssertNotError(g, err)
+			Expect(err).NotTo(HaveOccurred())
 
 			clanPublicID := randomdata.FullName(randomdata.RandomGender)
 			payload := map[string]interface{}{
@@ -83,30 +77,30 @@ func TestClanHandler(t *testing.T) {
 				"autoJoin":         true,
 			}
 			a := GetDefaultTestApp()
-			res := PostJSON(a, GetGameRoute(player.GameID, "/clans"), t, payload)
+			res := PostJSON(a, GetGameRoute(player.GameID, "/clans"), payload)
 
-			g.Assert(res.Raw().StatusCode).Equal(http.StatusBadRequest)
+			Expect(res.Raw().StatusCode).To(Equal(http.StatusBadRequest))
 			var result map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
-			g.Assert(result["success"]).IsFalse()
-			g.Assert(result["reason"]).Equal(fmt.Sprintf("name is required, ownerPublicID is required, metadata is required"))
+			Expect(result["success"]).To(BeFalse())
+			Expect(result["reason"]).To(Equal(fmt.Sprintf("name is required, ownerPublicID is required, metadata is required")))
 		})
 
-		g.It("Should not create clan if invalid payload", func() {
+		It("Should not create clan if invalid payload", func() {
 			gameID := "gameID"
 			a := GetDefaultTestApp()
-			res := PostBody(a, GetGameRoute(gameID, "/clans"), t, "invalid")
+			res := PostBody(a, GetGameRoute(gameID, "/clans"), "invalid")
 
-			g.Assert(res.Raw().StatusCode).Equal(http.StatusBadRequest)
+			Expect(res.Raw().StatusCode).To(Equal(http.StatusBadRequest))
 			var result map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
-			g.Assert(result["success"]).IsFalse()
-			g.Assert(strings.Contains(result["reason"].(string), "While trying to read JSON")).IsTrue()
+			Expect(result["success"]).To(BeFalse())
+			Expect(strings.Contains(result["reason"].(string), "While trying to read JSON")).To(BeTrue())
 		})
 
-		g.It("Should not create clan if owner does not exist", func() {
+		It("Should not create clan if owner does not exist", func() {
 			game, _, err := models.CreatePlayerFactory(testDb, "")
-			AssertNotError(g, err)
+			Expect(err).NotTo(HaveOccurred())
 
 			payload := map[string]interface{}{
 				"publicID":         randomdata.FullName(randomdata.RandomGender),
@@ -117,18 +111,18 @@ func TestClanHandler(t *testing.T) {
 				"autoJoin":         true,
 			}
 			a := GetDefaultTestApp()
-			res := PostJSON(a, GetGameRoute(game.PublicID, "/clans"), t, payload)
+			res := PostJSON(a, GetGameRoute(game.PublicID, "/clans"), payload)
 
-			g.Assert(res.Raw().StatusCode).Equal(http.StatusInternalServerError)
+			Expect(res.Raw().StatusCode).To(Equal(http.StatusInternalServerError))
 			var result map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
-			g.Assert(result["success"]).IsFalse()
-			g.Assert(result["reason"]).Equal(fmt.Sprintf("Player was not found with id: %s", payload["ownerPublicID"]))
+			Expect(result["success"]).To(BeFalse())
+			Expect(result["reason"]).To(Equal(fmt.Sprintf("Player was not found with id: %s", payload["ownerPublicID"])))
 		})
 
-		g.It("Should not create clan if invalid data", func() {
+		It("Should not create clan if invalid data", func() {
 			_, player, err := models.CreatePlayerFactory(testDb, "")
-			AssertNotError(g, err)
+			Expect(err).NotTo(HaveOccurred())
 
 			payload := map[string]interface{}{
 				"publicID":         randomdata.FullName(randomdata.RandomGender),
@@ -139,52 +133,52 @@ func TestClanHandler(t *testing.T) {
 				"autoJoin":         true,
 			}
 			a := GetDefaultTestApp()
-			res := PostJSON(a, GetGameRoute(player.GameID, "/clans"), t, payload)
+			res := PostJSON(a, GetGameRoute(player.GameID, "/clans"), payload)
 
-			g.Assert(res.Raw().StatusCode).Equal(http.StatusInternalServerError)
+			Expect(res.Raw().StatusCode).To(Equal(http.StatusInternalServerError))
 			var result map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
-			g.Assert(result["success"]).IsFalse()
-			g.Assert(result["reason"]).Equal("pq: value too long for type character varying(255)")
+			Expect(result["success"]).To(BeFalse())
+			Expect(result["reason"]).To(Equal("pq: value too long for type character varying(255)"))
 		})
 	})
 
-	g.Describe("Leave Clan Handler", func() {
-		g.It("Should leave a clan and transfer ownership", func() {
+	Describe("Leave Clan Handler", func() {
+		It("Should leave a clan and transfer ownership", func() {
 			_, clan, _, _, memberships, err := models.GetClanWithMemberships(testDb, 1, 0, 0, 0, "", "")
-			g.Assert(err == nil).IsTrue()
+			Expect(err).NotTo(HaveOccurred())
 
 			route := GetGameRoute(clan.GameID, fmt.Sprintf("clans/%s/leave", clan.PublicID))
 			a := GetDefaultTestApp()
-			res := PostJSON(a, route, t, map[string]interface{}{})
+			res := PostJSON(a, route, map[string]interface{}{})
 
-			g.Assert(res.Raw().StatusCode).Equal(http.StatusOK)
+			Expect(res.Raw().StatusCode).To(Equal(http.StatusOK))
 			var result map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
-			g.Assert(result["success"]).IsTrue()
+			Expect(result["success"]).To(BeTrue())
 
 			dbClan, err := models.GetClanByPublicID(a.Db, clan.GameID, clan.PublicID)
-			AssertNotError(g, err)
-			g.Assert(dbClan.OwnerID).Equal(memberships[0].PlayerID)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(dbClan.OwnerID).To(Equal(memberships[0].PlayerID))
 		})
 
-		g.It("Should not leave a clan if invalid clan", func() {
+		It("Should not leave a clan if invalid clan", func() {
 			route := GetGameRoute("game-id", fmt.Sprintf("clans/%s/leave", "random-id"))
 			a := GetDefaultTestApp()
-			res := PostBody(a, route, t, "")
+			res := PostBody(a, route, "")
 
-			g.Assert(res.Raw().StatusCode).Equal(http.StatusBadRequest)
+			Expect(res.Raw().StatusCode).To(Equal(http.StatusBadRequest))
 			var result map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
-			g.Assert(result["success"]).IsFalse()
-			g.Assert(strings.Contains(result["reason"].(string), "Clan was not found with id: random-id")).IsTrue()
+			Expect(result["success"]).To(BeFalse())
+			Expect(strings.Contains(result["reason"].(string), "Clan was not found with id: random-id")).To(BeTrue())
 		})
 	})
 
-	g.Describe("Transfer Clan Ownership Handler", func() {
-		g.It("Should transfer a clan ownership", func() {
+	Describe("Transfer Clan Ownership Handler", func() {
+		It("Should transfer a clan ownership", func() {
 			_, clan, owner, players, _, err := models.GetClanWithMemberships(testDb, 1, 0, 0, 0, "", "")
-			g.Assert(err == nil).IsTrue()
+			Expect(err).NotTo(HaveOccurred())
 			ownerPublicID := owner.PublicID
 			playerPublicID := players[0].PublicID
 
@@ -194,48 +188,48 @@ func TestClanHandler(t *testing.T) {
 			}
 			route := GetGameRoute(clan.GameID, fmt.Sprintf("clans/%s/transfer-ownership", clan.PublicID))
 			a := GetDefaultTestApp()
-			res := PostJSON(a, route, t, payload)
+			res := PostJSON(a, route, payload)
 
-			g.Assert(res.Raw().StatusCode).Equal(http.StatusOK)
+			Expect(res.Raw().StatusCode).To(Equal(http.StatusOK))
 			var result map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
-			g.Assert(result["success"]).IsTrue()
+			Expect(result["success"]).To(BeTrue())
 
 			dbClan, err := models.GetClanByPublicID(a.Db, clan.GameID, clan.PublicID)
-			AssertNotError(g, err)
-			g.Assert(dbClan.OwnerID).Equal(players[0].ID)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(dbClan.OwnerID).To(Equal(players[0].ID))
 		})
 
-		g.It("Should not transfer a clan ownership if missing parameters", func() {
+		It("Should not transfer a clan ownership if missing parameters", func() {
 			route := GetGameRoute("game-id", fmt.Sprintf("clans/%s/transfer-ownership", "public-id"))
 			a := GetDefaultTestApp()
-			res := PostJSON(a, route, t, map[string]interface{}{})
+			res := PostJSON(a, route, map[string]interface{}{})
 
-			g.Assert(res.Raw().StatusCode).Equal(http.StatusBadRequest)
+			Expect(res.Raw().StatusCode).To(Equal(http.StatusBadRequest))
 			var result map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
-			g.Assert(result["success"]).IsFalse()
-			g.Assert(result["reason"]).Equal("playerPublicID is required")
+			Expect(result["success"]).To(BeFalse())
+			Expect(result["reason"]).To(Equal("playerPublicID is required"))
 
 		})
 
-		g.It("Should not transfer a clan ownership if invalid payload", func() {
+		It("Should not transfer a clan ownership if invalid payload", func() {
 			route := GetGameRoute("game-id", fmt.Sprintf("clans/%s/transfer-ownership", "random-id"))
 			a := GetDefaultTestApp()
-			res := PostBody(a, route, t, "invalid")
+			res := PostBody(a, route, "invalid")
 
-			g.Assert(res.Raw().StatusCode).Equal(http.StatusBadRequest)
+			Expect(res.Raw().StatusCode).To(Equal(http.StatusBadRequest))
 			var result map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
-			g.Assert(result["success"]).IsFalse()
-			g.Assert(strings.Contains(result["reason"].(string), "While trying to read JSON")).IsTrue()
+			Expect(result["success"]).To(BeFalse())
+			Expect(strings.Contains(result["reason"].(string), "While trying to read JSON")).To(BeTrue())
 		})
 	})
 
-	g.Describe("Update Clan Handler", func() {
-		g.It("Should update clan", func() {
+	Describe("Update Clan Handler", func() {
+		It("Should update clan", func() {
 			_, clan, owner, _, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
-			AssertNotError(g, err)
+			Expect(err).NotTo(HaveOccurred())
 
 			gameID := clan.GameID
 			publicID := clan.PublicID
@@ -252,52 +246,52 @@ func TestClanHandler(t *testing.T) {
 			}
 			route := GetGameRoute(gameID, fmt.Sprintf("/clans/%s", publicID))
 			a := GetDefaultTestApp()
-			res := PutJSON(a, route, t, payload)
+			res := PutJSON(a, route, payload)
 
-			g.Assert(res.Raw().StatusCode).Equal(http.StatusOK)
+			Expect(res.Raw().StatusCode).To(Equal(http.StatusOK))
 			var result map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
-			g.Assert(result["success"]).IsTrue()
+			Expect(result["success"]).To(BeTrue())
 
 			dbClan, err := models.GetClanByPublicID(a.Db, gameID, publicID)
-			AssertNotError(g, err)
-			g.Assert(dbClan.GameID).Equal(gameID)
-			g.Assert(dbClan.PublicID).Equal(publicID)
-			g.Assert(dbClan.Name).Equal(clanName)
-			g.Assert(dbClan.OwnerID).Equal(owner.ID)
-			g.Assert(dbClan.Metadata).Equal(metadata)
-			g.Assert(dbClan.AllowApplication).Equal(!clan.AllowApplication)
-			g.Assert(dbClan.AutoJoin).Equal(!clan.AutoJoin)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(dbClan.GameID).To(Equal(gameID))
+			Expect(dbClan.PublicID).To(Equal(publicID))
+			Expect(dbClan.Name).To(Equal(clanName))
+			Expect(dbClan.OwnerID).To(Equal(owner.ID))
+			Expect(dbClan.Metadata).To(Equal(metadata))
+			Expect(dbClan.AllowApplication).To(Equal(!clan.AllowApplication))
+			Expect(dbClan.AutoJoin).To(Equal(!clan.AutoJoin))
 		})
 
-		g.It("Should not update clan if missing parameters", func() {
+		It("Should not update clan if missing parameters", func() {
 			route := GetGameRoute("gameID", fmt.Sprintf("/clans/%s", "publicID"))
 			a := GetDefaultTestApp()
-			res := PutJSON(a, route, t, map[string]interface{}{})
+			res := PutJSON(a, route, map[string]interface{}{})
 
-			g.Assert(res.Raw().StatusCode).Equal(http.StatusBadRequest)
+			Expect(res.Raw().StatusCode).To(Equal(http.StatusBadRequest))
 			var result map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
-			g.Assert(result["success"]).IsFalse()
-			g.Assert(result["reason"]).Equal("name is required, ownerPublicID is required, metadata is required, allowApplication is required, autoJoin is required")
+			Expect(result["success"]).To(BeFalse())
+			Expect(result["reason"]).To(Equal("name is required, ownerPublicID is required, metadata is required, allowApplication is required, autoJoin is required"))
 		})
 
-		g.It("Should not update clan if invalid payload", func() {
+		It("Should not update clan if invalid payload", func() {
 			route := GetGameRoute("game-id", fmt.Sprintf("/clans/%s", "random-id"))
 			a := GetDefaultTestApp()
 
-			res := PutBody(a, route, t, "invalid")
+			res := PutBody(a, route, "invalid")
 
-			g.Assert(res.Raw().StatusCode).Equal(http.StatusBadRequest)
+			Expect(res.Raw().StatusCode).To(Equal(http.StatusBadRequest))
 			var result map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
-			g.Assert(result["success"]).IsFalse()
-			g.Assert(strings.Contains(result["reason"].(string), "While trying to read JSON")).IsTrue()
+			Expect(result["success"]).To(BeFalse())
+			Expect(strings.Contains(result["reason"].(string), "While trying to read JSON")).To(BeTrue())
 		})
 
-		g.It("Should not update clan if player is not the owner", func() {
+		It("Should not update clan if player is not the owner", func() {
 			_, clan, _, _, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
-			AssertNotError(g, err)
+			Expect(err).NotTo(HaveOccurred())
 
 			gameID := clan.GameID
 			publicID := clan.PublicID
@@ -313,18 +307,18 @@ func TestClanHandler(t *testing.T) {
 			route := GetGameRoute(gameID, fmt.Sprintf("/clans/%s", publicID))
 			a := GetDefaultTestApp()
 
-			res := PutJSON(a, route, t, payload)
+			res := PutJSON(a, route, payload)
 
-			g.Assert(res.Raw().StatusCode).Equal(http.StatusInternalServerError)
+			Expect(res.Raw().StatusCode).To(Equal(http.StatusInternalServerError))
 			var result map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
-			g.Assert(result["success"]).IsFalse()
-			g.Assert(result["reason"]).Equal(fmt.Sprintf("Clan was not found with id: %s", clan.PublicID))
+			Expect(result["success"]).To(BeFalse())
+			Expect(result["reason"]).To(Equal(fmt.Sprintf("Clan was not found with id: %s", clan.PublicID)))
 		})
 
-		g.It("Should not update clan if invalid data", func() {
+		It("Should not update clan if invalid data", func() {
 			_, clan, owner, _, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
-			AssertNotError(g, err)
+			Expect(err).NotTo(HaveOccurred())
 
 			gameID := clan.GameID
 			publicID := clan.PublicID
@@ -339,137 +333,139 @@ func TestClanHandler(t *testing.T) {
 			route := GetGameRoute(gameID, fmt.Sprintf("/clans/%s", publicID))
 			a := GetDefaultTestApp()
 
-			res := PutJSON(a, route, t, payload)
+			res := PutJSON(a, route, payload)
 
-			g.Assert(res.Raw().StatusCode).Equal(http.StatusInternalServerError)
+			Expect(res.Raw().StatusCode).To(Equal(http.StatusInternalServerError))
 			var result map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
-			g.Assert(result["success"]).IsFalse()
-			g.Assert(result["reason"]).Equal("pq: value too long for type character varying(255)")
+			Expect(result["success"]).To(BeFalse())
+			Expect(result["reason"]).To(Equal("pq: value too long for type character varying(255)"))
 		})
 	})
 
-	g.Describe("List All Clans Handler", func() {
-		g.It("Should get all clans", func() {
+	Describe("List All Clans Handler", func() {
+		It("Should get all clans", func() {
 			player, expectedClans, err := models.GetTestClans(testDb, "", "", 10)
-			AssertNotError(g, err)
+			Expect(err).NotTo(HaveOccurred())
 			sort.Sort(models.ClanByName(expectedClans))
 
 			a := GetDefaultTestApp()
 
-			res := Get(a, GetGameRoute(player.GameID, "/clans"), t)
+			res := Get(a, GetGameRoute(player.GameID, "/clans"))
 
-			g.Assert(res.Raw().StatusCode).Equal(http.StatusOK)
+			Expect(res.Raw().StatusCode).To(Equal(http.StatusOK))
 			var result map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 
-			g.Assert(result["success"]).IsTrue()
+			Expect(result["success"]).To(BeTrue())
 			for index, clanObj := range result["clans"].([]interface{}) {
 				clan := clanObj.(map[string]interface{}) // Can't be map[string]interface{}
-				g.Assert(clan["name"]).Equal(expectedClans[index].Name)
+				Expect(clan["name"]).To(Equal(expectedClans[index].Name))
 				clanMetadata := clan["metadata"].(map[string]interface{})
 				for k, v := range clanMetadata {
-					g.Assert(v).Equal(expectedClans[index].Metadata[k])
+					Expect(v).To(Equal(expectedClans[index].Metadata[k]))
 				}
-				g.Assert(clan["publicID"]).Equal(expectedClans[index].PublicID)
-				g.Assert(clan["ID"]).Equal(nil)
-				g.Assert(clan["autoJoin"]).Equal(expectedClans[index].AutoJoin)
-				g.Assert(clan["allowApplication"]).Equal(expectedClans[index].AllowApplication)
+				Expect(clan["publicID"]).To(Equal(expectedClans[index].PublicID))
+				Expect(clan["ID"]).To(BeNil())
+				Expect(clan["autoJoin"]).To(Equal(expectedClans[index].AutoJoin))
+				Expect(clan["allowApplication"]).To(Equal(expectedClans[index].AllowApplication))
 			}
 		})
 
-		g.It("Should return empty list if invalid game query", func() {
+		It("Should return empty list if invalid game query", func() {
 			a := GetDefaultTestApp()
 
-			res := Get(a, GetGameRoute("invalid-query-game-id", "/clans"), t)
+			res := Get(a, GetGameRoute("invalid-query-game-id", "/clans"))
 
-			g.Assert(res.Raw().StatusCode).Equal(http.StatusOK)
+			Expect(res.Raw().StatusCode).To(Equal(http.StatusOK))
 			var result map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 
-			g.Assert(result["success"]).IsTrue()
-			g.Assert(len(result["clans"].([]interface{}))).Equal(0)
+			Expect(result["success"]).To(BeTrue())
+			Expect(len(result["clans"].([]interface{}))).To(Equal(0))
 		})
 	})
 
-	g.Describe("Retrieve Clan Handler", func() {
-		g.It("Should get details for clan", func() {
+	Describe("Retrieve Clan Handler", func() {
+		It("Should get details for clan", func() {
 			_, clan, _, _, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
-			AssertNotError(g, err)
+			Expect(err).NotTo(HaveOccurred())
 
 			a := GetDefaultTestApp()
 
-			res := Get(a, GetGameRoute(clan.GameID, fmt.Sprintf("/clans/%s", clan.PublicID)), t)
+			res := Get(a, GetGameRoute(clan.GameID, fmt.Sprintf("/clans/%s", clan.PublicID)))
 
-			g.Assert(res.Raw().StatusCode).Equal(http.StatusOK)
+			Expect(res.Raw().StatusCode).To(Equal(http.StatusOK))
 			var result map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 
-			g.Assert(result["success"]).IsTrue()
+			Expect(result["success"]).To(BeTrue())
 
-			g.Assert(result["name"]).Equal(clan.Name)
+			Expect(result["name"]).To(Equal(clan.Name))
 			resultMetadata := result["metadata"].(map[string]interface{})
 			for k, v := range resultMetadata {
-				g.Assert(v).Equal(clan.Metadata[k])
+				Expect(v).To(Equal(clan.Metadata[k]))
 			}
-			g.Assert(result["publicID"]).Equal(nil)
+			Expect(result["publicID"]).To(BeNil())
 		})
 
-		g.It("Should get clan members", func() {
+		It("Should get clan members", func() {
+			gameID := uuid.NewV4().String()
 			_, clan, _, _, _, err := models.GetClanWithMemberships(
-				testDb, 10, 0, 0, 0, "clan-details-api", "clan-details-api-clan",
+				testDb, 10, 0, 0, 0, gameID, "clan-details-api-clan",
 			)
-			AssertNotError(g, err)
+			Expect(err).NotTo(HaveOccurred())
 
 			a := GetDefaultTestApp()
 
-			res := Get(a, GetGameRoute(clan.GameID, fmt.Sprintf("/clans/%s", clan.PublicID)), t)
+			res := Get(a, GetGameRoute(clan.GameID, fmt.Sprintf("/clans/%s", clan.PublicID)))
 
-			g.Assert(res.Raw().StatusCode).Equal(http.StatusOK)
+			Expect(res.Raw().StatusCode).To(Equal(http.StatusOK))
 			var result map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 
-			g.Assert(result["success"]).IsTrue()
+			Expect(result["success"]).To(BeTrue())
 
-			g.Assert(result["roster"] == nil).IsFalse()
+			Expect(result["roster"] == nil).To(BeFalse())
 		})
 	})
 
-	g.Describe("Retrieve Clans Handler", func() {
-		g.It("Should get details for clans", func() {
+	Describe("Retrieve Clans Handler", func() {
+		It("Should get details for clans", func() {
 			a := GetDefaultTestApp()
 
-			_, clan1, _, _, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 0, "clans_handler1", "clan1")
-			AssertNotError(g, err)
-			_, clan2, _, _, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 0, "clans_handler1", "clan2", true)
-			AssertNotError(g, err)
-			_, clan3, _, _, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 0, "clans_handler1", "clan3", true)
-			AssertNotError(g, err)
+			gameID := uuid.NewV4().String()
+			_, clan1, _, _, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 0, gameID, "clan1")
+			Expect(err).NotTo(HaveOccurred())
+			_, clan2, _, _, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 0, gameID, "clan2", true)
+			Expect(err).NotTo(HaveOccurred())
+			_, clan3, _, _, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 0, gameID, "clan3", true)
+			Expect(err).NotTo(HaveOccurred())
 
 			clanIDs := []string{clan1.PublicID, clan2.PublicID, clan3.PublicID}
 			qs := map[string]interface{}{
 				"clanPublicIds": strings.Join(clanIDs, ","),
 			}
 
-			res := Get(a, GetGameRoute(clan1.GameID, "clans-summary"), t, qs)
-			g.Assert(res.Raw().StatusCode).Equal(http.StatusOK)
+			res := Get(a, GetGameRoute(clan1.GameID, "clans-summary"), qs)
+			Expect(res.Raw().StatusCode).To(Equal(http.StatusOK))
 
 			var result map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
-			g.Assert(result["success"]).IsTrue()
+			Expect(result["success"]).To(BeTrue())
 
 			resultClans := result["clans"].([]interface{})
-			g.Assert(len(resultClans)).Equal(3)
+			Expect(len(resultClans)).To(Equal(3))
 
 			for _, resultClan := range resultClans {
 				resultClanMap := resultClan.(map[string]interface{})
-				g.Assert(resultClanMap["membershipCount"] == nil).IsFalse()
-				g.Assert(resultClanMap["publicID"] == nil).IsFalse()
-				g.Assert(resultClanMap["metadata"] == nil).IsFalse()
-				g.Assert(resultClanMap["name"] == nil).IsFalse()
-				g.Assert(resultClanMap["allowApplication"] == nil).IsFalse()
-				g.Assert(resultClanMap["autoJoin"] == nil).IsFalse()
-				g.Assert(len(resultClanMap)).Equal(6)
+				Expect(resultClanMap["membershipCount"] == nil).To(BeFalse())
+				Expect(resultClanMap["publicID"] == nil).To(BeFalse())
+				Expect(resultClanMap["metadata"] == nil).To(BeFalse())
+				Expect(resultClanMap["name"] == nil).To(BeFalse())
+				Expect(resultClanMap["allowApplication"] == nil).To(BeFalse())
+				Expect(resultClanMap["autoJoin"] == nil).To(BeFalse())
+				Expect(len(resultClanMap)).To(Equal(6))
 
 				idExist := false
 				// check if publicID is in clanIDs
@@ -478,158 +474,174 @@ func TestClanHandler(t *testing.T) {
 						idExist = true
 					}
 				}
-				g.Assert(idExist).IsTrue()
+				Expect(idExist).To(BeTrue())
 			}
 		})
 
-		g.It("Should not get details for clans for unexistent game", func() {
+		It("Should not get details for clans for unexistent game", func() {
 			a := GetDefaultTestApp()
 
+			gameID := uuid.NewV4().String()
 			_, clan, _, _, _, err := models.GetClanWithMemberships(
-				testDb, 10, 0, 0, 0, "clans_handler2", "clan-details-api-clan",
+				testDb, 10, 0, 0, 0, gameID, uuid.NewV4().String(),
 			)
-			AssertNotError(g, err)
+			Expect(err).NotTo(HaveOccurred())
 
 			clanIDs := []string{clan.PublicID}
 			qs := map[string]interface{}{
 				"clanPublicIds": strings.Join(clanIDs, ","),
 			}
 
-			res := Get(a, GetGameRoute("unexistent_game", "clans-summary"), t, qs)
+			res := Get(a, GetGameRoute("unexistent_game", "clans-summary"), qs)
 
 			var result map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 
-			g.Assert(result["success"]).IsFalse()
-			g.Assert(res.Raw().StatusCode).Equal(http.StatusNotFound)
+			Expect(result["success"]).To(BeFalse())
+			Expect(res.Raw().StatusCode).To(Equal(http.StatusNotFound))
 		})
 
-		g.It("Should fail with 400 if empty query string", func() {
+		It("Should fail with 400 if empty query string", func() {
 			a := GetDefaultTestApp()
 
-			_, clan1, _, _, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 0, "clans_handler13", "clan1")
-			AssertNotError(g, err)
+			gameID := uuid.NewV4().String()
+			_, clan1, _, _, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 0, gameID, uuid.NewV4().String())
+			Expect(err).NotTo(HaveOccurred())
 
-			res := Get(a, GetGameRoute(clan1.GameID, "clans-summary"), t)
-			g.Assert(res.Raw().StatusCode).Equal(http.StatusBadRequest)
+			res := Get(a, GetGameRoute(clan1.GameID, "clans-summary"))
+			Expect(res.Raw().StatusCode).To(Equal(http.StatusBadRequest))
 			var result map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
-			g.Assert(result["success"]).IsFalse()
-			g.Assert(result["reason"]).Equal("No clanPublicIds provided")
+			Expect(result["success"]).To(BeFalse())
+			Expect(result["reason"]).To(Equal("No clanPublicIds provided"))
 		})
 	})
 
-	g.Describe("Retrieve Clan Summary Handler", func() {
-		g.It("Should get details for clan", func() {
+	Describe("Retrieve Clan Summary Handler", func() {
+		It("Should get details for clan", func() {
 			_, clan, _, _, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
-			AssertNotError(g, err)
+			Expect(err).NotTo(HaveOccurred())
 
 			a := GetDefaultTestApp()
 
-			res := Get(a, GetGameRoute(clan.GameID, fmt.Sprintf("/clans/%s/summary", clan.PublicID)), t)
+			res := Get(a, GetGameRoute(clan.GameID, fmt.Sprintf("/clans/%s/summary", clan.PublicID)))
 
-			g.Assert(res.Raw().StatusCode).Equal(http.StatusOK)
+			Expect(res.Raw().StatusCode).To(Equal(http.StatusOK))
 			var result map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 
-			g.Assert(result["success"]).IsTrue()
+			Expect(result["success"]).To(BeTrue())
 
-			g.Assert(int(result["membershipCount"].(float64))).Equal(clan.MembershipCount)
-			g.Assert(result["publicID"]).Equal(clan.PublicID)
-			g.Assert(result["name"]).Equal(clan.Name)
-			g.Assert(result["allowApplication"]).Equal(clan.AllowApplication)
-			g.Assert(result["autoJoin"]).Equal(clan.AutoJoin)
+			Expect(result["membershipCount"].(float64)).To(BeEquivalentTo(clan.MembershipCount))
+			Expect(result["publicID"]).To(Equal(clan.PublicID))
+			Expect(result["name"]).To(Equal(clan.Name))
+			Expect(result["allowApplication"]).To(Equal(clan.AllowApplication))
+			Expect(result["autoJoin"]).To(Equal(clan.AutoJoin))
 			resultMetadata := result["metadata"].(map[string]interface{})
 			for k, v := range resultMetadata {
-				g.Assert(v).Equal(clan.Metadata[k])
+				Expect(v).To(Equal(clan.Metadata[k]))
 			}
 		})
 
-		g.It("Should not get details for clan that does not exist", func() {
+		It("Should not get details for clan that does not exist", func() {
 			a := GetDefaultTestApp()
 
-			res := Get(a, GetGameRoute("game-id", "/clans/dont-exist/summary"), t)
-			g.Assert(res.Raw().StatusCode).Equal(http.StatusInternalServerError)
+			res := Get(a, GetGameRoute("game-id", "/clans/dont-exist/summary"))
+			Expect(res.Raw().StatusCode).To(Equal(http.StatusInternalServerError))
 			var result map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
-			g.Assert(result["success"]).IsFalse()
-			g.Assert(result["reason"]).Equal("Clan was not found with id: dont-exist")
+			Expect(result["success"]).To(BeFalse())
+			Expect(result["reason"]).To(Equal("Clan was not found with id: dont-exist"))
 		})
 	})
 
-	g.Describe("Search Clan Handler", func() {
-		g.It("Should search for a clan", func() {
+	Describe("Search Clan Handler", func() {
+		It("Should search for a clan", func() {
+			gameID := uuid.NewV4().String()
 			player, expectedClans, err := models.GetTestClans(
-				testDb, "", "clan-apisearch-clan", 10,
+				testDb, gameID, "clan-apisearch-clan", 10,
 			)
-			g.Assert(err == nil).IsTrue()
+			Expect(err).NotTo(HaveOccurred())
 
 			a := GetDefaultTestApp()
 
-			res := Get(a, GetGameRoute(player.GameID, "clan-search"), t, map[string]interface{}{
+			res := Get(a, GetGameRoute(player.GameID, "clan-search"), map[string]interface{}{
 				"term": "APISEARCH",
 			})
 
-			g.Assert(res.Raw().StatusCode).Equal(http.StatusOK)
+			Expect(res.Raw().StatusCode).To(Equal(http.StatusOK))
 			var result map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 
-			g.Assert(result["success"]).IsTrue()
+			Expect(result["success"]).To(BeTrue())
 
 			clans := result["clans"].([]interface{})
-			g.Assert(len(clans)).Equal(10)
+			Expect(len(clans)).To(Equal(10))
 
-			for index, expectedClan := range expectedClans {
-				clan := clans[index].(map[string]interface{}) // Can't be map[string]interface{}
-				g.Assert(clan["name"]).Equal(expectedClan.Name)
-				g.Assert(int(clan["membershipCount"].(float64))).Equal(expectedClan.MembershipCount)
-				g.Assert(clan["autoJoin"]).Equal(expectedClan.AutoJoin)
-				g.Assert(clan["allowApplication"]).Equal(expectedClan.AllowApplication)
+			clansDict := map[string]map[string]interface{}{}
+			for _, cl := range clans {
+				clan := cl.(map[string]interface{})
+				clansDict[clan["publicID"].(string)] = clan
+			}
+
+			for _, expectedClan := range expectedClans {
+				clan := clansDict[expectedClan.PublicID]
+				Expect(clan["name"]).To(Equal(expectedClan.Name))
+				Expect(clan["membershipCount"].(float64)).To(BeEquivalentTo(expectedClan.MembershipCount))
+				Expect(clan["autoJoin"]).To(Equal(expectedClan.AutoJoin))
+				Expect(clan["allowApplication"]).To(Equal(expectedClan.AllowApplication))
 			}
 		})
 
-		g.It("Should unicode search for a clan", func() {
+		It("Should unicode search for a clan", func() {
+			gameID := uuid.NewV4().String()
 			player, expectedClans, err := models.GetTestClans(
-				testDb, "clan-apisearch-game", "clan-apisearch-clan", 10,
+				testDb, gameID, "clan-apisearch-clan", 10,
 			)
-			g.Assert(err == nil).IsTrue()
+			Expect(err).NotTo(HaveOccurred())
 
 			a := GetDefaultTestApp()
 
-			res := Get(a, GetGameRoute(player.GameID, "clan-search"), t, map[string]interface{}{
+			res := Get(a, GetGameRoute(player.GameID, "clan-search"), map[string]interface{}{
 				"term": "💩clán-clan-APISEARCH",
 			})
 
-			g.Assert(res.Raw().StatusCode).Equal(http.StatusOK)
+			Expect(res.Raw().StatusCode).To(Equal(http.StatusOK))
 			var result map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 
-			g.Assert(result["success"]).IsTrue()
+			Expect(result["success"]).To(BeTrue())
 
 			clans := result["clans"].([]interface{})
-			g.Assert(len(clans)).Equal(10)
+			Expect(len(clans)).To(Equal(10))
 
-			for index, expectedClan := range expectedClans {
-				clan := clans[index].(map[string]interface{}) // Can't be map[string]interface{}
-				g.Assert(clan["name"]).Equal(expectedClan.Name)
-				g.Assert(int(clan["membershipCount"].(float64))).Equal(expectedClan.MembershipCount)
-				g.Assert(clan["autoJoin"]).Equal(expectedClan.AutoJoin)
-				g.Assert(clan["allowApplication"]).Equal(expectedClan.AllowApplication)
+			clansDict := map[string]map[string]interface{}{}
+			for _, cl := range clans {
+				clan := cl.(map[string]interface{})
+				clansDict[clan["publicID"].(string)] = clan
+			}
+
+			for _, expectedClan := range expectedClans {
+				clan := clansDict[expectedClan.PublicID]
+				Expect(clan["name"]).To(Equal(expectedClan.Name))
+				Expect(clan["membershipCount"].(float64)).To(BeEquivalentTo(expectedClan.MembershipCount))
+				Expect(clan["autoJoin"]).To(Equal(expectedClan.AutoJoin))
+				Expect(clan["allowApplication"]).To(Equal(expectedClan.AllowApplication))
 			}
 		})
 
 	})
 
-	g.Describe("Clan Hooks", func() {
-		g.It("Should call create clan hook", func() {
+	Describe("Clan Hooks", func() {
+		It("Should call create clan hook", func() {
 			hooks, err := models.GetHooksForRoutes(testDb, []string{
 				"http://localhost:52525/clancreated",
 			}, models.ClanCreatedHook)
-			g.Assert(err == nil).IsTrue()
+			Expect(err).NotTo(HaveOccurred())
 			responses := startRouteHandler([]string{"/clancreated"}, 52525)
 
 			_, player, err := models.CreatePlayerFactory(testDb, hooks[0].GameID, true)
-			AssertNotError(g, err)
+			Expect(err).NotTo(HaveOccurred())
 
 			clanPublicID := uuid.NewV4().String()
 			payload := map[string]interface{}{
@@ -641,42 +653,42 @@ func TestClanHandler(t *testing.T) {
 				"autoJoin":         true,
 			}
 			a := GetDefaultTestApp()
-			res := PostJSON(a, GetGameRoute(player.GameID, "/clans"), t, payload)
+			res := PostJSON(a, GetGameRoute(player.GameID, "/clans"), payload)
 
-			g.Assert(res.Raw().StatusCode).Equal(http.StatusOK)
+			Expect(res.Raw().StatusCode).To(Equal(http.StatusOK))
 			var result map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
-			g.Assert(result["success"]).IsTrue()
-			g.Assert(result["publicID"]).Equal(clanPublicID)
+			Expect(result["success"]).To(BeTrue())
+			Expect(result["publicID"]).To(Equal(clanPublicID))
 
 			a.Dispatcher.Wait()
 
-			g.Assert(len(*responses)).Equal(1)
+			Expect(len(*responses)).To(Equal(1))
 
 			hookRes := (*responses)[0]["payload"].(map[string]interface{})
-			g.Assert(hookRes["gameID"]).Equal(player.GameID)
+			Expect(hookRes["gameID"]).To(Equal(player.GameID))
 			clan := hookRes["clan"].(map[string]interface{})
-			g.Assert(clan["publicID"]).Equal(payload["publicID"])
-			g.Assert(clan["name"]).Equal(payload["name"])
-			g.Assert(str(clan["membershipCount"])).Equal("1")
-			g.Assert(clan["allowApplication"]).Equal(payload["allowApplication"])
-			g.Assert(clan["autoJoin"]).Equal(payload["autoJoin"])
+			Expect(clan["publicID"]).To(Equal(payload["publicID"]))
+			Expect(clan["name"]).To(Equal(payload["name"]))
+			Expect(str(clan["membershipCount"])).To(Equal("1"))
+			Expect(clan["allowApplication"]).To(Equal(payload["allowApplication"]))
+			Expect(clan["autoJoin"]).To(Equal(payload["autoJoin"]))
 			clanMetadata := clan["metadata"].(map[string]interface{})
 			metadata := payload["metadata"].(map[string]interface{})
 			for k, v := range clanMetadata {
-				g.Assert(str(v)).Equal(str(metadata[k]))
+				Expect(str(v)).To(Equal(str(metadata[k])))
 			}
 		})
 
-		g.It("Should call update clan hook", func() {
+		It("Should call update clan hook", func() {
 			hooks, err := models.GetHooksForRoutes(testDb, []string{
 				"http://localhost:52525/clanupdated",
 			}, models.ClanUpdatedHook)
-			g.Assert(err == nil).IsTrue()
+			Expect(err).NotTo(HaveOccurred())
 			responses := startRouteHandler([]string{"/clanupdated"}, 52525)
 
 			_, clan, owner, _, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 0, hooks[0].GameID, "", true)
-			AssertNotError(g, err)
+			Expect(err).NotTo(HaveOccurred())
 
 			gameID := clan.GameID
 			publicID := clan.PublicID
@@ -693,41 +705,41 @@ func TestClanHandler(t *testing.T) {
 			}
 			route := GetGameRoute(gameID, fmt.Sprintf("/clans/%s", publicID))
 			a := GetDefaultTestApp()
-			res := PutJSON(a, route, t, payload)
+			res := PutJSON(a, route, payload)
 
-			g.Assert(res.Raw().StatusCode).Equal(http.StatusOK)
+			Expect(res.Raw().StatusCode).To(Equal(http.StatusOK))
 			var result map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
-			g.Assert(result["success"]).IsTrue()
+			Expect(result["success"]).To(BeTrue())
 
 			a.Dispatcher.Wait()
 
-			g.Assert(len(*responses)).Equal(1)
+			Expect(len(*responses)).To(Equal(1))
 
 			hookRes := (*responses)[0]["payload"].(map[string]interface{})
-			g.Assert(hookRes["gameID"]).Equal(hooks[0].GameID)
+			Expect(hookRes["gameID"]).To(Equal(hooks[0].GameID))
 			rClan := hookRes["clan"].(map[string]interface{})
-			g.Assert(rClan["publicID"]).Equal(publicID)
-			g.Assert(rClan["name"]).Equal(payload["name"])
-			g.Assert(str(rClan["membershipCount"])).Equal("1")
-			g.Assert(rClan["allowApplication"]).Equal(payload["allowApplication"])
-			g.Assert(rClan["autoJoin"]).Equal(payload["autoJoin"])
+			Expect(rClan["publicID"]).To(Equal(publicID))
+			Expect(rClan["name"]).To(Equal(payload["name"]))
+			Expect(str(rClan["membershipCount"])).To(Equal("1"))
+			Expect(rClan["allowApplication"]).To(Equal(payload["allowApplication"]))
+			Expect(rClan["autoJoin"]).To(Equal(payload["autoJoin"]))
 			clanMetadata := rClan["metadata"].(map[string]interface{})
 			metadata = payload["metadata"].(map[string]interface{})
 			for k, v := range clanMetadata {
-				g.Assert(str(v)).Equal(str(metadata[k]))
+				Expect(str(v)).To(Equal(str(metadata[k])))
 			}
 		})
 
-		g.It("Should call leave clan hook", func() {
+		It("Should call leave clan hook", func() {
 			hooks, err := models.GetHooksForRoutes(testDb, []string{
 				"http://localhost:52525/clanleave",
 			}, models.ClanLeftHook)
-			g.Assert(err == nil).IsTrue()
+			Expect(err).NotTo(HaveOccurred())
 			responses := startRouteHandler([]string{"/clanleave"}, 52525)
 
 			_, clan, _, players, _, err := models.GetClanWithMemberships(testDb, 1, 0, 0, 0, hooks[0].GameID, "", true)
-			AssertNotError(g, err)
+			Expect(err).NotTo(HaveOccurred())
 
 			gameID := clan.GameID
 			publicID := clan.PublicID
@@ -735,49 +747,49 @@ func TestClanHandler(t *testing.T) {
 			payload := map[string]interface{}{}
 			route := GetGameRoute(gameID, fmt.Sprintf("/clans/%s/leave", publicID))
 			a := GetDefaultTestApp()
-			res := PostJSON(a, route, t, payload)
+			res := PostJSON(a, route, payload)
 
-			g.Assert(res.Raw().StatusCode).Equal(http.StatusOK)
+			Expect(res.Raw().StatusCode).To(Equal(http.StatusOK))
 			var result map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
-			g.Assert(result["success"]).IsTrue()
+			Expect(result["success"]).To(BeTrue())
 
 			a.Dispatcher.Wait()
 
-			g.Assert(len(*responses)).Equal(1)
+			Expect(len(*responses)).To(Equal(1))
 
 			rClan := (*responses)[0]["payload"].(map[string]interface{})
-			g.Assert(rClan["gameID"]).Equal(hooks[0].GameID)
-			g.Assert(int(rClan["type"].(float64))).Equal(5)
-			g.Assert(rClan["id"] != nil).IsTrue()
+			Expect(rClan["gameID"]).To(Equal(hooks[0].GameID))
+			Expect(rClan["type"].(float64)).To(BeEquivalentTo(5))
+			Expect(rClan["id"]).NotTo(BeEquivalentTo(nil))
 			_, err = uuid.FromString(rClan["id"].(string))
-			g.Assert(err == nil).IsTrue()
-			g.Assert(rClan["timestamp"] != nil).IsTrue()
+			Expect(err).NotTo(HaveOccurred())
+			Expect(rClan["timestamp"]).NotTo(BeEquivalentTo(nil))
 
 			clanDetails := rClan["clan"].(map[string]interface{})
-			g.Assert(clanDetails["publicID"]).Equal(clan.PublicID)
-			g.Assert(clanDetails["name"]).Equal(clan.Name)
-			g.Assert(str(clanDetails["membershipCount"])).Equal("1")
-			g.Assert(clanDetails["allowApplication"]).Equal(clan.AllowApplication)
-			g.Assert(clanDetails["autoJoin"]).Equal(clan.AutoJoin)
+			Expect(clanDetails["publicID"]).To(Equal(clan.PublicID))
+			Expect(clanDetails["name"]).To(Equal(clan.Name))
+			Expect(str(clanDetails["membershipCount"])).To(Equal("1"))
+			Expect(clanDetails["allowApplication"]).To(Equal(clan.AllowApplication))
+			Expect(clanDetails["autoJoin"]).To(Equal(clan.AutoJoin))
 
 			newOwner := players[0]
 			ownerDetails := rClan["newOwner"].(map[string]interface{})
-			g.Assert(ownerDetails["publicID"]).Equal(newOwner.PublicID)
-			g.Assert(ownerDetails["name"]).Equal(newOwner.Name)
-			g.Assert(str(ownerDetails["membershipCount"])).Equal("0")
-			g.Assert(str(ownerDetails["ownershipCount"])).Equal("1")
+			Expect(ownerDetails["publicID"]).To(Equal(newOwner.PublicID))
+			Expect(ownerDetails["name"]).To(Equal(newOwner.Name))
+			Expect(str(ownerDetails["membershipCount"])).To(Equal("0"))
+			Expect(str(ownerDetails["ownershipCount"])).To(Equal("1"))
 		})
 
-		g.It("Should call transfer ownership hook", func() {
+		It("Should call transfer ownership hook", func() {
 			hooks, err := models.GetHooksForRoutes(testDb, []string{
 				"http://localhost:52525/clantransfer",
 			}, models.ClanOwnershipTransferredHook)
-			g.Assert(err == nil).IsTrue()
+			Expect(err).NotTo(HaveOccurred())
 			responses := startRouteHandler([]string{"/clantransfer"}, 52525)
 
 			_, clan, _, players, _, err := models.GetClanWithMemberships(testDb, 1, 0, 0, 0, hooks[0].GameID, "", true)
-			AssertNotError(g, err)
+			Expect(err).NotTo(HaveOccurred())
 
 			gameID := clan.GameID
 			publicID := clan.PublicID
@@ -787,33 +799,33 @@ func TestClanHandler(t *testing.T) {
 			}
 			route := GetGameRoute(gameID, fmt.Sprintf("/clans/%s/transfer-ownership", publicID))
 			a := GetDefaultTestApp()
-			res := PostJSON(a, route, t, payload)
+			res := PostJSON(a, route, payload)
 
-			g.Assert(res.Raw().StatusCode).Equal(http.StatusOK)
+			Expect(res.Raw().StatusCode).To(Equal(http.StatusOK))
 			var result map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
-			g.Assert(result["success"]).IsTrue()
+			Expect(result["success"]).To(BeTrue())
 
 			a.Dispatcher.Wait()
 
-			g.Assert(len(*responses)).Equal(1)
+			Expect(len(*responses)).To(Equal(1))
 
 			rClan := (*responses)[0]["payload"].(map[string]interface{})
-			g.Assert(rClan["gameID"]).Equal(hooks[0].GameID)
+			Expect(rClan["gameID"]).To(Equal(hooks[0].GameID))
 
 			clanDetails := rClan["clan"].(map[string]interface{})
-			g.Assert(clanDetails["publicID"]).Equal(clan.PublicID)
-			g.Assert(clanDetails["name"]).Equal(clan.Name)
-			g.Assert(str(clanDetails["membershipCount"])).Equal("1")
-			g.Assert(clanDetails["allowApplication"]).Equal(clan.AllowApplication)
-			g.Assert(clanDetails["autoJoin"]).Equal(clan.AutoJoin)
+			Expect(clanDetails["publicID"]).To(Equal(clan.PublicID))
+			Expect(clanDetails["name"]).To(Equal(clan.Name))
+			Expect(str(clanDetails["membershipCount"])).To(Equal("1"))
+			Expect(clanDetails["allowApplication"]).To(Equal(clan.AllowApplication))
+			Expect(clanDetails["autoJoin"]).To(Equal(clan.AutoJoin))
 
 			newOwner := players[0]
 			ownerDetails := rClan["newOwner"].(map[string]interface{})
-			g.Assert(ownerDetails["publicID"]).Equal(newOwner.PublicID)
-			g.Assert(ownerDetails["name"]).Equal(newOwner.Name)
-			g.Assert(str(ownerDetails["membershipCount"])).Equal("0")
-			g.Assert(str(ownerDetails["ownershipCount"])).Equal("1")
+			Expect(ownerDetails["publicID"]).To(Equal(newOwner.PublicID))
+			Expect(ownerDetails["name"]).To(Equal(newOwner.Name))
+			Expect(str(ownerDetails["membershipCount"])).To(Equal("0"))
+			Expect(str(ownerDetails["ownershipCount"])).To(Equal("1"))
 		})
 	})
-}
+})
