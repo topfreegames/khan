@@ -124,6 +124,331 @@ var _ = Describe("Hook Model", func() {
 				Expect(membership.PlayerID).To(Equal(player.ID))
 				Expect(membership.ClanID).To(Equal(clan.ID))
 			})
+
+			It("Should allow users to recreate an invitation if no cooldown", func() {
+				game, clan, owner, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
+				Expect(err).NotTo(HaveOccurred())
+				membership := memberships[0]
+				Expect(membership.ID).NotTo(BeEquivalentTo(0))
+
+				updMembership, err := CreateMembership(
+					testDb,
+					game, game.PublicID,
+					"Member",
+					players[0].PublicID,
+					clan.PublicID,
+					owner.PublicID,
+					"",
+				)
+				Expect(err).NotTo(HaveOccurred())
+
+				dbMembership, err := GetMembershipByID(testDb, updMembership.ID)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(dbMembership.GameID).To(Equal(updMembership.GameID))
+				Expect(dbMembership.PlayerID).To(Equal(updMembership.PlayerID))
+				Expect(dbMembership.ClanID).To(Equal(updMembership.ClanID))
+			})
+
+			It("Should allow users to recreate an application if no cooldown", func() {
+				game, clan, _, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
+				Expect(err).NotTo(HaveOccurred())
+
+				game.CooldownBeforeApply = 0
+				_, err = testDb.Update(game)
+				Expect(err).NotTo(HaveOccurred())
+
+				_, player, err := CreatePlayerFactory(testDb, game.PublicID, true)
+				Expect(err).NotTo(HaveOccurred())
+
+				_, err = CreateMembership(
+					testDb,
+					game, game.PublicID,
+					"Member",
+					player.PublicID,
+					clan.PublicID,
+					player.PublicID,
+					"",
+				)
+				Expect(err).NotTo(HaveOccurred())
+
+				updMembership, err := CreateMembership(
+					testDb,
+					game, game.PublicID,
+					"Member",
+					player.PublicID,
+					clan.PublicID,
+					player.PublicID,
+					"",
+				)
+				Expect(err).NotTo(HaveOccurred())
+
+				dbMembership, err := GetMembershipByID(testDb, updMembership.ID)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(dbMembership.GameID).To(Equal(updMembership.GameID))
+				Expect(dbMembership.PlayerID).To(Equal(updMembership.PlayerID))
+				Expect(dbMembership.ClanID).To(Equal(updMembership.ClanID))
+			})
+
+			It("Should fail if user re-applies before cooldown", func() {
+				game, clan, _, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
+				Expect(err).NotTo(HaveOccurred())
+
+				_, player, err := CreatePlayerFactory(testDb, game.PublicID, true)
+				Expect(err).NotTo(HaveOccurred())
+
+				_, err = CreateMembership(
+					testDb,
+					game, game.PublicID,
+					"Member",
+					player.PublicID,
+					clan.PublicID,
+					player.PublicID,
+					"",
+				)
+				Expect(err).NotTo(HaveOccurred())
+
+				_, err = CreateMembership(
+					testDb,
+					game, game.PublicID,
+					"Member",
+					player.PublicID,
+					clan.PublicID,
+					player.PublicID,
+					"",
+				)
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("must wait 3600 seconds before creating a membership in clan"))
+			})
+
+			It("Should allow users to recreate an invitation if no cooldown", func() {
+				game, clan, owner, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
+				Expect(err).NotTo(HaveOccurred())
+
+				_, player, err := CreatePlayerFactory(testDb, game.PublicID, true)
+				Expect(err).NotTo(HaveOccurred())
+
+				_, err = CreateMembership(
+					testDb,
+					game, game.PublicID,
+					"Member",
+					player.PublicID,
+					clan.PublicID,
+					owner.PublicID,
+					"",
+				)
+				Expect(err).NotTo(HaveOccurred())
+
+				updMembership, err := CreateMembership(
+					testDb,
+					game, game.PublicID,
+					"Member",
+					player.PublicID,
+					clan.PublicID,
+					owner.PublicID,
+					"",
+				)
+				Expect(err).NotTo(HaveOccurred())
+
+				dbMembership, err := GetMembershipByID(testDb, updMembership.ID)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(dbMembership.GameID).To(Equal(updMembership.GameID))
+				Expect(dbMembership.PlayerID).To(Equal(updMembership.PlayerID))
+				Expect(dbMembership.ClanID).To(Equal(updMembership.ClanID))
+			})
+
+			It("Should fail if user to be re-invited before cooldown", func() {
+				game, clan, owner, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
+				Expect(err).NotTo(HaveOccurred())
+
+				game.CooldownBeforeInvite = 1000
+				_, err = testDb.Update(game)
+				Expect(err).NotTo(HaveOccurred())
+
+				_, player, err := CreatePlayerFactory(testDb, game.PublicID, true)
+				Expect(err).NotTo(HaveOccurred())
+
+				_, err = CreateMembership(
+					testDb,
+					game, game.PublicID,
+					"Member",
+					player.PublicID,
+					clan.PublicID,
+					owner.PublicID,
+					"",
+				)
+				Expect(err).NotTo(HaveOccurred())
+
+				_, err = CreateMembership(
+					testDb,
+					game, game.PublicID,
+					"Member",
+					player.PublicID,
+					clan.PublicID,
+					owner.PublicID,
+					"",
+				)
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("must wait 1000 seconds before creating a membership in clan"))
+			})
+
+			It("Should allow users to create an application after an invitation if no cooldown", func() {
+				game, clan, owner, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
+				Expect(err).NotTo(HaveOccurred())
+
+				game.CooldownBeforeInvite = 1000
+				game.CooldownBeforeApply = 0
+				_, err = testDb.Update(game)
+				Expect(err).NotTo(HaveOccurred())
+
+				_, player, err := CreatePlayerFactory(testDb, game.PublicID, true)
+				Expect(err).NotTo(HaveOccurred())
+
+				_, err = CreateMembership(
+					testDb,
+					game, game.PublicID,
+					"Member",
+					player.PublicID,
+					clan.PublicID,
+					owner.PublicID,
+					"",
+				)
+				Expect(err).NotTo(HaveOccurred())
+
+				updMembership, err := CreateMembership(
+					testDb,
+					game, game.PublicID,
+					"Member",
+					player.PublicID,
+					clan.PublicID,
+					player.PublicID,
+					"",
+				)
+				Expect(err).NotTo(HaveOccurred())
+
+				dbMembership, err := GetMembershipByID(testDb, updMembership.ID)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(dbMembership.GameID).To(Equal(updMembership.GameID))
+				Expect(dbMembership.PlayerID).To(Equal(updMembership.PlayerID))
+				Expect(dbMembership.ClanID).To(Equal(updMembership.ClanID))
+			})
+
+			It("Should allow users to create an invitation after an application if no cooldown", func() {
+				game, clan, owner, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
+				Expect(err).NotTo(HaveOccurred())
+
+				game.CooldownBeforeInvite = 0
+				game.CooldownBeforeApply = 1000
+				_, err = testDb.Update(game)
+				Expect(err).NotTo(HaveOccurred())
+
+				_, player, err := CreatePlayerFactory(testDb, game.PublicID, true)
+				Expect(err).NotTo(HaveOccurred())
+
+				_, err = CreateMembership(
+					testDb,
+					game, game.PublicID,
+					"Member",
+					player.PublicID,
+					clan.PublicID,
+					player.PublicID,
+					"",
+				)
+				Expect(err).NotTo(HaveOccurred())
+
+				updMembership, err := CreateMembership(
+					testDb,
+					game, game.PublicID,
+					"Member",
+					player.PublicID,
+					clan.PublicID,
+					owner.PublicID,
+					"",
+				)
+				Expect(err).NotTo(HaveOccurred())
+
+				dbMembership, err := GetMembershipByID(testDb, updMembership.ID)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(dbMembership.GameID).To(Equal(updMembership.GameID))
+				Expect(dbMembership.PlayerID).To(Equal(updMembership.PlayerID))
+				Expect(dbMembership.ClanID).To(Equal(updMembership.ClanID))
+			})
+
+			It("Should fail if an application after an invitation has cooldown", func() {
+				game, clan, owner, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
+				Expect(err).NotTo(HaveOccurred())
+
+				game.CooldownBeforeInvite = 2000
+				game.CooldownBeforeApply = 1000
+				_, err = testDb.Update(game)
+				Expect(err).NotTo(HaveOccurred())
+
+				_, player, err := CreatePlayerFactory(testDb, game.PublicID, true)
+				Expect(err).NotTo(HaveOccurred())
+
+				_, err = CreateMembership(
+					testDb,
+					game, game.PublicID,
+					"Member",
+					player.PublicID,
+					clan.PublicID,
+					owner.PublicID,
+					"",
+				)
+				Expect(err).NotTo(HaveOccurred())
+
+				_, err = CreateMembership(
+					testDb,
+					game, game.PublicID,
+					"Member",
+					player.PublicID,
+					clan.PublicID,
+					player.PublicID,
+					"",
+				)
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("must wait 1000 seconds before creating a membership in clan"))
+			})
+
+			It("Should fail if an invitation after an application has cooldown", func() {
+				game, clan, owner, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
+				Expect(err).NotTo(HaveOccurred())
+
+				game.CooldownBeforeInvite = 2000
+				game.CooldownBeforeApply = 1000
+				_, err = testDb.Update(game)
+				Expect(err).NotTo(HaveOccurred())
+
+				_, player, err := CreatePlayerFactory(testDb, game.PublicID, true)
+				Expect(err).NotTo(HaveOccurred())
+
+				_, err = CreateMembership(
+					testDb,
+					game, game.PublicID,
+					"Member",
+					player.PublicID,
+					clan.PublicID,
+					player.PublicID,
+					"",
+				)
+				Expect(err).NotTo(HaveOccurred())
+
+				_, err = CreateMembership(
+					testDb,
+					game, game.PublicID,
+					"Member",
+					player.PublicID,
+					clan.PublicID,
+					owner.PublicID,
+					"",
+				)
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("must wait 2000 seconds before creating a membership in clan"))
+			})
 		})
 
 		It("Should update a Membership", func() {
@@ -790,6 +1115,10 @@ var _ = Describe("Hook Model", func() {
 				game, clan, _, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				Expect(err).NotTo(HaveOccurred())
 
+				clan.AllowApplication = false
+				_, err = testDb.Update(clan)
+				Expect(err).NotTo(HaveOccurred())
+
 				player := PlayerFactory.MustCreateWithOption(map[string]interface{}{
 					"GameID": clan.GameID,
 				}).(*Player)
@@ -906,7 +1235,7 @@ var _ = Describe("Hook Model", func() {
 			})
 
 			It("Membership already exists", func() {
-				game, clan, owner, players, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
+				game, clan, owner, players, _, err := GetClanWithMemberships(testDb, 1, 0, 0, 0, "", "")
 				Expect(err).NotTo(HaveOccurred())
 
 				membership, err := CreateMembership(

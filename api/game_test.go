@@ -43,7 +43,6 @@ func getGamePayload(publicID, name string) map[string]interface{} {
 		"maxClansPerPlayer":             1,
 		"cooldownAfterDeny":             30,
 		"cooldownAfterDelete":           30,
-		"maxPendingInvites":             30,
 	}
 }
 
@@ -88,6 +87,31 @@ var _ = Describe("Player API Handler", func() {
 			Expect(dbGame.MaxClansPerPlayer).To(Equal(payload["maxClansPerPlayer"]))
 			Expect(dbGame.CooldownAfterDeny).To(Equal(payload["cooldownAfterDeny"]))
 			Expect(dbGame.CooldownAfterDelete).To(Equal(payload["cooldownAfterDelete"]))
+			Expect(dbGame.CooldownBeforeInvite).To(Equal(0))
+			Expect(dbGame.CooldownBeforeApply).To(Equal(3600))
+			Expect(dbGame.MaxPendingInvites).To(Equal(-1))
+		})
+
+		It("Should create game with custom optional params", func() {
+			a := GetDefaultTestApp()
+
+			payload := getGamePayload("", "")
+			payload["maxPendingInvites"] = 27
+			payload["cooldownBeforeApply"] = 2874
+			payload["cooldownBeforeInvite"] = 2384
+			res := PostJSON(a, "/games", payload)
+
+			Expect(res.Raw().StatusCode).To(Equal(http.StatusOK))
+			var result map[string]interface{}
+			json.Unmarshal([]byte(res.Body().Raw()), &result)
+			Expect(result["success"]).To(BeTrue())
+			Expect(result["publicID"]).To(Equal(payload["publicID"].(string)))
+
+			dbGame, err := models.GetGameByPublicID(a.Db, payload["publicID"].(string))
+			Expect(err).NotTo(HaveOccurred())
+			Expect(dbGame.CooldownBeforeInvite).To(Equal(2384))
+			Expect(dbGame.CooldownBeforeApply).To(Equal(2874))
+			Expect(dbGame.MaxPendingInvites).To(Equal(27))
 		})
 
 		It("Should not create game if missing parameters", func() {

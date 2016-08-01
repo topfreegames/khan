@@ -16,6 +16,7 @@ Contents:
    overview
    installing
    hosting
+   game
    using_webhooks
    API
    benchmark
