@@ -80,6 +80,8 @@ Khan API
       "maxClansPerPlayer":             [int],
       "cooldownAfterDeny":             [int],
       "cooldownAfterDelete":           [int],
+      "cooldownBeforeInvite":          [int],
+      "cooldownBeforeApply":           [int],
       "maxPendingInvites":             [int]
     }
     ```
@@ -102,7 +104,7 @@ Khan API
 
       **minLevelToCreateInvitation**: A member cannot invite a player to join the clan unless their level is greater or equal to this parameter.
 
-      **MinLevelOffsetToRemoveMember**: A member cannot remove another member unless their level is at least `MinLevelOffsetToRemoveMember` levels greater than the level of the member they wish to promote.
+      **minLevelOffsetToRemoveMember**: A member cannot remove another member unless their level is at least `MinLevelOffsetToRemoveMember` levels greater than the level of the member they wish to promote.
 
       **minLevelOffsetToPromoteMember**: A member cannot promote another member unless their level is at least `minLevelOffsetToPromoteMember` levels greater than the level of the member they wish to promote.
 
@@ -115,6 +117,10 @@ Khan API
       **cooldownAfterDeny**: Time (in seconds) the player must wait before applying/being invited to a new membership after the last membership application/invite was denied.
 
       **cooldownAfterDelete**:  Time (in seconds) the player must wait before applying/being invited to a new membership after the last membership application/invite was deleted.
+
+      **cooldownBeforeInvite**:  Time (in seconds) a clan member must wait before inviting a member to a new membership after the last membership application/invite was created.
+
+      **cooldownBeforeApply**:  Time (in seconds) a player must wait before applying for a clan after the last membership application/invite was created.
 
       **maxPendingInvites**:  Maximum number of pending invites each player can have withstanding. Set this value to -1 if your game has no limits on maximum pending invites.
 
@@ -182,6 +188,8 @@ Khan API
       "maxClansPerPlayer":             [int],
       "cooldownAfterDeny":             [int],
       "cooldownAfterDelete":           [int],
+      "cooldownBeforeInvite":          [int],
+      "cooldownBeforeApply":           [int],
       "maxPendingInvites":             [int]
     }
     ```

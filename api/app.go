@@ -86,7 +86,9 @@ func (app *App) setConfigurationDefaults() {
 	app.Config.SetDefault("postgres.port", 5432)
 	app.Config.SetDefault("postgres.sslMode", "disable")
 	app.Config.SetDefault("webhooks.timeout", 2)
-	app.Config.SetDefault("khan.MaxPendingInvites", -1)
+	app.Config.SetDefault("khan.maxPendingInvites", -1)
+	app.Config.SetDefault("khan.defaultCooldownBeforeInvite", -1)
+	app.Config.SetDefault("khan.defaultCooldownBeforeApply", -1)
 	l.Debug("Configuration defaults set.")
 }
 

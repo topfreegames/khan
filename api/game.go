@@ -9,7 +9,6 @@ package api
 
 import (
 	"encoding/json"
-	"reflect"
 	"strings"
 	"time"
 
@@ -18,6 +17,10 @@ import (
 	"github.com/topfreegames/khan/util"
 	"github.com/uber-go/zap"
 )
+
+type validatable interface {
+	Validate() []string
+}
 
 type gamePayload struct {
 	Name                          string
@@ -33,6 +36,23 @@ type gamePayload struct {
 	MaxClansPerPlayer             int
 	CooldownAfterDeny             int
 	CooldownAfterDelete           int
+}
+
+func (p *gamePayload) Validate() []string {
+	sortedLevels := util.SortLevels(p.MembershipLevels)
+	minMembershipLevel := sortedLevels[0].Value
+
+	var errors []string
+	if p.MinLevelToAcceptApplication < minMembershipLevel {
+		errors = append(errors, "minLevelToAcceptApplication should be greater or equal to minMembershipLevel")
+	}
+	if p.MinLevelToCreateInvitation < minMembershipLevel {
+		errors = append(errors, "minLevelToCreateInvitation should be greater or equal to minMembershipLevel")
+	}
+	if p.MinLevelToRemoveMember < minMembershipLevel {
+		errors = append(errors, "minLevelToRemoveMember should be greater or equal to minMembershipLevel")
+	}
+	return errors
 }
 
 type createGamePayload struct {
@@ -52,33 +72,25 @@ type createGamePayload struct {
 	CooldownAfterDelete           int
 }
 
-func getAsInt(field string, payload interface{}) int {
-	v := reflect.ValueOf(payload)
-	fieldValue := v.FieldByName(field).Interface()
-	return fieldValue.(int)
-}
-
-func getAsJSON(field string, payload interface{}) map[string]interface{} {
-	v := reflect.ValueOf(payload)
-	fieldValue := v.FieldByName(field).Interface()
-	return fieldValue.(map[string]interface{})
-}
-
-func validateGamePayload(payload interface{}) []string {
-	sortedLevels := util.SortLevels(getAsJSON("MembershipLevels", payload))
+func (p *createGamePayload) Validate() []string {
+	sortedLevels := util.SortLevels(p.MembershipLevels)
 	minMembershipLevel := sortedLevels[0].Value
 
 	var errors []string
-	if getAsInt("MinLevelToAcceptApplication", payload) < minMembershipLevel {
+	if p.MinLevelToAcceptApplication < minMembershipLevel {
 		errors = append(errors, "minLevelToAcceptApplication should be greater or equal to minMembershipLevel")
 	}
-	if getAsInt("MinLevelToCreateInvitation", payload) < minMembershipLevel {
+	if p.MinLevelToCreateInvitation < minMembershipLevel {
 		errors = append(errors, "minLevelToCreateInvitation should be greater or equal to minMembershipLevel")
 	}
-	if getAsInt("MinLevelToRemoveMember", payload) < minMembershipLevel {
+	if p.MinLevelToRemoveMember < minMembershipLevel {
 		errors = append(errors, "minLevelToRemoveMember should be greater or equal to minMembershipLevel")
 	}
 	return errors
+}
+
+func validateGamePayload(payload validatable) []string {
+	return payload.Validate()
 }
 
 func logPayloadErrors(l zap.Logger, errors []string) {
@@ -92,6 +104,62 @@ func logPayloadErrors(l zap.Logger, errors []string) {
 	)
 }
 
+type optionalParams struct {
+	maxPendingInvites    int
+	cooldownBeforeApply  int
+	cooldownBeforeInvite int
+}
+
+func getOptionalParameters(app *App, c *iris.Context) (*optionalParams, error) {
+	data := c.RequestCtx.Request.Body()
+	var jsonPayload map[string]interface{}
+	err := json.Unmarshal(data, &jsonPayload)
+	if err != nil {
+		return nil, err
+	}
+
+	var maxPendingInvites int
+	if val, ok := jsonPayload["maxPendingInvites"]; ok {
+		maxPendingInvites = int(val.(float64))
+	} else {
+		maxPendingInvites = app.Config.GetInt("khan.maxPendingInvites")
+	}
+
+	var cooldownBeforeInvite int
+	if val, ok := jsonPayload["cooldownBeforeInvite"]; ok {
+		cooldownBeforeInvite = int(val.(float64))
+	} else {
+		cooldownBeforeInvite = app.Config.GetInt("khan.defaultCooldownBeforeInvite")
+	}
+
+	var cooldownBeforeApply int
+	if val, ok := jsonPayload["cooldownBeforeApply"]; ok {
+		cooldownBeforeApply = int(val.(float64))
+	} else {
+		cooldownBeforeApply = app.Config.GetInt("khan.defaultCooldownBeforeApply")
+	}
+
+	return &optionalParams{
+		maxPendingInvites:    maxPendingInvites,
+		cooldownBeforeInvite: cooldownBeforeInvite,
+		cooldownBeforeApply:  cooldownBeforeApply,
+	}, nil
+}
+
+func getCreateGamePayload(app *App, c *iris.Context) (*createGamePayload, *optionalParams, error) {
+	var payload createGamePayload
+	if err := LoadJSONPayload(&payload, c); err != nil {
+		return nil, nil, err
+	}
+
+	optional, err := getOptionalParameters(app, c)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return &payload, optional, nil
+}
+
 // CreateGameHandler is the handler responsible for creating new games
 func CreateGameHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
@@ -101,26 +169,19 @@ func CreateGameHandler(app *App) func(c *iris.Context) {
 			zap.String("operation", "createGame"),
 		)
 
-		var payload createGamePayload
-		if err := LoadJSONPayload(&payload, c); err != nil {
-			FailWith(400, err.Error(), c)
-			return
-		}
-
-		data := c.RequestCtx.Request.Body()
-		var jsonPayload map[string]interface{}
-		err := json.Unmarshal(data, &jsonPayload)
+		l.Debug("Retrieving parameters...")
+		payload, optional, err := getCreateGamePayload(app, c)
 		if err != nil {
+			l.Error("Failed to retrieve parameters.", zap.Error(err))
 			FailWith(400, err.Error(), c)
 			return
 		}
-
-		var maxPendingInvites int
-		if val, ok := jsonPayload["maxPendingInvites"]; ok {
-			maxPendingInvites = int(val.(float64))
-		} else {
-			maxPendingInvites = app.Config.GetInt("khan.MaxPendingInvites")
-		}
+		l.Debug(
+			"Parameters retrieved successfully.",
+			zap.Int("maxPendingInvites", optional.maxPendingInvites),
+			zap.Int("cooldownBeforeInvite", optional.cooldownBeforeInvite),
+			zap.Int("cooldownBeforeApply", optional.cooldownBeforeApply),
+		)
 
 		if payloadErrors := validateGamePayload(payload); len(payloadErrors) != 0 {
 			logPayloadErrors(l, payloadErrors)
@@ -155,7 +216,9 @@ func CreateGameHandler(app *App) func(c *iris.Context) {
 			payload.MaxClansPerPlayer,
 			payload.CooldownAfterDeny,
 			payload.CooldownAfterDelete,
-			maxPendingInvites,
+			optional.cooldownBeforeApply,
+			optional.cooldownBeforeInvite,
+			optional.maxPendingInvites,
 			false,
 		)
 
@@ -195,22 +258,13 @@ func UpdateGameHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
-		data := c.RequestCtx.Request.Body()
-		var jsonPayload map[string]interface{}
-		err := json.Unmarshal(data, &jsonPayload)
+		optional, err := getOptionalParameters(app, c)
 		if err != nil {
 			FailWith(400, err.Error(), c)
 			return
 		}
 
-		var maxPendingInvites int
-		if val, ok := jsonPayload["maxPendingInvites"]; ok {
-			maxPendingInvites = int(val.(float64))
-		} else {
-			maxPendingInvites = app.Config.GetInt("khan.MaxPendingInvites")
-		}
-
-		if payloadErrors := validateGamePayload(payload); len(payloadErrors) != 0 {
+		if payloadErrors := validateGamePayload(&payload); len(payloadErrors) != 0 {
 			logPayloadErrors(l, payloadErrors)
 			errorString := strings.Join(payloadErrors[:], ", ")
 			FailWith(422, errorString, c)
@@ -243,7 +297,9 @@ func UpdateGameHandler(app *App) func(c *iris.Context) {
 			payload.MaxClansPerPlayer,
 			payload.CooldownAfterDeny,
 			payload.CooldownAfterDelete,
-			maxPendingInvites,
+			optional.cooldownBeforeApply,
+			optional.cooldownBeforeInvite,
+			optional.maxPendingInvites,
 		)
 
 		if err != nil {
@@ -272,6 +328,9 @@ func UpdateGameHandler(app *App) func(c *iris.Context) {
 			"maxClansPerPlayer":             payload.MaxClansPerPlayer,
 			"cooldownAfterDeny":             payload.CooldownAfterDeny,
 			"cooldownAfterDelete":           payload.CooldownAfterDelete,
+			"cooldownBeforeApply":           optional.cooldownBeforeApply,
+			"cooldownBeforeInvite":          optional.cooldownBeforeInvite,
+			"maxPendingInvites":             optional.maxPendingInvites,
 		}
 		app.DispatchHooks(gameID, models.GameUpdatedHook, successPayload)
 
