@@ -146,6 +146,8 @@ var _ = Describe("Game Model", func() {
 			maxClansPerPlayer := 1
 			cooldownAfterDeny := 5
 			cooldownAfterDelete := 10
+			cooldownBeforeInvite := 8
+			cooldownBeforeApply := 25
 			maxPendingInvites := 20
 
 			game, err := CreateGame(
@@ -164,6 +166,8 @@ var _ = Describe("Game Model", func() {
 				maxClansPerPlayer,
 				cooldownAfterDeny,
 				cooldownAfterDelete,
+				cooldownBeforeInvite,
+				cooldownBeforeApply,
 				maxPendingInvites,
 				false,
 			)
@@ -208,7 +212,7 @@ var _ = Describe("Game Model", func() {
 				"game-new-name",
 				map[string]interface{}{"Member": 1, "Elder": 2, "CoLeader": 3},
 				map[string]interface{}{"x": 1},
-				5, 4, 7, 1, 1, 1, 100, 1, 5, 15, 20,
+				5, 4, 7, 1, 1, 1, 100, 1, 5, 15, 8, 25, 20,
 			)
 
 			Expect(err).NotTo(HaveOccurred())
@@ -230,6 +234,8 @@ var _ = Describe("Game Model", func() {
 			Expect(dbGame.MaxClansPerPlayer).To(Equal(updGame.MaxClansPerPlayer))
 			Expect(dbGame.CooldownAfterDelete).To(Equal(updGame.CooldownAfterDelete))
 			Expect(dbGame.CooldownAfterDeny).To(Equal(updGame.CooldownAfterDeny))
+			Expect(dbGame.CooldownBeforeInvite).To(Equal(updGame.CooldownBeforeInvite))
+			Expect(dbGame.CooldownBeforeApply).To(Equal(updGame.CooldownBeforeApply))
 			Expect(dbGame.MaxPendingInvites).To(Equal(updGame.MaxPendingInvites))
 			for k, v := range dbGame.MembershipLevels {
 				Expect(v.(float64)).To(BeEquivalentTo(updGame.MembershipLevels[k]))
@@ -245,7 +251,7 @@ var _ = Describe("Game Model", func() {
 				gameID,
 				map[string]interface{}{"Member": 1, "Elder": 2, "CoLeader": 3},
 				map[string]interface{}{"x": 1},
-				5, 4, 7, 1, 1, 1, 100, 1, 10, 30, 20,
+				5, 4, 7, 1, 1, 1, 100, 1, 10, 30, 8, 25, 20,
 			)
 
 			Expect(err).NotTo(HaveOccurred())
@@ -265,6 +271,8 @@ var _ = Describe("Game Model", func() {
 			Expect(dbGame.MaxMembers).To(Equal(updGame.MaxMembers))
 			Expect(dbGame.CooldownAfterDelete).To(Equal(updGame.CooldownAfterDelete))
 			Expect(dbGame.CooldownAfterDeny).To(Equal(updGame.CooldownAfterDeny))
+			Expect(dbGame.CooldownBeforeInvite).To(Equal(updGame.CooldownBeforeInvite))
+			Expect(dbGame.CooldownBeforeApply).To(Equal(updGame.CooldownBeforeApply))
 			Expect(dbGame.MaxPendingInvites).To(Equal(updGame.MaxPendingInvites))
 			for k, v := range dbGame.MembershipLevels {
 				Expect(v.(float64)).To(Equal(updGame.MembershipLevels[k].(float64)))
@@ -283,7 +291,7 @@ var _ = Describe("Game Model", func() {
 				strings.Repeat("a", 256),
 				map[string]interface{}{"Member": 1, "Elder": 2, "CoLeader": 3},
 				map[string]interface{}{"x": 1},
-				5, 4, 7, 1, 1, 0, 100, 1, 0, 0, 20,
+				5, 4, 7, 1, 1, 0, 100, 1, 0, 0, 8, 25, 20,
 			)
 
 			Expect(err).To(HaveOccurred())

@@ -26,7 +26,7 @@ var _ = Describe("Healthcheck API Handler", func() {
 
 		It("Should respond with customized WORKING string", func() {
 			a := GetDefaultTestApp()
-			a.Config.SetDefault("healthcheck.workingText", "OTHERWORKING")
+			a.Config.Set("healthcheck.workingText", "OTHERWORKING")
 			res := Get(a, "/healthcheck")
 
 			Expect(res.Raw().StatusCode).To(Equal(http.StatusOK))

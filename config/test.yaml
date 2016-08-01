@@ -4,3 +4,14 @@ postgres:
   host: "localhost"
   port: 5432
   sslMode: "disable"
+
+khan:
+  maxPendingInvites: -1
+  defaultCooldownBeforeInvite: 0
+  defaultCooldownBeforeApply: 3600
+
+healthcheck:
+  workingText: "WORKING"
+
+webhooks:
+  timeout: 2

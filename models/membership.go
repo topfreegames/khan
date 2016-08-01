@@ -294,7 +294,7 @@ func CreateMembership(db DB, game *Game, gameID, level, playerPublicID, clanPubl
 	}
 
 	membership, _ := GetMembershipByClanAndPlayerPublicID(db, gameID, clanPublicID, playerPublicID)
-	playerID, previousMembership, err := validateMembership(db, game, membership, clanPublicID, playerPublicID)
+	playerID, previousMembership, err := validateMembership(db, game, membership, clanPublicID, playerPublicID, requestorPublicID)
 	if err != nil {
 		return nil, err
 	}
@@ -306,24 +306,36 @@ func CreateMembership(db DB, game *Game, gameID, level, playerPublicID, clanPubl
 	return inviteMember(db, game, membership, level, clanPublicID, playerID, requestorPublicID, message, previousMembership)
 }
 
-func validateMembership(db DB, game *Game, membership *Membership, clanPublicID, playerPublicID string) (int, bool, error) {
+func validateMembership(db DB, game *Game, membership *Membership, clanPublicID, playerPublicID, requestorPublicID string) (int, bool, error) {
 	playerID := -1
 	previousMembership := false
 	if membership != nil {
 		previousMembership = true
 		nowInMilliseconds := util.NowMilli()
-		if membership.DeletedAt > 0 {
-			timeToBeReady := game.CooldownAfterDelete - int(nowInMilliseconds-membership.DeletedAt)/1000
-			if timeToBeReady > 0 {
-				return -1, false, &MustWaitMembershipCooldownError{timeToBeReady, playerPublicID, clanPublicID}
-			}
+		if membership.Approved {
+			return -1, false, &AlreadyHasValidMembershipError{playerPublicID, clanPublicID}
 		} else if membership.Denied {
 			timeToBeReady := game.CooldownAfterDeny - int(nowInMilliseconds-membership.DeniedAt)/1000
 			if timeToBeReady > 0 {
 				return -1, false, &MustWaitMembershipCooldownError{timeToBeReady, playerPublicID, clanPublicID}
 			}
+		} else if membership.DeletedAt > 0 {
+			timeToBeReady := game.CooldownAfterDelete - int(nowInMilliseconds-membership.DeletedAt)/1000
+			if timeToBeReady > 0 {
+				return -1, false, &MustWaitMembershipCooldownError{timeToBeReady, playerPublicID, clanPublicID}
+			}
 		} else {
-			return -1, false, &AlreadyHasValidMembershipError{playerPublicID, clanPublicID}
+			cd := game.CooldownBeforeInvite
+			if requestorPublicID == playerPublicID {
+				cd = game.CooldownBeforeApply
+			}
+
+			if cd != 0 {
+				timeToBeReady := cd - int(nowInMilliseconds-membership.CreatedAt)/1000
+				if timeToBeReady > 0 {
+					return -1, false, &MustWaitMembershipCooldownError{timeToBeReady, playerPublicID, clanPublicID}
+				}
+			}
 		}
 
 		playerID = membership.PlayerID
