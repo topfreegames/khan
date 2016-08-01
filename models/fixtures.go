@@ -30,6 +30,8 @@ var GameFactory = factory.NewFactory(
 		MaxMembers:                    100,
 		CooldownAfterDeny:             0,
 		CooldownAfterDelete:           0,
+		CooldownBeforeApply:           3600,
+		CooldownBeforeInvite:          0,
 		MaxPendingInvites:             20,
 	},
 ).Attr("PublicID", func(args factory.Args) (interface{}, error) {
@@ -224,11 +226,12 @@ func GetClanWithMemberships(
 	}
 
 	clan := ClanFactory.MustCreateWithOption(map[string]interface{}{
-		"GameID":          owner.GameID,
-		"PublicID":        clanPublicID,
-		"OwnerID":         owner.ID,
-		"Metadata":        map[string]interface{}{"x": "a"},
-		"MembershipCount": approvedMemberships + 1,
+		"GameID":           owner.GameID,
+		"PublicID":         clanPublicID,
+		"OwnerID":          owner.ID,
+		"Metadata":         map[string]interface{}{"x": "a"},
+		"MembershipCount":  approvedMemberships + 1,
+		"AllowApplication": true,
 	}).(*Clan)
 	err = db.Insert(clan)
 	if err != nil {

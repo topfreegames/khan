@@ -7,6 +7,8 @@ postgres:
 
 khan:
   maxPendingInvites: -1
+  defaultCooldownBeforeInvite: 0
+  defaultCooldownBeforeApply: 3600
 
 healthcheck:
   workingText: "WORKING"
