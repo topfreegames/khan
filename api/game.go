@@ -184,6 +184,7 @@ func CreateGameHandler(app *App) func(c *iris.Context) {
 		)
 
 		if payloadErrors := validateGamePayload(payload); len(payloadErrors) != 0 {
+			app.Metrics.IncrCounter("validationFailure", 1)
 			logPayloadErrors(l, payloadErrors)
 			errorString := strings.Join(payloadErrors[:], ", ")
 			FailWith(422, errorString, c)
@@ -233,6 +234,8 @@ func CreateGameHandler(app *App) func(c *iris.Context) {
 			zap.Duration("createGameDuration", time.Now().Sub(start)),
 		)
 
+		app.Metrics.IncrCounter("games", 1)
+
 		SucceedWith(map[string]interface{}{
 			"publicID": game.PublicID,
 		}, c)
@@ -265,6 +268,7 @@ func UpdateGameHandler(app *App) func(c *iris.Context) {
 		}
 
 		if payloadErrors := validateGamePayload(&payload); len(payloadErrors) != 0 {
+			app.Metrics.IncrCounter("validationFailure", 1)
 			logPayloadErrors(l, payloadErrors)
 			errorString := strings.Join(payloadErrors[:], ", ")
 			FailWith(422, errorString, c)
@@ -312,6 +316,8 @@ func UpdateGameHandler(app *App) func(c *iris.Context) {
 			"Game updated succesfully.",
 			zap.Duration("createGameDuration", time.Now().Sub(start)),
 		)
+
+		app.Metrics.IncrCounter("games", 1)
 
 		successPayload := map[string]interface{}{
 			"publicID":                      gameID,

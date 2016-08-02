@@ -46,6 +46,8 @@ func CreateHookHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
+		app.Metrics.IncrCounter("hooks", 1)
+
 		SucceedWith(map[string]interface{}{
 			"publicID": hook.PublicID,
 		}, c)
@@ -74,6 +76,8 @@ func RemoveHookHandler(app *App) func(c *iris.Context) {
 			FailWith(500, err.Error(), c)
 			return
 		}
+
+		app.Metrics.IncrCounter("hooks", -1)
 
 		SucceedWith(map[string]interface{}{}, c)
 	}

@@ -26,6 +26,12 @@ type TransactionMiddleware struct {
 
 // Serve Automatically wrap transaction around the request
 func (m *TransactionMiddleware) Serve(c *iris.Context) {
+	log := m.App.Logger.With(
+		zap.String("middleware", "TransactionMiddleware"),
+	)
+
+	log.Debug("Starting middleware execution...")
+
 	c.Set("db", m.App.Db)
 
 	tx, err := (m.App.Db).(*gorp.DbMap).Begin()
@@ -42,8 +48,10 @@ func (m *TransactionMiddleware) Serve(c *iris.Context) {
 		c.Set("db", m.App.Db)
 	} else {
 		c.SetStatusCode(500)
-		c.Write("Internal server error")
+		c.Write(err.Error())
 	}
+
+	log.Debug("Finished middleware execution.")
 }
 
 // GetCtxDB returns the proper database connection depending on the request context
@@ -63,17 +71,31 @@ type VersionMiddleware struct {
 
 // Serve automatically adds a version header to response
 func (m *VersionMiddleware) Serve(c *iris.Context) {
+	log := m.App.Logger.With(
+		zap.String("middleware", "VersionMiddleware"),
+	)
+
+	log.Debug("Starting middleware execution...")
+
 	c.SetHeader("KHAN-VERSION", VERSION)
 	c.Next()
+	log.Debug("Finished middleware execution.")
 }
 
 //RecoveryMiddleware recovers from errors in Iris
 type RecoveryMiddleware struct {
+	App     *App
 	OnError func(error, []byte)
 }
 
 //Serve executes on error handler when errors happen
 func (r RecoveryMiddleware) Serve(ctx *iris.Context) {
+	log := r.App.Logger.With(
+		zap.String("middleware", "RecoveryMiddleware"),
+	)
+
+	log.Debug("Starting middleware execution...")
+
 	defer func() {
 		if err := recover(); err != nil {
 			if r.OnError != nil {
@@ -88,6 +110,7 @@ func (r RecoveryMiddleware) Serve(ctx *iris.Context) {
 		}
 	}()
 	ctx.Next()
+	log.Debug("Finished middleware execution.")
 }
 
 //LoggerMiddleware is responsible for logging to Zap all requests
@@ -98,8 +121,11 @@ type LoggerMiddleware struct {
 // Serve serves the middleware
 func (l *LoggerMiddleware) Serve(ctx *iris.Context) {
 	log := l.Logger.With(
+		zap.String("middleware", "LoggerMiddleware"),
 		zap.String("source", "request"),
 	)
+
+	log.Debug("Starting middleware execution...")
 
 	//all except latency to string
 	var ip, method, path string
@@ -144,6 +170,8 @@ func (l *LoggerMiddleware) Serve(ctx *iris.Context) {
 
 	//Everything went ok
 	reqLog.Info("Request successful.")
+
+	log.Debug("Starting middleware execution...")
 }
 
 // NewLoggerMiddleware returns the logger middleware
@@ -158,7 +186,13 @@ type SentryMiddleware struct {
 }
 
 // Serve serves the middleware
-func (l *SentryMiddleware) Serve(ctx *iris.Context) {
+func (m *SentryMiddleware) Serve(ctx *iris.Context) {
+	l := m.App.Logger.With(
+		zap.String("middleware", "SentryMiddleware"),
+	)
+
+	l.Debug("Starting middleware execution...")
+
 	ctx.Next()
 
 	if ctx.Response.StatusCode() > 499 {
@@ -169,4 +203,29 @@ func (l *SentryMiddleware) Serve(ctx *iris.Context) {
 		}
 		raven.CaptureError(fmt.Errorf("%s", string(ctx.Response.Body())), tags)
 	}
+
+	l.Debug("Finished middleware execution.")
+}
+
+//StatsMiddleware is responsible for collecting stats for the request
+type StatsMiddleware struct {
+	App *App
+}
+
+// Serve serves the middleware
+func (s *StatsMiddleware) Serve(ctx *iris.Context) {
+	l := s.App.Logger.With(
+		zap.String("middleware", "StatsMiddleware"),
+	)
+	l.Debug("Starting middleware execution...")
+	s.App.Metrics.RecordTime("responses", func() {
+		ctx.Next()
+	})
+	l.Debug("Finished middleware execution.")
+}
+
+// NewStatsMiddleware returns the logger middleware
+func NewStatsMiddleware(app *App) iris.HandlerFunc {
+	s := &StatsMiddleware{App: app}
+	return s.Serve
 }

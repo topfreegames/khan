@@ -20,6 +20,7 @@ import (
 	"github.com/rcrowley/go-metrics"
 	"github.com/spf13/viper"
 	"github.com/topfreegames/khan/models"
+	"github.com/topfreegames/khan/stats"
 	"github.com/uber-go/zap"
 )
 
@@ -36,6 +37,7 @@ type App struct {
 	Dispatcher     *Dispatcher
 	Logger         zap.Logger
 	ReadBufferSize int
+	Metrics        *stats.Metrics
 }
 
 // GetApp returns a new Khan API Application
@@ -62,6 +64,9 @@ func (app *App) Configure() {
 	app.connectDatabase()
 	app.configureApplication()
 	app.initDispatcher()
+	app.configureMetrics()
+
+	app.Metrics.IncrCounter("applicationRestarts", 1)
 }
 
 func (app *App) configureSentry() {
@@ -89,6 +94,7 @@ func (app *App) setConfigurationDefaults() {
 	app.Config.SetDefault("khan.maxPendingInvites", -1)
 	app.Config.SetDefault("khan.defaultCooldownBeforeInvite", -1)
 	app.Config.SetDefault("khan.defaultCooldownBeforeApply", -1)
+	app.Config.SetDefault("logstash.url", "")
 	l.Debug("Configuration defaults set.")
 }
 
@@ -174,13 +180,15 @@ func (app *App) configureApplication() {
 	app.App = iris.New(c)
 	a := app.App
 
+	a.Use(NewStatsMiddleware(app)) // Stats Middleware must be the first to record the whole request
 	a.Use(NewLoggerMiddleware(app.Logger))
-	a.Use(&RecoveryMiddleware{OnError: app.onErrorHandler})
+	a.Use(&RecoveryMiddleware{App: app, OnError: app.onErrorHandler})
 	a.Use(&TransactionMiddleware{App: app})
 	a.Use(&VersionMiddleware{App: app})
 	a.Use(&SentryMiddleware{App: app})
 
 	a.OnError(iris.StatusInternalServerError, func(ctx *iris.Context) {
+		app.Metrics.IncrCounter("InternalServerError", 1)
 		app.Logger.Error(
 			"Internal server error happened.",
 			zap.String("error", string(ctx.Response.Body())),
@@ -190,6 +198,7 @@ func (app *App) configureApplication() {
 	})
 
 	a.OnError(iris.StatusNotFound, func(ctx *iris.Context) {
+		app.Metrics.IncrCounter("NotFound", 1)
 		app.Logger.Warn(
 			"Route not found.", zap.String("url", ctx.Request.URI().String()),
 			zap.String("source", "app"),
@@ -344,6 +353,16 @@ func (app *App) DispatchHooks(gameID string, eventType int, payload map[string]i
 	return nil
 }
 
+func (app *App) configureMetrics() {
+	logstashURL := app.Config.GetString("logstash.url")
+	m, err := stats.New(logstashURL, false)
+	if err != nil {
+		return
+	}
+	app.Metrics = m
+	app.Metrics.Start()
+}
+
 func (app *App) finalizeApp() {
 	l := app.Logger.With(
 		zap.String("source", "app"),
@@ -353,6 +372,10 @@ func (app *App) finalizeApp() {
 	l.Debug("Closing DB connection...")
 	app.Db.(*gorp.DbMap).Db.Close()
 	l.Info("DB connection closed succesfully.")
+
+	l.Debug("Stopping Metrics collection...")
+	app.Metrics.Stop()
+	l.Info("Metrics collection stopped succesfully.")
 }
 
 // Start starts listening for web requests at specified host and port

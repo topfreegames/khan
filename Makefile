@@ -54,7 +54,7 @@ cross: assets
 install:
 	@go install
 
-run:
+run: metrics
 	@go run main.go start -d -v3 -c ./config/local.yaml
 
 build-docker:
@@ -135,12 +135,12 @@ static:
 	@-go vet $(PACKAGES)
 	@-gocyclo -over 5 . | egrep -v vendor/
 	@for pkg in $$(go list ./... | grep -v /vendor/ | grep -v "/db") ; do \
-        golint $$pkg ; \
-    done
+	    golint $$pkg ; \
+	done
 	@#ineffassign
 	@for pkg in $(GODIRS) ; do \
-        ineffassign $$pkg ; \
-    done
+	    ineffassign $$pkg ; \
+	done
 	@${MAKE} pmd
 
 pmd:
@@ -148,7 +148,7 @@ pmd:
 	@for pkg in $(GODIRS) ; do \
 		exclude=$$(find $$pkg -name '*_test.go') && \
 		/tmp/pmd-bin-5.4.2/bin/run.sh cpd --minimum-tokens 30 --files $$pkg --exclude $$exclude --language go ; \
-    done
+	done
 
 pmd-full:
 	@bash pmd.sh
@@ -160,3 +160,24 @@ rtfd:
 	@rm -rf docs/_build
 	@sphinx-build -b html -d ./docs/_build/doctrees ./docs/ docs/_build/html
 	@open docs/_build/html/index.html
+
+metrics: metrics-es metrics-ls metrics-kibana
+
+metrics-es: metrics-es-kill
+	@elasticsearch -Dnetwork.host=0.0.0.0 -Dtransport.tcp.port=9998 -Dtransport.publish_port=9998 -Dhttp.port=9999 -Dhttp.cors.allow-origin="/.*/" -Dhttp.cors.enabled=true -Dcluster.name=elasticsearch -d
+
+metrics-es-kill:
+	@-ps aux | egrep "Elasticsearch start -Dnetwork.host=0.0.0.0 -Dtransport.tcp.port=9998" | egrep -v egrep | awk ' { print $$2 } ' | xargs kill -9
+
+metrics-ls: metrics-ls-kill
+	@logstash agent -vvv -f ./stats/logstash.conf 2&>1 > /tmp/khan-ls.log &
+	@sleep 3
+
+metrics-ls-kill:
+	@-ps aux | egrep "agent -vvv -f ./stats/logstash.conf" | egrep -v egrep | awk ' { print $$2 } ' | xargs kill -9
+
+metrics-kibana: metrics-kibana-kill
+	@kibana -e "http://localhost:9999" -p 9997 2&>1 > /tmp/khan-kibana.log &
+
+metrics-kibana-kill:
+	@-ps aux | egrep "kibana.*-e\s*http:\/\/localhost[:]9999" | egrep -v egrep | awk ' { print $$2 } ' | xargs kill -9

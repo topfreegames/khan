@@ -15,3 +15,6 @@ healthcheck:
 
 webhooks:
   timeout: 2
+
+logstash:
+  url: "http://localhost:9999"

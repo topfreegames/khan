@@ -92,6 +92,8 @@ func CreateClanHandler(app *App) func(c *iris.Context) {
 		}
 		l.Info("Clan created successfully.")
 
+		app.Metrics.IncrCounter("clans", 1)
+
 		clanJSON := map[string]interface{}{
 			"publicID":         clan.PublicID,
 			"name":             clan.Name,
@@ -176,6 +178,8 @@ func UpdateClanHandler(app *App) func(c *iris.Context) {
 			"gameID": gameID,
 			"clan":   clanJSON,
 		}
+
+		app.Metrics.IncrCounter("clanUpdates", 1)
 
 		app.DispatchHooks(gameID, models.ClanUpdatedHook, result)
 
@@ -262,6 +266,8 @@ func LeaveClanHandler(app *App) func(c *iris.Context) {
 		}
 		l.Debug("Clan left successfully.")
 
+		app.Metrics.IncrCounter("leaderLeftClan", 1)
+
 		err = dispatchClanOwnershipChangeHook(app, db, models.ClanLeftHook, gameID, publicID)
 		if err != nil {
 			FailWith(500, err.Error(), c)
@@ -334,6 +340,8 @@ func TransferOwnershipHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
+		app.Metrics.IncrCounter("clanOwnershipTransferred", 1)
+
 		l.Info("Clan ownership transfer completed successfully.")
 
 		SucceedWith(map[string]interface{}{}, c)
@@ -371,6 +379,8 @@ func ListClansHandler(app *App) func(c *iris.Context) {
 			FailWith(500, err.Error(), c)
 			return
 		}
+
+		app.Metrics.UpdateHistogram("listClanResults", int64(len(clans)))
 
 		l.Info("Retrieve all clans completed successfully.")
 		serializedClans := serializeClans(clans, true)
@@ -420,6 +430,8 @@ func SearchClansHandler(app *App) func(c *iris.Context) {
 			FailWith(500, err.Error(), c)
 			return
 		}
+
+		app.Metrics.UpdateHistogram("clanSearchResults", int64(len(clans)))
 
 		l.Debug("Clan search successful.")
 		serializedClans := serializeClans(clans, true)
@@ -567,6 +579,8 @@ func RetrieveClansSummariesHandler(app *App) func(c *iris.Context) {
 			}
 			return
 		}
+
+		app.Metrics.UpdateHistogram("listClansSummariesResults", int64(len(clans)))
 
 		l.Info("Clans summaries retrieved successfully.")
 		clansResponse := map[string]interface{}{

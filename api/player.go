@@ -77,6 +77,8 @@ func CreatePlayerHandler(app *App) func(c *iris.Context) {
 			"metadata": player.Metadata,
 		}
 
+		app.Metrics.IncrCounter("players", 1)
+
 		app.DispatchHooks(gameID, models.PlayerCreatedHook, player.Serialize())
 
 		SucceedWith(result, c)
@@ -127,6 +129,8 @@ func UpdatePlayerHandler(app *App) func(c *iris.Context) {
 		}
 
 		l.Info("Player updated successfully.")
+
+		app.Metrics.IncrCounter("playersUpdated", 1)
 
 		app.DispatchHooks(gameID, models.PlayerUpdatedHook, player.Serialize())
 
