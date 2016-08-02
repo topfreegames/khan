@@ -108,6 +108,7 @@ var _ = Describe("Healthcheck API Handler", func() {
 			Expect(dbMembership.ClanID).To(Equal(clan.ID))
 			Expect(dbMembership.RequestorID).To(Equal(player.ID))
 			Expect(dbMembership.Denied).To(Equal(false))
+			Expect(dbMembership.Message).To(Equal(payload["message"]))
 		})
 
 		It("Should not create membership application if missing parameters", func() {
@@ -213,7 +214,6 @@ var _ = Describe("Healthcheck API Handler", func() {
 				"requestorPublicID": owner.PublicID,
 			}
 			a := GetDefaultTestApp()
-
 			res := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "invitation"), payload)
 
 			Expect(res.Raw().StatusCode).To(Equal(http.StatusOK))
@@ -229,6 +229,45 @@ var _ = Describe("Healthcheck API Handler", func() {
 			Expect(dbMembership.ClanID).To(Equal(clan.ID))
 			Expect(dbMembership.RequestorID).To(Equal(owner.ID))
 			Expect(dbMembership.Denied).To(Equal(false))
+		})
+
+		It("Should create membership invitation sending a message", func() {
+			_, clan, owner, _, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
+			Expect(err).NotTo(HaveOccurred())
+
+			player := models.PlayerFactory.MustCreateWithOption(map[string]interface{}{
+				"GameID": clan.GameID,
+			}).(*models.Player)
+			err = testDb.Insert(player)
+			Expect(err).NotTo(HaveOccurred())
+
+			gameID := player.GameID
+			clanPublicID := clan.PublicID
+			level := "Member"
+
+			payload := map[string]interface{}{
+				"level":             level,
+				"playerPublicID":    player.PublicID,
+				"requestorPublicID": owner.PublicID,
+				"message":           "Please accept me, I am nice",
+			}
+			a := GetDefaultTestApp()
+			res := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "invitation"), payload)
+
+			Expect(res.Raw().StatusCode).To(Equal(http.StatusOK))
+			var result map[string]interface{}
+			json.Unmarshal([]byte(res.Body().Raw()), &result)
+			Expect(result["success"]).To(BeTrue())
+
+			dbMembership, err := models.GetValidMembershipByClanAndPlayerPublicID(a.Db, gameID, clanPublicID, player.PublicID)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(dbMembership.GameID).To(Equal(gameID))
+			Expect(dbMembership.PlayerID).To(Equal(player.ID))
+			Expect(dbMembership.Level).To(Equal(level))
+			Expect(dbMembership.ClanID).To(Equal(clan.ID))
+			Expect(dbMembership.RequestorID).To(Equal(owner.ID))
+			Expect(dbMembership.Denied).To(Equal(false))
+			Expect(dbMembership.Message).To(Equal(payload["message"]))
 		})
 
 		It("Should create membership invitation if requestor has level greater than min level", func() {

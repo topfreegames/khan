@@ -35,6 +35,30 @@ type approveOrDenyMembershipInvitationPayload struct {
 	PlayerPublicID string
 }
 
+type membershipOptionalParams struct {
+	Message string
+}
+
+func getMembershipOptionalParameters(app *App, c *iris.Context) (*membershipOptionalParams, error) {
+	data := c.RequestCtx.Request.Body()
+	var jsonPayload map[string]interface{}
+	err := json.Unmarshal(data, &jsonPayload)
+	if err != nil {
+		return nil, err
+	}
+
+	var message string
+	if val, ok := jsonPayload["message"]; ok {
+		message = val.(string)
+	} else {
+		message = ""
+	}
+
+	return &membershipOptionalParams{
+		Message: message,
+	}, nil
+}
+
 func dispatchMembershipHookByPublicID(app *App, db models.DB, hookType int, gameID, clanID, playerID, requestorID string) error {
 	clan, err := models.GetClanByPublicID(db, gameID, clanID)
 	if err != nil {
@@ -123,19 +147,10 @@ func ApplyForMembershipHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
-		data := c.RequestCtx.Request.Body()
-		var jsonPayload map[string]interface{}
-		err := json.Unmarshal(data, &jsonPayload)
+		optional, err := getMembershipOptionalParameters(app, c)
 		if err != nil {
 			FailWith(400, err.Error(), c)
 			return
-		}
-
-		var message string
-		if val, ok := jsonPayload["message"]; ok {
-			message = val.(string)
-		} else {
-			message = ""
 		}
 
 		l = l.With(
@@ -168,7 +183,7 @@ func ApplyForMembershipHandler(app *App) func(c *iris.Context) {
 			payload.PlayerPublicID,
 			clanPublicID,
 			payload.PlayerPublicID,
-			message,
+			optional.Message,
 		)
 
 		if err != nil {
@@ -213,6 +228,12 @@ func InviteForMembershipHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
+		optional, err := getMembershipOptionalParameters(app, c)
+		if err != nil {
+			FailWith(400, err.Error(), c)
+			return
+		}
+
 		l = l.With(
 			zap.String("level", payload.Level),
 			zap.String("playerPublicID", payload.PlayerPublicID),
@@ -244,7 +265,7 @@ func InviteForMembershipHandler(app *App) func(c *iris.Context) {
 			payload.PlayerPublicID,
 			clanPublicID,
 			payload.RequestorPublicID,
-			"",
+			optional.Message,
 		)
 
 		if err != nil {
