@@ -229,17 +229,21 @@ func CreateClan(db DB, gameID, publicID, name, ownerPublicID string, metadata ma
 }
 
 // LeaveClan allows the clan owner to leave the clan and transfer the clan ownership to the next player in line
-func LeaveClan(db DB, gameID, publicID string) error {
+func LeaveClan(db DB, gameID, publicID string) (*Player, error) {
 	clan, err := GetClanByPublicID(db, gameID, publicID)
 
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	oldOwnerID := clan.OwnerID
 	err = IncrementPlayerOwnershipCount(db, oldOwnerID, -1)
 	if err != nil {
-		return err
+		return nil, err
+	}
+	oldOwner, err := GetPlayerByID(db, oldOwnerID)
+	if err != nil {
+		return nil, err
 	}
 
 	newOwnerMembership, err := GetOldestMemberWithHighestLevel(db, gameID, publicID)
@@ -249,55 +253,60 @@ func LeaveClan(db DB, gameID, publicID string) error {
 			// Clan has no members, delete it
 			_, err = db.Delete(clan)
 			if err != nil {
-				return err
+				return nil, err
 			}
-			return nil
+			return oldOwner, nil
 		}
-		return err
+		return nil, err
 	}
 
 	clan.OwnerID = newOwnerMembership.PlayerID
 
 	_, err = db.Update(clan)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	err = deleteMembershipHelper(db, newOwnerMembership, newOwnerMembership.PlayerID)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	err = IncrementPlayerOwnershipCount(db, newOwnerMembership.PlayerID, 1)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	return oldOwner, nil
 }
 
 // TransferClanOwnership allows the clan owner to transfer the clan ownership to the a clan member
-func TransferClanOwnership(db DB, gameID, clanPublicID, playerPublicID string, levels map[string]interface{}, maxLevel int) error {
+func TransferClanOwnership(db DB, gameID, clanPublicID, playerPublicID string, levels map[string]interface{}, maxLevel int) (*Player, error) {
 	clan, err := GetClanByPublicID(db, gameID, clanPublicID)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	newOwnerMembership, err := GetValidMembershipByClanAndPlayerPublicID(db, gameID, clanPublicID, playerPublicID)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	oldOwnerID := clan.OwnerID
 	clan.OwnerID = newOwnerMembership.PlayerID
 	_, err = db.Update(clan)
 	if err != nil {
-		return err
+		return nil, err
+	}
+
+	oldOwner, err := GetPlayerByID(db, oldOwnerID)
+	if err != nil {
+		return nil, err
 	}
 
 	level := GetLevelByLevelInt(maxLevel, levels)
 	if level == "" {
-		return &InvalidLevelForGameError{gameID, level}
+		return nil, &InvalidLevelForGameError{gameID, level}
 	}
 	oldOwnerMembership, err := GetDeletedMembershipByPlayerID(db, gameID, oldOwnerID)
 	if err != nil {
@@ -314,7 +323,7 @@ func TransferClanOwnership(db DB, gameID, clanPublicID, playerPublicID string, l
 			UpdatedAt:   util.NowMilli(),
 		})
 		if err != nil {
-			return err
+			return nil, err
 		}
 	} else {
 		oldOwnerMembership.Approved = true
@@ -330,23 +339,23 @@ func TransferClanOwnership(db DB, gameID, clanPublicID, playerPublicID string, l
 
 	err = deleteMembershipHelper(db, newOwnerMembership, newOwnerMembership.PlayerID)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	err = IncrementPlayerOwnershipCount(db, newOwnerMembership.PlayerID, 1)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	err = IncrementPlayerOwnershipCount(db, oldOwnerID, -1)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	err = IncrementPlayerMembershipCount(db, oldOwnerID, 1)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	return oldOwner, nil
 }
 
 // UpdateClan updates an existing clan
