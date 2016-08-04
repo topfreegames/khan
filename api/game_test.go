@@ -46,7 +46,7 @@ func getGamePayload(publicID, name string) map[string]interface{} {
 	}
 }
 
-var _ = Describe("Player API Handler", func() {
+var _ = Describe("Game API Handler", func() {
 	var testDb models.DB
 
 	BeforeEach(func() {
