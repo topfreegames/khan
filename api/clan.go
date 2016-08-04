@@ -184,18 +184,20 @@ func UpdateClanHandler(app *App) func(c *iris.Context) {
 }
 
 func dispatchClanOwnershipChangeHook(app *App, db models.DB, hookType int, clan *models.Clan, previousOwner *models.Player, newOwner *models.Player) error {
+	newOwnerPublicID := ""
+	if newOwner != nil {
+		newOwnerPublicID = newOwner.PublicID
+	}
+
 	l := app.Logger.With(
 		zap.String("source", "clanHandler"),
 		zap.String("operation", "dispatchClanOwnershipChangeHook"),
 		zap.Int("hookType", hookType),
 		zap.String("gameID", clan.GameID),
 		zap.String("clanPublicID", clan.PublicID),
-		zap.String("newOwnerPublicID", newOwner.PublicID),
+		zap.String("newOwnerPublicID", newOwnerPublicID),
 		zap.String("previousOwnerPublicID", previousOwner.PublicID),
 	)
-
-	newOwnerJSON := newOwner.Serialize()
-	delete(newOwnerJSON, "gameID")
 
 	previousOwnerJSON := previousOwner.Serialize()
 	delete(previousOwnerJSON, "gameID")
@@ -207,8 +209,17 @@ func dispatchClanOwnershipChangeHook(app *App, db models.DB, hookType int, clan 
 		"gameID":        clan.GameID,
 		"clan":          clanJSON,
 		"previousOwner": previousOwnerJSON,
-		"newOwner":      newOwnerJSON,
+		"newOwner":      nil,
+		"isDeleted":     true,
 	}
+
+	if newOwner != nil {
+		newOwnerJSON := newOwner.Serialize()
+		delete(newOwnerJSON, "gameID")
+		result["newOwner"] = newOwnerJSON
+		result["isDeleted"] = false
+	}
+
 	l.Debug("Dispatching hook...")
 	app.DispatchHooks(clan.GameID, hookType, result)
 	l.Debug("Hook dispatch succeeded.")
@@ -266,13 +277,20 @@ func LeaveClanHandler(app *App) func(c *iris.Context) {
 		pOwnerJSON := previousOwner.Serialize()
 		delete(pOwnerJSON, "gameID")
 
-		nOwnerJSON := newOwner.Serialize()
-		delete(nOwnerJSON, "gameID")
-
-		SucceedWith(map[string]interface{}{
+		res := map[string]interface{}{
 			"previousOwner": pOwnerJSON,
-			"newOwner":      nOwnerJSON,
-		}, c)
+			"newOwner":      nil,
+			"isDeleted":     true,
+		}
+
+		if newOwner != nil {
+			nOwnerJSON := newOwner.Serialize()
+			delete(nOwnerJSON, "gameID")
+			res["newOwner"] = nOwnerJSON
+			res["isDeleted"] = false
+		}
+
+		SucceedWith(res, c)
 	}
 }
 

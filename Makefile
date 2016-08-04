@@ -105,7 +105,7 @@ drop-test:
 
 run-test-khan: build kill-test-khan
 	@rm -rf /tmp/khan-bench.log
-	@./khan start -p 8888 -v3 -c ./config/perf.yaml 2>&1 > /tmp/khan-bench.log &
+	@./khan start -p 8888 -c ./config/perf.yaml 2>&1 > /tmp/khan-bench.log &
 
 kill-test-khan:
 	@-ps aux | egrep './khan.+perf.yaml' | egrep -v egrep | awk ' { print $$2 } ' | xargs kill -9

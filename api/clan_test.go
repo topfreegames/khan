@@ -789,6 +789,52 @@ var _ = Describe("Clan API Handler", func() {
 			Expect(ownerDetails["ownershipCount"]).To(BeEquivalentTo(1))
 		})
 
+		It("Should call leave clan hook when last member", func() {
+			hooks, err := models.GetHooksForRoutes(testDb, []string{
+				"http://localhost:52525/clanleave2",
+			}, models.ClanLeftHook)
+			Expect(err).NotTo(HaveOccurred())
+			responses := startRouteHandler([]string{"/clanleave2"}, 52525)
+
+			_, clan, _, _, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 0, hooks[0].GameID, "", true)
+			Expect(err).NotTo(HaveOccurred())
+
+			gameID := clan.GameID
+			publicID := clan.PublicID
+
+			payload := map[string]interface{}{}
+			route := GetGameRoute(gameID, fmt.Sprintf("/clans/%s/leave", publicID))
+			a := GetDefaultTestApp()
+			res := PostJSON(a, route, payload)
+
+			Expect(res.Raw().StatusCode).To(Equal(http.StatusOK))
+			var result map[string]interface{}
+			json.Unmarshal([]byte(res.Body().Raw()), &result)
+			Expect(result["success"]).To(BeTrue())
+			Expect(result["isDeleted"]).To(BeTrue())
+
+			a.Dispatcher.Wait()
+
+			Expect(len(*responses)).To(Equal(1))
+
+			rClan := (*responses)[0]["payload"].(map[string]interface{})
+			Expect(rClan["gameID"]).To(Equal(hooks[0].GameID))
+			Expect(rClan["type"].(float64)).To(BeEquivalentTo(5))
+			Expect(rClan["id"]).NotTo(BeEquivalentTo(nil))
+			_, err = uuid.FromString(rClan["id"].(string))
+			Expect(err).NotTo(HaveOccurred())
+			Expect(rClan["timestamp"]).NotTo(BeEquivalentTo(nil))
+
+			clanDetails := rClan["clan"].(map[string]interface{})
+			Expect(clanDetails["publicID"]).To(Equal(clan.PublicID))
+			Expect(clanDetails["name"]).To(Equal(clan.Name))
+			Expect(clanDetails["membershipCount"]).To(BeEquivalentTo(1))
+			Expect(clanDetails["allowApplication"]).To(Equal(clan.AllowApplication))
+			Expect(clanDetails["autoJoin"]).To(Equal(clan.AutoJoin))
+
+			Expect(rClan["newOwner"]).To(BeNil())
+		})
+
 		It("Should call transfer ownership hook", func() {
 			hooks, err := models.GetHooksForRoutes(testDb, []string{
 				"http://localhost:52525/clantransfer",

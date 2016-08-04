@@ -192,6 +192,8 @@ Payload:
     {
         "gameID": [string],
         "type": 5,                                      // Event Type
+        "isDeleted": [bool],                            //Indicates whether the clan was deleted
+                                                        //because there were no members left
         "clan": {
             "publicID": [string],                       // Updated Clan PublicID
             "name": [string],                           // Clan Name

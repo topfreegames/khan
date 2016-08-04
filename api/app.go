@@ -186,7 +186,7 @@ func (app *App) configureApplication() {
 			zap.String("error", string(ctx.Response.Body())),
 			zap.String("source", "app"),
 		)
-		ctx.Write("INTERNAL SERVER ERROR")
+		ctx.Write(fmt.Sprintf("INTERNAL SERVER ERROR: %s", ctx.Response.Body()))
 	})
 
 	a.OnError(iris.StatusNotFound, func(ctx *iris.Context) {
