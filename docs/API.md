@@ -937,7 +937,21 @@ Khan API
     * Content:
       ```
       {
-        "success": true
+        "success": true,
+        "previousOwner": {
+          "publicID":        [string],
+          "name":            [string],
+          "metadata":        [JSON],
+          "membershipCount": [int],
+          "ownershipCount":  [int]
+        },
+        "newOwner": {
+          "publicID":        [string],
+          "name":            [string],
+          "metadata":        [JSON],
+          "membershipCount": [int],
+          "ownershipCount":  [int]
+        }
       }
       ```
 
@@ -981,7 +995,21 @@ Khan API
     * Content:
       ```
       {
-        "success": true
+        "success": true,
+        "previousOwner": {
+          "publicID":        [string],
+          "name":            [string],
+          "metadata":        [JSON],
+          "membershipCount": [int],
+          "ownershipCount":  [int]
+        },
+        "newOwner": {
+          "publicID":        [string],
+          "name":            [string],
+          "metadata":        [JSON],
+          "membershipCount": [int],
+          "ownershipCount":  [int]
+        }
       }
       ```
 

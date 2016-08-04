@@ -191,7 +191,7 @@ Payload:
 
     {
         "gameID": [string],
-        "type": 5,                                  // Event Type
+        "type": 5,                                      // Event Type
         "clan": {
             "publicID": [string],                       // Updated Clan PublicID
             "name": [string],                           // Clan Name
@@ -200,6 +200,13 @@ Payload:
             "autoJoin": [bool],                         // Indicates whether this clan automatically
                                                         // accepts applications
             "membershipCount":  [int],                  // Number of members in clan
+        },
+        "previousOwner": {                              // The owner that left
+            "publicID": [string],                       // Previous Owner PublicID
+            "name": [string],                           // Player Name
+            "metadata": [JSON],                         // JSON Object containing player metadata
+            "membershipCount": [int],                   // Number of clans this player is a member of
+            "ownershipCount":  [int]                    // Number of clans this player is an owner of
         },
         "newOwner": {                                   // After the owner left, this is the new owner
             "publicID": [string],                       // New Owner PublicID
@@ -229,6 +236,13 @@ Payload:
             "autoJoin": [bool],                         // Indicates whether this clan automatically
                                                         // accepts applications
             "membershipCount":  [int],                  // Number of members in clan
+        },
+        "previousOwner": {                                   // The previous owner
+            "publicID": [string],                       // Previous Owner PublicID
+            "name": [string],                           // Player Name
+            "metadata": [JSON],                         // JSON Object containing player metadata
+            "membershipCount": [int],                   // Number of clans this player is a member of
+            "ownershipCount":  [int]                    // Number of clans this player is an owner of
         },
         "newOwner": {                                   // Player that the owner transferred ownership to
             "publicID": [string],                       // New Owner PublicID
