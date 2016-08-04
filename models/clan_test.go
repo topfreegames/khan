@@ -437,13 +437,14 @@ var _ = Describe("Clan Model", func() {
 		Describe("Leave Clan", func() {
 			Describe("Should leave a Clan with LeaveClan if clan owner", func() {
 				It("And clan has memberships", func() {
-					_, clan, owner, _, memberships, err := GetClanWithMemberships(testDb, 1, 0, 0, 0, "", "")
+					_, clan, owner, players, memberships, err := GetClanWithMemberships(testDb, 1, 0, 0, 0, "", "")
 					Expect(err).NotTo(HaveOccurred())
 
-					previousOwner, err := LeaveClan(testDb, clan.GameID, clan.PublicID)
+					clan, previousOwner, newOwner, err := LeaveClan(testDb, clan.GameID, clan.PublicID)
 					Expect(err).NotTo(HaveOccurred())
 
 					Expect(previousOwner.ID).To(Equal(owner.ID))
+					Expect(newOwner.ID).To(Equal(players[0].ID))
 
 					dbClan, err := GetClanByPublicID(testDb, clan.GameID, clan.PublicID)
 					Expect(err).NotTo(HaveOccurred())
@@ -471,9 +472,10 @@ var _ = Describe("Clan Model", func() {
 					_, clan, owner, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
 					Expect(err).NotTo(HaveOccurred())
 
-					previousOwner, err := LeaveClan(testDb, clan.GameID, clan.PublicID)
+					clan, previousOwner, newOwner, err := LeaveClan(testDb, clan.GameID, clan.PublicID)
 					Expect(err).NotTo(HaveOccurred())
 					Expect(previousOwner.ID).To(Equal(owner.ID))
+					Expect(newOwner).To(BeNil())
 
 					_, err = GetClanByPublicID(testDb, clan.GameID, clan.PublicID)
 					Expect(err).To(HaveOccurred())
@@ -490,7 +492,7 @@ var _ = Describe("Clan Model", func() {
 					_, clan, _, _, _, err := GetClanWithMemberships(testDb, 1, 0, 0, 0, "", "")
 					Expect(err).NotTo(HaveOccurred())
 
-					_, err = LeaveClan(testDb, clan.GameID, "-1")
+					_, _, _, err = LeaveClan(testDb, clan.GameID, "-1")
 					Expect(err).To(HaveOccurred())
 					Expect(err.Error()).To(Equal("Clan was not found with id: -1"))
 				})
@@ -502,7 +504,7 @@ var _ = Describe("Clan Model", func() {
 				It("And first clan owner and next owner memberhip exists", func() {
 					game, clan, owner, players, memberships, err := GetClanWithMemberships(testDb, 1, 0, 0, 0, "", "")
 					Expect(err).NotTo(HaveOccurred())
-					previousOwner, err := TransferClanOwnership(
+					clan, previousOwner, newOwner, err := TransferClanOwnership(
 						testDb,
 						clan.GameID,
 						clan.PublicID,
@@ -513,6 +515,7 @@ var _ = Describe("Clan Model", func() {
 					Expect(err).NotTo(HaveOccurred())
 
 					Expect(previousOwner.ID).To(Equal(owner.ID))
+					Expect(newOwner.ID).To(Equal(players[0].ID))
 
 					dbClan, err := GetClanByPublicID(testDb, clan.GameID, clan.PublicID)
 					Expect(err).NotTo(HaveOccurred())
@@ -544,7 +547,7 @@ var _ = Describe("Clan Model", func() {
 					game, clan, owner, players, memberships, err := GetClanWithMemberships(testDb, 2, 0, 0, 0, "", "")
 					Expect(err).NotTo(HaveOccurred())
 
-					previousOwner, err := TransferClanOwnership(
+					clan, previousOwner, newOwner, err := TransferClanOwnership(
 						testDb,
 						clan.GameID,
 						clan.PublicID,
@@ -554,8 +557,9 @@ var _ = Describe("Clan Model", func() {
 					)
 					Expect(err).NotTo(HaveOccurred())
 					Expect(previousOwner.ID).To(Equal(owner.ID))
+					Expect(newOwner.ID).To(Equal(players[0].ID))
 
-					previousOwner, err = TransferClanOwnership(
+					clan, previousOwner, newOwner, err = TransferClanOwnership(
 						testDb,
 						clan.GameID,
 						clan.PublicID,
@@ -565,6 +569,7 @@ var _ = Describe("Clan Model", func() {
 					)
 					Expect(err).NotTo(HaveOccurred())
 					Expect(previousOwner.ID).To(Equal(players[0].ID))
+					Expect(newOwner.ID).To(Equal(players[1].ID))
 
 					dbClan, err := GetClanByPublicID(testDb, clan.GameID, clan.PublicID)
 					Expect(err).NotTo(HaveOccurred())
@@ -608,7 +613,7 @@ var _ = Describe("Clan Model", func() {
 					game, clan, _, players, _, err := GetClanWithMemberships(testDb, 1, 0, 0, 0, "", "")
 					Expect(err).NotTo(HaveOccurred())
 
-					_, err = TransferClanOwnership(
+					_, _, _, err = TransferClanOwnership(
 						testDb,
 						clan.GameID,
 						"-1",
@@ -624,7 +629,7 @@ var _ = Describe("Clan Model", func() {
 					game, clan, _, _, _, err := GetClanWithMemberships(testDb, 1, 0, 0, 0, "", "")
 					Expect(err).NotTo(HaveOccurred())
 
-					_, err = TransferClanOwnership(
+					_, _, _, err = TransferClanOwnership(
 						testDb,
 						clan.GameID,
 						clan.PublicID,

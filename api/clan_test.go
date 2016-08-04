@@ -21,7 +21,7 @@ import (
 	"github.com/topfreegames/khan/models"
 )
 
-var _ = Describe("Healthcheck API Handler", func() {
+var _ = Describe("Clan API Handler", func() {
 	var testDb models.DB
 
 	BeforeEach(func() {
@@ -145,7 +145,7 @@ var _ = Describe("Healthcheck API Handler", func() {
 
 	Describe("Leave Clan Handler", func() {
 		It("Should leave a clan and transfer ownership", func() {
-			_, clan, _, _, memberships, err := models.GetClanWithMemberships(testDb, 1, 0, 0, 0, "", "")
+			_, clan, owner, players, memberships, err := models.GetClanWithMemberships(testDb, 1, 0, 0, 0, "", "")
 			Expect(err).NotTo(HaveOccurred())
 
 			route := GetGameRoute(clan.GameID, fmt.Sprintf("clans/%s/leave", clan.PublicID))
@@ -156,6 +156,14 @@ var _ = Describe("Healthcheck API Handler", func() {
 			var result map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			Expect(result["success"]).To(BeTrue())
+			Expect(result["previousOwner"]).NotTo(BeNil())
+			Expect(result["newOwner"]).NotTo(BeNil())
+
+			prevOwner := result["previousOwner"].(map[string]interface{})
+			Expect(prevOwner["publicID"]).To(BeEquivalentTo(owner.PublicID))
+
+			newOwner := result["newOwner"].(map[string]interface{})
+			Expect(newOwner["publicID"]).To(BeEquivalentTo(players[0].PublicID))
 
 			dbClan, err := models.GetClanByPublicID(a.Db, clan.GameID, clan.PublicID)
 			Expect(err).NotTo(HaveOccurred())
@@ -769,7 +777,7 @@ var _ = Describe("Healthcheck API Handler", func() {
 			clanDetails := rClan["clan"].(map[string]interface{})
 			Expect(clanDetails["publicID"]).To(Equal(clan.PublicID))
 			Expect(clanDetails["name"]).To(Equal(clan.Name))
-			Expect(str(clanDetails["membershipCount"])).To(Equal("1"))
+			Expect(clanDetails["membershipCount"]).To(BeEquivalentTo(1))
 			Expect(clanDetails["allowApplication"]).To(Equal(clan.AllowApplication))
 			Expect(clanDetails["autoJoin"]).To(Equal(clan.AutoJoin))
 
@@ -777,8 +785,8 @@ var _ = Describe("Healthcheck API Handler", func() {
 			ownerDetails := rClan["newOwner"].(map[string]interface{})
 			Expect(ownerDetails["publicID"]).To(Equal(newOwner.PublicID))
 			Expect(ownerDetails["name"]).To(Equal(newOwner.Name))
-			Expect(str(ownerDetails["membershipCount"])).To(Equal("0"))
-			Expect(str(ownerDetails["ownershipCount"])).To(Equal("1"))
+			Expect(ownerDetails["membershipCount"]).To(BeEquivalentTo(0))
+			Expect(ownerDetails["ownershipCount"]).To(BeEquivalentTo(1))
 		})
 
 		It("Should call transfer ownership hook", func() {
@@ -788,7 +796,7 @@ var _ = Describe("Healthcheck API Handler", func() {
 			Expect(err).NotTo(HaveOccurred())
 			responses := startRouteHandler([]string{"/clantransfer"}, 52525)
 
-			_, clan, _, players, _, err := models.GetClanWithMemberships(testDb, 1, 0, 0, 0, hooks[0].GameID, "", true)
+			_, clan, owner, players, _, err := models.GetClanWithMemberships(testDb, 1, 0, 0, 0, hooks[0].GameID, "", true)
 			Expect(err).NotTo(HaveOccurred())
 
 			gameID := clan.GameID
@@ -805,6 +813,8 @@ var _ = Describe("Healthcheck API Handler", func() {
 			var result map[string]interface{}
 			json.Unmarshal([]byte(res.Body().Raw()), &result)
 			Expect(result["success"]).To(BeTrue())
+			Expect(result["newOwner"]).NotTo(BeNil())
+			Expect(result["previousOwner"]).NotTo(BeNil())
 
 			a.Dispatcher.Wait()
 
@@ -816,7 +826,7 @@ var _ = Describe("Healthcheck API Handler", func() {
 			clanDetails := rClan["clan"].(map[string]interface{})
 			Expect(clanDetails["publicID"]).To(Equal(clan.PublicID))
 			Expect(clanDetails["name"]).To(Equal(clan.Name))
-			Expect(str(clanDetails["membershipCount"])).To(Equal("1"))
+			Expect(clanDetails["membershipCount"]).To(BeEquivalentTo(2))
 			Expect(clanDetails["allowApplication"]).To(Equal(clan.AllowApplication))
 			Expect(clanDetails["autoJoin"]).To(Equal(clan.AutoJoin))
 
@@ -824,8 +834,15 @@ var _ = Describe("Healthcheck API Handler", func() {
 			ownerDetails := rClan["newOwner"].(map[string]interface{})
 			Expect(ownerDetails["publicID"]).To(Equal(newOwner.PublicID))
 			Expect(ownerDetails["name"]).To(Equal(newOwner.Name))
-			Expect(str(ownerDetails["membershipCount"])).To(Equal("0"))
-			Expect(str(ownerDetails["ownershipCount"])).To(Equal("1"))
+			Expect(ownerDetails["membershipCount"]).To(BeEquivalentTo(0))
+			Expect(ownerDetails["ownershipCount"]).To(BeEquivalentTo(1))
+
+			previousOwnerDetails := rClan["previousOwner"].(map[string]interface{})
+			Expect(previousOwnerDetails["publicID"]).To(Equal(owner.PublicID))
+			Expect(previousOwnerDetails["name"]).To(Equal(owner.Name))
+			Expect(previousOwnerDetails["membershipCount"]).To(BeEquivalentTo(1))
+			Expect(previousOwnerDetails["ownershipCount"]).To(BeEquivalentTo(0))
+
 		})
 	})
 })

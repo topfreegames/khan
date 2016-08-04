@@ -18,7 +18,7 @@ import (
 	"github.com/topfreegames/khan/models"
 )
 
-var _ = Describe("Healthcheck API Handler", func() {
+var _ = Describe("Hook API Handler", func() {
 	var testDb models.DB
 
 	BeforeEach(func() {

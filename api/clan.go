@@ -183,25 +183,16 @@ func UpdateClanHandler(app *App) func(c *iris.Context) {
 	}
 }
 
-func dispatchClanOwnershipChangeHook(app *App, db models.DB, hookType int, gameID, publicID string, previousOwner *models.Player) error {
+func dispatchClanOwnershipChangeHook(app *App, db models.DB, hookType int, clan *models.Clan, previousOwner *models.Player, newOwner *models.Player) error {
 	l := app.Logger.With(
 		zap.String("source", "clanHandler"),
 		zap.String("operation", "dispatchClanOwnershipChangeHook"),
 		zap.Int("hookType", hookType),
-		zap.String("gameID", gameID),
-		zap.String("clanPublicID", publicID),
+		zap.String("gameID", clan.GameID),
+		zap.String("clanPublicID", clan.PublicID),
+		zap.String("newOwnerPublicID", newOwner.PublicID),
+		zap.String("previousOwnerPublicID", previousOwner.PublicID),
 	)
-
-	l.Debug("Retrieve Clan Owner by PublicID...")
-	clan, newOwner, err := models.GetClanAndOwnerByPublicID(db, gameID, publicID)
-	if err != nil {
-		if strings.HasPrefix(err.Error(), "Clan was not found with id") {
-			l.Info("Clan was deleted.", zap.Error(err))
-			return nil
-		}
-		return err
-	}
-	l.Debug("Clan owner retrieval succeeded.")
 
 	newOwnerJSON := newOwner.Serialize()
 	delete(newOwnerJSON, "gameID")
@@ -213,13 +204,13 @@ func dispatchClanOwnershipChangeHook(app *App, db models.DB, hookType int, gameI
 	delete(clanJSON, "gameID")
 
 	result := map[string]interface{}{
-		"gameID":        gameID,
+		"gameID":        clan.GameID,
 		"clan":          clanJSON,
 		"previousOwner": previousOwnerJSON,
 		"newOwner":      newOwnerJSON,
 	}
 	l.Debug("Dispatching hook...")
-	app.DispatchHooks(gameID, hookType, result)
+	app.DispatchHooks(clan.GameID, hookType, result)
 	l.Debug("Hook dispatch succeeded.")
 
 	return nil
@@ -248,7 +239,7 @@ func LeaveClanHandler(app *App) func(c *iris.Context) {
 		l.Debug("DB Connection successful.")
 
 		l.Debug("Leaving clan...")
-		previousOwner, err := models.LeaveClan(
+		clan, previousOwner, newOwner, err := models.LeaveClan(
 			db,
 			gameID,
 			publicID,
@@ -266,13 +257,22 @@ func LeaveClanHandler(app *App) func(c *iris.Context) {
 		}
 		l.Debug("Clan left successfully.")
 
-		err = dispatchClanOwnershipChangeHook(app, db, models.ClanLeftHook, gameID, publicID, previousOwner)
+		err = dispatchClanOwnershipChangeHook(app, db, models.ClanLeftHook, clan, previousOwner, newOwner)
 		if err != nil {
 			FailWith(500, err.Error(), c)
 			return
 		}
 
-		SucceedWith(map[string]interface{}{}, c)
+		pOwnerJSON := previousOwner.Serialize()
+		delete(pOwnerJSON, "gameID")
+
+		nOwnerJSON := newOwner.Serialize()
+		delete(nOwnerJSON, "gameID")
+
+		SucceedWith(map[string]interface{}{
+			"previousOwner": pOwnerJSON,
+			"newOwner":      nOwnerJSON,
+		}, c)
 	}
 }
 
@@ -316,7 +316,7 @@ func TransferOwnershipHandler(app *App) func(c *iris.Context) {
 		l.Debug("DB Connection successful.")
 
 		l.Debug("Transferring clan ownership...")
-		previousOwner, err := models.TransferClanOwnership(
+		clan, previousOwner, newOwner, err := models.TransferClanOwnership(
 			db,
 			gameID,
 			publicID,
@@ -331,7 +331,10 @@ func TransferOwnershipHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
-		err = dispatchClanOwnershipChangeHook(app, db, models.ClanOwnershipTransferredHook, gameID, publicID, previousOwner)
+		err = dispatchClanOwnershipChangeHook(
+			app, db, models.ClanOwnershipTransferredHook,
+			clan, previousOwner, newOwner,
+		)
 		if err != nil {
 			l.Error("Clan ownership transfer hook dispatch failed.", zap.Error(err))
 			FailWith(500, err.Error(), c)
@@ -340,7 +343,16 @@ func TransferOwnershipHandler(app *App) func(c *iris.Context) {
 
 		l.Info("Clan ownership transfer completed successfully.")
 
-		SucceedWith(map[string]interface{}{}, c)
+		pOwnerJSON := previousOwner.Serialize()
+		delete(pOwnerJSON, "gameID")
+
+		nOwnerJSON := newOwner.Serialize()
+		delete(nOwnerJSON, "gameID")
+
+		SucceedWith(map[string]interface{}{
+			"previousOwner": pOwnerJSON,
+			"newOwner":      nOwnerJSON,
+		}, c)
 	}
 }
 
