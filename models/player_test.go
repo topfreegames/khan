@@ -236,6 +236,17 @@ var _ = Describe("Player Model", func() {
 				Expect(deniedMembership["deniedAt"]).NotTo(BeEquivalentTo(nil))
 				Expect(deniedMembership["deniedAt"].(int64)).To(BeNumerically(">", 0))
 				Expect(deniedMembership["message"]).To(Equal(""))
+
+				pendingInvite := playerDetails["memberships"].([]map[string]interface{})[17]
+				Expect(pendingInvite["requestor"]).NotTo(BeEquivalentTo(nil))
+				requestor := pendingInvite["requestor"].(map[string]interface{})
+				Expect(requestor["name"]).NotTo(BeNil())
+				Expect(requestor["publicID"]).NotTo(BeNil())
+				Expect(requestor["level"]).NotTo(BeNil())
+				Expect(pendingInvite["approver"]).To(BeNil())
+				Expect(pendingInvite["deniedAt"]).To(BeEquivalentTo(0))
+				Expect(pendingInvite["approvedAt"]).To(BeEquivalentTo(0))
+				Expect(pendingInvite["deletedAt"]).To(BeEquivalentTo(0))
 			})
 
 			It("Should get Player Details without memberships that were deleted by the player", func() {
