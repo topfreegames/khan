@@ -938,6 +938,8 @@ Khan API
       ```
       {
         "success": true,
+        "isDeleted":         [bool],       //Indicates whether the clan was deleted
+                                           //because there were no members left
         "previousOwner": {
           "publicID":        [string],
           "name":            [string],
