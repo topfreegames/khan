@@ -226,6 +226,7 @@ func GetPlayerMembershipDetails(db DB, gameID, publicID string) (map[string]inte
 		c.public_id ClanPublicID, c.name ClanName, c.metadata DBClanMetadata, c.owner_id ClanOwnerID,
 		c.membership_count ClanMembershipCount,
 		r.name RequestorName, r.public_id RequestorPublicID, r.metadata DBRequestorMetadata,
+		w.membership_level RequestorMembershipLevel,
 		a.name ApproverName, a.public_id ApproverPublicID, a.metadata DBApproverMetadata,
 		y.name DenierName, y.public_id DenierPublicID, y.metadata DBDenierMetadata,
 		m.created_at MembershipCreatedAt,
@@ -241,6 +242,7 @@ func GetPlayerMembershipDetails(db DB, gameID, publicID string) (map[string]inte
 		LEFT OUTER JOIN players r on r.id=m.requestor_id
 		LEFT OUTER JOIN players a on a.id=m.approver_id
 		LEFT OUTER JOIN players y on y.id=m.denier_id
+		LEFT OUTER JOIN memberships w on w.player_id = r.id
 	WHERE
 		p.game_id=$1 and p.public_id=$2`
 
