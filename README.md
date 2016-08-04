@@ -55,6 +55,10 @@ You can get a docker image from our [dockerhub page](https://hub.docker.com/r/tf
 
 Running tests can be done with `make test`, while creating the test database can be accomplished with `make drop-test` and `make db-test`.
 
+## Benchmark
+
+Running benchmarks can be done with `make ci-perf`.
+
 ## Coverage
 
 Getting coverage data can be achieved with `make coverage`, while reading the actual results can be done with `make coverage-html`.
