@@ -8,6 +8,7 @@
 package api
 
 import (
+	"encoding/json"
 	"fmt"
 	"runtime/debug"
 	"time"
@@ -157,6 +158,29 @@ type SentryMiddleware struct {
 	App *App
 }
 
+//NewHTTPFromCtx returns a new context for Raven
+func NewHTTPFromCtx(ctx *iris.Context) *raven.Http {
+	qs := ""
+	if len(ctx.URLParams()) > 0 {
+		qsBytes, _ := json.Marshal(ctx.URLParams())
+		qs = string(qsBytes)
+	}
+
+	headers := map[string]string{}
+	ctx.RequestCtx.Response.Header.VisitAll(func(key []byte, value []byte) {
+		headers[string(key)] = string(value)
+	})
+
+	h := &raven.Http{
+		Method:  string(ctx.Method()),
+		Cookies: string(ctx.RequestCtx.Response.Header.Peek("Cookie")),
+		Query:   qs,
+		URL:     ctx.URI().String(),
+		Headers: headers,
+	}
+	return h
+}
+
 // Serve serves the middleware
 func (l *SentryMiddleware) Serve(ctx *iris.Context) {
 	ctx.Next()
@@ -167,6 +191,7 @@ func (l *SentryMiddleware) Serve(ctx *iris.Context) {
 			"type":   "Internal server error",
 			"url":    ctx.Request.URI().String(),
 		}
+		raven.SetHttpContext(NewHTTPFromCtx(ctx))
 		raven.CaptureError(fmt.Errorf("%s", string(ctx.Response.Body())), tags)
 	}
 }

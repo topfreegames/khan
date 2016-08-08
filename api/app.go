@@ -72,6 +72,7 @@ func (app *App) configureSentry() {
 	sentryURL := app.Config.GetString("sentry.url")
 	l.Info(fmt.Sprintf("Configuring sentry with URL %s", sentryURL))
 	raven.SetDSN(sentryURL)
+	raven.SetRelease(VERSION)
 }
 
 func (app *App) setConfigurationDefaults() {
