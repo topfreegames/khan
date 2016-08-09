@@ -31,8 +31,6 @@ before_script:
   - psql --version
   - psql -U postgres -c 'create database "khan";'
   - psql -U postgres khan -c 'create extension "uuid-ossp";'
-  - psql -U postgres -c 'CREATE ROLE travis LOGIN SUPERUSER INHERIT CREATEDB CREATEROLE;'
-  - psql -U postgres -c 'GRANT ALL ON SCHEMA public TO travis;'
 
 install:
   - make setup-ci
