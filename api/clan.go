@@ -9,39 +9,17 @@ package api
 
 import (
 	"strings"
+	"time"
 
 	"github.com/kataras/iris"
 	"github.com/topfreegames/khan/models"
 	"github.com/uber-go/zap"
 )
 
-// clanPayload maps the payload for the Create Clan route
-type clanPayload struct {
-	PublicID         string
-	Name             string
-	OwnerPublicID    string
-	Metadata         map[string]interface{}
-	AllowApplication bool
-	AutoJoin         bool
-}
-
-// updateClanPayload maps the payload for the Update Clan route
-type updateClanPayload struct {
-	Name             string
-	OwnerPublicID    string
-	Metadata         map[string]interface{}
-	AllowApplication bool
-	AutoJoin         bool
-}
-
-// transferClanOwnershipPayload maps the payload for the Transfer Clan Ownership route
-type transferClanOwnershipPayload struct {
-	PlayerPublicID string
-}
-
 // CreateClanHandler is the handler responsible for creating new clans
 func CreateClanHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
+		start := time.Now()
 		gameID := c.Param("gameID")
 
 		l := app.Logger.With(
@@ -52,13 +30,14 @@ func CreateClanHandler(app *App) func(c *iris.Context) {
 
 		var payload clanPayload
 		if err := LoadJSONPayload(&payload, c, l); err != nil {
+			l.Error("Failed to parse json payload.", zap.Error(err))
 			FailWith(400, err.Error(), c)
 			return
 		}
 
 		game, err := app.GetGame(gameID)
 		if err != nil {
-			l.Warn("Could not find game.")
+			l.Warn("Could not find game.", zap.Error(err))
 			FailWith(404, err.Error(), c)
 			return
 		}
@@ -90,7 +69,6 @@ func CreateClanHandler(app *App) func(c *iris.Context) {
 			FailWith(500, err.Error(), c)
 			return
 		}
-		l.Info("Clan created successfully.")
 
 		clanJSON := map[string]interface{}{
 			"publicID":         clan.PublicID,
@@ -107,8 +85,15 @@ func CreateClanHandler(app *App) func(c *iris.Context) {
 			"clan":   clanJSON,
 		}
 
+		l.Debug("Dispatching hooks")
 		app.DispatchHooks(gameID, models.ClanCreatedHook, result)
+		l.Debug("Hook dispatched successfully.")
 
+		l.Info(
+			"Clan created successfully.",
+			zap.String("clanPublicID", clan.PublicID),
+			zap.Duration("duration", time.Now().Sub(start)),
+		)
 		SucceedWith(map[string]interface{}{
 			"publicID": clan.PublicID,
 		}, c)
@@ -118,6 +103,7 @@ func CreateClanHandler(app *App) func(c *iris.Context) {
 // UpdateClanHandler is the handler responsible for updating existing clans
 func UpdateClanHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
+		start := time.Now()
 		gameID := c.Param("gameID")
 		publicID := c.Param("clanPublicID")
 
@@ -130,6 +116,7 @@ func UpdateClanHandler(app *App) func(c *iris.Context) {
 
 		var payload updateClanPayload
 		if err := LoadJSONPayload(&payload, c, l); err != nil {
+			l.Error("Could not load payload.", zap.Error(err))
 			FailWith(400, err.Error(), c)
 			return
 		}
@@ -160,7 +147,6 @@ func UpdateClanHandler(app *App) func(c *iris.Context) {
 			FailWith(500, err.Error(), c)
 			return
 		}
-		l.Info("Clan updated successfully.")
 
 		clanJSON := map[string]interface{}{
 			"publicID":         clan.PublicID,
@@ -179,57 +165,18 @@ func UpdateClanHandler(app *App) func(c *iris.Context) {
 
 		app.DispatchHooks(gameID, models.ClanUpdatedHook, result)
 
+		l.Info(
+			"Clan updated successfully.",
+			zap.Duration("duration", time.Now().Sub(start)),
+		)
 		SucceedWith(map[string]interface{}{}, c)
 	}
-}
-
-func dispatchClanOwnershipChangeHook(app *App, db models.DB, hookType int, clan *models.Clan, previousOwner *models.Player, newOwner *models.Player) error {
-	newOwnerPublicID := ""
-	if newOwner != nil {
-		newOwnerPublicID = newOwner.PublicID
-	}
-
-	l := app.Logger.With(
-		zap.String("source", "clanHandler"),
-		zap.String("operation", "dispatchClanOwnershipChangeHook"),
-		zap.Int("hookType", hookType),
-		zap.String("gameID", clan.GameID),
-		zap.String("clanPublicID", clan.PublicID),
-		zap.String("newOwnerPublicID", newOwnerPublicID),
-		zap.String("previousOwnerPublicID", previousOwner.PublicID),
-	)
-
-	previousOwnerJSON := previousOwner.Serialize()
-	delete(previousOwnerJSON, "gameID")
-
-	clanJSON := clan.Serialize()
-	delete(clanJSON, "gameID")
-
-	result := map[string]interface{}{
-		"gameID":        clan.GameID,
-		"clan":          clanJSON,
-		"previousOwner": previousOwnerJSON,
-		"newOwner":      nil,
-		"isDeleted":     true,
-	}
-
-	if newOwner != nil {
-		newOwnerJSON := newOwner.Serialize()
-		delete(newOwnerJSON, "gameID")
-		result["newOwner"] = newOwnerJSON
-		result["isDeleted"] = false
-	}
-
-	l.Debug("Dispatching hook...")
-	app.DispatchHooks(clan.GameID, hookType, result)
-	l.Debug("Hook dispatch succeeded.")
-
-	return nil
 }
 
 // LeaveClanHandler is the handler responsible for changing the clan ownership when the owner leaves it
 func LeaveClanHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
+		start := time.Now()
 		gameID := c.Param("gameID")
 		publicID := c.Param("clanPublicID")
 
@@ -266,7 +213,6 @@ func LeaveClanHandler(app *App) func(c *iris.Context) {
 			FailWith(500, err.Error(), c)
 			return
 		}
-		l.Debug("Clan left successfully.")
 
 		err = dispatchClanOwnershipChangeHook(app, db, models.ClanLeftHook, clan, previousOwner, newOwner)
 		if err != nil {
@@ -290,6 +236,18 @@ func LeaveClanHandler(app *App) func(c *iris.Context) {
 			res["isDeleted"] = false
 		}
 
+		fields := []zap.Field{
+			zap.String("clanPublicID", publicID),
+			zap.String("previousOwnerPublicID", previousOwner.PublicID),
+			zap.Duration("duration", time.Now().Sub(start)),
+		}
+
+		if newOwner != nil {
+			fields = append(fields, zap.String("newOwnerPublicID", newOwner.PublicID))
+		}
+
+		l.Info("Clan left successfully.", fields...)
+
 		SucceedWith(res, c)
 	}
 }
@@ -297,6 +255,7 @@ func LeaveClanHandler(app *App) func(c *iris.Context) {
 // TransferOwnershipHandler is the handler responsible for transferring the clan ownership to another clan member
 func TransferOwnershipHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
+		start := time.Now()
 		gameID := c.Param("gameID")
 		publicID := c.Param("clanPublicID")
 
@@ -359,13 +318,18 @@ func TransferOwnershipHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
-		l.Info("Clan ownership transfer completed successfully.")
-
 		pOwnerJSON := previousOwner.Serialize()
 		delete(pOwnerJSON, "gameID")
 
 		nOwnerJSON := newOwner.Serialize()
 		delete(nOwnerJSON, "gameID")
+
+		l.Info(
+			"Clan ownership transfer completed successfully.",
+			zap.String("previousOwnerPublicID", previousOwner.PublicID),
+			zap.String("newOwnerPublicID", newOwner.PublicID),
+			zap.Duration("duration", time.Now().Sub(start)),
+		)
 
 		SucceedWith(map[string]interface{}{
 			"previousOwner": pOwnerJSON,
@@ -377,6 +341,7 @@ func TransferOwnershipHandler(app *App) func(c *iris.Context) {
 // ListClansHandler is the handler responsible for returning a list of all clans
 func ListClansHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
+		start := time.Now()
 		gameID := c.Param("gameID")
 
 		l := app.Logger.With(
@@ -406,8 +371,13 @@ func ListClansHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
-		l.Info("Retrieve all clans completed successfully.")
 		serializedClans := serializeClans(clans, true)
+
+		l.Info(
+			"Retrieve all clans completed successfully.",
+			zap.Duration("duration", time.Now().Sub(start)),
+		)
+
 		SucceedWith(map[string]interface{}{
 			"clans": serializedClans,
 		}, c)
@@ -417,6 +387,7 @@ func ListClansHandler(app *App) func(c *iris.Context) {
 // SearchClansHandler is the handler responsible for searching for clans
 func SearchClansHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
+		start := time.Now()
 		gameID := c.Param("gameID")
 		term := c.URLParam("term")
 
@@ -455,8 +426,13 @@ func SearchClansHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
-		l.Debug("Clan search successful.")
 		serializedClans := serializeClans(clans, true)
+
+		l.Info(
+			"Clan search successful.",
+			zap.Duration("duration", time.Now().Sub(start)),
+		)
+
 		SucceedWith(map[string]interface{}{
 			"clans": serializedClans,
 		}, c)
@@ -466,6 +442,7 @@ func SearchClansHandler(app *App) func(c *iris.Context) {
 // RetrieveClanHandler is the handler responsible for returning details for a given clan
 func RetrieveClanHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
+		start := time.Now()
 		gameID := c.Param("gameID")
 		publicID := c.Param("clanPublicID")
 
@@ -506,7 +483,11 @@ func RetrieveClanHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
-		l.Info("Clan details retrieved successfully.")
+		l.Info(
+			"Clan details retrieved successfully.",
+			zap.Duration("duration", time.Now().Sub(start)),
+		)
+
 		SucceedWith(clan, c)
 	}
 }
@@ -514,6 +495,7 @@ func RetrieveClanHandler(app *App) func(c *iris.Context) {
 // RetrieveClanSummaryHandler is the handler responsible for returning details summary for a given clan
 func RetrieveClanSummaryHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
+		start := time.Now()
 		gameID := c.Param("gameID")
 		publicID := c.Param("clanPublicID")
 
@@ -546,7 +528,11 @@ func RetrieveClanSummaryHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
-		l.Info("Clan summary retrieved successfully.")
+		l.Info(
+			"Clan summary retrieved successfully.",
+			zap.Duration("duration", time.Now().Sub(start)),
+		)
+
 		SucceedWith(clan, c)
 	}
 }
@@ -555,6 +541,7 @@ func RetrieveClanSummaryHandler(app *App) func(c *iris.Context) {
 // list of clans
 func RetrieveClansSummariesHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
+		start := time.Now()
 		gameID := c.Param("gameID")
 		publicIDsStr := c.URLParam("clanPublicIds")
 
@@ -602,36 +589,15 @@ func RetrieveClansSummariesHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
-		l.Info("Clans summaries retrieved successfully.")
+		l.Info(
+			"Clans summaries retrieved successfully.",
+			zap.Duration("duration", time.Now().Sub(start)),
+		)
+
 		clansResponse := map[string]interface{}{
 			"clans": clans,
 		}
 
 		SucceedWith(clansResponse, c)
 	}
-}
-
-func serializeClans(clans []models.Clan, includePublicID bool) []map[string]interface{} {
-	serializedClans := make([]map[string]interface{}, len(clans))
-	for i, clan := range clans {
-		serializedClans[i] = serializeClan(&clan, includePublicID)
-	}
-
-	return serializedClans
-}
-
-func serializeClan(clan *models.Clan, includePublicID bool) map[string]interface{} {
-	serial := map[string]interface{}{
-		"name":             clan.Name,
-		"metadata":         clan.Metadata,
-		"allowApplication": clan.AllowApplication,
-		"autoJoin":         clan.AutoJoin,
-		"membershipCount":  clan.MembershipCount,
-	}
-
-	if includePublicID {
-		serial["publicID"] = clan.PublicID
-	}
-
-	return serial
 }
