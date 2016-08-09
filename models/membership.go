@@ -139,7 +139,7 @@ func GetOldestMemberWithHighestLevel(db DB, gameID, clanPublicID string) (*Membe
 	FROM memberships m
 	 INNER JOIN games g ON g.public_id=$1 AND g.public_id=m.game_id
 	 INNER JOIN clans c ON c.public_id=$2 AND c.id=m.clan_id
-	WHERE m.deleted_at=0
+	WHERE m.deleted_at=0 AND m.approved=true
 	ORDER BY
 	 g.membership_levels::json->>m.membership_level DESC,
 	 m.created_at ASC
@@ -191,7 +191,7 @@ func GetNumberOfPendingInvites(db DB, player *Player) (int, error) {
 	membershipCount, err := db.SelectInt(`
 		SELECT COUNT(*)
 		FROM memberships m
-		WHERE 
+		WHERE
 			m.player_id = $1 AND m.player_id != m.requestor_id AND m.deleted_at = 0 AND
 			m.approved = false AND m.denied = false AND m.banned = false
 	`, player.ID)

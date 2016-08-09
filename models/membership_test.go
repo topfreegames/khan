@@ -563,9 +563,10 @@ var _ = Describe("Hook Model", func() {
 			Expect(dbMembership.ID).To(Equal(memberships[0].ID))
 			Expect(dbMembership.PlayerID).To(Equal(players[0].ID))
 		})
+
 		Describe("GetOldestMemberWithHighestLevel", func() {
-			It("Should get the member with the highest level", func() {
-				_, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 2, "", "")
+			It("Should get the approved member with the highest level", func() {
+				_, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 2, 0, 0, 0, "", "")
 				Expect(err).NotTo(HaveOccurred())
 
 				memberships[0].Level = "CoLeader"
@@ -577,18 +578,17 @@ var _ = Describe("Hook Model", func() {
 				Expect(dbMembership.PlayerID).To(Equal(players[0].ID))
 			})
 
-			It("Should get the oldest member", func() {
-				_, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 2, "", "")
+			It("Should not get pending memberships", func() {
+				_, clan, _, _, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 2, "", "")
 				Expect(err).NotTo(HaveOccurred())
 
-				memberships[0].CreatedAt -= 100000
+				memberships[0].Level = "CoLeader"
 				_, err = testDb.Update(memberships[0])
 
 				dbMembership, err := GetOldestMemberWithHighestLevel(testDb, clan.GameID, clan.PublicID)
-				Expect(err).NotTo(HaveOccurred())
-				Expect(dbMembership.ID).To(Equal(memberships[0].ID))
-				Expect(dbMembership.PlayerID).To(Equal(players[0].ID))
-				Expect(dbMembership.CreatedAt < memberships[1].CreatedAt).To(BeTrue())
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(Equal(fmt.Sprintf("Clan %v has no members", clan.PublicID)))
+				Expect(dbMembership).To(BeNil())
 			})
 
 			It("Should return an error if clan has no members", func() {
