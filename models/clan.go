@@ -249,7 +249,11 @@ func LeaveClan(db DB, gameID, publicID string) (*Clan, *Player, *Player, error) 
 	if err != nil {
 		noMembersError := &ClanHasNoMembersError{publicID}
 		if err.Error() == noMembersError.Error() {
-			// Clan has no members, delete it
+			// Clan has no approved members, delete all members and clan
+			_, err = db.Exec("DELETE FROM memberships where clan_id=$1", clan.ID)
+			if err != nil {
+				return nil, nil, nil, err
+			}
 			_, err = db.Delete(clan)
 			if err != nil {
 				return nil, nil, nil, err
