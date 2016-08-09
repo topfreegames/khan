@@ -122,6 +122,8 @@ func (l *LoggerMiddleware) Serve(ctx *iris.Context) {
 	status = ctx.Response.StatusCode()
 	ip = ctx.RemoteAddr()
 
+	qs, headers, cookies := getHTTPParams(ctx)
+
 	reqLog := log.With(
 		zap.Time("endTime", endTime),
 		zap.Int("statusCode", status),
@@ -129,6 +131,10 @@ func (l *LoggerMiddleware) Serve(ctx *iris.Context) {
 		zap.String("ip", ip),
 		zap.String("method", method),
 		zap.String("path", path),
+		zap.String("querystring", qs),
+		zap.Object("headers", headers),
+		zap.String("cookies", cookies),
+		zap.String("body", string(ctx.Response.Body())),
 	)
 
 	//request failed
@@ -158,8 +164,7 @@ type SentryMiddleware struct {
 	App *App
 }
 
-//NewHTTPFromCtx returns a new context for Raven
-func NewHTTPFromCtx(ctx *iris.Context) *raven.Http {
+func getHTTPParams(ctx *iris.Context) (string, map[string]string, string) {
 	qs := ""
 	if len(ctx.URLParams()) > 0 {
 		qsBytes, _ := json.Marshal(ctx.URLParams())
@@ -171,9 +176,17 @@ func NewHTTPFromCtx(ctx *iris.Context) *raven.Http {
 		headers[string(key)] = string(value)
 	})
 
+	cookies := string(ctx.RequestCtx.Response.Header.Peek("Cookie"))
+	return qs, headers, cookies
+}
+
+//NewHTTPFromCtx returns a new context for Raven
+func NewHTTPFromCtx(ctx *iris.Context) *raven.Http {
+	qs, headers, cookies := getHTTPParams(ctx)
+
 	h := &raven.Http{
 		Method:  string(ctx.Method()),
-		Cookies: string(ctx.RequestCtx.Response.Header.Peek("Cookie")),
+		Cookies: cookies,
 		Query:   qs,
 		URL:     ctx.URI().String(),
 		Headers: headers,
