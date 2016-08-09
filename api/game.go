@@ -8,157 +8,13 @@
 package api
 
 import (
-	"encoding/json"
 	"strings"
 	"time"
 
 	"github.com/kataras/iris"
 	"github.com/topfreegames/khan/models"
-	"github.com/topfreegames/khan/util"
 	"github.com/uber-go/zap"
 )
-
-type validatable interface {
-	Validate() []string
-}
-
-type gamePayload struct {
-	Name                          string
-	MembershipLevels              map[string]interface{}
-	Metadata                      map[string]interface{}
-	MinLevelToAcceptApplication   int
-	MinLevelToCreateInvitation    int
-	MinLevelToRemoveMember        int
-	MinLevelOffsetToRemoveMember  int
-	MinLevelOffsetToPromoteMember int
-	MinLevelOffsetToDemoteMember  int
-	MaxMembers                    int
-	MaxClansPerPlayer             int
-	CooldownAfterDeny             int
-	CooldownAfterDelete           int
-}
-
-func (p *gamePayload) Validate() []string {
-	sortedLevels := util.SortLevels(p.MembershipLevels)
-	minMembershipLevel := sortedLevels[0].Value
-
-	var errors []string
-	if p.MinLevelToAcceptApplication < minMembershipLevel {
-		errors = append(errors, "minLevelToAcceptApplication should be greater or equal to minMembershipLevel")
-	}
-	if p.MinLevelToCreateInvitation < minMembershipLevel {
-		errors = append(errors, "minLevelToCreateInvitation should be greater or equal to minMembershipLevel")
-	}
-	if p.MinLevelToRemoveMember < minMembershipLevel {
-		errors = append(errors, "minLevelToRemoveMember should be greater or equal to minMembershipLevel")
-	}
-	return errors
-}
-
-type createGamePayload struct {
-	PublicID                      string
-	Name                          string
-	MembershipLevels              map[string]interface{}
-	Metadata                      map[string]interface{}
-	MinLevelToAcceptApplication   int
-	MinLevelToCreateInvitation    int
-	MinLevelToRemoveMember        int
-	MinLevelOffsetToRemoveMember  int
-	MinLevelOffsetToPromoteMember int
-	MinLevelOffsetToDemoteMember  int
-	MaxMembers                    int
-	MaxClansPerPlayer             int
-	CooldownAfterDeny             int
-	CooldownAfterDelete           int
-}
-
-func (p *createGamePayload) Validate() []string {
-	sortedLevels := util.SortLevels(p.MembershipLevels)
-	minMembershipLevel := sortedLevels[0].Value
-
-	var errors []string
-	if p.MinLevelToAcceptApplication < minMembershipLevel {
-		errors = append(errors, "minLevelToAcceptApplication should be greater or equal to minMembershipLevel")
-	}
-	if p.MinLevelToCreateInvitation < minMembershipLevel {
-		errors = append(errors, "minLevelToCreateInvitation should be greater or equal to minMembershipLevel")
-	}
-	if p.MinLevelToRemoveMember < minMembershipLevel {
-		errors = append(errors, "minLevelToRemoveMember should be greater or equal to minMembershipLevel")
-	}
-	return errors
-}
-
-func validateGamePayload(payload validatable) []string {
-	return payload.Validate()
-}
-
-func logPayloadErrors(l zap.Logger, errors []string) {
-	var fields []zap.Field
-	for _, err := range errors {
-		fields = append(fields, zap.String("validationError", err))
-	}
-	l.Warn(
-		"Payload is not valid",
-		fields...,
-	)
-}
-
-type optionalParams struct {
-	maxPendingInvites    int
-	cooldownBeforeApply  int
-	cooldownBeforeInvite int
-}
-
-func getOptionalParameters(app *App, c *iris.Context) (*optionalParams, error) {
-	data := c.RequestCtx.Request.Body()
-	var jsonPayload map[string]interface{}
-	err := json.Unmarshal(data, &jsonPayload)
-	if err != nil {
-		return nil, err
-	}
-
-	var maxPendingInvites int
-	if val, ok := jsonPayload["maxPendingInvites"]; ok {
-		maxPendingInvites = int(val.(float64))
-	} else {
-		maxPendingInvites = app.Config.GetInt("khan.maxPendingInvites")
-	}
-
-	var cooldownBeforeInvite int
-	if val, ok := jsonPayload["cooldownBeforeInvite"]; ok {
-		cooldownBeforeInvite = int(val.(float64))
-	} else {
-		cooldownBeforeInvite = app.Config.GetInt("khan.defaultCooldownBeforeInvite")
-	}
-
-	var cooldownBeforeApply int
-	if val, ok := jsonPayload["cooldownBeforeApply"]; ok {
-		cooldownBeforeApply = int(val.(float64))
-	} else {
-		cooldownBeforeApply = app.Config.GetInt("khan.defaultCooldownBeforeApply")
-	}
-
-	return &optionalParams{
-		maxPendingInvites:    maxPendingInvites,
-		cooldownBeforeInvite: cooldownBeforeInvite,
-		cooldownBeforeApply:  cooldownBeforeApply,
-	}, nil
-}
-
-func getCreateGamePayload(app *App, c *iris.Context) (*createGamePayload, *optionalParams, error) {
-	var payload createGamePayload
-	if err := LoadJSONPayload(&payload, c); err != nil {
-		return nil, nil, err
-	}
-
-	optional, err := getOptionalParameters(app, c)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	return &payload, optional, nil
-}
 
 // CreateGameHandler is the handler responsible for creating new games
 func CreateGameHandler(app *App) func(c *iris.Context) {
@@ -230,7 +86,7 @@ func CreateGameHandler(app *App) func(c *iris.Context) {
 
 		l.Info(
 			"Game created succesfully.",
-			zap.Duration("createGameDuration", time.Now().Sub(start)),
+			zap.Duration("duration", time.Now().Sub(start)),
 		)
 
 		SucceedWith(map[string]interface{}{
@@ -253,17 +109,28 @@ func UpdateGameHandler(app *App) func(c *iris.Context) {
 
 		var payload gamePayload
 
+		l.Debug("Retrieving parameters...")
 		if err := LoadJSONPayload(&payload, c, l); err != nil {
+			l.Error("Failed to retrieve parameters.", zap.Error(err))
 			FailWith(400, err.Error(), c)
 			return
 		}
 
 		optional, err := getOptionalParameters(app, c)
 		if err != nil {
+			l.Error("Failed to retrieve optional parameters.", zap.Error(err))
 			FailWith(400, err.Error(), c)
 			return
 		}
 
+		l.Debug(
+			"Parameters retrieved successfully.",
+			zap.Int("maxPendingInvites", optional.maxPendingInvites),
+			zap.Int("cooldownBeforeInvite", optional.cooldownBeforeInvite),
+			zap.Int("cooldownBeforeApply", optional.cooldownBeforeApply),
+		)
+
+		l.Debug("Validating payload...")
 		if payloadErrors := validateGamePayload(&payload); len(payloadErrors) != 0 {
 			logPayloadErrors(l, payloadErrors)
 			errorString := strings.Join(payloadErrors[:], ", ")
@@ -310,7 +177,7 @@ func UpdateGameHandler(app *App) func(c *iris.Context) {
 
 		l.Info(
 			"Game updated succesfully.",
-			zap.Duration("createGameDuration", time.Now().Sub(start)),
+			zap.Duration("duration", time.Now().Sub(start)),
 		)
 
 		successPayload := map[string]interface{}{
