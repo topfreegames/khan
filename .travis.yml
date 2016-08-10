@@ -30,8 +30,8 @@ install:
   - sudo apt-get -y install postgresql-9.5
   - echo "listen_addresses = '*'" >> /etc/postgresql/9.5/main/postgresql.conf
   - sudo sh -c 'echo "local all postgres trust" > /etc/postgresql/9.5/main/pg_hba.conf'
-  - sudo sh -c 'echo "host all all 0.0.0.0/32 trust" >> /etc/postgresql/9.5/main/pg_hba.conf'
-  - sudo sh -c 'echo "host all all ::1/32 trust" >> /etc/postgresql/9.5/main/pg_hba.conf'
+  - sudo sh -c 'echo "host all all 0.0.0.0/0 trust" >> /etc/postgresql/9.5/main/pg_hba.conf'
+  - sudo sh -c 'echo "host all all ::0/0 trust" >> /etc/postgresql/9.5/main/pg_hba.conf'
   - sudo service postgresql restart
   - psql --version
   - psql -U postgres -d postgres -c "SHOW SERVER_VERSION"
