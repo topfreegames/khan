@@ -25,6 +25,7 @@ setup-docs:
 setup-ci:
 	@sudo add-apt-repository -y ppa:masterminds/glide && sudo apt-get update
 	@sudo apt-get install -y glide
+	@go get -u github.com/jteeuwen/go-bindata/...
 	@go get github.com/topfreegames/goose/cmd/goose
 	@go get github.com/mattn/goveralls
 	@go get github.com/onsi/ginkgo/ginkgo
