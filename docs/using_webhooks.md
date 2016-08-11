@@ -261,7 +261,7 @@ Payload:
 
 #### Membership Created
 
-This event occurs if a player applies to a clan (applicant == requestor) or if a player is invited to a clan (applicant != requestor).
+This event occurs if a player applies to a clan (player == requestor) or if a player is invited to a clan (player != requestor).
 
 Event Type: `7`
 
@@ -279,7 +279,7 @@ Payload:
                                                         // accepts applications
             "membershipCount":  [int],                  // Number of members in clan
         },
-        "applicant": {                                  // Player that is applying/being invited to the clan
+        "player": {                                     // Player that is applying/being invited to the clan
             "publicID": [string],                       // Applicant PublicID
             "name": [string],                           // Player Name
             "metadata": [JSON],                         // JSON Object containing player metadata
