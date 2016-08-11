@@ -177,7 +177,7 @@ func (app *App) configureApplication() {
 
 	a.Use(NewLoggerMiddleware(app.Logger))
 	a.Use(&RecoveryMiddleware{OnError: app.onErrorHandler})
-	a.Use(&TransactionMiddleware{App: app})
+	//a.Use(&TransactionMiddleware{App: app})
 	a.Use(&VersionMiddleware{App: app})
 	a.Use(&SentryMiddleware{App: app})
 
@@ -354,6 +354,57 @@ func (app *App) finalizeApp() {
 	l.Debug("Closing DB connection...")
 	app.Db.(*gorp.DbMap).Db.Close()
 	l.Info("DB connection closed succesfully.")
+}
+
+//BeginTrans in the current Db connection
+func (app *App) BeginTrans(l zap.Logger) (*gorp.Transaction, error) {
+	l.Debug("Beginning DB tx...")
+	tx, err := (app.Db).(*gorp.DbMap).Begin()
+	if err != nil {
+		l.Error("Failed to begin tx.", zap.Error(err))
+		return nil, err
+	}
+	l.Debug("Tx begun successfuly.")
+	return tx, nil
+}
+
+//Rollback transaction
+func (app *App) Rollback(tx *gorp.Transaction, msg string, l zap.Logger, err error) error {
+	txErr := tx.Rollback()
+	if txErr != nil {
+		l.Error(
+			fmt.Sprintf("%s and failed to rollback transaction.", msg),
+			zap.Error(txErr),
+			zap.String("originalError", err.Error()),
+		)
+
+		return txErr
+	}
+	return nil
+}
+
+//Commit transaction
+func (app *App) Commit(tx *gorp.Transaction, msg string, l zap.Logger) error {
+	txErr := tx.Commit()
+	if txErr != nil {
+		l.Error(
+			fmt.Sprintf("%s failed to commit transaction.", msg),
+			zap.Error(txErr),
+		)
+
+		return txErr
+	}
+	return nil
+}
+
+// GetCtxDB returns the proper database connection depending on the request context
+func (app *App) GetCtxDB(ctx *iris.Context) (models.DB, error) {
+	val := ctx.Get("db")
+	if val != nil {
+		return val.(models.DB), nil
+	}
+
+	return app.Db, nil
 }
 
 // Start starts listening for web requests at specified host and port

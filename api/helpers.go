@@ -39,13 +39,7 @@ func SucceedWith(payload map[string]interface{}, c *iris.Context) {
 }
 
 // LoadJSONPayload loads the JSON payload to the given struct validating all fields are not null
-func LoadJSONPayload(payloadStruct interface{}, c *iris.Context, logger ...zap.Logger) error {
-	var l zap.Logger
-	if len(logger) == 1 {
-		l = logger[0]
-	} else {
-		l = zap.NewJSON()
-	}
+func LoadJSONPayload(payloadStruct interface{}, c *iris.Context, l zap.Logger) error {
 	l.Debug("Loading payload...")
 
 	if err := c.ReadJSON(payloadStruct); err != nil {

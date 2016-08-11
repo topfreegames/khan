@@ -26,7 +26,7 @@ func CreateGameHandler(app *App) func(c *iris.Context) {
 		)
 
 		l.Debug("Retrieving parameters...")
-		payload, optional, err := getCreateGamePayload(app, c)
+		payload, optional, err := getCreateGamePayload(app, c, l)
 		if err != nil {
 			l.Error("Failed to retrieve parameters.", zap.Error(err))
 			FailWith(400, err.Error(), c)
@@ -46,18 +46,16 @@ func CreateGameHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
-		l.Debug("Getting DB connection...")
-		db, err := GetCtxDB(c)
+		tx, err := app.BeginTrans(l)
 		if err != nil {
-			l.Error("Failed to connect to DB.", zap.Error(err))
 			FailWith(500, err.Error(), c)
 			return
 		}
-		l.Debug("DB Connection successful.")
+		l.Debug("DB Tx begun successful.")
 
 		l.Debug("Creating game...")
 		game, err := models.CreateGame(
-			db,
+			tx,
 			payload.PublicID,
 			payload.Name,
 			payload.MembershipLevels,
@@ -79,7 +77,18 @@ func CreateGameHandler(app *App) func(c *iris.Context) {
 		)
 
 		if err != nil {
+			txErr := app.Rollback(tx, "Create game failed", l, err)
+			if txErr != nil {
+				FailWith(500, txErr.Error(), c)
+				return
+			}
 			l.Error("Create game failed.", zap.Error(err))
+			FailWith(500, err.Error(), c)
+			return
+		}
+
+		err = app.Commit(tx, "Create game", l)
+		if err != nil {
 			FailWith(500, err.Error(), c)
 			return
 		}
@@ -138,18 +147,15 @@ func UpdateGameHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
-		l.Debug("Getting DB connection...")
-		db, err := GetCtxDB(c)
+		tx, err := app.BeginTrans(l)
 		if err != nil {
-			l.Error("Failed to connect to DB.", zap.Error(err))
 			FailWith(500, err.Error(), c)
 			return
 		}
-		l.Debug("DB Connection successful.")
 
 		l.Debug("Updating game...")
 		_, err = models.UpdateGame(
-			db,
+			tx,
 			gameID,
 			payload.Name,
 			payload.MembershipLevels,
@@ -170,6 +176,12 @@ func UpdateGameHandler(app *App) func(c *iris.Context) {
 		)
 
 		if err != nil {
+			txErr := app.Rollback(tx, "Game update failed", l, err)
+			if txErr != nil {
+				FailWith(500, txErr.Error(), c)
+				return
+			}
+
 			l.Error("Game update failed.", zap.Error(err))
 			FailWith(500, err.Error(), c)
 			return
@@ -194,7 +206,24 @@ func UpdateGameHandler(app *App) func(c *iris.Context) {
 			"cooldownBeforeInvite":          optional.cooldownBeforeInvite,
 			"maxPendingInvites":             optional.maxPendingInvites,
 		}
-		app.DispatchHooks(gameID, models.GameUpdatedHook, successPayload)
+		dErr := app.DispatchHooks(gameID, models.GameUpdatedHook, successPayload)
+		if dErr != nil {
+			txErr := app.Rollback(tx, "Game update hook dispatch failed", l, dErr)
+			if txErr != nil {
+				FailWith(500, txErr.Error(), c)
+				return
+			}
+
+			l.Error("Game update hook dispatch failed.", zap.Error(dErr))
+			FailWith(500, dErr.Error(), c)
+			return
+		}
+
+		err = app.Commit(tx, "Update game", l)
+		if err != nil {
+			FailWith(500, err.Error(), c)
+			return
+		}
 
 		l.Info(
 			"Game updated succesfully.",
