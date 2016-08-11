@@ -34,18 +34,15 @@ func CreatePlayerHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
-		l.Debug("Getting DB connection...")
-		db, err := GetCtxDB(c)
+		tx, err := app.BeginTrans(l)
 		if err != nil {
-			l.Error("Failed to connect to DB.", zap.Error(err))
 			FailWith(500, err.Error(), c)
 			return
 		}
-		l.Debug("DB Connection successful.")
 
 		l.Debug("Creating player...")
 		player, err := models.CreatePlayer(
-			db,
+			tx,
 			gameID,
 			payload.PublicID,
 			payload.Name,
@@ -54,6 +51,12 @@ func CreatePlayerHandler(app *App) func(c *iris.Context) {
 		)
 
 		if err != nil {
+			txErr := app.Rollback(tx, "Player creation failed", l, err)
+			if txErr != nil {
+				FailWith(500, txErr.Error(), c)
+				return
+			}
+
 			l.Error("Player creation failed.", zap.Error(err))
 			FailWith(500, err.Error(), c)
 			return
@@ -67,7 +70,24 @@ func CreatePlayerHandler(app *App) func(c *iris.Context) {
 			"metadata": player.Metadata,
 		}
 
-		app.DispatchHooks(gameID, models.PlayerCreatedHook, player.Serialize())
+		err = app.DispatchHooks(gameID, models.PlayerCreatedHook, player.Serialize())
+		if err != nil {
+			txErr := app.Rollback(tx, "Player creation hook dispatch failed", l, err)
+			if txErr != nil {
+				FailWith(500, txErr.Error(), c)
+				return
+			}
+
+			l.Error("Player creation hook dispatch failed.", zap.Error(err))
+			FailWith(500, err.Error(), c)
+			return
+		}
+
+		err = app.Commit(tx, "Create player", l)
+		if err != nil {
+			FailWith(500, err.Error(), c)
+			return
+		}
 
 		l.Info(
 			"Player created successfully.",
@@ -98,18 +118,15 @@ func UpdatePlayerHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
-		l.Debug("Getting DB connection...")
-		db, err := GetCtxDB(c)
+		tx, err := app.BeginTrans(l)
 		if err != nil {
-			l.Error("Failed to connect to DB.", zap.Error(err))
 			FailWith(500, err.Error(), c)
 			return
 		}
-		l.Debug("DB Connection successful.")
 
 		l.Debug("Updating player...")
 		player, err := models.UpdatePlayer(
-			db,
+			tx,
 			gameID,
 			playerPublicID,
 			payload.Name,
@@ -117,12 +134,35 @@ func UpdatePlayerHandler(app *App) func(c *iris.Context) {
 		)
 
 		if err != nil {
-			l.Error("Player updating failed.", zap.Error(err))
+			txErr := app.Rollback(tx, "Player update failed", l, err)
+			if txErr != nil {
+				FailWith(500, txErr.Error(), c)
+				return
+			}
+
+			l.Error("Player update failed.", zap.Error(err))
 			FailWith(500, err.Error(), c)
 			return
 		}
 
-		app.DispatchHooks(gameID, models.PlayerUpdatedHook, player.Serialize())
+		err = app.DispatchHooks(gameID, models.PlayerUpdatedHook, player.Serialize())
+		if err != nil {
+			txErr := app.Rollback(tx, "Player update hook dispatch failed", l, err)
+			if txErr != nil {
+				FailWith(500, txErr.Error(), c)
+				return
+			}
+
+			l.Error("Player update hook dispatch failed.", zap.Error(err))
+			FailWith(500, err.Error(), c)
+			return
+		}
+
+		err = app.Commit(tx, "Update game", l)
+		if err != nil {
+			FailWith(500, err.Error(), c)
+			return
+		}
 
 		l.Info(
 			"Player updated successfully.",
@@ -148,7 +188,7 @@ func RetrievePlayerHandler(app *App) func(c *iris.Context) {
 		)
 
 		l.Debug("Getting DB connection...")
-		db, err := GetCtxDB(c)
+		db, err := app.GetCtxDB(c)
 		if err != nil {
 			l.Error("Failed to connect to DB.", zap.Error(err))
 			FailWith(500, err.Error(), c)

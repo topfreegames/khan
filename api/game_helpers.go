@@ -143,9 +143,9 @@ func getOptionalParameters(app *App, c *iris.Context) (*optionalParams, error) {
 	}, nil
 }
 
-func getCreateGamePayload(app *App, c *iris.Context) (*createGamePayload, *optionalParams, error) {
+func getCreateGamePayload(app *App, c *iris.Context, l zap.Logger) (*createGamePayload, *optionalParams, error) {
 	var payload createGamePayload
-	if err := LoadJSONPayload(&payload, c); err != nil {
+	if err := LoadJSONPayload(&payload, c, l); err != nil {
 		return nil, nil, err
 	}
 

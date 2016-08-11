@@ -15,7 +15,6 @@ import (
 
 	"github.com/getsentry/raven-go"
 	"github.com/kataras/iris"
-	"github.com/topfreegames/khan/models"
 	"github.com/uber-go/zap"
 	"gopkg.in/gorp.v1"
 )
@@ -45,16 +44,6 @@ func (m *TransactionMiddleware) Serve(c *iris.Context) {
 		c.SetStatusCode(500)
 		c.Write("Internal server error")
 	}
-}
-
-// GetCtxDB returns the proper database connection depending on the request context
-func GetCtxDB(ctx *iris.Context) (models.DB, error) {
-	val := ctx.Get("db")
-	if val != nil {
-		return val.(models.DB), nil
-	}
-
-	return nil, fmt.Errorf("Could not find database instance in request context.")
 }
 
 //VersionMiddleware automatically adds a version header to response

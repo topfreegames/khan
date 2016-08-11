@@ -17,7 +17,7 @@ import (
 // HealthCheckHandler is the handler responsible for validating that the app is still up
 func HealthCheckHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
-		db, err := GetCtxDB(c)
+		db, err := app.GetCtxDB(c)
 		if err != nil {
 			FailWith(500, err.Error(), c)
 			return

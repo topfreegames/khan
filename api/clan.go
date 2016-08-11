@@ -42,18 +42,25 @@ func CreateClanHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
-		l.Debug("Getting DB connection...")
-		db, err := GetCtxDB(c)
+		tx, err := app.BeginTrans(l)
 		if err != nil {
-			l.Error("Failed to connect to DB.", zap.Error(err))
 			FailWith(500, err.Error(), c)
 			return
 		}
-		l.Debug("DB Connection successful.")
+
+		//rollback function
+		rb := func(err error) error {
+			txErr := app.Rollback(tx, "Creating clan failed", l, err)
+			if txErr != nil {
+				return txErr
+			}
+
+			return nil
+		}
 
 		l.Debug("Creating clan...")
 		clan, err := models.CreateClan(
-			db,
+			tx,
 			gameID,
 			payload.PublicID,
 			payload.Name,
@@ -65,7 +72,10 @@ func CreateClanHandler(app *App) func(c *iris.Context) {
 		)
 
 		if err != nil {
-			l.Error("Create clan failed.", zap.Error(err))
+			txErr := rb(err)
+			if txErr == nil {
+				l.Error("Create clan failed.", zap.Error(err))
+			}
 			FailWith(500, err.Error(), c)
 			return
 		}
@@ -86,14 +96,29 @@ func CreateClanHandler(app *App) func(c *iris.Context) {
 		}
 
 		l.Debug("Dispatching hooks")
-		app.DispatchHooks(gameID, models.ClanCreatedHook, result)
+		err = app.DispatchHooks(gameID, models.ClanCreatedHook, result)
+		if err != nil {
+			txErr := rb(err)
+			if txErr == nil {
+				l.Error("Clan created hook dispatch failed.", zap.Error(err))
+			}
+			FailWith(500, err.Error(), c)
+			return
+		}
 		l.Debug("Hook dispatched successfully.")
+
+		err = app.Commit(tx, "Clan created", l)
+		if err != nil {
+			FailWith(500, err.Error(), c)
+			return
+		}
 
 		l.Info(
 			"Clan created successfully.",
 			zap.String("clanPublicID", clan.PublicID),
 			zap.Duration("duration", time.Now().Sub(start)),
 		)
+
 		SucceedWith(map[string]interface{}{
 			"publicID": clan.PublicID,
 		}, c)
@@ -121,18 +146,25 @@ func UpdateClanHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
-		l.Debug("Getting DB connection...")
-		db, err := GetCtxDB(c)
+		tx, err := app.BeginTrans(l)
 		if err != nil {
-			l.Error("Failed to connect to DB.", zap.Error(err))
 			FailWith(500, err.Error(), c)
 			return
 		}
-		l.Debug("DB Connection successful.")
+
+		//rollback function
+		rb := func(err error) error {
+			txErr := app.Rollback(tx, "Updating clan failed", l, err)
+			if txErr != nil {
+				return txErr
+			}
+
+			return nil
+		}
 
 		l.Debug("Updating clan...")
 		clan, err := models.UpdateClan(
-			db,
+			tx,
 			gameID,
 			publicID,
 			payload.Name,
@@ -143,7 +175,10 @@ func UpdateClanHandler(app *App) func(c *iris.Context) {
 		)
 
 		if err != nil {
-			l.Error("Clan update failed.", zap.Error(err))
+			txErr := rb(err)
+			if txErr == nil {
+				l.Error("Clan update failed.", zap.Error(err))
+			}
 			FailWith(500, err.Error(), c)
 			return
 		}
@@ -163,7 +198,21 @@ func UpdateClanHandler(app *App) func(c *iris.Context) {
 			"clan":   clanJSON,
 		}
 
-		app.DispatchHooks(gameID, models.ClanUpdatedHook, result)
+		err = app.DispatchHooks(gameID, models.ClanUpdatedHook, result)
+		if err != nil {
+			txErr := rb(err)
+			if txErr == nil {
+				l.Error("Clan updated hook dispatch failed.", zap.Error(err))
+			}
+			FailWith(500, err.Error(), c)
+			return
+		}
+
+		err = app.Commit(tx, "Clan updated", l)
+		if err != nil {
+			FailWith(500, err.Error(), c)
+			return
+		}
 
 		l.Info(
 			"Clan updated successfully.",
@@ -187,35 +236,49 @@ func LeaveClanHandler(app *App) func(c *iris.Context) {
 			zap.String("clanPublicID", publicID),
 		)
 
-		l.Debug("Getting DB connection...")
-		db, err := GetCtxDB(c)
+		tx, err := app.BeginTrans(l)
 		if err != nil {
-			l.Error("Failed to connect to DB.", zap.Error(err))
 			FailWith(500, err.Error(), c)
 			return
 		}
-		l.Debug("DB Connection successful.")
+
+		//rollback function
+		rb := func(err error) error {
+			txErr := app.Rollback(tx, "Leaving clan failed", l, err)
+			if txErr != nil {
+				return txErr
+			}
+
+			return nil
+		}
 
 		l.Debug("Leaving clan...")
 		clan, previousOwner, newOwner, err := models.LeaveClan(
-			db,
+			tx,
 			gameID,
 			publicID,
 		)
 
 		if err != nil {
-			if strings.HasPrefix(err.Error(), "Clan was not found with id") {
-				l.Warn("Clan was not found.", zap.Error(err))
-				FailWith(400, (&models.ModelNotFoundError{Type: "Clan", ID: publicID}).Error(), c)
-				return
+			txErr := rb(err)
+			if txErr == nil {
+				if strings.HasPrefix(err.Error(), "Clan was not found with id") {
+					l.Warn("Clan was not found.", zap.Error(err))
+					FailWith(400, (&models.ModelNotFoundError{Type: "Clan", ID: publicID}).Error(), c)
+					return
+				}
+				l.Error("Clan leave failed.", zap.Error(err))
 			}
-			l.Error("Clan leave failed.", zap.Error(err))
 			FailWith(500, err.Error(), c)
 			return
 		}
 
-		err = dispatchClanOwnershipChangeHook(app, db, models.ClanLeftHook, clan, previousOwner, newOwner)
+		err = dispatchClanOwnershipChangeHook(app, tx, models.ClanLeftHook, clan, previousOwner, newOwner)
 		if err != nil {
+			txErr := rb(err)
+			if txErr == nil {
+				l.Error("Leaving clan hook dispatch failed.", zap.Error(err))
+			}
 			FailWith(500, err.Error(), c)
 			return
 		}
@@ -244,6 +307,12 @@ func LeaveClanHandler(app *App) func(c *iris.Context) {
 
 		if newOwner != nil {
 			fields = append(fields, zap.String("newOwnerPublicID", newOwner.PublicID))
+		}
+
+		err = app.Commit(tx, "Clan updated", l)
+		if err != nil {
+			FailWith(500, err.Error(), c)
+			return
 		}
 
 		l.Info("Clan left successfully.", fields...)
@@ -283,18 +352,25 @@ func TransferOwnershipHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
-		l.Debug("Getting DB connection...")
-		db, err := GetCtxDB(c)
+		tx, err := app.BeginTrans(l)
 		if err != nil {
-			l.Error("Failed to connect to DB.", zap.Error(err))
 			FailWith(500, err.Error(), c)
 			return
 		}
-		l.Debug("DB Connection successful.")
+
+		//rollback function
+		rb := func(err error) error {
+			txErr := app.Rollback(tx, "Clan ownership transfer failed", l, err)
+			if txErr != nil {
+				return txErr
+			}
+
+			return nil
+		}
 
 		l.Debug("Transferring clan ownership...")
 		clan, previousOwner, newOwner, err := models.TransferClanOwnership(
-			db,
+			tx,
 			gameID,
 			publicID,
 			payload.PlayerPublicID,
@@ -303,17 +379,23 @@ func TransferOwnershipHandler(app *App) func(c *iris.Context) {
 		)
 
 		if err != nil {
-			l.Error("Clan ownership transfer failed.", zap.Error(err))
+			txErr := rb(err)
+			if txErr == nil {
+				l.Error("Clan ownership transfer failed.", zap.Error(err))
+			}
 			FailWith(500, err.Error(), c)
 			return
 		}
 
 		err = dispatchClanOwnershipChangeHook(
-			app, db, models.ClanOwnershipTransferredHook,
+			app, tx, models.ClanOwnershipTransferredHook,
 			clan, previousOwner, newOwner,
 		)
 		if err != nil {
-			l.Error("Clan ownership transfer hook dispatch failed.", zap.Error(err))
+			txErr := rb(err)
+			if txErr == nil {
+				l.Error("Clan ownership transfer hook dispatch failed.", zap.Error(err))
+			}
 			FailWith(500, err.Error(), c)
 			return
 		}
@@ -323,6 +405,12 @@ func TransferOwnershipHandler(app *App) func(c *iris.Context) {
 
 		nOwnerJSON := newOwner.Serialize()
 		delete(nOwnerJSON, "gameID")
+
+		err = app.Commit(tx, "Clan ownership transfer", l)
+		if err != nil {
+			FailWith(500, err.Error(), c)
+			return
+		}
 
 		l.Info(
 			"Clan ownership transfer completed successfully.",
@@ -351,7 +439,7 @@ func ListClansHandler(app *App) func(c *iris.Context) {
 		)
 
 		l.Debug("Getting DB connection...")
-		db, err := GetCtxDB(c)
+		db, err := app.GetCtxDB(c)
 		if err != nil {
 			l.Error("Failed to connect to DB.", zap.Error(err))
 			FailWith(500, err.Error(), c)
@@ -399,7 +487,7 @@ func SearchClansHandler(app *App) func(c *iris.Context) {
 		)
 
 		l.Debug("Getting DB connection...")
-		db, err := GetCtxDB(c)
+		db, err := app.GetCtxDB(c)
 		if err != nil {
 			l.Error("Failed to connect to DB.", zap.Error(err))
 			FailWith(500, err.Error(), c)
@@ -454,7 +542,7 @@ func RetrieveClanHandler(app *App) func(c *iris.Context) {
 		)
 
 		l.Debug("Getting DB connection...")
-		db, err := GetCtxDB(c)
+		db, err := app.GetCtxDB(c)
 		if err != nil {
 			l.Error("Failed to connect to DB.", zap.Error(err))
 			FailWith(500, err.Error(), c)
@@ -507,7 +595,7 @@ func RetrieveClanSummaryHandler(app *App) func(c *iris.Context) {
 		)
 
 		l.Debug("Getting DB connection...")
-		db, err := GetCtxDB(c)
+		db, err := app.GetCtxDB(c)
 		if err != nil {
 			l.Error("Failed to connect to DB.", zap.Error(err))
 			FailWith(500, err.Error(), c)
@@ -563,7 +651,7 @@ func RetrieveClansSummariesHandler(app *App) func(c *iris.Context) {
 		}
 
 		l.Debug("Getting DB connection...")
-		db, err := GetCtxDB(c)
+		db, err := app.GetCtxDB(c)
 		if err != nil {
 			l.Error("Failed to connect to DB.", zap.Error(err))
 			FailWith(500, err.Error(), c)

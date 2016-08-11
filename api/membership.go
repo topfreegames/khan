@@ -49,15 +49,6 @@ func ApplyForMembershipHandler(app *App) func(c *iris.Context) {
 			zap.String("playerPublicID", payload.PlayerPublicID),
 		)
 
-		l.Debug("Getting DB connection...")
-		db, err := GetCtxDB(c)
-		if err != nil {
-			l.Error("Failed to connect to DB.", zap.Error(err))
-			FailWith(500, err.Error(), c)
-			return
-		}
-		l.Debug("DB Connection successful.")
-
 		game, err := app.GetGame(gameID)
 		if err != nil {
 			l.Warn("Could not find game.")
@@ -65,9 +56,15 @@ func ApplyForMembershipHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
+		tx, err := app.BeginTrans(l)
+		if err != nil {
+			FailWith(500, err.Error(), c)
+			return
+		}
+
 		l.Debug("Applying for membership...")
 		membership, err := models.CreateMembership(
-			db,
+			tx,
 			game,
 			gameID,
 			payload.Level,
@@ -78,20 +75,36 @@ func ApplyForMembershipHandler(app *App) func(c *iris.Context) {
 		)
 
 		if err != nil {
+			txErr := app.Rollback(tx, "Membership application failed", l, err)
+			if txErr != nil {
+				FailWith(500, txErr.Error(), c)
+				return
+			}
+
 			l.Error("Membership application failed.", zap.Error(err))
 			FailWith(500, err.Error(), c)
 			return
 		}
 
-		l.Info("Membership application successful.")
-
 		err = dispatchMembershipHookByID(
-			app, db, models.MembershipApplicationCreatedHook,
+			app, tx, models.MembershipApplicationCreatedHook,
 			membership.GameID, membership.ClanID, membership.PlayerID,
 			membership.RequestorID, membership.Message,
 		)
 		if err != nil {
+			txErr := app.Rollback(tx, "Membership application failed", l, err)
+			if txErr != nil {
+				FailWith(500, txErr.Error(), c)
+				return
+			}
+
 			l.Error("Membership application created dispatch hook failed.", zap.Error(err))
+			FailWith(500, err.Error(), c)
+			return
+		}
+
+		err = app.Commit(tx, "Membership application", l)
+		if err != nil {
 			FailWith(500, err.Error(), c)
 			return
 		}
@@ -137,15 +150,6 @@ func InviteForMembershipHandler(app *App) func(c *iris.Context) {
 			zap.String("requestorPublicID", payload.RequestorPublicID),
 		)
 
-		l.Debug("Getting DB connection...")
-		db, err := GetCtxDB(c)
-		if err != nil {
-			l.Error("Failed to connect to DB.", zap.Error(err))
-			FailWith(500, err.Error(), c)
-			return
-		}
-		l.Debug("DB Connection successful.")
-
 		game, err := app.GetGame(gameID)
 		if err != nil {
 			l.Warn("Could not find game.")
@@ -153,9 +157,15 @@ func InviteForMembershipHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
+		tx, err := app.BeginTrans(l)
+		if err != nil {
+			FailWith(500, err.Error(), c)
+			return
+		}
+
 		l.Debug("Inviting for membership...")
 		membership, err := models.CreateMembership(
-			db,
+			tx,
 			game,
 			gameID,
 			payload.Level,
@@ -166,18 +176,36 @@ func InviteForMembershipHandler(app *App) func(c *iris.Context) {
 		)
 
 		if err != nil {
+			txErr := app.Rollback(tx, "Membership invitation failed", l, err)
+			if txErr != nil {
+				FailWith(500, txErr.Error(), c)
+				return
+			}
+
 			l.Error("Membership invitation failed.", zap.Error(err))
 			FailWith(500, err.Error(), c)
 			return
 		}
 
 		err = dispatchMembershipHookByID(
-			app, db, models.MembershipApplicationCreatedHook,
+			app, tx, models.MembershipApplicationCreatedHook,
 			membership.GameID, membership.ClanID, membership.PlayerID,
 			membership.RequestorID, membership.Message,
 		)
 		if err != nil {
+			txErr := app.Rollback(tx, "Membership invitation dispatch hook failed", l, err)
+			if txErr != nil {
+				FailWith(500, txErr.Error(), c)
+				return
+			}
+
 			l.Error("Membership invitation dispatch hook failed.", zap.Error(err))
+			FailWith(500, err.Error(), c)
+			return
+		}
+
+		err = app.Commit(tx, "Membership invitation", l)
+		if err != nil {
 			FailWith(500, err.Error(), c)
 			return
 		}
@@ -218,15 +246,6 @@ func ApproveOrDenyMembershipApplicationHandler(app *App) func(c *iris.Context) {
 			zap.String("requestorPublicID", payload.RequestorPublicID),
 		)
 
-		l.Debug("Getting DB connection...")
-		db, err := GetCtxDB(c)
-		if err != nil {
-			l.Error("Failed to connect to DB.", zap.Error(err))
-			FailWith(500, err.Error(), c)
-			return
-		}
-		l.Debug("DB Connection successful.")
-
 		game, err := app.GetGame(gameID)
 		if err != nil {
 			l.Warn("Could not find game.")
@@ -234,9 +253,24 @@ func ApproveOrDenyMembershipApplicationHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
+		tx, err := app.BeginTrans(l)
+		if err != nil {
+			FailWith(500, err.Error(), c)
+			return
+		}
+
+		rb := func(err error) error {
+			txErr := app.Rollback(tx, "Approving/Denying membership application failed", l, err)
+			if txErr != nil {
+				return txErr
+			}
+
+			return nil
+		}
+
 		l.Debug("Approving/Denying membership application.")
 		membership, err := models.ApproveOrDenyMembershipApplication(
-			db,
+			tx,
 			game,
 			gameID,
 			payload.PlayerPublicID,
@@ -246,15 +280,22 @@ func ApproveOrDenyMembershipApplicationHandler(app *App) func(c *iris.Context) {
 		)
 
 		if err != nil {
-			l.Error("Approving/Denying membership application failed.", zap.Error(err))
+			txErr := rb(err)
+			if txErr == nil {
+				l.Error("Approving/Denying membership application failed.", zap.Error(err))
+			}
 			FailWith(500, err.Error(), c)
 			return
 		}
 
 		l.Debug("Retrieving requestor details.")
-		requestor, err := models.GetPlayerByPublicID(db, gameID, payload.RequestorPublicID)
+		requestor, err := models.GetPlayerByPublicID(tx, gameID, payload.RequestorPublicID)
 		if err != nil {
-			l.Error("Requestor details retrieval failed.", zap.Error(err))
+			msg := "Requestor details retrieval failed."
+			txErr := rb(err)
+			if txErr == nil {
+				l.Error(msg, zap.Error(err))
+			}
 			FailWith(500, err.Error(), c)
 			return
 		}
@@ -266,12 +307,22 @@ func ApproveOrDenyMembershipApplicationHandler(app *App) func(c *iris.Context) {
 		}
 
 		err = dispatchMembershipHookByID(
-			app, db, hookType,
+			app, tx, hookType,
 			membership.GameID, membership.ClanID, membership.PlayerID,
 			requestor.ID, membership.Message,
 		)
 		if err != nil {
-			l.Error("Membership approved/denied application dispatch hook failed.", zap.Error(err))
+			msg := "Membership approved/denied application dispatch hook failed."
+			txErr := rb(err)
+			if txErr == nil {
+				l.Error(msg, zap.Error(err))
+			}
+			FailWith(500, err.Error(), c)
+			return
+		}
+
+		err = app.Commit(tx, "Membership application approval/deny", l)
+		if err != nil {
 			FailWith(500, err.Error(), c)
 			return
 		}
@@ -311,15 +362,6 @@ func ApproveOrDenyMembershipInvitationHandler(app *App) func(c *iris.Context) {
 			zap.String("playerPublicID", payload.PlayerPublicID),
 		)
 
-		l.Debug("Getting DB connection...")
-		db, err := GetCtxDB(c)
-		if err != nil {
-			l.Error("Failed to connect to DB.", zap.Error(err))
-			FailWith(500, err.Error(), c)
-			return
-		}
-		l.Debug("DB Connection successful.")
-
 		game, err := app.GetGame(gameID)
 		if err != nil {
 			l.Warn("Could not find game.")
@@ -327,9 +369,24 @@ func ApproveOrDenyMembershipInvitationHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
+		tx, err := app.BeginTrans(l)
+		if err != nil {
+			FailWith(500, err.Error(), c)
+			return
+		}
+
+		rb := func(err error) error {
+			txErr := app.Rollback(tx, "Approving/Denying membership invitation failed", l, err)
+			if txErr != nil {
+				return txErr
+			}
+
+			return nil
+		}
+
 		l.Debug("Approving/Denying membership invitation...")
 		membership, err := models.ApproveOrDenyMembershipInvitation(
-			db,
+			tx,
 			game,
 			gameID,
 			payload.PlayerPublicID,
@@ -338,7 +395,10 @@ func ApproveOrDenyMembershipInvitationHandler(app *App) func(c *iris.Context) {
 		)
 
 		if err != nil {
-			l.Error("Membership invitation approval/deny failed.", zap.Error(err))
+			txErr := rb(err)
+			if txErr == nil {
+				l.Error("Membership invitation approval/deny failed.", zap.Error(err))
+			}
 			FailWith(500, err.Error(), c)
 			return
 		}
@@ -349,11 +409,15 @@ func ApproveOrDenyMembershipInvitationHandler(app *App) func(c *iris.Context) {
 		}
 
 		err = dispatchMembershipHookByID(
-			app, db, hookType,
+			app, tx, hookType,
 			membership.GameID, membership.ClanID, membership.PlayerID,
 			membership.PlayerID, membership.Message,
 		)
 		if err != nil {
+			txErr := rb(err)
+			if txErr == nil {
+				l.Error("Membership invitation approval/deny hook dispatch failed.", zap.Error(err))
+			}
 			FailWith(500, err.Error(), c)
 			return
 		}
@@ -362,6 +426,12 @@ func ApproveOrDenyMembershipInvitationHandler(app *App) func(c *iris.Context) {
 			"Membership invitation approved/denied successfully.",
 			zap.Duration("duration", time.Now().Sub(start)),
 		)
+
+		err = app.Commit(tx, "Membership invitation approval/deny", l)
+		if err != nil {
+			FailWith(500, err.Error(), c)
+			return
+		}
 
 		SucceedWith(map[string]interface{}{}, c)
 	}
@@ -391,18 +461,24 @@ func DeleteMembershipHandler(app *App) func(c *iris.Context) {
 			zap.String("requestorPublicID", payload.RequestorPublicID),
 		)
 
-		l.Debug("Getting DB connection...")
-		db, err := GetCtxDB(c)
+		tx, err := app.BeginTrans(l)
 		if err != nil {
-			l.Error("Failed to connect to DB.", zap.Error(err))
 			FailWith(500, err.Error(), c)
 			return
 		}
-		l.Debug("DB Connection successful.")
+
+		rb := func(err error) error {
+			txErr := app.Rollback(tx, "Deleting membership failed", l, err)
+			if txErr != nil {
+				return txErr
+			}
+
+			return nil
+		}
 
 		l.Debug("Deleting membership...")
 		err = models.DeleteMembership(
-			db,
+			tx,
 			game,
 			game.PublicID,
 			payload.PlayerPublicID,
@@ -411,18 +487,24 @@ func DeleteMembershipHandler(app *App) func(c *iris.Context) {
 		)
 
 		if err != nil {
-			l.Error("Membership delete failed.", zap.Error(err))
+			txErr := rb(err)
+			if txErr == nil {
+				l.Error("Membership delete failed.", zap.Error(err))
+			}
 			FailWith(500, err.Error(), c)
 			return
 		}
 
 		err = dispatchMembershipHookByPublicID(
-			app, db, models.MembershipLeftHook,
+			app, tx, models.MembershipLeftHook,
 			game.PublicID, clanPublicID, payload.PlayerPublicID,
 			payload.RequestorPublicID,
 		)
 		if err != nil {
-			l.Error("Membership deleted hook dispatch failed.", zap.Error(err))
+			txErr := rb(err)
+			if txErr == nil {
+				l.Error("Membership deleted hook dispatch failed.", zap.Error(err))
+			}
 			FailWith(500, err.Error(), c)
 			return
 		}
@@ -431,6 +513,12 @@ func DeleteMembershipHandler(app *App) func(c *iris.Context) {
 			"Membership deleted successfully.",
 			zap.Duration("duration", time.Now().Sub(start)),
 		)
+
+		err = app.Commit(tx, "Membership invitation approval/deny", l)
+		if err != nil {
+			FailWith(500, err.Error(), c)
+			return
+		}
 
 		SucceedWith(map[string]interface{}{}, c)
 	}
@@ -461,18 +549,24 @@ func PromoteOrDemoteMembershipHandler(app *App, action string) func(c *iris.Cont
 			zap.String("requestorPublicID", payload.RequestorPublicID),
 		)
 
-		l.Debug("Getting DB connection...")
-		db, err := GetCtxDB(c)
+		tx, err := app.BeginTrans(l)
 		if err != nil {
-			l.Error("Failed to connect to DB.", zap.Error(err))
 			FailWith(500, err.Error(), c)
 			return
 		}
-		l.Debug("DB Connection successful.")
+
+		rb := func(err error) error {
+			txErr := app.Rollback(tx, "Promoting/Demoting member failed", l, err)
+			if txErr != nil {
+				return txErr
+			}
+
+			return nil
+		}
 
 		l.Debug("Promoting/Demoting member...")
 		membership, err := models.PromoteOrDemoteMember(
-			db,
+			tx,
 			game,
 			game.PublicID,
 			payload.PlayerPublicID,
@@ -482,16 +576,22 @@ func PromoteOrDemoteMembershipHandler(app *App, action string) func(c *iris.Cont
 		)
 
 		if err != nil {
-			l.Error("Member promotion/demotion failed.", zap.Error(err))
+			txErr := rb(err)
+			if txErr == nil {
+				l.Error("Member promotion/demotion failed.", zap.Error(err))
+			}
 			FailWith(500, err.Error(), c)
 			return
 		}
 		l.Info("Member promoted/demoted successful.")
 
 		l.Debug("Retrieving promoter/demoter member...")
-		requestor, err := models.GetPlayerByPublicID(db, membership.GameID, payload.RequestorPublicID)
+		requestor, err := models.GetPlayerByPublicID(tx, membership.GameID, payload.RequestorPublicID)
 		if err != nil {
-			l.Error("Promoter/Demoter member retrieval failed.", zap.Error(err))
+			txErr := rb(err)
+			if txErr == nil {
+				l.Error("Promoter/Demoter member retrieval failed.", zap.Error(err))
+			}
 			FailWith(500, err.Error(), c)
 			return
 		}
@@ -503,12 +603,21 @@ func PromoteOrDemoteMembershipHandler(app *App, action string) func(c *iris.Cont
 		}
 
 		err = dispatchMembershipHookByID(
-			app, db, hookType,
+			app, tx, hookType,
 			membership.GameID, membership.ClanID, membership.PlayerID,
 			requestor.ID, membership.Message,
 		)
 		if err != nil {
-			l.Error("Promote/Demote member hook dispatch failed.", zap.Error(err))
+			txErr := rb(err)
+			if txErr == nil {
+				l.Error("Promote/Demote member hook dispatch failed.", zap.Error(err))
+			}
+			FailWith(500, err.Error(), c)
+			return
+		}
+
+		err = app.Commit(tx, "Membership invitation approval/deny", l)
+		if err != nil {
 			FailWith(500, err.Error(), c)
 			return
 		}

@@ -32,29 +32,40 @@ func CreateHookHandler(app *App) func(c *iris.Context) {
 		)
 
 		var payload hookPayload
-		if err := LoadJSONPayload(&payload, c); err != nil {
+		if err := LoadJSONPayload(&payload, c, l); err != nil {
 			l.Error("Failed to parse json payload.", zap.Error(err))
 			FailWith(400, err.Error(), c)
 			return
 		}
 
-		db, err := GetCtxDB(c)
+		tx, err := app.BeginTrans(l)
 		if err != nil {
-			l.Error("Failed to obtain database connection.", zap.Error(err))
 			FailWith(500, err.Error(), c)
 			return
 		}
 
 		l.Debug("Creating hook...")
 		hook, err := models.CreateHook(
-			db,
+			tx,
 			gameID,
 			payload.Type,
 			payload.HookURL,
 		)
 
 		if err != nil {
+			txErr := app.Rollback(tx, "Failed to create hook", l, err)
+			if txErr != nil {
+				FailWith(500, txErr.Error(), c)
+				return
+			}
+
 			l.Error("Failed to create the hook.", zap.Error(err))
+			FailWith(500, err.Error(), c)
+			return
+		}
+
+		err = app.Commit(tx, "Create hook", l)
+		if err != nil {
 			FailWith(500, err.Error(), c)
 			return
 		}
@@ -64,6 +75,7 @@ func CreateHookHandler(app *App) func(c *iris.Context) {
 			zap.String("hookPublicID", hook.PublicID),
 			zap.Duration("duration", time.Now().Sub(start)),
 		)
+
 		SucceedWith(map[string]interface{}{
 			"publicID": hook.PublicID,
 		}, c)
@@ -84,22 +96,33 @@ func RemoveHookHandler(app *App) func(c *iris.Context) {
 			zap.String("hookPublicID", publicID),
 		)
 
-		db, err := GetCtxDB(c)
+		tx, err := app.BeginTrans(l)
 		if err != nil {
-			l.Error("Failed to obtain database connection.", zap.Error(err))
 			FailWith(500, err.Error(), c)
 			return
 		}
 
 		l.Debug("Removing hook...")
 		err = models.RemoveHook(
-			db,
+			tx,
 			gameID,
 			publicID,
 		)
 
 		if err != nil {
+			txErr := app.Rollback(tx, "Remove hook failed", l, err)
+			if txErr != nil {
+				FailWith(500, txErr.Error(), c)
+				return
+			}
+
 			l.Error("Failed to remove hook.", zap.Error(err))
+			FailWith(500, err.Error(), c)
+			return
+		}
+
+		err = app.Commit(tx, "Remove hook", l)
+		if err != nil {
 			FailWith(500, err.Error(), c)
 			return
 		}
