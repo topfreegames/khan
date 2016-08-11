@@ -12,6 +12,7 @@ import (
 
 	"github.com/kataras/iris"
 	"github.com/topfreegames/khan/models"
+	"github.com/uber-go/zap"
 )
 
 type applyForMembershipPayload struct {
@@ -125,4 +126,21 @@ func dispatchMembershipHook(app *App, db models.DB, hookType int, gameID string,
 	app.DispatchHooks(gameID, hookType, result)
 
 	return nil
+}
+
+func getPayloadAndGame(app *App, c *iris.Context, l zap.Logger) (*basePayloadWithRequestorAndPlayerPublicIDs, *models.Game, int, error) {
+	gameID := c.Param("gameID")
+
+	var payload basePayloadWithRequestorAndPlayerPublicIDs
+	if err := LoadJSONPayload(&payload, c, l.With(zap.String("gameID", gameID))); err != nil {
+		return nil, nil, 400, err
+	}
+
+	game, err := app.GetGame(gameID)
+	if err != nil {
+		l.Warn("Could not find game.")
+		return nil, nil, 404, err
+	}
+
+	return &payload, game, 200, nil
 }
