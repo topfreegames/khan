@@ -9,26 +9,17 @@ package api
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/kataras/iris"
 	"github.com/topfreegames/khan/models"
 	"github.com/uber-go/zap"
 )
 
-type createPlayerPayload struct {
-	PublicID string
-	Name     string
-	Metadata map[string]interface{}
-}
-
-type updatePlayerPayload struct {
-	Name     string
-	Metadata map[string]interface{}
-}
-
 // CreatePlayerHandler is the handler responsible for creating new players
 func CreatePlayerHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
+		start := time.Now()
 		gameID := c.Param("gameID")
 
 		l := app.Logger.With(
@@ -67,7 +58,6 @@ func CreatePlayerHandler(app *App) func(c *iris.Context) {
 			FailWith(500, err.Error(), c)
 			return
 		}
-		l.Info("Player created successfully.")
 
 		result := map[string]interface{}{
 			"success":  true,
@@ -79,6 +69,11 @@ func CreatePlayerHandler(app *App) func(c *iris.Context) {
 
 		app.DispatchHooks(gameID, models.PlayerCreatedHook, player.Serialize())
 
+		l.Info(
+			"Player created successfully.",
+			zap.Duration("duration", time.Now().Sub(start)),
+		)
+
 		SucceedWith(result, c)
 	}
 }
@@ -86,6 +81,7 @@ func CreatePlayerHandler(app *App) func(c *iris.Context) {
 // UpdatePlayerHandler is the handler responsible for updating existing
 func UpdatePlayerHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
+		start := time.Now()
 		gameID := c.Param("gameID")
 		playerPublicID := c.Param("playerPublicID")
 
@@ -126,9 +122,12 @@ func UpdatePlayerHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
-		l.Info("Player updated successfully.")
-
 		app.DispatchHooks(gameID, models.PlayerUpdatedHook, player.Serialize())
+
+		l.Info(
+			"Player updated successfully.",
+			zap.Duration("duration", time.Now().Sub(start)),
+		)
 
 		SucceedWith(map[string]interface{}{}, c)
 	}
@@ -137,6 +136,7 @@ func UpdatePlayerHandler(app *App) func(c *iris.Context) {
 // RetrievePlayerHandler is the handler responsible for returning details for a given player
 func RetrievePlayerHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
+		start := time.Now()
 		gameID := c.Param("gameID")
 		publicID := c.Param("playerPublicID")
 
@@ -175,7 +175,10 @@ func RetrievePlayerHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
-		l.Info("Player details retrieved successfully.")
+		l.Info(
+			"Player details retrieved successfully.",
+			zap.Duration("duration", time.Now().Sub(start)),
+		)
 
 		SucceedWith(player, c)
 	}

@@ -8,6 +8,8 @@
 package api
 
 import (
+	"time"
+
 	"github.com/kataras/iris"
 	"github.com/topfreegames/khan/models"
 	"github.com/uber-go/zap"
@@ -19,6 +21,7 @@ import (
 // ApplyForMembershipHandler is the handler responsible for applying for new memberships
 func ApplyForMembershipHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
+		start := time.Now()
 		gameID := c.Param("gameID")
 		clanPublicID := c.Param("clanPublicID")
 
@@ -93,6 +96,11 @@ func ApplyForMembershipHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
+		l.Info(
+			"Membership application created successfully.",
+			zap.Duration("duration", time.Now().Sub(start)),
+		)
+
 		SucceedWith(map[string]interface{}{}, c)
 	}
 }
@@ -100,6 +108,7 @@ func ApplyForMembershipHandler(app *App) func(c *iris.Context) {
 // InviteForMembershipHandler is the handler responsible for creating new memberships
 func InviteForMembershipHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
+		start := time.Now()
 		gameID := c.Param("gameID")
 		clanPublicID := c.Param("clanPublicID")
 
@@ -161,7 +170,6 @@ func InviteForMembershipHandler(app *App) func(c *iris.Context) {
 			FailWith(500, err.Error(), c)
 			return
 		}
-		l.Info("Membership invitation successful.")
 
 		err = dispatchMembershipHookByID(
 			app, db, models.MembershipApplicationCreatedHook,
@@ -174,6 +182,11 @@ func InviteForMembershipHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
+		l.Info(
+			"Membership invitation created successfully.",
+			zap.Duration("duration", time.Now().Sub(start)),
+		)
+
 		SucceedWith(map[string]interface{}{}, c)
 	}
 }
@@ -181,6 +194,7 @@ func InviteForMembershipHandler(app *App) func(c *iris.Context) {
 // ApproveOrDenyMembershipApplicationHandler is the handler responsible for approving or denying a membership invitation
 func ApproveOrDenyMembershipApplicationHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
+		start := time.Now()
 		action := c.Param("action")
 		gameID := c.Param("gameID")
 		clanPublicID := c.Param("clanPublicID")
@@ -257,10 +271,15 @@ func ApproveOrDenyMembershipApplicationHandler(app *App) func(c *iris.Context) {
 			requestor.ID, membership.Message,
 		)
 		if err != nil {
-			l.Error("Membership approved/denied dispatch hook failed.", zap.Error(err))
+			l.Error("Membership approved/denied application dispatch hook failed.", zap.Error(err))
 			FailWith(500, err.Error(), c)
 			return
 		}
+
+		l.Info(
+			"Membership application approved/denied successfully.",
+			zap.Duration("duration", time.Now().Sub(start)),
+		)
 
 		SucceedWith(map[string]interface{}{}, c)
 	}
@@ -269,6 +288,7 @@ func ApproveOrDenyMembershipApplicationHandler(app *App) func(c *iris.Context) {
 // ApproveOrDenyMembershipInvitationHandler is the handler responsible for approving or denying a membership invitation
 func ApproveOrDenyMembershipInvitationHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
+		start := time.Now()
 		action := c.Param("action")
 		gameID := c.Param("gameID")
 		clanPublicID := c.Param("clanPublicID")
@@ -322,7 +342,6 @@ func ApproveOrDenyMembershipInvitationHandler(app *App) func(c *iris.Context) {
 			FailWith(500, err.Error(), c)
 			return
 		}
-		l.Info("Membership invitation approved/denied successfully.")
 
 		hookType := models.MembershipApprovedHook
 		if action == "deny" {
@@ -339,30 +358,19 @@ func ApproveOrDenyMembershipInvitationHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
+		l.Info(
+			"Membership invitation approved/denied successfully.",
+			zap.Duration("duration", time.Now().Sub(start)),
+		)
+
 		SucceedWith(map[string]interface{}{}, c)
 	}
-}
-
-func getPayloadAndGame(app *App, c *iris.Context, l zap.Logger) (*basePayloadWithRequestorAndPlayerPublicIDs, *models.Game, int, error) {
-	gameID := c.Param("gameID")
-
-	var payload basePayloadWithRequestorAndPlayerPublicIDs
-	if err := LoadJSONPayload(&payload, c, l.With(zap.String("gameID", gameID))); err != nil {
-		return nil, nil, 400, err
-	}
-
-	game, err := app.GetGame(gameID)
-	if err != nil {
-		l.Warn("Could not find game.")
-		return nil, nil, 404, err
-	}
-
-	return &payload, game, 200, nil
 }
 
 // DeleteMembershipHandler is the handler responsible for deleting a member
 func DeleteMembershipHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
+		start := time.Now()
 		clanPublicID := c.Param("clanPublicID")
 
 		l := app.Logger.With(
@@ -407,7 +415,6 @@ func DeleteMembershipHandler(app *App) func(c *iris.Context) {
 			FailWith(500, err.Error(), c)
 			return
 		}
-		l.Info("Membership deleted successfully.")
 
 		err = dispatchMembershipHookByPublicID(
 			app, db, models.MembershipLeftHook,
@@ -420,6 +427,11 @@ func DeleteMembershipHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
+		l.Info(
+			"Membership deleted successfully.",
+			zap.Duration("duration", time.Now().Sub(start)),
+		)
+
 		SucceedWith(map[string]interface{}{}, c)
 	}
 }
@@ -427,6 +439,7 @@ func DeleteMembershipHandler(app *App) func(c *iris.Context) {
 // PromoteOrDemoteMembershipHandler is the handler responsible for promoting or demoting a member
 func PromoteOrDemoteMembershipHandler(app *App, action string) func(c *iris.Context) {
 	return func(c *iris.Context) {
+		start := time.Now()
 		clanPublicID := c.Param("clanPublicID")
 
 		l := app.Logger.With(
@@ -499,6 +512,11 @@ func PromoteOrDemoteMembershipHandler(app *App, action string) func(c *iris.Cont
 			FailWith(500, err.Error(), c)
 			return
 		}
+
+		l.Info(
+			"Member promoted/demoted successfully.",
+			zap.Duration("duration", time.Now().Sub(start)),
+		)
 
 		SucceedWith(map[string]interface{}{
 			"level": membership.Level,

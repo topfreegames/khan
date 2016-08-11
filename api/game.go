@@ -98,8 +98,8 @@ func CreateGameHandler(app *App) func(c *iris.Context) {
 // UpdateGameHandler is the handler responsible for updating existing
 func UpdateGameHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
-		gameID := c.Param("gameID")
 		start := time.Now()
+		gameID := c.Param("gameID")
 
 		l := app.Logger.With(
 			zap.String("source", "gameHandler"),
@@ -175,11 +175,6 @@ func UpdateGameHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
-		l.Info(
-			"Game updated succesfully.",
-			zap.Duration("duration", time.Now().Sub(start)),
-		)
-
 		successPayload := map[string]interface{}{
 			"publicID":                      gameID,
 			"name":                          payload.Name,
@@ -200,6 +195,11 @@ func UpdateGameHandler(app *App) func(c *iris.Context) {
 			"maxPendingInvites":             optional.maxPendingInvites,
 		}
 		app.DispatchHooks(gameID, models.GameUpdatedHook, successPayload)
+
+		l.Info(
+			"Game updated succesfully.",
+			zap.Duration("duration", time.Now().Sub(start)),
+		)
 
 		SucceedWith(map[string]interface{}{}, c)
 	}
