@@ -1,0 +1,800 @@
+{
+	"variables": [],
+	"info": {
+		"name": "Khan",
+		"_postman_id": "ff05a9b4-8dab-fc07-4bb4-246154d61d56",
+		"description": "",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Clan",
+			"description": "Clan-related operations.",
+			"item": [
+				{
+					"name": "Create a new clan",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": "tests[\"Status code is 200\"] = responseCode.code === 200;"
+							}
+						}
+					],
+					"request": {
+						"url": "{{baseKhanURL}}games/sample-game/clans",
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"publicID\": \"sample-clan\",\n  \"name\": \"Sample Clan\",\n  \"metadata\": { \"x\": 1 },\n  \"ownerPublicID\": \"sample-player\",\n  \"allowApplication\": true,\n  \"autoJoin\": false\n}"
+						},
+						"description": "Creates the 'sample-clan' clan in the 'sample-game' game."
+					},
+					"response": []
+				},
+				{
+					"name": "Updates an existing clan",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": "tests[\"Status code is 200\"] = responseCode.code === 200;"
+							}
+						}
+					],
+					"request": {
+						"url": "{{baseKhanURL}}games/sample-game/clans/sample-clan",
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Sample Clan\",\n  \"metadata\": { \"x\": 1 },\n  \"ownerPublicID\": \"sample-player\",\n  \"allowApplication\": true,\n  \"autoJoin\": true\n}"
+						},
+						"description": "Updates the 'sample-clan' clan in the 'sample-game' game."
+					},
+					"response": []
+				},
+				{
+					"name": "Retrieve clan details",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": "tests[\"Status code is 200\"] = responseCode.code === 200;"
+							}
+						}
+					],
+					"request": {
+						"url": "{{baseKhanURL}}games/sample-game/clans/sample-clan",
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Sample Clan\",\n  \"metadata\": { \"x\": 1 },\n  \"ownerPublicID\": \"sample-player\",\n  \"allowApplication\": true,\n  \"autoJoin\": true\n}"
+						},
+						"description": "Retrieves the 'sample-clan' clan details in the 'sample-game' game."
+					},
+					"response": []
+				},
+				{
+					"name": "Retrieve clan summary",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": "tests[\"Status code is 200\"] = responseCode.code === 200;"
+							}
+						}
+					],
+					"request": {
+						"url": "{{baseKhanURL}}games/sample-game/clans/sample-clan/summary",
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Sample Clan\",\n  \"metadata\": { \"x\": 1 },\n  \"ownerPublicID\": \"sample-player\",\n  \"allowApplication\": true,\n  \"autoJoin\": true\n}"
+						},
+						"description": "Retrieves the 'sample-clan' clan summary in the 'sample-game' game."
+					},
+					"response": []
+				},
+				{
+					"name": "Retrieve clan summaries",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": "tests[\"Status code is 200\"] = responseCode.code === 200;"
+							}
+						}
+					],
+					"request": {
+						"url": "{{baseKhanURL}}games/sample-game/clans-summary?clanPublicIds=sample-clan",
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Sample Clan\",\n  \"metadata\": { \"x\": 1 },\n  \"ownerPublicID\": \"sample-player\",\n  \"allowApplication\": true,\n  \"autoJoin\": true\n}"
+						},
+						"description": "Retrieves multiple clans summaries for the 'sample-game' game. This request returns the 'sample-clan' by default."
+					},
+					"response": []
+				},
+				{
+					"name": "List clans",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": "tests[\"Status code is 200\"] = responseCode.code === 200;"
+							}
+						}
+					],
+					"request": {
+						"url": "{{baseKhanURL}}games/sample-game/clans",
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Sample Clan\",\n  \"metadata\": { \"x\": 1 },\n  \"ownerPublicID\": \"sample-player\",\n  \"allowApplication\": true,\n  \"autoJoin\": true\n}"
+						},
+						"description": "List all clan summaries for the 'sample-game' game."
+					},
+					"response": []
+				},
+				{
+					"name": "Clan search",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": "tests[\"Status code is 200\"] = responseCode.code === 200;"
+							}
+						}
+					],
+					"request": {
+						"url": "{{baseKhanURL}}games/sample-game/clan-search?term=sample",
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Sample Clan\",\n  \"metadata\": { \"x\": 1 },\n  \"ownerPublicID\": \"sample-player\",\n  \"allowApplication\": true,\n  \"autoJoin\": true\n}"
+						},
+						"description": "Search Khan for all clans that match the term 'sample' for the 'sample-game' game."
+					},
+					"response": []
+				},
+				{
+					"name": "Leave clan",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": "tests[\"Status code is 200\"] = responseCode.code === 200;"
+							}
+						}
+					],
+					"request": {
+						"url": "{{baseKhanURL}}games/sample-game/clans/sample-clan/leave",
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"description": "Owner of the 'sample-clan' leaves the clan in the 'sample-game' game."
+					},
+					"response": []
+				},
+				{
+					"name": "Transfer Ownership",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": "tests[\"Status code is 200\"] = responseCode.code === 200;"
+							}
+						}
+					],
+					"request": {
+						"url": "{{baseKhanURL}}games/sample-game/clans/sample-clan/transferownership",
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"playerPublicID\": \"sample-player-2\"\n}"
+						},
+						"description": "WARNING: Make sure \"sample-player-2\" player has been created before executing this route.\n\nTransfers the ownership of \"sample-clan\" to \"sample-player-2\" in the \"sample-game\"."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Game",
+			"description": "Game-related operations.",
+			"item": [
+				{
+					"name": "Create a new game",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": "tests[\"Status code is 200\"] = responseCode.code === 200;"
+							}
+						}
+					],
+					"request": {
+						"url": "{{baseKhanURL}}games",
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"publicID\": \"sample-game\",\n    \"name\": \"Sample Game\",\n    \"metadata\": { \"x\": 1 },\n    \"membershipLevels\": {\n      \"Member\": 1,\n      \"Elder\": 2,\n      \"CoLeader\": 3\n    },\n    \"minLevelToAcceptApplication\":   2,\n    \"minLevelToCreateInvitation\":    2,\n    \"minLevelToRemoveMember\":        2,\n    \"minLevelOffsetToRemoveMember\":  1,\n    \"minLevelOffsetToPromoteMember\": 1,\n    \"minLevelOffsetToDemoteMember\":  1,\n    \"maxMembers\":                    50,\n    \"maxClansPerPlayer\":             1,\n    \"cooldownAfterDeny\":             10,\n    \"cooldownAfterDelete\":           10,\n    \"cooldownBeforeInvite\":          10,\n    \"cooldownBeforeApply\":           10,\n    \"maxPendingInvites\":             20\n}"
+						},
+						"description": "Creates a new game with Public ID 'sample-game'."
+					},
+					"response": []
+				},
+				{
+					"name": "Update or create a game",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": "tests[\"Status code is 200\"] = responseCode.code === 200;"
+							}
+						}
+					],
+					"request": {
+						"url": "{{baseKhanURL}}games/sample-game",
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Sample Game\",\n    \"metadata\": { \"x\": 1 },\n    \"membershipLevels\": {\n      \"Member\": 1,\n      \"Elder\": 2,\n      \"CoLeader\": 3\n    },\n    \"minLevelToAcceptApplication\":   2,\n    \"minLevelToCreateInvitation\":    2,\n    \"minLevelToRemoveMember\":        2,\n    \"minLevelOffsetToRemoveMember\":  1,\n    \"minLevelOffsetToPromoteMember\": 1,\n    \"minLevelOffsetToDemoteMember\":  1,\n    \"maxMembers\":                    50,\n    \"maxClansPerPlayer\":             1,\n    \"cooldownAfterDeny\":             10,\n    \"cooldownAfterDelete\":           10,\n    \"cooldownBeforeInvite\":          10,\n    \"cooldownBeforeApply\":           10,\n    \"maxPendingInvites\":             20\n}"
+						},
+						"description": "Creates a new game with Public ID 'sample-game' if it does not exist and updates it otherwise."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Health",
+			"description": "",
+			"item": [
+				{
+					"name": "Healthcheck",
+					"request": {
+						"url": "{{baseKhanURL}}healthcheck",
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"description": "Indicates that khan is responding properly."
+					},
+					"response": []
+				},
+				{
+					"name": "Status",
+					"request": {
+						"url": "{{baseKhanURL}}status",
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"description": "Returns statistics about errors and queue size for Khan."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Hook",
+			"description": "WebHook-related operations.",
+			"item": [
+				{
+					"name": "Create a new hook",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": "tests[\"Status code is 200\"] = responseCode.code === 200;\nvar jsonData = JSON.parse(responseBody);\npostman.setEnvironmentVariable(\"lastHook\", jsonData.publicID);"
+							}
+						}
+					],
+					"request": {
+						"url": "{{baseKhanURL}}games/sample-game/hooks",
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"type\": 0,\n  \"hookURL\": \"{{baseKhanURL}}/healthcheck\"\n}"
+						},
+						"description": "Creates a new hook for 'sample-game' game-updated event."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete existing hook",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": "tests[\"Status code is 200\"] = responseCode.code === 200;"
+							}
+						}
+					],
+					"request": {
+						"url": "{{baseKhanURL}}games/sample-game/hooks/{{lastHook}}",
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"description": "Delete the last created hook (with the \"Create a new hook\" route)."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Membership",
+			"description": "Membership-related operations.",
+			"item": [
+				{
+					"name": "Apply for Clan",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": "tests[\"Status code is 200\"] = responseCode.code === 200;"
+							}
+						}
+					],
+					"request": {
+						"url": "{{baseKhanURL}}games/sample-game/clans/sample-clan/memberships/application",
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"level\": \"Member\",\n    \"playerPublicID\": \"sample-player-2\",\n    \"message\": \"Please let me in?\"\n}"
+						},
+						"description": "WARNING: Make sure \"sample-player-2\" player has been created before executing this route.\n\nApplies for a membership of \"Member\" for \"sample-player-2\" at \"sample-clan\" in \"sample-game\"."
+					},
+					"response": []
+				},
+				{
+					"name": "Approve Application",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": "tests[\"Status code is 200\"] = responseCode.code === 200;"
+							}
+						}
+					],
+					"request": {
+						"url": "{{baseKhanURL}}games/sample-game/clans/sample-clan/memberships/application/approve",
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"playerPublicID\": \"sample-player-2\",\n    \"requestorPublicID\": \"sample-player\"\n}"
+						},
+						"description": "WARNING: Make sure \"sample-player-2\" application for \"sample-clan\" has been created before executing this route.\n\nApproves a membership of \"Member\" for \"sample-player-2\" at \"sample-clan\" in \"sample-game\"."
+					},
+					"response": []
+				},
+				{
+					"name": "Deny Application",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": "tests[\"Status code is 200\"] = responseCode.code === 200;"
+							}
+						}
+					],
+					"request": {
+						"url": "{{baseKhanURL}}games/sample-game/clans/sample-clan/memberships/application/deny",
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"playerPublicID\": \"sample-player-2\",\n    \"requestorPublicID\": \"sample-player\"\n}"
+						},
+						"description": "WARNING: Make sure \"sample-player-2\" application for \"sample-clan\" has been created before executing this route.\n\nDenies a membership of \"Member\" for \"sample-player-2\" at \"sample-clan\" in \"sample-game\"."
+					},
+					"response": []
+				},
+				{
+					"name": "Invite Member",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": "tests[\"Status code is 200\"] = responseCode.code === 200;"
+							}
+						}
+					],
+					"request": {
+						"url": "{{baseKhanURL}}games/sample-game/clans/sample-clan/memberships/invitation",
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"level\": \"Member\",\n    \"playerPublicID\": \"sample-player-3\",\n    \"requestorPublicID\": \"sample-player\"\n}"
+						},
+						"description": "WARNING: Make sure \"sample-player-3\" has been created before executing this route.\n\nCreates an invitation of \"Member\" for \"sample-player-3\" at \"sample-clan\" in \"sample-game\"."
+					},
+					"response": []
+				},
+				{
+					"name": "Accept Invitation",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": "tests[\"Status code is 200\"] = responseCode.code === 200;"
+							}
+						}
+					],
+					"request": {
+						"url": "{{baseKhanURL}}games/sample-game/clans/sample-clan/memberships/invitation/approve",
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"playerPublicID\": \"sample-player-3\"\n}"
+						},
+						"description": "WARNING: Make sure \"sample-player-3\" invitation for \"sample-clan\" has been created before executing this route.\n\nAccepts a membership of \"Member\" for \"sample-player-3\" at \"sample-clan\" in \"sample-game\"."
+					},
+					"response": []
+				},
+				{
+					"name": "Reject Invitation",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": "tests[\"Status code is 200\"] = responseCode.code === 200;"
+							}
+						}
+					],
+					"request": {
+						"url": "{{baseKhanURL}}games/sample-game/clans/sample-clan/memberships/invitation/deny",
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"playerPublicID\": \"sample-player-3\"\n}"
+						},
+						"description": "WARNING: Make sure \"sample-player-3\" invitation for \"sample-clan\" has been created before executing this route.\n\nRejects a membership of \"Member\" for \"sample-player-3\" at \"sample-clan\" in \"sample-game\"."
+					},
+					"response": []
+				},
+				{
+					"name": "Promote Member",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": "tests[\"Status code is 200\"] = responseCode.code === 200;"
+							}
+						}
+					],
+					"request": {
+						"url": "{{baseKhanURL}}games/sample-game/clans/sample-clan/memberships/promote",
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"playerPublicID\": \"sample-player-3\",\n    \"requestorPublicID\": \"sample-player\"\n}"
+						},
+						"description": "WARNING: Make sure \"sample-player-3\" invitation for \"sample-clan\" has been accepted before executing this route.\n\nPromotes \"sample-player-3\" at \"sample-clan\" in \"sample-game\"."
+					},
+					"response": []
+				},
+				{
+					"name": "Demote member",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": "tests[\"Status code is 200\"] = responseCode.code === 200;"
+							}
+						}
+					],
+					"request": {
+						"url": "{{baseKhanURL}}games/sample-game/clans/sample-clan/memberships/demote",
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"playerPublicID\": \"sample-player-3\",\n    \"requestorPublicID\": \"sample-player\"\n}"
+						},
+						"description": "WARNING: Make sure \"sample-player-3\" invitation for \"sample-clan\" has been accepted before executing this route.\n\nDemotes \"sample-player-3\" at \"sample-clan\" in \"sample-game\"."
+					},
+					"response": []
+				},
+				{
+					"name": "Remove member",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": "tests[\"Status code is 200\"] = responseCode.code === 200;"
+							}
+						}
+					],
+					"request": {
+						"url": "{{baseKhanURL}}games/sample-game/clans/sample-clan/memberships/delete",
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"playerPublicID\": \"sample-player-3\",\n    \"requestorPublicID\": \"sample-player\"\n}"
+						},
+						"description": "WARNING: Make sure \"sample-player-3\" invitation for \"sample-clan\" has been accepted before executing this route.\n\nRemoves \"sample-player-3\" from \"sample-clan\" in \"sample-game\"."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Player",
+			"description": "Player-related operations.",
+			"item": [
+				{
+					"name": "Create a new player",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": "tests[\"Status code is 200\"] = responseCode.code === 200;"
+							}
+						}
+					],
+					"request": {
+						"url": "{{baseKhanURL}}games/sample-game/players",
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"publicID\": \"sample-player\",\n  \"name\": \"Sample Player\",\n  \"metadata\": { \"x\": 1 }\n}"
+						},
+						"description": "Creates a new player 'sample-player' for 'sample-game'."
+					},
+					"response": []
+				},
+				{
+					"name": "Update or create a player",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": "tests[\"Status code is 200\"] = responseCode.code === 200;"
+							}
+						}
+					],
+					"request": {
+						"url": "{{baseKhanURL}}games/sample-game/players/sample-player",
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Sample Player\",\n  \"metadata\": { \"x\": 1 }\n}"
+						},
+						"description": "Updates or creates a player 'sample-player' for 'sample-game'."
+					},
+					"response": []
+				},
+				{
+					"name": "Get player details",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": "tests[\"Status code is 200\"] = responseCode.code === 200;"
+							}
+						}
+					],
+					"request": {
+						"url": "{{baseKhanURL}}games/sample-game/players/sample-player",
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Sample Player\",\n  \"metadata\": { \"x\": 1 }\n}"
+						},
+						"description": "Gets player details for the 'sample-player' player in the 'sample-game'."
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
