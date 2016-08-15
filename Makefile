@@ -39,6 +39,18 @@ assets:
 		go generate -x $$pkg ; \
     done
 
+start-deps:
+	@cd ./scripts && docker-compose --project-name=khan up -d
+	@until docker exec khan_postgres_1 pg_isready; do echo 'Waiting for Postgres...' && sleep 1; done
+	@until docker exec khan_elasticsearch_1 curl localhost:9200; do echo 'Waiting for Elasticsearch...' && sleep 1; done
+	@sleep 5
+	@docker exec khan_postgres_1 createuser -s -U postgres khan
+	@docker exec khan_postgres_1 createdb -U khan khan
+	@make migrate
+
+stop-deps:
+	@cd ./scripts && docker-compose --project-name=khan down
+
 cross: assets
 	@mkdir -p ./bin
 	@echo "Building for linux-i386..."

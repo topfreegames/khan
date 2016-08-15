@@ -2,9 +2,14 @@ postgres:
   user: "khan_test"
   dbName: "khan_test"
   host: "localhost"
-  port: 5432
+  port: 5555
   sslMode: "disable"
-
+elasticsearch:
+  host: "localhost"
+  enabled: true
+  port: 9233
+  sniff: true
+  index: "khan"
 khan:
   maxPendingInvites: -1
   defaultCooldownBeforeInvite: 0

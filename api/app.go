@@ -19,6 +19,7 @@ import (
 	"github.com/kataras/iris/config"
 	"github.com/rcrowley/go-metrics"
 	"github.com/spf13/viper"
+	"github.com/topfreegames/khan/es"
 	"github.com/topfreegames/khan/models"
 	"github.com/uber-go/zap"
 )
@@ -35,6 +36,7 @@ type App struct {
 	Config         *viper.Viper
 	Dispatcher     *Dispatcher
 	Logger         zap.Logger
+	ESClient       *es.ESClient
 	ReadBufferSize int
 }
 
@@ -61,6 +63,7 @@ func (app *App) Configure() {
 	app.configureSentry()
 	app.connectDatabase()
 	app.configureApplication()
+	app.configureElasticsearch()
 	app.initDispatcher()
 }
 
@@ -75,6 +78,12 @@ func (app *App) configureSentry() {
 	raven.SetRelease(VERSION)
 }
 
+func (app *App) configureElasticsearch() {
+	if app.Config.GetBool("elasticsearch.enabled") == true {
+		app.ESClient = es.GetESClient(app.Config.GetString("elasticsearch.host"), app.Config.GetInt("elasticsearch.port"), app.Config.GetString("elasticsearch.index"), app.Config.GetBool("elasticsearch.sniff"), app.Logger, app.Debug)
+	}
+}
+
 func (app *App) setConfigurationDefaults() {
 	l := app.Logger.With(
 		zap.String("source", "app"),
@@ -87,6 +96,11 @@ func (app *App) setConfigurationDefaults() {
 	app.Config.SetDefault("postgres.port", 5432)
 	app.Config.SetDefault("postgres.sslMode", "disable")
 	app.Config.SetDefault("webhooks.timeout", 2)
+	app.Config.SetDefault("elasticsearch.host", "localhost")
+	app.Config.SetDefault("elasticsearch.port", 9234)
+	app.Config.SetDefault("elasticsearch.sniff", true)
+	app.Config.SetDefault("elasticsearch.index", "khan")
+	app.Config.SetDefault("elasticsearch.enabled", false)
 	app.Config.SetDefault("khan.maxPendingInvites", -1)
 	app.Config.SetDefault("khan.defaultCooldownBeforeInvite", -1)
 	app.Config.SetDefault("khan.defaultCooldownBeforeApply", -1)
