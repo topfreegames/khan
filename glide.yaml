@@ -25,3 +25,5 @@ import:
 - package: github.com/getsentry/raven-go
 - package: github.com/onsi/ginkgo
   version: ^1.2.0
+- package: gopkg.in/olivere/elastic.v3
+  version: ^3.0.45

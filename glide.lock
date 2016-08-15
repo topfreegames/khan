@@ -1,8 +1,14 @@
-hash: cc48c23d356eab766bcef5a63d581ca2d96dea588476df6c98f474fdfe946b37
-updated: 2016-08-19T15:07:21.341680327-03:00
+hash: 6d9b15780bd206f7ba475ad241d169377f7929c726632170e0d694a0f088b968
+updated: 2016-08-15T17:34:23.546754637-03:00
 imports:
 - name: github.com/ajg/form
-  version: cc2954064ec9ea8d93917f0f87456e11d7b881ad
+  version: 7ff89c75808766205bfa4411abb436c98c33eb5e
+- name: github.com/aymerick/raymond
+  version: a2232af10b53ef1ae5a767f5178db3a6c1dab655
+  subpackages:
+  - ast
+  - parser
+  - lexer
 - name: github.com/bluele/factory-go
   version: 8a28e9752dbc744626695b749a3ab474b8b372fa
   subpackages:
@@ -16,7 +22,12 @@ imports:
 - name: github.com/fatih/structs
   version: dc3312cb1a4513a366c4c9e622ad55c32df12ed3
 - name: github.com/fsnotify/fsnotify
-  version: f12c6236fe7b5cf6bcf30e5935d08cb079d78334
+  version: a8a77c9133d2d6fd8334f3260d06f60e8d80a5fb
+- name: github.com/garyburd/redigo
+  version: b8dc90050f24c1a73a52f107f3f575be67b21b7c
+  subpackages:
+  - redis
+  - internal
 - name: github.com/gavv/gojsondiff
   version: 36046c6e558e7f854ebd3fd97d1e9812ebe8709b
   subpackages:
@@ -44,10 +55,10 @@ imports:
   subpackages:
   - hcl/ast
   - hcl/parser
-  - hcl/scanner
-  - hcl/strconv
   - hcl/token
   - json/parser
+  - hcl/scanner
+  - hcl/strconv
   - json/scanner
   - json/token
 - name: github.com/imdario/mergo
@@ -92,15 +103,30 @@ imports:
 - name: github.com/kataras/iris
   version: 2d067ac08101b10e9622d741a12a92c89fac5693
   subpackages:
+  - iris
   - config
   - context
-  - iris
+  - logger
+  - render/rest
+  - render/template
+  - sessions
+  - sessions/providers/memory
+  - sessions/providers/redis
+  - sessions/store
   - utils
+  - websocket
+  - render/template/engine/amber
+  - render/template/engine/handlebars
+  - render/template/engine/html
+  - render/template/engine/jade
+  - render/template/engine/markdown
+  - render/template/engine/pongo
+  - sessions/providers/redis/service
 - name: github.com/klauspost/compress
   version: 08fe86a420401e830c24114bdf9f1ba91331407a
   subpackages:
-  - flate
   - gzip
+  - flate
   - zlib
 - name: github.com/klauspost/cpuid
   version: 09cded8978dc9e80714c4d85b0322337b0a1e5e0
@@ -135,31 +161,31 @@ imports:
   subpackages:
   - config
   - internal/codelocation
-  - internal/containernode
   - internal/failer
-  - internal/leafnodes
   - internal/remote
-  - internal/spec
-  - internal/specrunner
   - internal/suite
   - internal/testingtproxy
   - internal/writer
   - reporters
   - reporters/stenographer
   - types
+  - internal/containernode
+  - internal/leafnodes
+  - internal/spec
+  - internal/specrunner
 - name: github.com/onsi/gomega
   version: 4dfabf7db2e4147ec99a86db32b2f2a3484cfee8
   subpackages:
-  - format
   - internal/assertion
   - internal/asyncassertion
   - internal/testingtsupport
   - matchers
+  - types
+  - format
   - matchers/support/goraph/bipartitegraph
   - matchers/support/goraph/edge
   - matchers/support/goraph/node
   - matchers/support/goraph/util
-  - types
 - name: github.com/Pallinder/go-randomdata
   version: 104cc800bd6434e70cb0c3ad08c4541f4f2eb48b
 - name: github.com/pkg/errors
@@ -252,10 +278,9 @@ imports:
 - name: golang.org/x/net
   version: 07b51741c1d6423d4a6abab1c49940ec09cb1aaf
   subpackages:
-  - context
+  - publicsuffix
   - html
   - html/atom
-  - publicsuffix
 - name: golang.org/x/sys
   version: a646d33e2ee3172a661fc09bca23bb4889a41bc8
   subpackages:
@@ -278,11 +303,8 @@ imports:
   version: dc339328a5b3638045ba972e16b5ac6c0f46c796
 - name: gopkg.in/gorp.v1
   version: c87af80f3cc5036b55b83d77171e156791085e2e
-- name: gopkg.in/square/go-jose.v1
-  version: a3927f83df1b1516f9e9dec71839c93e6bcf1db0
-  subpackages:
-  - cipher
-  - json
+- name: gopkg.in/olivere/elastic.v3
+  version: 787ebbb5a7600662bca364e4e8ca959f315e442f
 - name: gopkg.in/yaml.v2
   version: e4d366fc3c7938e2958e662b4258c7a89e1f0e3e
 testImports: []
