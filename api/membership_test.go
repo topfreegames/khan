@@ -934,6 +934,7 @@ var _ = Describe("Membership API Handler", func() {
 
 			response := (*responses)[0]["payload"].(map[string]interface{})
 			validateMembershipHookResponse(response, gameID, clan, players[0], owner)
+			validateApproveDenyMembershipHookResponse(response, players[0])
 		})
 
 		It("should call membership approved hook on invitation", func() {
@@ -943,7 +944,7 @@ var _ = Describe("Membership API Handler", func() {
 			Expect(err).NotTo(HaveOccurred())
 			responses := startRouteHandler([]string{"/membershipinvitationapproved"}, 52525)
 
-			_, clan, _, players, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 1, hooks[0].GameID, "", true)
+			_, clan, owner, players, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 1, hooks[0].GameID, "", true)
 			Expect(err).NotTo(HaveOccurred())
 
 			clan.AllowApplication = true
@@ -973,6 +974,7 @@ var _ = Describe("Membership API Handler", func() {
 
 			response := (*responses)[0]["payload"].(map[string]interface{})
 			validateMembershipHookResponse(response, gameID, clan, players[0], players[0])
+			validateApproveDenyMembershipHookResponse(response, owner)
 		})
 
 		It("should call membership denied hook on application", func() {
@@ -1012,6 +1014,7 @@ var _ = Describe("Membership API Handler", func() {
 
 			response := (*responses)[0]["payload"].(map[string]interface{})
 			validateMembershipHookResponse(response, gameID, clan, players[0], owner)
+			validateApproveDenyMembershipHookResponse(response, players[0])
 		})
 
 		It("should call membership denied hook on invitation", func() {
@@ -1021,7 +1024,7 @@ var _ = Describe("Membership API Handler", func() {
 			Expect(err).NotTo(HaveOccurred())
 			responses := startRouteHandler([]string{"/membershipinvitationdenied"}, 52525)
 
-			_, clan, _, players, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 1, hooks[0].GameID, "", true)
+			_, clan, owner, players, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 1, hooks[0].GameID, "", true)
 			Expect(err).NotTo(HaveOccurred())
 
 			clan.AllowApplication = true
@@ -1051,6 +1054,7 @@ var _ = Describe("Membership API Handler", func() {
 
 			response := (*responses)[0]["payload"].(map[string]interface{})
 			validateMembershipHookResponse(response, gameID, clan, players[0], players[0])
+			validateApproveDenyMembershipHookResponse(response, owner)
 		})
 
 		It("should call membership promoted hook", func() {
