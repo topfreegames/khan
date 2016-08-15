@@ -331,6 +331,13 @@ Payload:
             "membershipCount": [int],                   // Number of clans this player is a member of
             "ownershipCount":  [int]                    // Number of clans this player is an owner of
         },
+        "creator": {                                    // Player that created the membership (invited or applied)
+            "publicID": [string],                       // Creator PublicID
+            "name": [string],                           // Creator Name
+            "metadata": [JSON],                         // JSON Object containing creator metadata
+            "membershipCount": [int],                   // Number of clans this creator is a member of
+            "ownershipCount":  [int]                    // Number of clans this creator is an owner of
+        },
         "id": [UUID],                                   // unique id that identifies the hook
         "timestamp": [timestamp]                        // timestamp in the RFC3339 format
     }
@@ -368,6 +375,13 @@ Payload:
             "metadata": [JSON],                         // JSON Object containing player metadata
             "membershipCount": [int],                   // Number of clans this player is a member of
             "ownershipCount":  [int]                    // Number of clans this player is an owner of
+        },
+        "creator": {                                    // Player that created the membership (invited or applied)
+            "publicID": [string],                       // Creator PublicID
+            "name": [string],                           // Creator Name
+            "metadata": [JSON],                         // JSON Object containing creator metadata
+            "membershipCount": [int],                   // Number of clans this creator is a member of
+            "ownershipCount":  [int]                    // Number of clans this creator is an owner of
         },
         "id": [UUID],                                   // unique id that identifies the hook
         "timestamp": [timestamp]                        // timestamp in the RFC3339 format
