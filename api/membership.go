@@ -306,11 +306,12 @@ func ApproveOrDenyMembershipApplicationHandler(app *App) func(c *iris.Context) {
 			hookType = models.MembershipDeniedHook
 		}
 
-		err = dispatchMembershipHookByID(
+		err = dispatchApproveDenyMembershipHookByID(
 			app, tx, hookType,
 			membership.GameID, membership.ClanID, membership.PlayerID,
-			requestor.ID, membership.Message,
+			requestor.ID, membership.RequestorID, membership.Message,
 		)
+
 		if err != nil {
 			msg := "Membership approved/denied application dispatch hook failed."
 			txErr := rb(err)
@@ -408,11 +409,12 @@ func ApproveOrDenyMembershipInvitationHandler(app *App) func(c *iris.Context) {
 			hookType = models.MembershipDeniedHook
 		}
 
-		err = dispatchMembershipHookByID(
+		err = dispatchApproveDenyMembershipHookByID(
 			app, tx, hookType,
 			membership.GameID, membership.ClanID, membership.PlayerID,
-			membership.PlayerID, membership.Message,
+			membership.PlayerID, membership.RequestorID, membership.Message,
 		)
+
 		if err != nil {
 			txErr := rb(err)
 			if txErr == nil {

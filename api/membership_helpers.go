@@ -103,6 +103,39 @@ func dispatchMembershipHookByID(app *App, db models.DB, hookType int, gameID str
 	return dispatchMembershipHook(app, db, hookType, gameID, clan, player, requestor, message)
 }
 
+func dispatchApproveDenyMembershipHookByID(app *App, db models.DB, hookType int, gameID string, clanID, playerID, requestorID, creatorID int, message string) error {
+	clan, err := models.GetClanByID(db, clanID)
+	if err != nil {
+		return err
+	}
+
+	player, err := models.GetPlayerByID(db, playerID)
+	if err != nil {
+		return err
+	}
+
+	requestor := player
+	if requestorID != playerID {
+		requestor, err = models.GetPlayerByID(db, requestorID)
+		if err != nil {
+			return err
+		}
+	}
+
+	creator := player
+	if creatorID != playerID {
+		creator = requestor
+		if creatorID != requestorID {
+			creator, err = models.GetPlayerByID(db, creatorID)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return dispatchApproveDenyMembershipHook(app, db, hookType, gameID, clan, player, requestor, creator, message)
+}
+
 func dispatchMembershipHook(app *App, db models.DB, hookType int, gameID string, clan *models.Clan, player *models.Player, requestor *models.Player, message string) error {
 	clanJSON := clan.Serialize()
 	delete(clanJSON, "gameID")
@@ -118,6 +151,35 @@ func dispatchMembershipHook(app *App, db models.DB, hookType int, gameID string,
 		"clan":      clanJSON,
 		"player":    playerJSON,
 		"requestor": requestorJSON,
+	}
+
+	if message != "" {
+		result["message"] = message
+	}
+	app.DispatchHooks(gameID, hookType, result)
+
+	return nil
+}
+
+func dispatchApproveDenyMembershipHook(app *App, db models.DB, hookType int, gameID string, clan *models.Clan, player *models.Player, requestor *models.Player, creator *models.Player, message string) error {
+	clanJSON := clan.Serialize()
+	delete(clanJSON, "gameID")
+
+	playerJSON := player.Serialize()
+	delete(playerJSON, "gameID")
+
+	requestorJSON := requestor.Serialize()
+	delete(requestorJSON, "gameID")
+
+	creatorJSON := creator.Serialize()
+	delete(creatorJSON, "gameID")
+
+	result := map[string]interface{}{
+		"gameID":    gameID,
+		"clan":      clanJSON,
+		"player":    playerJSON,
+		"requestor": requestorJSON,
+		"creator":   creatorJSON,
 	}
 
 	if message != "" {

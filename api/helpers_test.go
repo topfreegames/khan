@@ -209,3 +209,16 @@ func validateMembershipHookResponse(apply map[string]interface{}, gameID string,
 		Expect(rv).To(Equal(metadata[rk]))
 	}
 }
+
+func validateApproveDenyMembershipHookResponse(apply map[string]interface{}, creator *models.Player) {
+	cPlayer := apply["creator"].(map[string]interface{})
+	Expect(cPlayer["publicID"]).To(Equal(creator.PublicID))
+	Expect(cPlayer["name"]).To(Equal(creator.Name))
+	Expect(cPlayer["membershipCount"].(float64)).To(BeNumerically(">=", 0))
+	Expect(cPlayer["ownershipCount"].(float64)).To(BeNumerically(">=", 0))
+	playerMetadata := cPlayer["metadata"].(map[string]interface{})
+	metadata := creator.Metadata
+	for rk, rv := range playerMetadata {
+		Expect(rv).To(Equal(metadata[rk]))
+	}
+}
