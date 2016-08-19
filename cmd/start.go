@@ -28,7 +28,10 @@ environment variables to override configuration keys.`,
 		if debug {
 			ll = zap.DebugLevel
 		}
-		l := zap.NewJSON(ll)
+		l := zap.New(
+			zap.NewJSONEncoder(), // drop timestamps in tests
+			ll,
+		)
 
 		cmdL := l.With(
 			zap.String("source", "startCmd"),

@@ -97,6 +97,8 @@ drop:
 db-test migrate-test:
 	@psql -d postgres -c "SHOW SERVER_VERSION"
 	@go run main.go migrate -c ./config/test.yaml
+	@go run main.go migrate -t 0 -c ./config/test.yaml
+	@go run main.go migrate -c ./config/test.yaml
 
 drop-test:
 	@-psql -d postgres -c "SELECT pg_terminate_backend(pid.pid) FROM pg_stat_activity, (SELECT pid FROM pg_stat_activity where pid <> pg_backend_pid()) pid WHERE datname='khan_test';"

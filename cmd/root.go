@@ -54,13 +54,16 @@ func InitConfig() {
 	if ConfigFile != "" { // enable ability to specify config file via flag
 		viper.SetConfigFile(ConfigFile)
 	}
+	viper.SetConfigType("yaml")
 	viper.SetEnvPrefix("khan")
-	viper.SetConfigName(".khan") // name of config file (without extension)
-	viper.AddConfigPath("$HOME") // adding home directory as first search path
-	viper.AutomaticEnv()         // read in environment variables that match
+	viper.AddConfigPath(".") // optionally look for config in the working directory
+	viper.AutomaticEnv()     // read in environment variables that match
 
 	// If a config file is found, read it in.
 	if err := viper.ReadInConfig(); err == nil {
 		fmt.Printf("Using config file: %s", viper.ConfigFileUsed())
+	} else {
+		fmt.Printf("Config file %s failed to load: %s.\n", ConfigFile, err.Error())
+		panic("Failed to load config file")
 	}
 }
