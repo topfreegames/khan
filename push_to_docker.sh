@@ -9,9 +9,18 @@ docker build -t khan-dev ./dev
 docker login -e="$DOCKER_EMAIL" -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
 
 docker tag khan:latest tfgco/khan:$VERSION.$TRAVIS_BUILD_NUMBER
+docker tag khan:latest tfgco/khan:$VERSION
+docker tag khan:latest tfgco/khan:latest
 docker push tfgco/khan:$VERSION.$TRAVIS_BUILD_NUMBER
+docker push tfgco/khan:$VERSION
+docker push tfgco/khan:latest
+
 docker tag khan-dev:latest tfgco/khan-dev:$VERSION.$TRAVIS_BUILD_NUMBER
+docker tag khan-dev:latest tfgco/khan-dev:$VERSION
+docker tag khan-dev:latest tfgco/khan-dev:latest
 docker push tfgco/khan-dev:$VERSION.$TRAVIS_BUILD_NUMBER
+docker push tfgco/khan-dev:$VERSION
+docker push tfgco/khan-dev:latest
 
 DOCKERHUB_LATEST=$(python get_latest_tag.py)
 
