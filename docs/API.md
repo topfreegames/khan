@@ -196,7 +196,9 @@ Khan API
       "cooldownAfterDelete":           [int],
       "cooldownBeforeInvite":          [int],
       "cooldownBeforeApply":           [int],
-      "maxPendingInvites":             [int]
+      "maxPendingInvites":             [int],
+      "clanHookFieldsWhitelist":       [string],
+      "playerHookFieldsWhitelist":     [string]
     }
     ```
 
