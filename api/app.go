@@ -100,8 +100,10 @@ func (app *App) loadConfiguration() {
 		zap.String("configPath", app.ConfigPath),
 	)
 
+	app.Config.SetConfigType("yaml")
 	app.Config.SetConfigFile(app.ConfigPath)
 	app.Config.SetEnvPrefix("khan")
+	app.Config.AddConfigPath(".")
 	app.Config.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	app.Config.AutomaticEnv()
 

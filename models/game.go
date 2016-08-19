@@ -18,28 +18,30 @@ import (
 
 // Game identifies uniquely one game
 type Game struct {
-	ID                            int                    `db:"id"`
-	PublicID                      string                 `db:"public_id"`
-	Name                          string                 `db:"name"`
-	MinMembershipLevel            int                    `db:"min_membership_level"`
-	MaxMembershipLevel            int                    `db:"max_membership_level"`
-	MinLevelToAcceptApplication   int                    `db:"min_level_to_accept_application"`
-	MinLevelToCreateInvitation    int                    `db:"min_level_to_create_invitation"`
-	MinLevelToRemoveMember        int                    `db:"min_level_to_remove_member"`
-	MinLevelOffsetToRemoveMember  int                    `db:"min_level_offset_to_remove_member"`
-	MinLevelOffsetToPromoteMember int                    `db:"min_level_offset_to_promote_member"`
-	MinLevelOffsetToDemoteMember  int                    `db:"min_level_offset_to_demote_member"`
-	MaxMembers                    int                    `db:"max_members"`
-	MaxClansPerPlayer             int                    `db:"max_clans_per_player"`
-	MembershipLevels              map[string]interface{} `db:"membership_levels"`
-	Metadata                      map[string]interface{} `db:"metadata"`
-	CreatedAt                     int64                  `db:"created_at"`
-	UpdatedAt                     int64                  `db:"updated_at"`
-	CooldownAfterDeny             int                    `db:"cooldown_after_deny"`
-	CooldownAfterDelete           int                    `db:"cooldown_after_delete"`
-	CooldownBeforeApply           int                    `db:"cooldown_before_apply"`
-	CooldownBeforeInvite          int                    `db:"cooldown_before_invite"`
-	MaxPendingInvites             int                    `db:"max_pending_invites"`
+	ID                                             int                    `db:"id"`
+	PublicID                                       string                 `db:"public_id"`
+	Name                                           string                 `db:"name"`
+	MinMembershipLevel                             int                    `db:"min_membership_level"`
+	MaxMembershipLevel                             int                    `db:"max_membership_level"`
+	MinLevelToAcceptApplication                    int                    `db:"min_level_to_accept_application"`
+	MinLevelToCreateInvitation                     int                    `db:"min_level_to_create_invitation"`
+	MinLevelToRemoveMember                         int                    `db:"min_level_to_remove_member"`
+	MinLevelOffsetToRemoveMember                   int                    `db:"min_level_offset_to_remove_member"`
+	MinLevelOffsetToPromoteMember                  int                    `db:"min_level_offset_to_promote_member"`
+	MinLevelOffsetToDemoteMember                   int                    `db:"min_level_offset_to_demote_member"`
+	MaxMembers                                     int                    `db:"max_members"`
+	MaxClansPerPlayer                              int                    `db:"max_clans_per_player"`
+	MembershipLevels                               map[string]interface{} `db:"membership_levels"`
+	Metadata                                       map[string]interface{} `db:"metadata"`
+	CreatedAt                                      int64                  `db:"created_at"`
+	UpdatedAt                                      int64                  `db:"updated_at"`
+	CooldownAfterDeny                              int                    `db:"cooldown_after_deny"`
+	CooldownAfterDelete                            int                    `db:"cooldown_after_delete"`
+	CooldownBeforeApply                            int                    `db:"cooldown_before_apply"`
+	CooldownBeforeInvite                           int                    `db:"cooldown_before_invite"`
+	MaxPendingInvites                              int                    `db:"max_pending_invites"`
+	ClanUpdateMetadataFieldsHookTriggerWhitelist   string                 `db:"clan_metadata_fields_whitelist"`
+	PlayerUpdateMetadataFieldsHookTriggerWhitelist string                 `db:"player_metadata_fields_whitelist"`
 }
 
 // PreInsert populates fields before inserting a new game
