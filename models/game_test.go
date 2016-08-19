@@ -149,6 +149,8 @@ var _ = Describe("Game Model", func() {
 			cooldownBeforeInvite := 8
 			cooldownBeforeApply := 25
 			maxPendingInvites := 20
+			clanUpdateMetadataFieldsHookTriggerWhitelist := "x"
+			playerUpdateMetadataFieldsHookTriggerWhitelist := "y,z"
 
 			game, err := CreateGame(
 				testDb,
@@ -170,6 +172,8 @@ var _ = Describe("Game Model", func() {
 				cooldownBeforeApply,
 				maxPendingInvites,
 				false,
+				clanUpdateMetadataFieldsHookTriggerWhitelist,
+				playerUpdateMetadataFieldsHookTriggerWhitelist,
 			)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(game.ID).NotTo(Equal(0))
@@ -192,6 +196,8 @@ var _ = Describe("Game Model", func() {
 			Expect(dbGame.CooldownAfterDelete).To(Equal(cooldownAfterDelete))
 			Expect(dbGame.CooldownAfterDeny).To(Equal(cooldownAfterDeny))
 			Expect(dbGame.MaxPendingInvites).To(Equal(maxPendingInvites))
+			Expect(dbGame.ClanUpdateMetadataFieldsHookTriggerWhitelist).To(Equal("x"))
+			Expect(dbGame.PlayerUpdateMetadataFieldsHookTriggerWhitelist).To(Equal("y,z"))
 
 			for k, v := range dbGame.MembershipLevels {
 				Expect(v.(float64)).To(BeEquivalentTo(game.MembershipLevels[k]))
@@ -213,6 +219,7 @@ var _ = Describe("Game Model", func() {
 				map[string]interface{}{"Member": 1, "Elder": 2, "CoLeader": 3},
 				map[string]interface{}{"x": 1},
 				5, 4, 7, 1, 1, 1, 100, 1, 5, 15, 8, 25, 20,
+				"x", "y,z",
 			)
 
 			Expect(err).NotTo(HaveOccurred())
@@ -241,6 +248,8 @@ var _ = Describe("Game Model", func() {
 				Expect(v.(float64)).To(BeEquivalentTo(updGame.MembershipLevels[k]))
 			}
 			Expect(dbGame.Metadata).To(Equal(updGame.Metadata))
+			Expect(dbGame.ClanUpdateMetadataFieldsHookTriggerWhitelist).To(Equal("x"))
+			Expect(dbGame.PlayerUpdateMetadataFieldsHookTriggerWhitelist).To(Equal("y,z"))
 		})
 
 		It("Should create a Game with UpdateGame if game does not exist", func() {
@@ -252,6 +261,7 @@ var _ = Describe("Game Model", func() {
 				map[string]interface{}{"Member": 1, "Elder": 2, "CoLeader": 3},
 				map[string]interface{}{"x": 1},
 				5, 4, 7, 1, 1, 1, 100, 1, 10, 30, 8, 25, 20,
+				"x", "y,z",
 			)
 
 			Expect(err).NotTo(HaveOccurred())
@@ -278,6 +288,8 @@ var _ = Describe("Game Model", func() {
 				Expect(v.(float64)).To(Equal(updGame.MembershipLevels[k].(float64)))
 			}
 			Expect(dbGame.Metadata).To(Equal(updGame.Metadata))
+			Expect(dbGame.ClanUpdateMetadataFieldsHookTriggerWhitelist).To(Equal("x"))
+			Expect(dbGame.PlayerUpdateMetadataFieldsHookTriggerWhitelist).To(Equal("y,z"))
 		})
 
 		It("Should not update a Game with Invalid Data with UpdateGame", func() {
@@ -292,6 +304,7 @@ var _ = Describe("Game Model", func() {
 				map[string]interface{}{"Member": 1, "Elder": 2, "CoLeader": 3},
 				map[string]interface{}{"x": 1},
 				5, 4, 7, 1, 1, 0, 100, 1, 0, 0, 8, 25, 20,
+				"x", "y,z",
 			)
 
 			Expect(err).To(HaveOccurred())

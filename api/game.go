@@ -74,6 +74,8 @@ func CreateGameHandler(app *App) func(c *iris.Context) {
 			optional.cooldownBeforeInvite,
 			optional.maxPendingInvites,
 			false,
+			optional.clanUpdateMetadataFieldsHookTriggerWhitelist,
+			optional.playerUpdateMetadataFieldsHookTriggerWhitelist,
 		)
 
 		if err != nil {
@@ -173,6 +175,8 @@ func UpdateGameHandler(app *App) func(c *iris.Context) {
 			optional.cooldownBeforeApply,
 			optional.cooldownBeforeInvite,
 			optional.maxPendingInvites,
+			optional.clanUpdateMetadataFieldsHookTriggerWhitelist,
+			optional.playerUpdateMetadataFieldsHookTriggerWhitelist,
 		)
 
 		if err != nil {

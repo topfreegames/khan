@@ -183,6 +183,17 @@ Payload:
         "timestamp": [timestamp]                    // timestamp in the RFC3339 format
     }
 
+**WARNING**: This event may be skipped if the game's `clanHookFieldsWhitelist` field is not empty and none of the fields that actually changed is in the whitelist. Imagine you have a document like this:
+
+```
+{
+    "trophies": 30,
+    "country": "US",
+}
+```
+
+The game is configured with `clanHookFieldsWhitelist = "country"`. That means that changing the number of trophies won't dispatch hooks, but changing the country (or any other clan property) will.
+
 #### Clan Owner Left
 
 Event Type: `5`

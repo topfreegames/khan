@@ -102,9 +102,11 @@ func logPayloadErrors(l zap.Logger, errors []string) {
 }
 
 type optionalParams struct {
-	maxPendingInvites    int
-	cooldownBeforeApply  int
-	cooldownBeforeInvite int
+	maxPendingInvites                              int
+	cooldownBeforeApply                            int
+	cooldownBeforeInvite                           int
+	clanUpdateMetadataFieldsHookTriggerWhitelist   string
+	playerUpdateMetadataFieldsHookTriggerWhitelist string
 }
 
 func getOptionalParameters(app *App, c *iris.Context) (*optionalParams, error) {
@@ -136,10 +138,26 @@ func getOptionalParameters(app *App, c *iris.Context) (*optionalParams, error) {
 		cooldownBeforeApply = app.Config.GetInt("khan.defaultCooldownBeforeApply")
 	}
 
+	var clanWhitelist string
+	if val, ok := jsonPayload["clanHookFieldsWhitelist"]; ok {
+		clanWhitelist = val.(string)
+	} else {
+		clanWhitelist = ""
+	}
+
+	var playerWhitelist string
+	if val, ok := jsonPayload["playerHookFieldsWhitelist"]; ok {
+		playerWhitelist = val.(string)
+	} else {
+		playerWhitelist = ""
+	}
+
 	return &optionalParams{
-		maxPendingInvites:    maxPendingInvites,
-		cooldownBeforeInvite: cooldownBeforeInvite,
-		cooldownBeforeApply:  cooldownBeforeApply,
+		maxPendingInvites:                              maxPendingInvites,
+		cooldownBeforeInvite:                           cooldownBeforeInvite,
+		cooldownBeforeApply:                            cooldownBeforeApply,
+		clanUpdateMetadataFieldsHookTriggerWhitelist:   clanWhitelist,
+		playerUpdateMetadataFieldsHookTriggerWhitelist: playerWhitelist,
 	}, nil
 }
 

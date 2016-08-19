@@ -688,55 +688,361 @@ var _ = Describe("Clan API Handler", func() {
 			}
 		})
 
-		It("Should call update clan hook", func() {
-			hooks, err := models.GetHooksForRoutes(testDb, []string{
-				"http://localhost:52525/clanupdated",
-			}, models.ClanUpdatedHook)
-			Expect(err).NotTo(HaveOccurred())
-			responses := startRouteHandler([]string{"/clanupdated"}, 52525)
+		Describe("Update Clan Hook", func() {
+			Describe("Without whitelist", func() {
+				It("Should call update clan hook", func() {
+					hooks, err := models.GetHooksForRoutes(testDb, []string{
+						"http://localhost:52525/clanupdated",
+					}, models.ClanUpdatedHook)
+					Expect(err).NotTo(HaveOccurred())
+					responses := startRouteHandler([]string{"/clanupdated"}, 52525)
 
-			_, clan, owner, _, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 0, hooks[0].GameID, "", true)
-			Expect(err).NotTo(HaveOccurred())
+					_, clan, owner, _, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 0, hooks[0].GameID, "", true)
+					Expect(err).NotTo(HaveOccurred())
 
-			gameID := clan.GameID
-			publicID := clan.PublicID
-			clanName := randomdata.FullName(randomdata.RandomGender)
-			ownerPublicID := owner.PublicID
-			metadata := map[string]interface{}{"new": "metadata"}
+					gameID := clan.GameID
+					publicID := clan.PublicID
+					clanName := randomdata.FullName(randomdata.RandomGender)
+					ownerPublicID := owner.PublicID
+					metadata := map[string]interface{}{"new": "metadata"}
 
-			payload := map[string]interface{}{
-				"name":             clanName,
-				"ownerPublicID":    ownerPublicID,
-				"metadata":         metadata,
-				"allowApplication": clan.AllowApplication,
-				"autoJoin":         clan.AutoJoin,
-			}
-			route := GetGameRoute(gameID, fmt.Sprintf("/clans/%s", publicID))
-			a := GetDefaultTestApp()
-			res := PutJSON(a, route, payload)
+					payload := map[string]interface{}{
+						"name":             clanName,
+						"ownerPublicID":    ownerPublicID,
+						"metadata":         metadata,
+						"allowApplication": clan.AllowApplication,
+						"autoJoin":         clan.AutoJoin,
+					}
+					route := GetGameRoute(gameID, fmt.Sprintf("/clans/%s", publicID))
+					a := GetDefaultTestApp()
+					res := PutJSON(a, route, payload)
 
-			Expect(res.Raw().StatusCode).To(Equal(http.StatusOK))
-			var result map[string]interface{}
-			json.Unmarshal([]byte(res.Body().Raw()), &result)
-			Expect(result["success"]).To(BeTrue())
+					Expect(res.Raw().StatusCode).To(Equal(http.StatusOK))
+					var result map[string]interface{}
+					json.Unmarshal([]byte(res.Body().Raw()), &result)
+					Expect(result["success"]).To(BeTrue())
 
-			a.Dispatcher.Wait()
+					a.Dispatcher.Wait()
 
-			Expect(len(*responses)).To(Equal(1))
+					Expect(len(*responses)).To(Equal(1))
 
-			hookRes := (*responses)[0]["payload"].(map[string]interface{})
-			Expect(hookRes["gameID"]).To(Equal(hooks[0].GameID))
-			rClan := hookRes["clan"].(map[string]interface{})
-			Expect(rClan["publicID"]).To(Equal(publicID))
-			Expect(rClan["name"]).To(Equal(payload["name"]))
-			Expect(str(rClan["membershipCount"])).To(Equal("1"))
-			Expect(rClan["allowApplication"]).To(Equal(payload["allowApplication"]))
-			Expect(rClan["autoJoin"]).To(Equal(payload["autoJoin"]))
-			clanMetadata := rClan["metadata"].(map[string]interface{})
-			metadata = payload["metadata"].(map[string]interface{})
-			for k, v := range clanMetadata {
-				Expect(str(v)).To(Equal(str(metadata[k])))
-			}
+					hookRes := (*responses)[0]["payload"].(map[string]interface{})
+					Expect(hookRes["gameID"]).To(Equal(hooks[0].GameID))
+					rClan := hookRes["clan"].(map[string]interface{})
+					Expect(rClan["publicID"]).To(Equal(publicID))
+					Expect(rClan["name"]).To(Equal(payload["name"]))
+					Expect(str(rClan["membershipCount"])).To(Equal("1"))
+					Expect(rClan["allowApplication"]).To(Equal(payload["allowApplication"]))
+					Expect(rClan["autoJoin"]).To(Equal(payload["autoJoin"]))
+					clanMetadata := rClan["metadata"].(map[string]interface{})
+					metadata = payload["metadata"].(map[string]interface{})
+					for k, v := range clanMetadata {
+						Expect(str(v)).To(Equal(str(metadata[k])))
+					}
+				})
+			})
+
+			Describe("With whitelist", func() {
+				It("Should call update clan hook if field in whitelist", func() {
+					hooks, err := models.GetHooksForRoutes(testDb, []string{
+						"http://localhost:52525/clanupdatedhookwhitelist",
+					}, models.ClanUpdatedHook)
+					Expect(err).NotTo(HaveOccurred())
+					responses := startRouteHandler([]string{"/clanupdatedhookwhitelist"}, 52525)
+
+					sqlRes, err := testDb.Exec(
+						"UPDATE games SET clan_metadata_fields_whitelist='something,new' WHERE public_id=$1",
+						hooks[0].GameID,
+					)
+					Expect(err).NotTo(HaveOccurred())
+					count, err := sqlRes.RowsAffected()
+					Expect(err).NotTo(HaveOccurred())
+					Expect(count).To(BeEquivalentTo(1))
+
+					_, clan, owner, _, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 0, hooks[0].GameID, "", true)
+					Expect(err).NotTo(HaveOccurred())
+
+					gameID := clan.GameID
+					publicID := clan.PublicID
+					ownerPublicID := owner.PublicID
+					metadata := map[string]interface{}{"new": "metadata"}
+
+					payload := map[string]interface{}{
+						"name":             clan.Name,
+						"ownerPublicID":    ownerPublicID,
+						"metadata":         metadata,
+						"allowApplication": clan.AllowApplication,
+						"autoJoin":         clan.AutoJoin,
+					}
+					route := GetGameRoute(gameID, fmt.Sprintf("/clans/%s", publicID))
+					a := GetDefaultTestApp()
+					res := PutJSON(a, route, payload)
+
+					Expect(res.Raw().StatusCode).To(Equal(http.StatusOK))
+					var result map[string]interface{}
+					json.Unmarshal([]byte(res.Body().Raw()), &result)
+					Expect(result["success"]).To(BeTrue())
+
+					a.Dispatcher.Wait()
+
+					Expect(len(*responses)).To(Equal(1))
+
+					hookRes := (*responses)[0]["payload"].(map[string]interface{})
+					Expect(hookRes["gameID"]).To(Equal(hooks[0].GameID))
+					rClan := hookRes["clan"].(map[string]interface{})
+					Expect(rClan["publicID"]).To(Equal(publicID))
+					Expect(rClan["name"]).To(Equal(payload["name"]))
+					Expect(str(rClan["membershipCount"])).To(Equal("1"))
+					Expect(rClan["allowApplication"]).To(Equal(payload["allowApplication"]))
+					Expect(rClan["autoJoin"]).To(Equal(payload["autoJoin"]))
+					clanMetadata := rClan["metadata"].(map[string]interface{})
+					metadata = payload["metadata"].(map[string]interface{})
+					for k, v := range clanMetadata {
+						Expect(str(v)).To(Equal(str(metadata[k])))
+					}
+				})
+
+				It("Should call update clan hook if field in whitelist is new", func() {
+					hooks, err := models.GetHooksForRoutes(testDb, []string{
+						"http://localhost:52525/clanupdatedhookwhitelist3",
+					}, models.ClanUpdatedHook)
+					Expect(err).NotTo(HaveOccurred())
+					responses := startRouteHandler([]string{"/clanupdatedhookwhitelist3"}, 52525)
+
+					sqlRes, err := testDb.Exec(
+						"UPDATE games SET clan_metadata_fields_whitelist='something,else' WHERE public_id=$1",
+						hooks[0].GameID,
+					)
+					Expect(err).NotTo(HaveOccurred())
+					count, err := sqlRes.RowsAffected()
+					Expect(err).NotTo(HaveOccurred())
+					Expect(count).To(BeEquivalentTo(1))
+
+					_, clan, owner, _, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 0, hooks[0].GameID, "", true)
+					Expect(err).NotTo(HaveOccurred())
+
+					gameID := clan.GameID
+					publicID := clan.PublicID
+					ownerPublicID := owner.PublicID
+					metadata := map[string]interface{}{"else": "metadata"}
+
+					payload := map[string]interface{}{
+						"name":             clan.Name,
+						"ownerPublicID":    ownerPublicID,
+						"metadata":         metadata,
+						"allowApplication": clan.AllowApplication,
+						"autoJoin":         clan.AutoJoin,
+					}
+					route := GetGameRoute(gameID, fmt.Sprintf("/clans/%s", publicID))
+					a := GetDefaultTestApp()
+					res := PutJSON(a, route, payload)
+
+					Expect(res.Raw().StatusCode).To(Equal(http.StatusOK))
+					var result map[string]interface{}
+					json.Unmarshal([]byte(res.Body().Raw()), &result)
+					Expect(result["success"]).To(BeTrue())
+
+					a.Dispatcher.Wait()
+
+					Expect(len(*responses)).To(Equal(1))
+
+					hookRes := (*responses)[0]["payload"].(map[string]interface{})
+					Expect(hookRes["gameID"]).To(Equal(hooks[0].GameID))
+					rClan := hookRes["clan"].(map[string]interface{})
+					Expect(rClan["publicID"]).To(Equal(publicID))
+					Expect(rClan["name"]).To(Equal(payload["name"]))
+					Expect(str(rClan["membershipCount"])).To(Equal("1"))
+					Expect(rClan["allowApplication"]).To(Equal(payload["allowApplication"]))
+					Expect(rClan["autoJoin"]).To(Equal(payload["autoJoin"]))
+					clanMetadata := rClan["metadata"].(map[string]interface{})
+					metadata = payload["metadata"].(map[string]interface{})
+					for k, v := range clanMetadata {
+						Expect(str(v)).To(Equal(str(metadata[k])))
+					}
+				})
+
+				It("Should not call update clan hook if field not in whitelist", func() {
+					hooks, err := models.GetHooksForRoutes(testDb, []string{
+						"http://localhost:52525/clanupdatedhookwhitelist2",
+					}, models.ClanUpdatedHook)
+					Expect(err).NotTo(HaveOccurred())
+					responses := startRouteHandler([]string{"/clanupdatedhookwhitelist2"}, 52525)
+
+					sqlRes, err := testDb.Exec(
+						"UPDATE games SET clan_metadata_fields_whitelist='other,else' WHERE public_id=$1",
+						hooks[0].GameID,
+					)
+					Expect(err).NotTo(HaveOccurred())
+					count, err := sqlRes.RowsAffected()
+					Expect(err).NotTo(HaveOccurred())
+					Expect(count).To(BeEquivalentTo(1))
+
+					_, clan, owner, _, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 0, hooks[0].GameID, "", true)
+					Expect(err).NotTo(HaveOccurred())
+
+					gameID := clan.GameID
+					publicID := clan.PublicID
+					ownerPublicID := owner.PublicID
+					metadata := map[string]interface{}{"new": "metadata"}
+
+					payload := map[string]interface{}{
+						"name":             clan.Name,
+						"ownerPublicID":    ownerPublicID,
+						"metadata":         metadata,
+						"allowApplication": clan.AllowApplication,
+						"autoJoin":         clan.AutoJoin,
+					}
+					route := GetGameRoute(gameID, fmt.Sprintf("/clans/%s", publicID))
+					a := GetDefaultTestApp()
+					res := PutJSON(a, route, payload)
+
+					Expect(res.Raw().StatusCode).To(Equal(http.StatusOK))
+					var result map[string]interface{}
+					json.Unmarshal([]byte(res.Body().Raw()), &result)
+					Expect(result["success"]).To(BeTrue())
+
+					a.Dispatcher.Wait()
+
+					Expect(len(*responses)).To(Equal(0))
+				})
+
+				Describe("Should call update clan hook if clan details changed", func() {
+					It("by name", func() {
+						hooks, err := models.GetHooksForRoutes(testDb, []string{
+							"http://localhost:52525/clanupdatedhookwhitelist4",
+						}, models.ClanUpdatedHook)
+						Expect(err).NotTo(HaveOccurred())
+						responses := startRouteHandler([]string{"/clanupdatedhookwhitelist4"}, 52525)
+
+						sqlRes, err := testDb.Exec(
+							"UPDATE games SET clan_metadata_fields_whitelist='something,else' WHERE public_id=$1",
+							hooks[0].GameID,
+						)
+						Expect(err).NotTo(HaveOccurred())
+						count, err := sqlRes.RowsAffected()
+						Expect(err).NotTo(HaveOccurred())
+						Expect(count).To(BeEquivalentTo(1))
+
+						_, clan, owner, _, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 0, hooks[0].GameID, "", true)
+						Expect(err).NotTo(HaveOccurred())
+
+						gameID := clan.GameID
+						publicID := clan.PublicID
+						ownerPublicID := owner.PublicID
+						metadata := map[string]interface{}{}
+
+						payload := map[string]interface{}{
+							"name":             uuid.NewV4().String(),
+							"ownerPublicID":    ownerPublicID,
+							"metadata":         metadata,
+							"allowApplication": clan.AllowApplication,
+							"autoJoin":         clan.AutoJoin,
+						}
+						route := GetGameRoute(gameID, fmt.Sprintf("/clans/%s", publicID))
+						a := GetDefaultTestApp()
+						res := PutJSON(a, route, payload)
+
+						Expect(res.Raw().StatusCode).To(Equal(http.StatusOK))
+						var result map[string]interface{}
+						json.Unmarshal([]byte(res.Body().Raw()), &result)
+						Expect(result["success"]).To(BeTrue())
+
+						a.Dispatcher.Wait()
+
+						Expect(len(*responses)).To(Equal(1))
+					})
+
+					It("by AutoJoin", func() {
+						hooks, err := models.GetHooksForRoutes(testDb, []string{
+							"http://localhost:52525/clanupdatedhookwhitelist6",
+						}, models.ClanUpdatedHook)
+						Expect(err).NotTo(HaveOccurred())
+						responses := startRouteHandler([]string{"/clanupdatedhookwhitelist6"}, 52525)
+
+						sqlRes, err := testDb.Exec(
+							"UPDATE games SET clan_metadata_fields_whitelist='something,else' WHERE public_id=$1",
+							hooks[0].GameID,
+						)
+						Expect(err).NotTo(HaveOccurred())
+						count, err := sqlRes.RowsAffected()
+						Expect(err).NotTo(HaveOccurred())
+						Expect(count).To(BeEquivalentTo(1))
+
+						_, clan, owner, _, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 0, hooks[0].GameID, "", true)
+						Expect(err).NotTo(HaveOccurred())
+
+						gameID := clan.GameID
+						publicID := clan.PublicID
+						ownerPublicID := owner.PublicID
+						metadata := map[string]interface{}{}
+
+						payload := map[string]interface{}{
+							"name":             clan.Name,
+							"ownerPublicID":    ownerPublicID,
+							"metadata":         metadata,
+							"allowApplication": clan.AllowApplication,
+							"autoJoin":         !clan.AutoJoin,
+						}
+						route := GetGameRoute(gameID, fmt.Sprintf("/clans/%s", publicID))
+						a := GetDefaultTestApp()
+						res := PutJSON(a, route, payload)
+
+						Expect(res.Raw().StatusCode).To(Equal(http.StatusOK))
+						var result map[string]interface{}
+						json.Unmarshal([]byte(res.Body().Raw()), &result)
+						Expect(result["success"]).To(BeTrue())
+
+						a.Dispatcher.Wait()
+
+						Expect(len(*responses)).To(Equal(1))
+					})
+
+					It("by AllowApplication", func() {
+						hooks, err := models.GetHooksForRoutes(testDb, []string{
+							"http://localhost:52525/clanupdatedhookwhitelist5",
+						}, models.ClanUpdatedHook)
+						Expect(err).NotTo(HaveOccurred())
+						responses := startRouteHandler([]string{"/clanupdatedhookwhitelist5"}, 52525)
+
+						sqlRes, err := testDb.Exec(
+							"UPDATE games SET clan_metadata_fields_whitelist='something,else' WHERE public_id=$1",
+							hooks[0].GameID,
+						)
+						Expect(err).NotTo(HaveOccurred())
+						count, err := sqlRes.RowsAffected()
+						Expect(err).NotTo(HaveOccurred())
+						Expect(count).To(BeEquivalentTo(1))
+
+						_, clan, owner, _, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 0, hooks[0].GameID, "", true)
+						Expect(err).NotTo(HaveOccurred())
+
+						gameID := clan.GameID
+						publicID := clan.PublicID
+						ownerPublicID := owner.PublicID
+						metadata := map[string]interface{}{}
+
+						payload := map[string]interface{}{
+							"name":             clan.Name,
+							"ownerPublicID":    ownerPublicID,
+							"metadata":         metadata,
+							"allowApplication": !clan.AllowApplication,
+							"autoJoin":         clan.AutoJoin,
+						}
+						route := GetGameRoute(gameID, fmt.Sprintf("/clans/%s", publicID))
+						a := GetDefaultTestApp()
+						res := PutJSON(a, route, payload)
+
+						Expect(res.Raw().StatusCode).To(Equal(http.StatusOK))
+						var result map[string]interface{}
+						json.Unmarshal([]byte(res.Body().Raw()), &result)
+						Expect(result["success"]).To(BeTrue())
+
+						a.Dispatcher.Wait()
+
+						Expect(len(*responses)).To(Equal(1))
+					})
+				})
+			})
 		})
 
 		It("Should call leave clan hook", func() {

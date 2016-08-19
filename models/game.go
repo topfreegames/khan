@@ -110,6 +110,8 @@ func CreateGame(
 	minOffsetRemove, minOffsetPromote, minOffsetDemote, maxMembers,
 	maxClans, cooldownAfterDeny, cooldownAfterDelete, cooldownBeforeApply,
 	cooldownBeforeInvite, maxPendingInvites int, upsert bool,
+	clanUpdateMetadataFieldsHookTriggerWhitelist string,
+	playerUpdateMetadataFieldsHookTriggerWhitelist string,
 ) (*Game, error) {
 	levelsJSON, err := json.Marshal(levels)
 	if err != nil {
@@ -146,10 +148,12 @@ func CreateGame(
 				min_membership_level,
 				max_membership_level,
 				max_pending_invites,
+				clan_metadata_fields_whitelist,
+				player_metadata_fields_whitelist,
 				created_at,
 				updated_at
 			)
-			VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $20)%s`
+			VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $22)%s`
 	onConflict := ` ON CONFLICT (public_id)
 			DO UPDATE set
 				name=$2,
@@ -170,7 +174,9 @@ func CreateGame(
 				min_membership_level=$17,
 				max_membership_level=$18,
 				max_pending_invites=$19,
-				updated_at=$20
+				clan_metadata_fields_whitelist=$20,
+				player_metadata_fields_whitelist=$21,
+				updated_at=$22
 			WHERE games.public_id=$1`
 
 	if upsert {
@@ -180,26 +186,28 @@ func CreateGame(
 	}
 
 	_, err = db.Exec(query,
-		publicID,             // $1
-		name,                 // $2
-		minLevelAccept,       // $3
-		minLevelCreate,       // $4
-		minLevelRemove,       // $5
-		minOffsetRemove,      // $6
-		minOffsetPromote,     // $7
-		minOffsetDemote,      // $8
-		maxMembers,           // $9
-		maxClans,             // $10
-		levelsJSON,           // $11
-		metadataJSON,         // $12
-		cooldownAfterDelete,  // $13
-		cooldownAfterDeny,    // $14
-		cooldownBeforeApply,  // $15
-		cooldownBeforeInvite, // $16
-		minMembershipLevel,   // $17
-		maxMembershipLevel,   // $18
-		maxPendingInvites,    // $19
-		util.NowMilli(),      // $20
+		publicID,                                       // $1
+		name,                                           // $2
+		minLevelAccept,                                 // $3
+		minLevelCreate,                                 // $4
+		minLevelRemove,                                 // $5
+		minOffsetRemove,                                // $6
+		minOffsetPromote,                               // $7
+		minOffsetDemote,                                // $8
+		maxMembers,                                     // $9
+		maxClans,                                       // $10
+		levelsJSON,                                     // $11
+		metadataJSON,                                   // $12
+		cooldownAfterDelete,                            // $13
+		cooldownAfterDeny,                              // $14
+		cooldownBeforeApply,                            // $15
+		cooldownBeforeInvite,                           // $16
+		minMembershipLevel,                             // $17
+		maxMembershipLevel,                             // $18
+		maxPendingInvites,                              // $19
+		clanUpdateMetadataFieldsHookTriggerWhitelist,   // $20
+		playerUpdateMetadataFieldsHookTriggerWhitelist, // $21
+		util.NowMilli(),                                // $22
 	)
 	if err != nil {
 		return nil, err
@@ -213,11 +221,15 @@ func UpdateGame(
 	minLevelAccept, minLevelCreate, minLevelRemove, minOffsetRemove, minOffsetPromote,
 	minOffsetDemote, maxMembers, maxClans, cooldownAfterDeny, cooldownAfterDelete,
 	cooldownBeforeApply, cooldownBeforeInvite, maxPendingInvites int,
+	clanUpdateMetadataFieldsHookTriggerWhitelist string,
+	playerUpdateMetadataFieldsHookTriggerWhitelist string,
 ) (*Game, error) {
 	return CreateGame(
 		db, publicID, name, levels, metadata, minLevelAccept, minLevelCreate,
 		minLevelRemove, minOffsetRemove, minOffsetPromote, minOffsetDemote,
 		maxMembers, maxClans, cooldownAfterDeny, cooldownAfterDelete, cooldownBeforeApply,
 		cooldownBeforeInvite, maxPendingInvites, true,
+		clanUpdateMetadataFieldsHookTriggerWhitelist,
+		playerUpdateMetadataFieldsHookTriggerWhitelist,
 	)
 }
