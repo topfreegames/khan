@@ -25,7 +25,7 @@ def main():
 
 
 def get_tag_value(tag):
-    if tag == "latest":
+    if "latest" in tag:
         return 0
 
     while len(tag) < 4:
