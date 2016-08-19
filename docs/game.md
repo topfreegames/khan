@@ -27,7 +27,9 @@ To Create/Update your game, just do a `PUT` request to `http://my-khan-server/ga
       "cooldownAfterDelete":           [int],
       "cooldownBeforeInvite":          [int],
       "cooldownBeforeApply":           [int],
-      "maxPendingInvites":             [int]
+      "maxPendingInvites":             [int],
+      "clanHookFieldsWhitelist":       [string],
+      "playerHookFieldsWhitelist":     [string],
     }
 ```
 
@@ -198,3 +200,17 @@ Maximum number of pending invites each player can have withstanding. Set this va
 
 **Type**: `integer`<br />
 **Sample Value**: `20`
+
+### clanHookFieldsWhitelist
+
+A comma-separated-values list of properties in the clan's metadata that will trigger the Clan Updated hook upon change.
+
+**Type**: `string`<br />
+**Sample Value**: `trophies,country`
+
+### playerHookFieldsWhitelist
+
+A comma-separated-values list of properties in the player's metadata that will trigger the Player Updated hook upon change.
+
+**Type**: `string`<br />
+**Sample Value**: `trophies,country`

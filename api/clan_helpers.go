@@ -8,6 +8,8 @@
 package api
 
 import (
+	"strings"
+
 	"github.com/topfreegames/khan/models"
 	"github.com/uber-go/zap"
 )
@@ -103,4 +105,51 @@ func serializeClan(clan *models.Clan, includePublicID bool) map[string]interface
 	}
 
 	return serial
+}
+
+func validateUpdateClanDispatch(game *models.Game, sourceClan *models.Clan, clan *models.Clan, metadata map[string]interface{}, l zap.Logger) bool {
+	cl := l.With(
+		zap.String("clanUpdateMetadataFieldsHookTriggerWhitelist", game.ClanUpdateMetadataFieldsHookTriggerWhitelist),
+	)
+
+	changedName := clan.Name != sourceClan.Name
+	changedAllowApplication := clan.AllowApplication != sourceClan.AllowApplication
+	changedAutoJoin := clan.AutoJoin != sourceClan.AutoJoin
+	if changedName || changedAllowApplication || changedAutoJoin {
+		cl.Debug("One of the main clan properties changed")
+		return true
+	}
+
+	if game.ClanUpdateMetadataFieldsHookTriggerWhitelist == "" {
+		cl.Debug("Clan has no metadata whitelist for update hook")
+		return true
+	}
+
+	cl.Debug("Verifying fields for clan update hook dispatch...")
+	fields := strings.Split(game.ClanUpdateMetadataFieldsHookTriggerWhitelist, ",")
+	for _, field := range fields {
+		oldVal, existsOld := sourceClan.Metadata[field]
+		newVal, existsNew := metadata[field]
+		l.Debug(
+			"Verifying field for change...",
+			zap.Bool("existsOld", existsOld),
+			zap.Bool("existsNew", existsNew),
+			zap.Object("oldVal", oldVal),
+			zap.Object("newVal", newVal),
+			zap.String("field", field),
+		)
+		//fmt.Println("field", field, "existsOld", existsOld, "oldVal", oldVal, "existsNew", existsNew, "newVal", newVal)
+
+		if existsOld != existsNew {
+			l.Debug("Found difference in field. Dispatching hook...", zap.String("field", field))
+			return true
+		}
+
+		if existsOld && oldVal != newVal {
+			l.Debug("Found difference in field. Dispatching hook...", zap.String("field", field))
+			return true
+		}
+	}
+
+	return false
 }

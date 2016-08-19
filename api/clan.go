@@ -162,6 +162,31 @@ func UpdateClanHandler(app *App) func(c *iris.Context) {
 			return nil
 		}
 
+		l.Debug("Retrieving game...")
+		game, err := models.GetGameByPublicID(tx, gameID)
+
+		if err != nil {
+			txErr := rb(err)
+			if txErr == nil {
+				l.Error("Updating clan failed.", zap.Error(err))
+			}
+			FailWith(500, err.Error(), c)
+			return
+		}
+		l.Debug("Game retrieved successfully")
+
+		l.Debug("Retrieving clan...")
+		beforeUpdateClan, err := models.GetClanByPublicID(tx, gameID, publicID)
+		if err != nil {
+			txErr := rb(err)
+			if txErr == nil {
+				l.Error("Updating clan failed.", zap.Error(err))
+			}
+			FailWith(500, err.Error(), c)
+			return
+		}
+		l.Debug("Clan retrieved successfully")
+
 		l.Debug("Updating clan...")
 		clan, err := models.UpdateClan(
 			tx,
@@ -177,7 +202,7 @@ func UpdateClanHandler(app *App) func(c *iris.Context) {
 		if err != nil {
 			txErr := rb(err)
 			if txErr == nil {
-				l.Error("Clan update failed.", zap.Error(err))
+				l.Error("Updating clan failed.", zap.Error(err))
 			}
 			FailWith(500, err.Error(), c)
 			return
@@ -198,14 +223,18 @@ func UpdateClanHandler(app *App) func(c *iris.Context) {
 			"clan":   clanJSON,
 		}
 
-		err = app.DispatchHooks(gameID, models.ClanUpdatedHook, result)
-		if err != nil {
-			txErr := rb(err)
-			if txErr == nil {
-				l.Error("Clan updated hook dispatch failed.", zap.Error(err))
+		shouldDispatch := validateUpdateClanDispatch(game, beforeUpdateClan, clan, payload.Metadata, l)
+		if shouldDispatch {
+			l.Debug("Dispatching clan update hooks...")
+			err = app.DispatchHooks(gameID, models.ClanUpdatedHook, result)
+			if err != nil {
+				txErr := rb(err)
+				if txErr == nil {
+					l.Error("Clan updated hook dispatch failed.", zap.Error(err))
+				}
+				FailWith(500, err.Error(), c)
+				return
 			}
-			FailWith(500, err.Error(), c)
-			return
 		}
 
 		err = app.Commit(tx, "Clan updated", l)

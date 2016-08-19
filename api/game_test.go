@@ -42,7 +42,7 @@ func getGamePayload(publicID, name string) map[string]interface{} {
 		"maxMembers":                    100,
 		"maxClansPerPlayer":             1,
 		"cooldownAfterDeny":             30,
-		"cooldownAfterDelete":           30,
+		"cooldownAfterDelete":           40,
 	}
 }
 
@@ -87,6 +87,8 @@ var _ = Describe("Game API Handler", func() {
 			Expect(dbGame.MaxClansPerPlayer).To(Equal(payload["maxClansPerPlayer"]))
 			Expect(dbGame.CooldownAfterDeny).To(Equal(payload["cooldownAfterDeny"]))
 			Expect(dbGame.CooldownAfterDelete).To(Equal(payload["cooldownAfterDelete"]))
+			Expect(dbGame.PlayerUpdateMetadataFieldsHookTriggerWhitelist).To(BeEmpty())
+			Expect(dbGame.ClanUpdateMetadataFieldsHookTriggerWhitelist).To(BeEmpty())
 			Expect(dbGame.CooldownBeforeInvite).To(Equal(0))
 			Expect(dbGame.CooldownBeforeApply).To(Equal(3600))
 			Expect(dbGame.MaxPendingInvites).To(Equal(-1))
@@ -99,6 +101,8 @@ var _ = Describe("Game API Handler", func() {
 			payload["maxPendingInvites"] = 27
 			payload["cooldownBeforeApply"] = 2874
 			payload["cooldownBeforeInvite"] = 2384
+			payload["playerHookFieldsWhitelist"] = "a,b"
+			payload["clanHookFieldsWhitelist"] = "c,d"
 			res := PostJSON(a, "/games", payload)
 
 			Expect(res.Raw().StatusCode).To(Equal(http.StatusOK))
@@ -112,6 +116,8 @@ var _ = Describe("Game API Handler", func() {
 			Expect(dbGame.CooldownBeforeInvite).To(Equal(2384))
 			Expect(dbGame.CooldownBeforeApply).To(Equal(2874))
 			Expect(dbGame.MaxPendingInvites).To(Equal(27))
+			Expect(dbGame.PlayerUpdateMetadataFieldsHookTriggerWhitelist).To(Equal(payload["playerHookFieldsWhitelist"]))
+			Expect(dbGame.ClanUpdateMetadataFieldsHookTriggerWhitelist).To(Equal(payload["clanHookFieldsWhitelist"]))
 		})
 
 		It("Should not create game if missing parameters", func() {

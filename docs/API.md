@@ -82,7 +82,9 @@ Khan API
       "cooldownAfterDelete":           [int],
       "cooldownBeforeInvite":          [int],
       "cooldownBeforeApply":           [int],
-      "maxPendingInvites":             [int]
+      "maxPendingInvites":             [int],
+      "clanHookFieldsWhitelist":       [string],
+      "playerHookFieldsWhitelist":     [string],
     }
     ```
 
@@ -123,6 +125,10 @@ Khan API
       **cooldownBeforeApply**:  Time (in seconds) a player must wait before applying for a clan after the last membership application/invite was created.
 
       **maxPendingInvites**:  Maximum number of pending invites each player can have withstanding. Set this value to -1 if your game has no limits on maximum pending invites.
+
+      **clanHookFieldsWhitelist**: If you change metadata very frequently in clans, you can specify here the fields in your metadata document for which you'd like to have the clan updated hook triggered. If no fields are specified, the hook will be triggered in all updates. If you don't want any metadata changes to trigger hooks, just set this to "none" or any key that does not exist in your metadata document.
+
+      **playerHookFieldsWhitelist**: If you change metadata very frequently in players, you can specify here the fields in your metadata document for which you'd like to have the player updated hook triggered. If no fields are specified, the hook will be triggered in all updates. If you don't want any metadata changes to trigger hooks, just set this to "none" or any key that does not exist in your metadata document.
 
   * Success Response
     * Code: `200`
