@@ -269,47 +269,215 @@ var _ = Describe("Player API Handler", func() {
 			}
 		})
 
-		It("Should call update player hook", func() {
-			hooks, err := models.GetHooksForRoutes(testDb, []string{
-				"http://localhost:52525/updated",
-			}, models.PlayerUpdatedHook)
-			Expect(err).NotTo(HaveOccurred())
-			responses := startRouteHandler([]string{"/updated"}, 52525)
+		Describe("Update Player Hook", func() {
+			Describe("Without Whitelist", func() {
+				It("Should call update player hook", func() {
+					hooks, err := models.GetHooksForRoutes(testDb, []string{
+						"http://localhost:52525/updated",
+					}, models.PlayerUpdatedHook)
+					Expect(err).NotTo(HaveOccurred())
+					responses := startRouteHandler([]string{"/updated"}, 52525)
 
-			player := models.PlayerFactory.MustCreateWithOption(map[string]interface{}{"GameID": hooks[0].GameID}).(*models.Player)
-			err = testDb.Insert(player)
-			Expect(err).NotTo(HaveOccurred())
+					player := models.PlayerFactory.MustCreateWithOption(map[string]interface{}{"GameID": hooks[0].GameID}).(*models.Player)
+					err = testDb.Insert(player)
+					Expect(err).NotTo(HaveOccurred())
 
-			app := GetDefaultTestApp()
-			time.Sleep(time.Second)
+					app := GetDefaultTestApp()
+					time.Sleep(time.Second)
 
-			gameID := hooks[0].GameID
-			payload := map[string]interface{}{
-				"publicID": player.PublicID,
-				"name":     player.Name,
-				"metadata": player.Metadata,
-			}
-			res := PutJSON(app, GetGameRoute(gameID, fmt.Sprintf("/players/%s", player.PublicID)), payload)
+					gameID := hooks[0].GameID
+					payload := map[string]interface{}{
+						"publicID": player.PublicID,
+						"name":     player.Name,
+						"metadata": player.Metadata,
+					}
+					res := PutJSON(app, GetGameRoute(gameID, fmt.Sprintf("/players/%s", player.PublicID)), payload)
 
-			Expect(res.Raw().StatusCode).To(Equal(http.StatusOK))
-			var result map[string]interface{}
-			json.Unmarshal([]byte(res.Body().Raw()), &result)
-			Expect(result["success"]).To(BeTrue())
+					Expect(res.Raw().StatusCode).To(Equal(http.StatusOK))
+					var result map[string]interface{}
+					json.Unmarshal([]byte(res.Body().Raw()), &result)
+					Expect(result["success"]).To(BeTrue())
 
-			app.Dispatcher.Wait()
-			Expect(len(*responses)).To(Equal(1))
+					app.Dispatcher.Wait()
+					Expect(len(*responses)).To(Equal(1))
 
-			playerPayload := (*responses)[0]["payload"].(map[string]interface{})
-			Expect(playerPayload["gameID"]).To(Equal(gameID))
-			Expect(playerPayload["publicID"]).To(Equal(payload["publicID"]))
-			Expect(playerPayload["name"]).To(Equal(payload["name"]))
-			Expect(str(playerPayload["membershipCount"])).To(Equal("0"))
-			Expect(str(playerPayload["ownershipCount"])).To(Equal("0"))
-			playerMetadata := playerPayload["metadata"].(map[string]interface{})
-			metadata := payload["metadata"].(map[string]interface{})
-			for k, v := range playerMetadata {
-				Expect(v).To(Equal(metadata[k]))
-			}
+					playerPayload := (*responses)[0]["payload"].(map[string]interface{})
+					Expect(playerPayload["gameID"]).To(Equal(gameID))
+					Expect(playerPayload["publicID"]).To(Equal(payload["publicID"]))
+					Expect(playerPayload["name"]).To(Equal(payload["name"]))
+					Expect(str(playerPayload["membershipCount"])).To(Equal("0"))
+					Expect(str(playerPayload["ownershipCount"])).To(Equal("0"))
+					playerMetadata := playerPayload["metadata"].(map[string]interface{})
+					metadata := payload["metadata"].(map[string]interface{})
+					for k, v := range playerMetadata {
+						Expect(v).To(Equal(metadata[k]))
+					}
+				})
+			})
+			Describe("With Whitelist", func() {
+				It("Should call update player hook if whitelisted", func() {
+					hooks, err := models.GetHooksForRoutes(testDb, []string{
+						"http://localhost:52525/updated_whitelist",
+					}, models.PlayerUpdatedHook)
+					Expect(err).NotTo(HaveOccurred())
+					responses := startRouteHandler([]string{"/updated_whitelist"}, 52525)
+
+					sqlRes, err := testDb.Exec(
+						"UPDATE games SET player_metadata_fields_whitelist='something,new' WHERE public_id=$1",
+						hooks[0].GameID,
+					)
+					Expect(err).NotTo(HaveOccurred())
+					count, err := sqlRes.RowsAffected()
+					Expect(err).NotTo(HaveOccurred())
+					Expect(count).To(BeEquivalentTo(1))
+
+					player := models.PlayerFactory.MustCreateWithOption(map[string]interface{}{
+						"GameID": hooks[0].GameID,
+						"Metadata": map[string]interface{}{
+							"new": "something",
+						},
+					}).(*models.Player)
+					err = testDb.Insert(player)
+					Expect(err).NotTo(HaveOccurred())
+
+					app := GetDefaultTestApp()
+					time.Sleep(time.Second)
+
+					gameID := hooks[0].GameID
+					payload := map[string]interface{}{
+						"publicID": player.PublicID,
+						"name":     player.Name,
+						"metadata": map[string]interface{}{
+							"new": "metadata",
+						},
+					}
+					res := PutJSON(app, GetGameRoute(gameID, fmt.Sprintf("/players/%s", player.PublicID)), payload)
+
+					Expect(res.Raw().StatusCode).To(Equal(http.StatusOK))
+					var result map[string]interface{}
+					json.Unmarshal([]byte(res.Body().Raw()), &result)
+					Expect(result["success"]).To(BeTrue())
+
+					app.Dispatcher.Wait()
+					Expect(len(*responses)).To(Equal(1))
+
+					playerPayload := (*responses)[0]["payload"].(map[string]interface{})
+					Expect(playerPayload["gameID"]).To(Equal(gameID))
+					Expect(playerPayload["publicID"]).To(Equal(payload["publicID"]))
+					Expect(playerPayload["name"]).To(Equal(payload["name"]))
+					Expect(str(playerPayload["membershipCount"])).To(Equal("0"))
+					Expect(str(playerPayload["ownershipCount"])).To(Equal("0"))
+					playerMetadata := playerPayload["metadata"].(map[string]interface{})
+					metadata := payload["metadata"].(map[string]interface{})
+					for k, v := range playerMetadata {
+						Expect(v).To(Equal(metadata[k]))
+					}
+				})
+
+				It("Should call update player hook if whitelisted and field is new", func() {
+					hooks, err := models.GetHooksForRoutes(testDb, []string{
+						"http://localhost:52525/updated_whitelist_3",
+					}, models.PlayerUpdatedHook)
+					Expect(err).NotTo(HaveOccurred())
+					responses := startRouteHandler([]string{"/updated_whitelist_3"}, 52525)
+
+					sqlRes, err := testDb.Exec(
+						"UPDATE games SET player_metadata_fields_whitelist='something,new' WHERE public_id=$1",
+						hooks[0].GameID,
+					)
+					Expect(err).NotTo(HaveOccurred())
+					count, err := sqlRes.RowsAffected()
+					Expect(err).NotTo(HaveOccurred())
+					Expect(count).To(BeEquivalentTo(1))
+
+					player := models.PlayerFactory.MustCreateWithOption(map[string]interface{}{
+						"GameID":   hooks[0].GameID,
+						"Metadata": map[string]interface{}{},
+					}).(*models.Player)
+					err = testDb.Insert(player)
+					Expect(err).NotTo(HaveOccurred())
+
+					app := GetDefaultTestApp()
+					time.Sleep(time.Second)
+
+					gameID := hooks[0].GameID
+					payload := map[string]interface{}{
+						"publicID": player.PublicID,
+						"name":     player.Name,
+						"metadata": map[string]interface{}{
+							"new": "metadata",
+						},
+					}
+					res := PutJSON(app, GetGameRoute(gameID, fmt.Sprintf("/players/%s", player.PublicID)), payload)
+
+					Expect(res.Raw().StatusCode).To(Equal(http.StatusOK))
+					var result map[string]interface{}
+					json.Unmarshal([]byte(res.Body().Raw()), &result)
+					Expect(result["success"]).To(BeTrue())
+
+					app.Dispatcher.Wait()
+					Expect(len(*responses)).To(Equal(1))
+
+					playerPayload := (*responses)[0]["payload"].(map[string]interface{})
+					Expect(playerPayload["gameID"]).To(Equal(gameID))
+					Expect(playerPayload["publicID"]).To(Equal(payload["publicID"]))
+					Expect(playerPayload["name"]).To(Equal(payload["name"]))
+					Expect(str(playerPayload["membershipCount"])).To(Equal("0"))
+					Expect(str(playerPayload["ownershipCount"])).To(Equal("0"))
+					playerMetadata := playerPayload["metadata"].(map[string]interface{})
+					metadata := payload["metadata"].(map[string]interface{})
+					for k, v := range playerMetadata {
+						Expect(v).To(Equal(metadata[k]))
+					}
+				})
+
+				It("Should not call update player hook if not whitelisted", func() {
+					hooks, err := models.GetHooksForRoutes(testDb, []string{
+						"http://localhost:52525/updated_whitelist_2",
+					}, models.PlayerUpdatedHook)
+					Expect(err).NotTo(HaveOccurred())
+					responses := startRouteHandler([]string{"/updated_whitelist_2"}, 52525)
+
+					sqlRes, err := testDb.Exec(
+						"UPDATE games SET player_metadata_fields_whitelist='something,new' WHERE public_id=$1",
+						hooks[0].GameID,
+					)
+					Expect(err).NotTo(HaveOccurred())
+					count, err := sqlRes.RowsAffected()
+					Expect(err).NotTo(HaveOccurred())
+					Expect(count).To(BeEquivalentTo(1))
+
+					player := models.PlayerFactory.MustCreateWithOption(map[string]interface{}{
+						"GameID": hooks[0].GameID,
+						"Metadata": map[string]interface{}{
+							"else": "something",
+						},
+					}).(*models.Player)
+					err = testDb.Insert(player)
+					Expect(err).NotTo(HaveOccurred())
+
+					app := GetDefaultTestApp()
+					time.Sleep(time.Second)
+
+					gameID := hooks[0].GameID
+					payload := map[string]interface{}{
+						"publicID": player.PublicID,
+						"name":     player.Name,
+						"metadata": map[string]interface{}{
+							"else": "metadata",
+						},
+					}
+					res := PutJSON(app, GetGameRoute(gameID, fmt.Sprintf("/players/%s", player.PublicID)), payload)
+
+					Expect(res.Raw().StatusCode).To(Equal(http.StatusOK))
+					var result map[string]interface{}
+					json.Unmarshal([]byte(res.Body().Raw()), &result)
+					Expect(result["success"]).To(BeTrue())
+
+					app.Dispatcher.Wait()
+					Expect(len(*responses)).To(Equal(0))
+				})
+			})
 		})
 	})
 })
