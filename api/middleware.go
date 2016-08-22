@@ -113,7 +113,13 @@ func (l *LoggerMiddleware) Serve(ctx *iris.Context) {
 
 	qs, headers, cookies := getHTTPParams(ctx)
 
+	route := ctx.Get("route").(string)
+	if route == "" {
+		log.Warn("Route does not have route flash set")
+	}
+
 	reqLog := log.With(
+		zap.String("route", route),
 		zap.Time("endTime", endTime),
 		zap.Int("statusCode", status),
 		zap.Duration("latency", latency),
