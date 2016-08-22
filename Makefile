@@ -62,6 +62,7 @@ build-docker:
 
 build-dev-docker:
 	@cp ./config/default.yaml ./dev
+	@cp ./bin/khan-linux-x86_64 ./dev
 	@cd dev && docker build -t khan-dev .
 
 # the crypto
