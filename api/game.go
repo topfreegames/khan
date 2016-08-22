@@ -19,6 +19,7 @@ import (
 // CreateGameHandler is the handler responsible for creating new games
 func CreateGameHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
+		c.Set("route", "CreateGame")
 		start := time.Now()
 		l := app.Logger.With(
 			zap.String("source", "gameHandler"),
@@ -109,6 +110,7 @@ func CreateGameHandler(app *App) func(c *iris.Context) {
 // UpdateGameHandler is the handler responsible for updating existing
 func UpdateGameHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
+		c.Set("route", "UpdateGame")
 		start := time.Now()
 		gameID := c.Param("gameID")
 

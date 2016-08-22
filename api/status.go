@@ -16,6 +16,7 @@ import (
 // StatusHandler is the handler responsible for reporting khan status
 func StatusHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
+		c.Set("route", "Status")
 		payload := map[string]interface{}{
 			"app": map[string]interface{}{
 				"errorRate": app.Errors.Rate(),

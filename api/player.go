@@ -19,6 +19,7 @@ import (
 // CreatePlayerHandler is the handler responsible for creating new players
 func CreatePlayerHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
+		c.Set("route", "CreatePlayer")
 		start := time.Now()
 		gameID := c.Param("gameID")
 
@@ -101,6 +102,7 @@ func CreatePlayerHandler(app *App) func(c *iris.Context) {
 // UpdatePlayerHandler is the handler responsible for updating existing
 func UpdatePlayerHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
+		c.Set("route", "UpdatePlayer")
 		start := time.Now()
 		gameID := c.Param("gameID")
 		playerPublicID := c.Param("playerPublicID")
@@ -209,6 +211,7 @@ func UpdatePlayerHandler(app *App) func(c *iris.Context) {
 // RetrievePlayerHandler is the handler responsible for returning details for a given player
 func RetrievePlayerHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
+		c.Set("route", "RetrievePlayer")
 		start := time.Now()
 		gameID := c.Param("gameID")
 		publicID := c.Param("playerPublicID")

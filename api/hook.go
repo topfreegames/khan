@@ -23,6 +23,7 @@ type hookPayload struct {
 // CreateHookHandler is the handler responsible for creating new hooks
 func CreateHookHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
+		c.Set("route", "CreateHook")
 		start := time.Now()
 		gameID := c.Param("gameID")
 		l := app.Logger.With(
@@ -85,6 +86,7 @@ func CreateHookHandler(app *App) func(c *iris.Context) {
 // RemoveHookHandler is the handler responsible for removing existing hooks
 func RemoveHookHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
+		c.Set("route", "RemoveHook")
 		start := time.Now()
 		gameID := c.Param("gameID")
 		publicID := c.Param("publicID")

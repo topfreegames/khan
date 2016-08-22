@@ -21,6 +21,7 @@ import (
 // ApplyForMembershipHandler is the handler responsible for applying for new memberships
 func ApplyForMembershipHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
+		c.Set("route", "ApplyForMembership")
 		start := time.Now()
 		gameID := c.Param("gameID")
 		clanPublicID := c.Param("clanPublicID")
@@ -121,6 +122,7 @@ func ApplyForMembershipHandler(app *App) func(c *iris.Context) {
 // InviteForMembershipHandler is the handler responsible for creating new memberships
 func InviteForMembershipHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
+		c.Set("route", "InviteForMembership")
 		start := time.Now()
 		gameID := c.Param("gameID")
 		clanPublicID := c.Param("clanPublicID")
@@ -222,6 +224,7 @@ func InviteForMembershipHandler(app *App) func(c *iris.Context) {
 // ApproveOrDenyMembershipApplicationHandler is the handler responsible for approving or denying a membership invitation
 func ApproveOrDenyMembershipApplicationHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
+		c.Set("route", "ApproverOrDenyApplication")
 		start := time.Now()
 		action := c.Param("action")
 		gameID := c.Param("gameID")
@@ -340,6 +343,7 @@ func ApproveOrDenyMembershipApplicationHandler(app *App) func(c *iris.Context) {
 // ApproveOrDenyMembershipInvitationHandler is the handler responsible for approving or denying a membership invitation
 func ApproveOrDenyMembershipInvitationHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
+		c.Set("route", "ApproveOrDenyInvitation")
 		start := time.Now()
 		action := c.Param("action")
 		gameID := c.Param("gameID")
@@ -442,6 +446,7 @@ func ApproveOrDenyMembershipInvitationHandler(app *App) func(c *iris.Context) {
 // DeleteMembershipHandler is the handler responsible for deleting a member
 func DeleteMembershipHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
+		c.Set("route", "DeleteMembership")
 		start := time.Now()
 		clanPublicID := c.Param("clanPublicID")
 
@@ -529,6 +534,7 @@ func DeleteMembershipHandler(app *App) func(c *iris.Context) {
 // PromoteOrDemoteMembershipHandler is the handler responsible for promoting or demoting a member
 func PromoteOrDemoteMembershipHandler(app *App, action string) func(c *iris.Context) {
 	return func(c *iris.Context) {
+		c.Set("route", "PromoteOrDemoteMember")
 		start := time.Now()
 		clanPublicID := c.Param("clanPublicID")
 

@@ -19,6 +19,7 @@ import (
 // CreateClanHandler is the handler responsible for creating new clans
 func CreateClanHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
+		c.Set("route", "CreateClan")
 		start := time.Now()
 		gameID := c.Param("gameID")
 
@@ -128,6 +129,7 @@ func CreateClanHandler(app *App) func(c *iris.Context) {
 // UpdateClanHandler is the handler responsible for updating existing clans
 func UpdateClanHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
+		c.Set("route", "UpdateClan")
 		start := time.Now()
 		gameID := c.Param("gameID")
 		publicID := c.Param("clanPublicID")
@@ -254,6 +256,7 @@ func UpdateClanHandler(app *App) func(c *iris.Context) {
 // LeaveClanHandler is the handler responsible for changing the clan ownership when the owner leaves it
 func LeaveClanHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
+		c.Set("route", "LeaveClan")
 		start := time.Now()
 		gameID := c.Param("gameID")
 		publicID := c.Param("clanPublicID")
@@ -353,6 +356,7 @@ func LeaveClanHandler(app *App) func(c *iris.Context) {
 // TransferOwnershipHandler is the handler responsible for transferring the clan ownership to another clan member
 func TransferOwnershipHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
+		c.Set("route", "TransferClanOwnership")
 		start := time.Now()
 		gameID := c.Param("gameID")
 		publicID := c.Param("clanPublicID")
@@ -458,6 +462,7 @@ func TransferOwnershipHandler(app *App) func(c *iris.Context) {
 // ListClansHandler is the handler responsible for returning a list of all clans
 func ListClansHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
+		c.Set("route", "ListClans")
 		start := time.Now()
 		gameID := c.Param("gameID")
 
@@ -504,6 +509,7 @@ func ListClansHandler(app *App) func(c *iris.Context) {
 // SearchClansHandler is the handler responsible for searching for clans
 func SearchClansHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
+		c.Set("route", "SearchClans")
 		start := time.Now()
 		gameID := c.Param("gameID")
 		term := c.URLParam("term")
@@ -559,6 +565,7 @@ func SearchClansHandler(app *App) func(c *iris.Context) {
 // RetrieveClanHandler is the handler responsible for returning details for a given clan
 func RetrieveClanHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
+		c.Set("route", "RetrieveClan")
 		start := time.Now()
 		gameID := c.Param("gameID")
 		publicID := c.Param("clanPublicID")
@@ -612,6 +619,7 @@ func RetrieveClanHandler(app *App) func(c *iris.Context) {
 // RetrieveClanSummaryHandler is the handler responsible for returning details summary for a given clan
 func RetrieveClanSummaryHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
+		c.Set("route", "RetrieveClanSummary")
 		start := time.Now()
 		gameID := c.Param("gameID")
 		publicID := c.Param("clanPublicID")
@@ -658,6 +666,7 @@ func RetrieveClanSummaryHandler(app *App) func(c *iris.Context) {
 // list of clans
 func RetrieveClansSummariesHandler(app *App) func(c *iris.Context) {
 	return func(c *iris.Context) {
+		c.Set("route", "RetrieveClansSummaries")
 		start := time.Now()
 		gameID := c.Param("gameID")
 		publicIDsStr := c.URLParam("clanPublicIds")
