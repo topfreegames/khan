@@ -124,6 +124,41 @@ func UpdatePlayerHandler(app *App) func(c *iris.Context) {
 			return
 		}
 
+		//rollback function
+		rb := func(err error) error {
+			txErr := app.Rollback(tx, "Updating player failed", l, err)
+			if txErr != nil {
+				return txErr
+			}
+
+			return nil
+		}
+
+		l.Debug("Retrieving game...")
+		game, err := models.GetGameByPublicID(tx, gameID)
+
+		if err != nil {
+			txErr := rb(err)
+			if txErr == nil {
+				l.Error("Updating player failed.", zap.Error(err))
+			}
+			FailWith(500, err.Error(), c)
+			return
+		}
+		l.Debug("Game retrieved successfully")
+
+		l.Debug("Retrieving player...")
+		beforeUpdatePlayer, err := models.GetPlayerByPublicID(tx, gameID, playerPublicID)
+		if err != nil {
+			txErr := rb(err)
+			if txErr == nil {
+				l.Error("Updating player failed.", zap.Error(err))
+			}
+			FailWith(500, err.Error(), c)
+			return
+		}
+		l.Debug("Clan retrieved successfully")
+
 		l.Debug("Updating player...")
 		player, err := models.UpdatePlayer(
 			tx,
@@ -134,28 +169,26 @@ func UpdatePlayerHandler(app *App) func(c *iris.Context) {
 		)
 
 		if err != nil {
-			txErr := app.Rollback(tx, "Player update failed", l, err)
-			if txErr != nil {
-				FailWith(500, txErr.Error(), c)
-				return
+			txErr := rb(err)
+			if txErr == nil {
+				l.Error("Updating player failed.", zap.Error(err))
 			}
-
-			l.Error("Player update failed.", zap.Error(err))
 			FailWith(500, err.Error(), c)
 			return
 		}
 
-		err = app.DispatchHooks(gameID, models.PlayerUpdatedHook, player.Serialize())
-		if err != nil {
-			txErr := app.Rollback(tx, "Player update hook dispatch failed", l, err)
-			if txErr != nil {
-				FailWith(500, txErr.Error(), c)
+		shouldDispatch := validateUpdatePlayerDispatch(game, beforeUpdatePlayer, player, payload.Metadata, l)
+		if shouldDispatch {
+			l.Debug("Dispatching player update hooks...")
+			err = app.DispatchHooks(gameID, models.PlayerUpdatedHook, player.Serialize())
+			if err != nil {
+				txErr := rb(err)
+				if txErr == nil {
+					l.Error("Update player hook dispatch failed.", zap.Error(err))
+				}
+				FailWith(500, err.Error(), c)
 				return
 			}
-
-			l.Error("Player update hook dispatch failed.", zap.Error(err))
-			FailWith(500, err.Error(), c)
-			return
 		}
 
 		err = app.Commit(tx, "Update game", l)
