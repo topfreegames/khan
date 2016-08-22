@@ -30,6 +30,11 @@ func validateUpdatePlayerDispatch(game *models.Game, sourcePlayer *models.Player
 		zap.String("playerUpdateMetadataFieldsHookTriggerWhitelist", game.PlayerUpdateMetadataFieldsHookTriggerWhitelist),
 	)
 
+	if sourcePlayer == nil {
+		cl.Debug("Player did not exist before. Dispatching event...")
+		return true
+	}
+
 	changedName := player.Name != sourcePlayer.Name
 	if changedName {
 		cl.Debug("Player name changed")

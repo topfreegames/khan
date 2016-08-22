@@ -477,6 +477,44 @@ var _ = Describe("Player API Handler", func() {
 					app.Dispatcher.Wait()
 					Expect(len(*responses)).To(Equal(0))
 				})
+
+				It("Should call update player hook if whitelisted and player does not exist", func() {
+					hooks, err := models.GetHooksForRoutes(testDb, []string{
+						"http://localhost:52525/updated_whitelist_not_exist",
+					}, models.PlayerUpdatedHook)
+					Expect(err).NotTo(HaveOccurred())
+					responses := startRouteHandler([]string{"/updated_whitelist_not_exist"}, 52525)
+
+					sqlRes, err := testDb.Exec(
+						"UPDATE games SET player_metadata_fields_whitelist='something,new' WHERE public_id=$1",
+						hooks[0].GameID,
+					)
+					Expect(err).NotTo(HaveOccurred())
+					count, err := sqlRes.RowsAffected()
+					Expect(err).NotTo(HaveOccurred())
+					Expect(count).To(BeEquivalentTo(1))
+
+					app := GetDefaultTestApp()
+					time.Sleep(time.Second)
+
+					gameID := hooks[0].GameID
+					payload := map[string]interface{}{
+						"publicID": uuid.NewV4().String(),
+						"name":     uuid.NewV4().String(),
+						"metadata": map[string]interface{}{
+							"new": "metadata",
+						},
+					}
+					res := PutJSON(app, GetGameRoute(gameID, fmt.Sprintf("/players/%s", payload["publicID"])), payload)
+
+					Expect(res.Raw().StatusCode).To(Equal(http.StatusOK))
+					var result map[string]interface{}
+					json.Unmarshal([]byte(res.Body().Raw()), &result)
+					Expect(result["success"]).To(BeTrue())
+
+					app.Dispatcher.Wait()
+					Expect(len(*responses)).To(Equal(1))
+				})
 			})
 		})
 	})

@@ -151,7 +151,7 @@ func UpdatePlayerHandler(app *App) func(c *iris.Context) {
 
 		l.Debug("Retrieving player...")
 		beforeUpdatePlayer, err := models.GetPlayerByPublicID(tx, gameID, playerPublicID)
-		if err != nil {
+		if err != nil && err.Error() != (&models.ModelNotFoundError{"Player", playerPublicID}).Error() {
 			txErr := rb(err)
 			if txErr == nil {
 				l.Error("Updating player failed.", zap.Error(err))
@@ -159,7 +159,7 @@ func UpdatePlayerHandler(app *App) func(c *iris.Context) {
 			FailWith(500, err.Error(), c)
 			return
 		}
-		l.Debug("Clan retrieved successfully")
+		l.Debug("Player retrieved successfully")
 
 		l.Debug("Updating player...")
 		player, err := models.UpdatePlayer(
