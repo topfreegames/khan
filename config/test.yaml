@@ -7,7 +7,7 @@ postgres:
 elasticsearch:
   host: "localhost"
   enabled: true
-  port: 9233
+  port: 9234
   sniff: true
   index: "khan"
 khan:

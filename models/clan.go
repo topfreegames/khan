@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/topfreegames/khan/es"
 	"github.com/topfreegames/khan/util"
 
 	"gopkg.in/gorp.v1"
@@ -25,18 +26,18 @@ func (a ClanByName) Less(i, j int) bool { return a[i].Name < a[j].Name }
 
 // Clan identifies uniquely one clan in a given game
 type Clan struct {
-	ID               int                    `db:"id"`
-	GameID           string                 `db:"game_id"`
-	PublicID         string                 `db:"public_id"`
-	Name             string                 `db:"name"`
-	OwnerID          int                    `db:"owner_id"`
-	MembershipCount  int                    `db:"membership_count"`
-	Metadata         map[string]interface{} `db:"metadata"`
-	AllowApplication bool                   `db:"allow_application"`
-	AutoJoin         bool                   `db:"auto_join"`
-	CreatedAt        int64                  `db:"created_at"`
-	UpdatedAt        int64                  `db:"updated_at"`
-	DeletedAt        int64                  `db:"deleted_at"`
+	ID               int                    `db:"id" json:"id"`
+	GameID           string                 `db:"game_id" json:"gameId"`
+	PublicID         string                 `db:"public_id" json:"publicId"`
+	Name             string                 `db:"name" json:"name"`
+	OwnerID          int                    `db:"owner_id" json:"ownerId"`
+	MembershipCount  int                    `db:"membership_count" json:"membershipCount"`
+	Metadata         map[string]interface{} `db:"metadata" json:"metadata"`
+	AllowApplication bool                   `db:"allow_application" json:"allowApplication"`
+	AutoJoin         bool                   `db:"auto_join" json:"autoJoin"`
+	CreatedAt        int64                  `db:"created_at" json:"createdAt"`
+	UpdatedAt        int64                  `db:"updated_at" json:"updatedAt"`
+	DeletedAt        int64                  `db:"deleted_at" json:"deletedAt"`
 }
 
 // PreInsert populates fields before inserting a new clan
@@ -46,10 +47,55 @@ func (c *Clan) PreInsert(s gorp.SqlExecutor) error {
 	return nil
 }
 
+func (c *Clan) PostInsert(s gorp.SqlExecutor) error {
+	err := c.IndexClanIntoElasticSearch()
+	return err
+}
+
 // PreUpdate populates fields before updating a clan
 func (c *Clan) PreUpdate(s gorp.SqlExecutor) error {
 	c.UpdatedAt = util.NowMilli()
 	return nil
+}
+
+func (c *Clan) PostUpdate(s gorp.SqlExecutor) error {
+	err := c.IndexClanIntoElasticSearch()
+	return err
+}
+
+// PreDelete deletes clan from elasticsearch before deleting
+func (c *Clan) PostDelete(s gorp.SqlExecutor) error {
+	err := c.DeleteClanFromElasticSearch()
+	return err
+}
+
+func (c *Clan) IndexClanIntoElasticSearch() error {
+	es := es.GetConfiguredESClient()
+	var err error
+	if es != nil {
+		_, err = es.Client.Index().Index(es.Index + "-" + c.GameID).Type("clan").Id(c.PublicID).BodyJson(c).Do()
+	}
+	return err
+}
+
+func (c *Clan) DeleteClanFromElasticSearch() error {
+	es := es.GetConfiguredESClient()
+	var err error
+	if es != nil {
+		_, err = es.Client.Delete().Index(es.Index + "-" + c.GameID).Type("clan").Id(c.PublicID).Do()
+	}
+	return err
+}
+
+func updateClanIntoES(db DB, id int) error {
+	clan, err := GetClanByID(db, id)
+	if err != nil {
+		return err
+	}
+	if clan == nil {
+		return &ModelNotFoundError{"Clan", id}
+	}
+	return clan.IndexClanIntoElasticSearch()
 }
 
 // Serialize returns a JSON with clan details
@@ -83,6 +129,13 @@ func IncrementClanMembershipCount(db DB, id, by int) error {
 	if rows != 1 {
 		return &ModelNotFoundError{"Clan", id}
 	}
+
+	err = updateClanIntoES(db, id)
+
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
