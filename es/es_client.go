@@ -39,8 +39,29 @@ func GetESClient(host string, port int, index string, sniff bool, logger zap.Log
 	return client
 }
 
+func GetTestESClient(host string, port int, index string, sniff bool, logger zap.Logger, debug bool) *ESClient {
+	client = &ESClient{
+		Debug:  debug,
+		Host:   host,
+		Port:   port,
+		Logger: logger,
+		Index:  index,
+		Sniff:  sniff,
+	}
+	client.configure()
+	return client
+}
+
+func GetConfiguredESClient() *ESClient {
+	return client
+}
+
 func (es *ESClient) configure() {
 	es.configureESClient()
+}
+
+func DestroyClient() {
+	client = nil
 }
 
 func (es *ESClient) configureESClient() {
