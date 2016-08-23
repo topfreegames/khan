@@ -15,7 +15,7 @@ import (
 )
 
 func GetTestES() *es.ESClient {
-	return es.GetTestESClient("localhost", 9234, "khan", false, zap.NewJSON(zap.ErrorLevel), false)
+	return es.GetTestESClient("localhost", 9234, "khan", false, zap.New(zap.NewJSONEncoder(), zap.ErrorLevel), false)
 }
 
 func DestroyTestES() {

@@ -199,7 +199,7 @@ func migrations20160627110742_loaduuidmoduleSql() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "migrations/20160627110742_LoadUUIDModule.sql", size: 75, mode: os.FileMode(420), modTime: time.Unix(1467909234, 0)}
+	info := bindataFileInfo{name: "migrations/20160627110742_LoadUUIDModule.sql", size: 113, mode: os.FileMode(420), modTime: time.Unix(1471991197, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -419,7 +419,7 @@ func migrations20160819145352_createhooktriggerfieldsmetadataSql() (*asset, erro
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "migrations/20160819145352_CreateHookTriggerFieldsMetadata.sql", size: 464, mode: os.FileMode(420), modTime: time.Unix(1471629371, 0)}
+	info := bindataFileInfo{name: "migrations/20160819145352_CreateHookTriggerFieldsMetadata.sql", size: 464, mode: os.FileMode(420), modTime: time.Unix(1471991197, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
