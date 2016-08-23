@@ -8,7 +8,7 @@ elasticsearch:
   host: "localhost"
   enabled: true
   port: 9234
-  sniff: true
+  sniff: false
   index: "khan"
 khan:
   maxPendingInvites: -1

@@ -44,8 +44,8 @@ start-deps:
 	@until docker exec khan_postgres_1 pg_isready; do echo 'Waiting for Postgres...' && sleep 1; done
 	@until docker exec khan_elasticsearch_1 curl localhost:9200; do echo 'Waiting for Elasticsearch...' && sleep 1; done
 	@sleep 5
-	@docker exec khan_postgres_1 createuser -s -U postgres khan
-	@docker exec khan_postgres_1 createdb -U khan khan
+	@docker exec khan_postgres_1 createuser -s -U postgres khan; true
+	@docker exec khan_postgres_1 createdb -U khan khan; true
 	@make migrate
 
 stop-deps:
@@ -87,7 +87,7 @@ run-docker:
 		-p 8080:80 \
 		khan
 
-test: assets drop-test db-test drop-es-test
+test: start-deps assets drop-test db-test drop-es-test
 	@ginkgo --cover $(GODIRS)
 
 drop-es-test:
