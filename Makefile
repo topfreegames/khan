@@ -137,13 +137,13 @@ db-perf:
 	@go run perf/main.go
 
 restore-perf:
-	@psql -d postgres khan_perf < khan-perf.dump
+	@psql -U postgres -d postgres khan_perf < khan-perf.dump
 
 dump-perf:
 	@pg_dump khan_perf > khan-perf.dump
 
 drop-perf:
-	@psql -d postgres -f db/drop-perf.sql > /dev/null
+	@psql -d -U postgres postgres -f db/drop-perf.sql > /dev/null
 	@echo "Perf database created successfully!"
 
 migrate-perf:
