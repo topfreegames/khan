@@ -3,7 +3,6 @@ package es
 import (
 	"fmt"
 	"os"
-	"strings"
 	"sync"
 
 	"gopkg.in/olivere/elastic.v3"
@@ -78,17 +77,5 @@ func (es *ESClient) configureESClient() {
 	if err != nil {
 		l.Error("Failed to connect to elasticsearch!", zap.String("elasticsearch.url", fmt.Sprintf("http://%s:%d/%s", es.Host, es.Port, es.Index)), zap.Error(err))
 		os.Exit(1)
-	}
-	client := es.Client
-	_, err = client.CreateIndex(es.Index).Do()
-	if err != nil {
-		if strings.Contains(err.Error(), "index_already_exists_exception") || strings.Contains(err.Error(), "IndexAlreadyExistsException") {
-			l.Warn("Index already exists into ES! Ignoring creation...", zap.String("index", es.Index))
-		} else {
-			l.Error("Failed to create index into ES", zap.Error(err))
-			os.Exit(1)
-		}
-	} else {
-		l.Info("Sucessfully created index into ES", zap.String("index", es.Index))
 	}
 }
