@@ -15,7 +15,7 @@ import (
 )
 
 func GetTestES() *es.ESClient {
-	return es.GetTestESClient("localhost", 9234, "khan", false, zap.New(zap.NewJSONEncoder(), zap.ErrorLevel), false)
+	return es.GetTestESClient("localhost", 9200, "khan", false, zap.New(zap.NewJSONEncoder(), zap.ErrorLevel), false)
 }
 
 func DestroyTestES() {
@@ -24,11 +24,11 @@ func DestroyTestES() {
 
 // GetTestDB returns a connection to the test database
 func GetTestDB() (models.DB, error) {
-	return models.GetDB("localhost", "khan_test", 5555, "disable", "khan_test", "")
+	return models.GetDB("localhost", "khan_test", 5432, "disable", "khan_test", "")
 }
 
 // GetFaultyTestDB returns an ill-configured test database
 func GetFaultyTestDB() models.DB {
-	faultyDb, _ := models.InitDb("localhost", "khan_tet", 5555, "disable", "khan_test", "")
+	faultyDb, _ := models.InitDb("localhost", "khan_tet", 5432, "disable", "khan_test", "")
 	return faultyDb
 }

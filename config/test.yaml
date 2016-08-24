@@ -2,12 +2,12 @@ postgres:
   user: "khan_test"
   dbName: "khan_test"
   host: "localhost"
-  port: 5555
+  port: 5432
   sslMode: "disable"
 elasticsearch:
   host: "localhost"
   enabled: true
-  port: 9234
+  port: 9200
   sniff: false
   index: "khan"
 khan:
