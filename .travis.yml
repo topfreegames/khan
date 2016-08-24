@@ -12,6 +12,7 @@ env:
 
 services:
   - postgresql
+  - elasticsearch
   - docker
 
 install:
@@ -40,6 +41,9 @@ install:
   - psql -U postgres -c 'create database "khan";'
   - psql -U postgres khan -c 'create extension "uuid-ossp";'
   - make setup-ci
+
+before_script:
+  - sleep 10
 
 script:
   - make coverage

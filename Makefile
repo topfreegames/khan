@@ -91,7 +91,7 @@ test: start-deps assets drop-test db-test drop-es-test
 	@ginkgo --cover $(GODIRS)
 
 drop-es-test:
-	@curl -X DELETE localhost:9234/khan*
+	@curl -X DELETE localhost:9200/khan*
 
 test-coverage coverage: test
 	@echo "mode: count" > coverage-all.out
@@ -111,14 +111,14 @@ drop:
 	@echo "Database created successfully!"
 
 db-test migrate-test:
-	@psql -h localhost -p 5555 -U postgres -d postgres -c "SHOW SERVER_VERSION"
+	@psql -h localhost -p 5432 -U postgres -d postgres -c "SHOW SERVER_VERSION"
 	@go run main.go migrate -c ./config/test.yaml
 	@go run main.go migrate -t 0 -c ./config/test.yaml
 	@go run main.go migrate -c ./config/test.yaml
 
 drop-test:
-	@-psql -d postgres -h localhost -p 5555 -U postgres -c "SELECT pg_terminate_backend(pid.pid) FROM pg_stat_activity, (SELECT pid FROM pg_stat_activity where pid <> pg_backend_pid()) pid WHERE datname='khan_test';"
-	@psql -d postgres -h localhost -p 5555 -U postgres -f db/drop-test.sql > /dev/null
+	@-psql -d postgres -h localhost -p 5432 -U postgres -c "SELECT pg_terminate_backend(pid.pid) FROM pg_stat_activity, (SELECT pid FROM pg_stat_activity where pid <> pg_backend_pid()) pid WHERE datname='khan_test';"
+	@psql -d postgres -h localhost -p 5432 -U postgres -f db/drop-test.sql > /dev/null
 	@echo "Test database created successfully!"
 
 run-test-khan: build kill-test-khan
