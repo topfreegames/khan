@@ -4,7 +4,7 @@ services:
   postgres:
     image: postgres:9.5
     ports:
-      - "5432:5432"
+      - "5433:5432"
   elasticsearch:
     image: elasticsearch:2.3.4
     ports:
