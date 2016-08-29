@@ -39,7 +39,7 @@ assets:
 		go generate -x $$pkg ; \
     done
 
-start-deps:
+start-deps: stop-deps
 	@cd ./scripts && docker-compose --project-name=khan up -d
 	@until docker exec khan_postgres_1 pg_isready; do echo 'Waiting for Postgres...' && sleep 1; done
 	@until docker exec khan_elasticsearch_1 curl localhost:9200; do echo 'Waiting for Elasticsearch...' && sleep 1; done
@@ -111,14 +111,14 @@ drop:
 	@echo "Database created successfully!"
 
 db-test migrate-test:
-	@psql -h localhost -p 5432 -U postgres -d postgres -c "SHOW SERVER_VERSION"
+	@psql -h localhost -p 5433 -U postgres -d postgres -c "SHOW SERVER_VERSION"
 	@go run main.go migrate -c ./config/test.yaml
 	@go run main.go migrate -t 0 -c ./config/test.yaml
 	@go run main.go migrate -c ./config/test.yaml
 
 drop-test:
-	@-psql -d postgres -h localhost -p 5432 -U postgres -c "SELECT pg_terminate_backend(pid.pid) FROM pg_stat_activity, (SELECT pid FROM pg_stat_activity where pid <> pg_backend_pid()) pid WHERE datname='khan_test';"
-	@psql -d postgres -h localhost -p 5432 -U postgres -f db/drop-test.sql > /dev/null
+	@-psql -d postgres -h localhost -p 5433 -U postgres -c "SELECT pg_terminate_backend(pid.pid) FROM pg_stat_activity, (SELECT pid FROM pg_stat_activity where pid <> pg_backend_pid()) pid WHERE datname='khan_test';"
+	@psql -d postgres -h localhost -p 5433 -U postgres -f db/drop-test.sql > /dev/null
 	@echo "Test database created successfully!"
 
 run-test-khan: build kill-test-khan

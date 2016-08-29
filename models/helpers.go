@@ -33,12 +33,12 @@ var _db DB
 
 // GetDefaultDB returns a connection to the default database
 func GetDefaultDB() (DB, error) {
-	return GetDB("localhost", "khan", 5432, "disable", "khan", "")
+	return GetDB("localhost", "khan", 5433, "disable", "khan", "")
 }
 
 // GetPerfDB returns a connection to the perf database
 func GetPerfDB() (DB, error) {
-	return GetDB("localhost", "khan_perf", 5432, "disable", "khan_perf", "")
+	return GetDB("localhost", "khan_perf", 5433, "disable", "khan_perf", "")
 }
 
 // GetDB returns a DbMap connection to the database specified in the arguments
