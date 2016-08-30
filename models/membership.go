@@ -314,7 +314,7 @@ func validateMembership(db DB, game *Game, membership *Membership, clanPublicID,
 		nowInMilliseconds := util.NowMilli()
 		if membership.Approved {
 			return -1, false, &AlreadyHasValidMembershipError{playerPublicID, clanPublicID}
-		} else if membership.Denied {
+		} else if membership.Denied && int(membership.DenierID.Int64) != membership.PlayerID {
 			timeToBeReady := game.CooldownAfterDeny - int(nowInMilliseconds-membership.DeniedAt)/1000
 			if timeToBeReady > 0 {
 				return -1, false, &MustWaitMembershipCooldownError{timeToBeReady, playerPublicID, clanPublicID}
