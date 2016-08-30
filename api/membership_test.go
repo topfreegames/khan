@@ -880,6 +880,7 @@ var _ = Describe("Membership API Handler", func() {
 				"level":             level,
 				"playerPublicID":    player.PublicID,
 				"requestorPublicID": owner.PublicID,
+				"message":           "Join my clan",
 			}
 			a := GetDefaultTestApp()
 			res := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "invitation"), payload)
@@ -895,6 +896,7 @@ var _ = Describe("Membership API Handler", func() {
 
 			response := (*responses)[0]["payload"].(map[string]interface{})
 			validateMembershipHookResponse(response, gameID, clan, player, owner)
+			Expect(response["message"]).To(Equal(payload["message"]))
 		})
 
 		It("should call membership approved hook on application", func() {
