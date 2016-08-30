@@ -933,6 +933,28 @@ var _ = Describe("Hook Model", func() {
 				Expect(dbClan.MembershipCount).To(Equal(1))
 			})
 
+			It("If denied previous membership and denier is the membership player, before waiting cooldown seconds", func() {
+				game, clan, owner, players, _, err := GetClanWithMemberships(testDb, 0, 1, 0, 0, "", "")
+				Expect(err).NotTo(HaveOccurred())
+
+				game.CooldownAfterDeny = 10
+				_, err = testDb.Update(game)
+				Expect(err).NotTo(HaveOccurred())
+
+				_, err = CreateMembership(
+					testDb,
+					game,
+					players[0].GameID,
+					"Member",
+					players[0].PublicID,
+					clan.PublicID,
+					owner.PublicID,
+					"Please accept me",
+				)
+
+				Expect(err).NotTo(HaveOccurred())
+			})
+
 			It("If denied previous membership, after waiting cooldown seconds", func() {
 				game, clan, owner, players, _, err := GetClanWithMemberships(testDb, 0, 1, 0, 0, "", "")
 				Expect(err).NotTo(HaveOccurred())
@@ -1007,12 +1029,16 @@ var _ = Describe("Hook Model", func() {
 				Expect(err.Error()).To(Equal(fmt.Sprintf("Player %s must wait 10 seconds before creating a membership in clan %s.", players[0].PublicID, clan.PublicID)))
 			})
 
-			It("If denied previous membership, before waiting cooldown seconds", func() {
-				game, clan, owner, players, _, err := GetClanWithMemberships(testDb, 0, 1, 0, 0, "", "")
+			It("If denied previous membership and denier is not the membership player, before waiting cooldown seconds", func() {
+				game, clan, owner, players, memberships, err := GetClanWithMemberships(testDb, 0, 1, 0, 0, "", "")
 				Expect(err).NotTo(HaveOccurred())
 
 				game.CooldownAfterDeny = 10
 				_, err = testDb.Update(game)
+				Expect(err).NotTo(HaveOccurred())
+
+				memberships[0].DenierID.Int64 = int64(owner.ID)
+				_, err = testDb.Update(memberships[0])
 				Expect(err).NotTo(HaveOccurred())
 
 				_, err = CreateMembership(
