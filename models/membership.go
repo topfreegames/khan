@@ -319,7 +319,7 @@ func validateMembership(db DB, game *Game, membership *Membership, clanPublicID,
 			if timeToBeReady > 0 {
 				return -1, false, &MustWaitMembershipCooldownError{timeToBeReady, playerPublicID, clanPublicID}
 			}
-		} else if membership.DeletedAt > 0 {
+		} else if membership.DeletedAt > 0 && membership.DeletedBy != membership.PlayerID {
 			timeToBeReady := game.CooldownAfterDelete - int(nowInMilliseconds-membership.DeletedAt)/1000
 			if timeToBeReady > 0 {
 				return -1, false, &MustWaitMembershipCooldownError{timeToBeReady, playerPublicID, clanPublicID}
