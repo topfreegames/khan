@@ -331,7 +331,7 @@ func validateMembership(db DB, game *Game, membership *Membership, clanPublicID,
 			}
 
 			if cd != 0 {
-				timeToBeReady := cd - int(nowInMilliseconds-membership.CreatedAt)/1000
+				timeToBeReady := cd - int(nowInMilliseconds-membership.UpdatedAt)/1000
 				if timeToBeReady > 0 {
 					return -1, false, &MustWaitMembershipCooldownError{timeToBeReady, playerPublicID, clanPublicID}
 				}
