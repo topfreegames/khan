@@ -36,6 +36,13 @@ The following environment variables are available to you:
 * KHAN_POSTGRES_PASSWORD
 * KHAN_POSTGRES_SSLMODE
 * KHAN_SENTRY_URL
+* KHAN_ELASTICSEARCH_ENABLED
+* KHAN_ELASTICSEARCH_HOST
+* KHAN_ELASTICSEARCH_PORT
+* KHAN_ELASTICSEARCH_SNIFF
+* KHAN_ELASTICSEARCH_INDEX
+
+If elasticsearch is set to enabled, khan will save clans into KHAN_ELASTICSEARCH_INDEX and keep them updated with all the clan's updates.
 
 ## Running with docker
 
