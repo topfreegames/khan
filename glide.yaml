@@ -30,3 +30,5 @@ import:
   version: ^1.0.3
 - package: github.com/iris-contrib/template
   version: 53895cd7ea0a067c4f81b71af0d91ff0b6b4ba1d
+- package: github.com/iris-contrib/response
+  version: 959c7b8c27718d5a7a3d83ad05d677ae234e1152

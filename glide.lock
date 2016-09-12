@@ -1,5 +1,5 @@
-hash: 15d77bb6ff82d69487b27389fc720bd316693c58cba8ef9a353525b4c1d3cb27
-updated: 2016-09-12T15:10:03.809009717-03:00
+hash: 0de373799adf43db39f9c397d03c953dcd1926b3dc3e5a909c41614f4547cf93
+updated: 2016-09-12T17:19:58.482928577-03:00
 imports:
 - name: github.com/ajg/form
   version: 7ff89c75808766205bfa4411abb436c98c33eb5e
@@ -69,7 +69,7 @@ imports:
 - name: github.com/iris-contrib/middleware
   version: c02acecac4079532e75b9b5e43c04d3a7f779512
 - name: github.com/iris-contrib/response
-  version: ff43c463ebf896c1cd86a236c67b653b48258e60
+  version: 959c7b8c27718d5a7a3d83ad05d677ae234e1152
   subpackages:
   - data
   - json
