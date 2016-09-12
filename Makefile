@@ -88,10 +88,11 @@ run-docker:
 		khan
 
 test: start-deps assets drop-test db-test drop-es-test
-	@ginkgo --cover $(GODIRS)
+	@ginkgo -r --cover .
 
 drop-es-test:
 	@curl -X DELETE localhost:9200/khan*
+	#@curl -XPUT localhost:9200/_settings -d '{ "index": { "refresh_interval": "20ms" } }'
 
 test-coverage coverage: test
 	@echo "mode: count" > coverage-all.out

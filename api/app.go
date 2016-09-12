@@ -80,7 +80,14 @@ func (app *App) configureSentry() {
 
 func (app *App) configureElasticsearch() {
 	if app.Config.GetBool("elasticsearch.enabled") == true {
-		app.ESClient = es.GetESClient(app.Config.GetString("elasticsearch.host"), app.Config.GetInt("elasticsearch.port"), app.Config.GetString("elasticsearch.index"), app.Config.GetBool("elasticsearch.sniff"), app.Logger, app.Debug)
+		app.ESClient = es.GetESClient(
+			app.Config.GetString("elasticsearch.host"),
+			app.Config.GetInt("elasticsearch.port"),
+			app.Config.GetString("elasticsearch.index"),
+			app.Config.GetBool("elasticsearch.sniff"),
+			app.Logger,
+			app.Debug,
+		)
 	}
 }
 

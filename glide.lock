@@ -1,5 +1,5 @@
-hash: 89cafea7a08abc0133d2ce13ae62803b6c6126e28d7dc6a39623fc6e54a2ef7c
-updated: 2016-08-23T19:40:33.861037707-03:00
+hash: 15d77bb6ff82d69487b27389fc720bd316693c58cba8ef9a353525b4c1d3cb27
+updated: 2016-09-12T15:10:03.809009717-03:00
 imports:
 - name: github.com/ajg/form
   version: 7ff89c75808766205bfa4411abb436c98c33eb5e
@@ -44,10 +44,10 @@ imports:
   subpackages:
   - hcl/ast
   - hcl/parser
-  - hcl/token
-  - json/parser
   - hcl/scanner
   - hcl/strconv
+  - hcl/token
+  - json/parser
   - json/scanner
   - json/token
 - name: github.com/imdario/mergo
@@ -78,7 +78,7 @@ imports:
   - text
   - xml
 - name: github.com/iris-contrib/template
-  version: 1130d33ae375e4305f27f62f6793db587bcb6f83
+  version: 53895cd7ea0a067c4f81b71af0d91ff0b6b4ba1d
   subpackages:
   - html
 - name: github.com/iris-contrib/websocket
@@ -92,15 +92,15 @@ imports:
 - name: github.com/kataras/iris
   version: 2d067ac08101b10e9622d741a12a92c89fac5693
   subpackages:
-  - iris
   - config
   - context
+  - iris
   - utils
 - name: github.com/klauspost/compress
   version: 08fe86a420401e830c24114bdf9f1ba91331407a
   subpackages:
-  - gzip
   - flate
+  - gzip
   - zlib
 - name: github.com/klauspost/cpuid
   version: 09cded8978dc9e80714c4d85b0322337b0a1e5e0
@@ -135,31 +135,31 @@ imports:
   subpackages:
   - config
   - internal/codelocation
+  - internal/containernode
   - internal/failer
+  - internal/leafnodes
   - internal/remote
+  - internal/spec
+  - internal/specrunner
   - internal/suite
   - internal/testingtproxy
   - internal/writer
   - reporters
   - reporters/stenographer
   - types
-  - internal/containernode
-  - internal/leafnodes
-  - internal/spec
-  - internal/specrunner
 - name: github.com/onsi/gomega
   version: 4dfabf7db2e4147ec99a86db32b2f2a3484cfee8
   subpackages:
+  - format
   - internal/assertion
   - internal/asyncassertion
   - internal/testingtsupport
   - matchers
-  - types
-  - format
   - matchers/support/goraph/bipartitegraph
   - matchers/support/goraph/edge
   - matchers/support/goraph/node
   - matchers/support/goraph/util
+  - types
 - name: github.com/Pallinder/go-randomdata
   version: 104cc800bd6434e70cb0c3ad08c4541f4f2eb48b
 - name: github.com/pkg/errors
@@ -243,28 +243,29 @@ imports:
 - name: golang.org/x/crypto
   version: 88d0005bf4c3ec17306ecaca4281a8d8efd73e91
   subpackages:
-  - ssh
-  - ssh/terminal
   - curve25519
   - ed25519
-  - ocsp
   - ed25519/internal/edwards25519
+  - ocsp
+  - ssh
+  - ssh/terminal
 - name: golang.org/x/net
   version: 07b51741c1d6423d4a6abab1c49940ec09cb1aaf
   subpackages:
-  - publicsuffix
   - context
+  - context/ctxhttp
   - html
   - html/atom
+  - publicsuffix
 - name: golang.org/x/sys
   version: a646d33e2ee3172a661fc09bca23bb4889a41bc8
   subpackages:
+  - unix
+  - windows
   - windows/registry
   - windows/svc
   - windows/svc/eventlog
   - windows/svc/mgr
-  - unix
-  - windows
 - name: golang.org/x/text
   version: d69c40b4be55797923cec7457fac7a244d91a9b6
   subpackages:
@@ -279,12 +280,12 @@ imports:
 - name: gopkg.in/gorp.v1
   version: c87af80f3cc5036b55b83d77171e156791085e2e
 - name: gopkg.in/olivere/elastic.v3
-  version: 908ffee99d2c7e5fc7cf6ddf437b1fb26f4bb286
+  version: f9fd15e1ea3a50bbe58c72a4b8820499fe3bb0e1
   subpackages:
   - backoff
   - uritemplates
 - name: gopkg.in/square/go-jose.v1
-  version: a3927f83df1b1516f9e9dec71839c93e6bcf1db0
+  version: 139276ceb5afbf13e636c44e9382f0ca75c12ba3
   subpackages:
   - cipher
   - json

@@ -6,6 +6,6 @@ services:
     ports:
       - "5433:5432"
   elasticsearch:
-    image: elasticsearch:2.3.4
+    image: elasticsearch:2.4
     ports:
       - "9200:9200"
