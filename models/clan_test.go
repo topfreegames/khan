@@ -519,6 +519,31 @@ var _ = Describe("Clan Model", func() {
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(Equal("pq: value too long for type character varying(255)"))
 			})
+
+			Measure("Should update a Clan with UpdateClan", func(b Benchmarker) {
+				player, clans, err := GetTestClans(testDb, "", "", 1)
+				Expect(err).NotTo(HaveOccurred())
+				clan := clans[0]
+
+				metadata := map[string]interface{}{"x": 1}
+				allowApplication := !clan.AllowApplication
+				autoJoin := !clan.AutoJoin
+
+				runtime := b.Time("runtime", func() {
+					UpdateClan(
+						testDb,
+						clan.GameID,
+						clan.PublicID,
+						clan.Name,
+						player.PublicID,
+						metadata,
+						allowApplication,
+						autoJoin,
+					)
+				})
+
+				Expect(runtime.Seconds()).Should(BeNumerically("<", 0.2), "Operation shouldn't take this long")
+			}, 200)
 		})
 
 		Describe("Leave Clan", func() {

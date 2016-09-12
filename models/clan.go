@@ -40,44 +40,49 @@ type Clan struct {
 	DeletedAt        int64                  `db:"deleted_at" json:"deletedAt"`
 }
 
-// PreInsert populates fields before inserting a new clan
+//PreInsert populates fields before inserting a new clan
 func (c *Clan) PreInsert(s gorp.SqlExecutor) error {
 	c.CreatedAt = util.NowMilli()
 	c.UpdatedAt = c.CreatedAt
 	return nil
 }
 
+//PostInsert indexes clan in ES after creation in PG
 func (c *Clan) PostInsert(s gorp.SqlExecutor) error {
 	err := c.IndexClanIntoElasticSearch()
 	return err
 }
 
-// PreUpdate populates fields before updating a clan
+//PreUpdate populates fields before updating a clan
 func (c *Clan) PreUpdate(s gorp.SqlExecutor) error {
 	c.UpdatedAt = util.NowMilli()
 	return nil
 }
 
+//PostUpdate indexes clan in ES after update in PG
 func (c *Clan) PostUpdate(s gorp.SqlExecutor) error {
 	err := c.IndexClanIntoElasticSearch()
 	return err
 }
 
-// PreDelete deletes clan from elasticsearch before deleting
+//PostDelete deletes clan from elasticsearch after deleting from PG
 func (c *Clan) PostDelete(s gorp.SqlExecutor) error {
 	err := c.DeleteClanFromElasticSearch()
 	return err
 }
 
+//IndexClanIntoElasticSearch after operation in PG
 func (c *Clan) IndexClanIntoElasticSearch() error {
-	es := es.GetConfiguredESClient()
-	var err error
-	if es != nil {
-		_, err = es.Client.Index().Index(es.Index + "-" + c.GameID).Type("clan").Id(c.PublicID).BodyJson(c).Do()
-	}
-	return err
+	go func() {
+		es := es.GetConfiguredESClient()
+		if es != nil {
+			es.Client.Index().Index(es.Index + "-" + c.GameID).Type("clan").Id(c.PublicID).BodyJson(c).Do()
+		}
+	}()
+	return nil
 }
 
+//DeleteClanFromElasticSearch after deletion in PG
 func (c *Clan) DeleteClanFromElasticSearch() error {
 	es := es.GetConfiguredESClient()
 	var err error

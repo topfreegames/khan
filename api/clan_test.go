@@ -349,6 +349,34 @@ var _ = Describe("Clan API Handler", func() {
 			Expect(result["success"]).To(BeFalse())
 			Expect(result["reason"]).To(Equal("pq: value too long for type character varying(255)"))
 		})
+
+		Measure("Should update a Clan with UpdateClan", func(b Benchmarker) {
+			_, clan, owner, _, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
+			Expect(err).NotTo(HaveOccurred())
+
+			gameID := clan.GameID
+			publicID := clan.PublicID
+			clanName := randomdata.FullName(randomdata.RandomGender)
+			ownerPublicID := owner.PublicID
+			metadata := map[string]interface{}{"new": "metadata"}
+
+			payload := map[string]interface{}{
+				"name":             clanName,
+				"ownerPublicID":    ownerPublicID,
+				"metadata":         metadata,
+				"allowApplication": !clan.AllowApplication,
+				"autoJoin":         !clan.AutoJoin,
+			}
+			route := GetGameRoute(gameID, fmt.Sprintf("/clans/%s", publicID))
+			a := GetDefaultTestApp()
+
+			runtime := b.Time("runtime", func() {
+				res := PutJSON(a, route, payload)
+				Expect(res.Raw().StatusCode).To(Equal(http.StatusOK))
+			})
+
+			Expect(runtime.Seconds()).Should(BeNumerically("<", 0.2), "Operation shouldn't take this long")
+		}, 200)
 	})
 
 	Describe("List All Clans Handler", func() {
