@@ -10,7 +10,7 @@ package api
 import (
 	"encoding/json"
 
-	"github.com/kataras/iris"
+	"github.com/labstack/echo"
 	"github.com/topfreegames/khan/util"
 	"github.com/uber-go/zap"
 )
@@ -109,10 +109,14 @@ type optionalParams struct {
 	playerUpdateMetadataFieldsHookTriggerWhitelist string
 }
 
-func getOptionalParameters(app *App, c *iris.Context) (*optionalParams, error) {
-	data := c.RequestCtx.Request.Body()
+func getOptionalParameters(app *App, c echo.Context) (*optionalParams, error) {
+	data, err := GetRequestBody(c)
+	if err != nil {
+		return nil, err
+	}
+
 	var jsonPayload map[string]interface{}
-	err := json.Unmarshal(data, &jsonPayload)
+	err = json.Unmarshal([]byte(data), &jsonPayload)
 	if err != nil {
 		return nil, err
 	}
@@ -161,7 +165,7 @@ func getOptionalParameters(app *App, c *iris.Context) (*optionalParams, error) {
 	}, nil
 }
 
-func getCreateGamePayload(app *App, c *iris.Context, l zap.Logger) (*createGamePayload, *optionalParams, error) {
+func getCreateGamePayload(app *App, c echo.Context, l zap.Logger) (*createGamePayload, *optionalParams, error) {
 	var payload createGamePayload
 	if err := LoadJSONPayload(&payload, c, l); err != nil {
 		return nil, nil, err

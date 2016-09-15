@@ -11,14 +11,14 @@ import (
 	"strings"
 	"time"
 
-	"github.com/kataras/iris"
+	"github.com/labstack/echo"
 	"github.com/topfreegames/khan/models"
 	"github.com/uber-go/zap"
 )
 
-// CreateClanHandler is the handler responsible for creating new clans
-func CreateClanHandler(app *App) func(c *iris.Context) {
-	return func(c *iris.Context) {
+//CreateClanHandler is the handler responsible for creating new clans
+func CreateClanHandler(app *App) func(c echo.Context) error {
+	return func(c echo.Context) error {
 		c.Set("route", "CreateClan")
 		start := time.Now()
 		gameID := c.Param("gameID")
@@ -32,21 +32,18 @@ func CreateClanHandler(app *App) func(c *iris.Context) {
 		var payload clanPayload
 		if err := LoadJSONPayload(&payload, c, l); err != nil {
 			l.Error("Failed to parse json payload.", zap.Error(err))
-			FailWith(400, err.Error(), c)
-			return
+			return FailWith(400, err.Error(), c)
 		}
 
 		game, err := app.GetGame(gameID)
 		if err != nil {
 			l.Warn("Could not find game.", zap.Error(err))
-			FailWith(404, err.Error(), c)
-			return
+			return FailWith(404, err.Error(), c)
 		}
 
 		tx, err := app.BeginTrans(l)
 		if err != nil {
-			FailWith(500, err.Error(), c)
-			return
+			return FailWith(500, err.Error(), c)
 		}
 
 		//rollback function
@@ -77,8 +74,7 @@ func CreateClanHandler(app *App) func(c *iris.Context) {
 			if txErr == nil {
 				l.Error("Create clan failed.", zap.Error(err))
 			}
-			FailWith(500, err.Error(), c)
-			return
+			return FailWith(500, err.Error(), c)
 		}
 
 		clanJSON := map[string]interface{}{
@@ -103,15 +99,13 @@ func CreateClanHandler(app *App) func(c *iris.Context) {
 			if txErr == nil {
 				l.Error("Clan created hook dispatch failed.", zap.Error(err))
 			}
-			FailWith(500, err.Error(), c)
-			return
+			return FailWith(500, err.Error(), c)
 		}
 		l.Debug("Hook dispatched successfully.")
 
 		err = app.Commit(tx, "Clan created", l)
 		if err != nil {
-			FailWith(500, err.Error(), c)
-			return
+			return FailWith(500, err.Error(), c)
 		}
 
 		l.Info(
@@ -120,15 +114,15 @@ func CreateClanHandler(app *App) func(c *iris.Context) {
 			zap.Duration("duration", time.Now().Sub(start)),
 		)
 
-		SucceedWith(map[string]interface{}{
+		return SucceedWith(map[string]interface{}{
 			"publicID": clan.PublicID,
 		}, c)
 	}
 }
 
 // UpdateClanHandler is the handler responsible for updating existing clans
-func UpdateClanHandler(app *App) func(c *iris.Context) {
-	return func(c *iris.Context) {
+func UpdateClanHandler(app *App) func(c echo.Context) error {
+	return func(c echo.Context) error {
 		c.Set("route", "UpdateClan")
 		start := time.Now()
 		gameID := c.Param("gameID")
@@ -144,14 +138,12 @@ func UpdateClanHandler(app *App) func(c *iris.Context) {
 		var payload updateClanPayload
 		if err := LoadJSONPayload(&payload, c, l); err != nil {
 			l.Error("Could not load payload.", zap.Error(err))
-			FailWith(400, err.Error(), c)
-			return
+			return FailWith(400, err.Error(), c)
 		}
 
 		tx, err := app.BeginTrans(l)
 		if err != nil {
-			FailWith(500, err.Error(), c)
-			return
+			return FailWith(500, err.Error(), c)
 		}
 
 		//rollback function
@@ -172,8 +164,7 @@ func UpdateClanHandler(app *App) func(c *iris.Context) {
 			if txErr == nil {
 				l.Error("Updating clan failed.", zap.Error(err))
 			}
-			FailWith(500, err.Error(), c)
-			return
+			return FailWith(500, err.Error(), c)
 		}
 		l.Debug("Game retrieved successfully")
 
@@ -184,8 +175,7 @@ func UpdateClanHandler(app *App) func(c *iris.Context) {
 			if txErr == nil {
 				l.Error("Updating clan failed.", zap.Error(err))
 			}
-			FailWith(500, err.Error(), c)
-			return
+			return FailWith(500, err.Error(), c)
 		}
 		l.Debug("Clan retrieved successfully")
 
@@ -206,8 +196,7 @@ func UpdateClanHandler(app *App) func(c *iris.Context) {
 			if txErr == nil {
 				l.Error("Updating clan failed.", zap.Error(err))
 			}
-			FailWith(500, err.Error(), c)
-			return
+			return FailWith(500, err.Error(), c)
 		}
 
 		clanJSON := map[string]interface{}{
@@ -234,28 +223,26 @@ func UpdateClanHandler(app *App) func(c *iris.Context) {
 				if txErr == nil {
 					l.Error("Clan updated hook dispatch failed.", zap.Error(err))
 				}
-				FailWith(500, err.Error(), c)
-				return
+				return FailWith(500, err.Error(), c)
 			}
 		}
 
 		err = app.Commit(tx, "Clan updated", l)
 		if err != nil {
-			FailWith(500, err.Error(), c)
-			return
+			return FailWith(500, err.Error(), c)
 		}
 
 		l.Info(
 			"Clan updated successfully.",
 			zap.Duration("duration", time.Now().Sub(start)),
 		)
-		SucceedWith(map[string]interface{}{}, c)
+		return SucceedWith(map[string]interface{}{}, c)
 	}
 }
 
 // LeaveClanHandler is the handler responsible for changing the clan ownership when the owner leaves it
-func LeaveClanHandler(app *App) func(c *iris.Context) {
-	return func(c *iris.Context) {
+func LeaveClanHandler(app *App) func(c echo.Context) error {
+	return func(c echo.Context) error {
 		c.Set("route", "LeaveClan")
 		start := time.Now()
 		gameID := c.Param("gameID")
@@ -270,8 +257,7 @@ func LeaveClanHandler(app *App) func(c *iris.Context) {
 
 		tx, err := app.BeginTrans(l)
 		if err != nil {
-			FailWith(500, err.Error(), c)
-			return
+			return FailWith(500, err.Error(), c)
 		}
 
 		//rollback function
@@ -296,13 +282,11 @@ func LeaveClanHandler(app *App) func(c *iris.Context) {
 			if txErr == nil {
 				if strings.HasPrefix(err.Error(), "Clan was not found with id") {
 					l.Warn("Clan was not found.", zap.Error(err))
-					FailWith(400, (&models.ModelNotFoundError{Type: "Clan", ID: publicID}).Error(), c)
-					return
+					return FailWith(400, (&models.ModelNotFoundError{Type: "Clan", ID: publicID}).Error(), c)
 				}
 				l.Error("Clan leave failed.", zap.Error(err))
 			}
-			FailWith(500, err.Error(), c)
-			return
+			return FailWith(500, err.Error(), c)
 		}
 
 		err = dispatchClanOwnershipChangeHook(app, tx, models.ClanLeftHook, clan, previousOwner, newOwner)
@@ -311,8 +295,7 @@ func LeaveClanHandler(app *App) func(c *iris.Context) {
 			if txErr == nil {
 				l.Error("Leaving clan hook dispatch failed.", zap.Error(err))
 			}
-			FailWith(500, err.Error(), c)
-			return
+			return FailWith(500, err.Error(), c)
 		}
 
 		pOwnerJSON := previousOwner.Serialize()
@@ -343,19 +326,18 @@ func LeaveClanHandler(app *App) func(c *iris.Context) {
 
 		err = app.Commit(tx, "Clan updated", l)
 		if err != nil {
-			FailWith(500, err.Error(), c)
-			return
+			return FailWith(500, err.Error(), c)
 		}
 
 		l.Info("Clan left successfully.", fields...)
 
-		SucceedWith(res, c)
+		return SucceedWith(res, c)
 	}
 }
 
 // TransferOwnershipHandler is the handler responsible for transferring the clan ownership to another clan member
-func TransferOwnershipHandler(app *App) func(c *iris.Context) {
-	return func(c *iris.Context) {
+func TransferOwnershipHandler(app *App) func(c echo.Context) error {
+	return func(c echo.Context) error {
 		c.Set("route", "TransferClanOwnership")
 		start := time.Now()
 		gameID := c.Param("gameID")
@@ -370,8 +352,7 @@ func TransferOwnershipHandler(app *App) func(c *iris.Context) {
 
 		var payload transferClanOwnershipPayload
 		if err := LoadJSONPayload(&payload, c, l); err != nil {
-			FailWith(400, err.Error(), c)
-			return
+			return FailWith(400, err.Error(), c)
 		}
 
 		l = l.With(
@@ -381,14 +362,12 @@ func TransferOwnershipHandler(app *App) func(c *iris.Context) {
 		game, err := app.GetGame(gameID)
 		if err != nil {
 			l.Warn("Could not find game.")
-			FailWith(404, err.Error(), c)
-			return
+			return FailWith(404, err.Error(), c)
 		}
 
 		tx, err := app.BeginTrans(l)
 		if err != nil {
-			FailWith(500, err.Error(), c)
-			return
+			return FailWith(500, err.Error(), c)
 		}
 
 		//rollback function
@@ -416,8 +395,7 @@ func TransferOwnershipHandler(app *App) func(c *iris.Context) {
 			if txErr == nil {
 				l.Error("Clan ownership transfer failed.", zap.Error(err))
 			}
-			FailWith(500, err.Error(), c)
-			return
+			return FailWith(500, err.Error(), c)
 		}
 
 		err = dispatchClanOwnershipChangeHook(
@@ -429,8 +407,7 @@ func TransferOwnershipHandler(app *App) func(c *iris.Context) {
 			if txErr == nil {
 				l.Error("Clan ownership transfer hook dispatch failed.", zap.Error(err))
 			}
-			FailWith(500, err.Error(), c)
-			return
+			return FailWith(500, err.Error(), c)
 		}
 
 		pOwnerJSON := previousOwner.Serialize()
@@ -441,8 +418,7 @@ func TransferOwnershipHandler(app *App) func(c *iris.Context) {
 
 		err = app.Commit(tx, "Clan ownership transfer", l)
 		if err != nil {
-			FailWith(500, err.Error(), c)
-			return
+			return FailWith(500, err.Error(), c)
 		}
 
 		l.Info(
@@ -452,7 +428,7 @@ func TransferOwnershipHandler(app *App) func(c *iris.Context) {
 			zap.Duration("duration", time.Now().Sub(start)),
 		)
 
-		SucceedWith(map[string]interface{}{
+		return SucceedWith(map[string]interface{}{
 			"previousOwner": pOwnerJSON,
 			"newOwner":      nOwnerJSON,
 		}, c)
@@ -460,8 +436,8 @@ func TransferOwnershipHandler(app *App) func(c *iris.Context) {
 }
 
 // ListClansHandler is the handler responsible for returning a list of all clans
-func ListClansHandler(app *App) func(c *iris.Context) {
-	return func(c *iris.Context) {
+func ListClansHandler(app *App) func(c echo.Context) error {
+	return func(c echo.Context) error {
 		c.Set("route", "ListClans")
 		start := time.Now()
 		gameID := c.Param("gameID")
@@ -476,8 +452,7 @@ func ListClansHandler(app *App) func(c *iris.Context) {
 		db, err := app.GetCtxDB(c)
 		if err != nil {
 			l.Error("Failed to connect to DB.", zap.Error(err))
-			FailWith(500, err.Error(), c)
-			return
+			return FailWith(500, err.Error(), c)
 		}
 		l.Debug("DB Connection successful.")
 
@@ -489,8 +464,7 @@ func ListClansHandler(app *App) func(c *iris.Context) {
 
 		if err != nil {
 			l.Error("Retrieve all clans failed.", zap.Error(err))
-			FailWith(500, err.Error(), c)
-			return
+			return FailWith(500, err.Error(), c)
 		}
 
 		serializedClans := serializeClans(clans, true)
@@ -500,19 +474,19 @@ func ListClansHandler(app *App) func(c *iris.Context) {
 			zap.Duration("duration", time.Now().Sub(start)),
 		)
 
-		SucceedWith(map[string]interface{}{
+		return SucceedWith(map[string]interface{}{
 			"clans": serializedClans,
 		}, c)
 	}
 }
 
 // SearchClansHandler is the handler responsible for searching for clans
-func SearchClansHandler(app *App) func(c *iris.Context) {
-	return func(c *iris.Context) {
+func SearchClansHandler(app *App) func(c echo.Context) error {
+	return func(c echo.Context) error {
 		c.Set("route", "SearchClans")
 		start := time.Now()
 		gameID := c.Param("gameID")
-		term := c.URLParam("term")
+		term := c.QueryParam("term")
 
 		l := app.Logger.With(
 			zap.String("source", "clanHandler"),
@@ -525,15 +499,13 @@ func SearchClansHandler(app *App) func(c *iris.Context) {
 		db, err := app.GetCtxDB(c)
 		if err != nil {
 			l.Error("Failed to connect to DB.", zap.Error(err))
-			FailWith(500, err.Error(), c)
-			return
+			return FailWith(500, err.Error(), c)
 		}
 		l.Debug("DB Connection successful.")
 
 		if term == "" {
 			l.Warn("Clan search failed due to empty term.")
-			FailWith(400, (&models.EmptySearchTermError{}).Error(), c)
-			return
+			return FailWith(400, (&models.EmptySearchTermError{}).Error(), c)
 		}
 
 		l.Debug("Searching clans...")
@@ -545,8 +517,7 @@ func SearchClansHandler(app *App) func(c *iris.Context) {
 
 		if err != nil {
 			l.Error("Clan search failed.", zap.Error(err))
-			FailWith(500, err.Error(), c)
-			return
+			return FailWith(500, err.Error(), c)
 		}
 
 		serializedClans := serializeClans(clans, true)
@@ -556,15 +527,15 @@ func SearchClansHandler(app *App) func(c *iris.Context) {
 			zap.Duration("duration", time.Now().Sub(start)),
 		)
 
-		SucceedWith(map[string]interface{}{
+		return SucceedWith(map[string]interface{}{
 			"clans": serializedClans,
 		}, c)
 	}
 }
 
 // RetrieveClanHandler is the handler responsible for returning details for a given clan
-func RetrieveClanHandler(app *App) func(c *iris.Context) {
-	return func(c *iris.Context) {
+func RetrieveClanHandler(app *App) func(c echo.Context) error {
+	return func(c echo.Context) error {
 		c.Set("route", "RetrieveClan")
 		start := time.Now()
 		gameID := c.Param("gameID")
@@ -581,16 +552,14 @@ func RetrieveClanHandler(app *App) func(c *iris.Context) {
 		db, err := app.GetCtxDB(c)
 		if err != nil {
 			l.Error("Failed to connect to DB.", zap.Error(err))
-			FailWith(500, err.Error(), c)
-			return
+			return FailWith(500, err.Error(), c)
 		}
 		l.Debug("DB Connection successful.")
 
 		game, err := app.GetGame(gameID)
 		if err != nil {
 			l.Warn("Could not find game.")
-			FailWith(404, err.Error(), c)
-			return
+			return FailWith(404, err.Error(), c)
 		}
 
 		l.Debug("Retrieving clan details...")
@@ -603,8 +572,7 @@ func RetrieveClanHandler(app *App) func(c *iris.Context) {
 
 		if err != nil {
 			l.Error("Retrieve clan details failed.", zap.Error(err))
-			FailWith(500, err.Error(), c)
-			return
+			return FailWith(500, err.Error(), c)
 		}
 
 		l.Info(
@@ -612,13 +580,13 @@ func RetrieveClanHandler(app *App) func(c *iris.Context) {
 			zap.Duration("duration", time.Now().Sub(start)),
 		)
 
-		SucceedWith(clan, c)
+		return SucceedWith(clan, c)
 	}
 }
 
 // RetrieveClanSummaryHandler is the handler responsible for returning details summary for a given clan
-func RetrieveClanSummaryHandler(app *App) func(c *iris.Context) {
-	return func(c *iris.Context) {
+func RetrieveClanSummaryHandler(app *App) func(c echo.Context) error {
+	return func(c echo.Context) error {
 		c.Set("route", "RetrieveClanSummary")
 		start := time.Now()
 		gameID := c.Param("gameID")
@@ -635,8 +603,7 @@ func RetrieveClanSummaryHandler(app *App) func(c *iris.Context) {
 		db, err := app.GetCtxDB(c)
 		if err != nil {
 			l.Error("Failed to connect to DB.", zap.Error(err))
-			FailWith(500, err.Error(), c)
-			return
+			return FailWith(500, err.Error(), c)
 		}
 		l.Debug("DB Connection successful.")
 
@@ -649,8 +616,7 @@ func RetrieveClanSummaryHandler(app *App) func(c *iris.Context) {
 
 		if err != nil {
 			l.Error("Clan summary retrieval failed.", zap.Error(err))
-			FailWith(500, err.Error(), c)
-			return
+			return FailWith(500, err.Error(), c)
 		}
 
 		l.Info(
@@ -658,18 +624,18 @@ func RetrieveClanSummaryHandler(app *App) func(c *iris.Context) {
 			zap.Duration("duration", time.Now().Sub(start)),
 		)
 
-		SucceedWith(clan, c)
+		return SucceedWith(clan, c)
 	}
 }
 
 // RetrieveClansSummariesHandler is the handler responsible for returning details summary for a given
 // list of clans
-func RetrieveClansSummariesHandler(app *App) func(c *iris.Context) {
-	return func(c *iris.Context) {
+func RetrieveClansSummariesHandler(app *App) func(c echo.Context) error {
+	return func(c echo.Context) error {
 		c.Set("route", "RetrieveClansSummaries")
 		start := time.Now()
 		gameID := c.Param("gameID")
-		publicIDsStr := c.URLParam("clanPublicIds")
+		publicIDsStr := c.QueryParam("clanPublicIds")
 
 		publicIDs := strings.Split(publicIDsStr, ",")
 
@@ -684,16 +650,14 @@ func RetrieveClansSummariesHandler(app *App) func(c *iris.Context) {
 		if len(publicIDs) == 1 && publicIDs[0] == "" {
 			l.Debug("Empty query string provided.")
 			l.Error("Clans summaries retrieval failed, Empty query string provided.")
-			FailWith(400, "No clanPublicIds provided", c)
-			return
+			return FailWith(400, "No clanPublicIds provided", c)
 		}
 
 		l.Debug("Getting DB connection...")
 		db, err := app.GetCtxDB(c)
 		if err != nil {
 			l.Error("Failed to connect to DB.", zap.Error(err))
-			FailWith(500, err.Error(), c)
-			return
+			return FailWith(500, err.Error(), c)
 		}
 		l.Debug("DB Connection successful.")
 
@@ -707,12 +671,11 @@ func RetrieveClansSummariesHandler(app *App) func(c *iris.Context) {
 		if err != nil {
 			if _, ok := err.(*models.CouldNotFindAllClansError); ok {
 				l.Error("Clans summaries retrieval failed, 404.", zap.Error(err))
-				FailWith(404, err.Error(), c)
-			} else {
-				l.Error("Clans summaries retrieval failed, 500.", zap.Error(err))
-				FailWith(500, err.Error(), c)
+				return FailWith(404, err.Error(), c)
 			}
-			return
+
+			l.Error("Clans summaries retrieval failed, 500.", zap.Error(err))
+			return FailWith(500, err.Error(), c)
 		}
 
 		l.Info(
@@ -724,6 +687,6 @@ func RetrieveClansSummariesHandler(app *App) func(c *iris.Context) {
 			"clans": clans,
 		}
 
-		SucceedWith(clansResponse, c)
+		return SucceedWith(clansResponse, c)
 	}
 }

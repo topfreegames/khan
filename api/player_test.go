@@ -42,11 +42,11 @@ var _ = Describe("Player API Handler", func() {
 				"name":     randomdata.FullName(randomdata.RandomGender),
 				"metadata": map[string]interface{}{"x": 1},
 			}
-			res := PostJSON(a, GetGameRoute(game.PublicID, "/players"), payload)
+			status, body := PostJSON(a, GetGameRoute(game.PublicID, "/players"), payload)
 
-			Expect(res.Raw().StatusCode).To(Equal(http.StatusOK))
+			Expect(status).To(Equal(http.StatusOK))
 			var result map[string]interface{}
-			json.Unmarshal([]byte(res.Body().Raw()), &result)
+			json.Unmarshal([]byte(body), &result)
 			Expect(result["success"]).To(BeTrue())
 			Expect(result["publicID"]).To(Equal(payload["publicID"].(string)))
 
@@ -63,11 +63,11 @@ var _ = Describe("Player API Handler", func() {
 		It("Should not create player if missing parameters", func() {
 			a := GetDefaultTestApp()
 			route := GetGameRoute("game-id", "/players")
-			res := PostJSON(a, route, map[string]interface{}{})
+			status, body := PostJSON(a, route, map[string]interface{}{})
 
-			Expect(res.Raw().StatusCode).To(Equal(http.StatusBadRequest))
+			Expect(status).To(Equal(http.StatusBadRequest))
 			var result map[string]interface{}
-			json.Unmarshal([]byte(res.Body().Raw()), &result)
+			json.Unmarshal([]byte(body), &result)
 			Expect(result["success"]).To(BeFalse())
 			Expect(result["reason"]).To(Equal("publicID is required, name is required, metadata is required"))
 		})
@@ -75,13 +75,13 @@ var _ = Describe("Player API Handler", func() {
 		It("Should not create player if invalid payload", func() {
 			a := GetDefaultTestApp()
 			route := GetGameRoute("game-id", "/players")
-			res := PostBody(a, route, "invalid")
+			status, body := Post(a, route, "invalid")
 
-			Expect(res.Raw().StatusCode).To(Equal(http.StatusBadRequest))
+			Expect(status).To(Equal(http.StatusBadRequest))
 			var result map[string]interface{}
-			json.Unmarshal([]byte(res.Body().Raw()), &result)
+			json.Unmarshal([]byte(body), &result)
 			Expect(result["success"]).To(BeFalse())
-			Expect(strings.Contains(result["reason"].(string), "While trying to read JSON")).To(BeTrue())
+			Expect(result["reason"].(string)).To(ContainSubstring("invalid character 'i' looking for beginning of value"))
 		})
 
 		It("Should not create player if invalid data", func() {
@@ -95,11 +95,11 @@ var _ = Describe("Player API Handler", func() {
 				"name":     randomdata.FullName(randomdata.RandomGender),
 				"metadata": map[string]interface{}{"x": 1},
 			}
-			res := PostJSON(a, GetGameRoute(game.PublicID, "/players"), payload)
+			status, body := PostJSON(a, GetGameRoute(game.PublicID, "/players"), payload)
 
-			Expect(res.Raw().StatusCode).To(Equal(http.StatusInternalServerError))
+			Expect(status).To(Equal(http.StatusInternalServerError))
 			var result map[string]interface{}
-			json.Unmarshal([]byte(res.Body().Raw()), &result)
+			json.Unmarshal([]byte(body), &result)
 			Expect(result["success"]).To(BeFalse())
 			Expect(result["reason"]).To(Equal("pq: value too long for type character varying(255)"))
 		})
@@ -118,10 +118,10 @@ var _ = Describe("Player API Handler", func() {
 			}
 
 			route := GetGameRoute(player.GameID, fmt.Sprintf("/players/%s", player.PublicID))
-			res := PutJSON(a, route, payload)
-			Expect(res.Raw().StatusCode).To(Equal(http.StatusOK))
+			status, body := PutJSON(a, route, payload)
+			Expect(status).To(Equal(http.StatusOK))
 			var result map[string]interface{}
-			json.Unmarshal([]byte(res.Body().Raw()), &result)
+			json.Unmarshal([]byte(body), &result)
 			Expect(result["success"]).To(BeTrue())
 
 			dbPlayer, err := models.GetPlayerByPublicID(a.Db, player.GameID, player.PublicID)
@@ -135,11 +135,11 @@ var _ = Describe("Player API Handler", func() {
 		It("Should not update player if missing parameters", func() {
 			a := GetDefaultTestApp()
 			route := GetGameRoute("game-id", "/players/player-id")
-			res := PutJSON(a, route, map[string]interface{}{})
+			status, body := PutJSON(a, route, map[string]interface{}{})
 
-			Expect(res.Raw().StatusCode).To(Equal(http.StatusBadRequest))
+			Expect(status).To(Equal(http.StatusBadRequest))
 			var result map[string]interface{}
-			json.Unmarshal([]byte(res.Body().Raw()), &result)
+			json.Unmarshal([]byte(body), &result)
 			Expect(result["success"]).To(BeFalse())
 			Expect(result["reason"]).To(Equal("name is required, metadata is required"))
 		})
@@ -147,13 +147,13 @@ var _ = Describe("Player API Handler", func() {
 		It("Should not update player if invalid payload", func() {
 			a := GetDefaultTestApp()
 			route := GetGameRoute("game-id", "/players/fake")
-			res := PutBody(a, route, "invalid")
+			status, body := Put(a, route, "invalid")
 
-			Expect(res.Raw().StatusCode).To(Equal(http.StatusBadRequest))
+			Expect(status).To(Equal(http.StatusBadRequest))
 			var result map[string]interface{}
-			json.Unmarshal([]byte(res.Body().Raw()), &result)
+			json.Unmarshal([]byte(body), &result)
 			Expect(result["success"]).To(BeFalse())
-			Expect(strings.Contains(result["reason"].(string), "While trying to read JSON")).To(BeTrue())
+			Expect(result["reason"].(string)).To(ContainSubstring("invalid character 'i' looking for beginning of value"))
 		})
 
 		It("Should not update player if invalid data", func() {
@@ -167,11 +167,11 @@ var _ = Describe("Player API Handler", func() {
 				"metadata": map[string]interface{}{},
 			}
 			route := GetGameRoute(player.GameID, fmt.Sprintf("/players/%s", player.PublicID))
-			res := PutJSON(a, route, payload)
+			status, body := PutJSON(a, route, payload)
 
-			Expect(res.Raw().StatusCode).To(Equal(http.StatusInternalServerError))
+			Expect(status).To(Equal(http.StatusInternalServerError))
 			var result map[string]interface{}
-			json.Unmarshal([]byte(res.Body().Raw()), &result)
+			json.Unmarshal([]byte(body), &result)
 			Expect(result["success"]).To(BeFalse())
 			Expect(result["reason"]).To(Equal("pq: value too long for type character varying(255)"))
 		})
@@ -185,11 +185,11 @@ var _ = Describe("Player API Handler", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			route := GetGameRoute(player.GameID, fmt.Sprintf("/players/%s", player.PublicID))
-			res := Get(a, route)
+			status, body := Get(a, route)
 
-			Expect(res.Raw().StatusCode).To(Equal(http.StatusOK))
+			Expect(status).To(Equal(http.StatusOK))
 			var playerDetails map[string]interface{}
-			json.Unmarshal([]byte(res.Body().Raw()), &playerDetails)
+			json.Unmarshal([]byte(body), &playerDetails)
 			Expect(playerDetails["success"]).To(BeTrue())
 
 			// Player Details
@@ -216,12 +216,13 @@ var _ = Describe("Player API Handler", func() {
 		It("Should return 404 for invalid player", func() {
 			a := GetDefaultTestApp()
 			route := GetGameRoute("some-game", "/players/invalid-player")
-			res := Get(a, route)
+			status, body := Get(a, route)
 
-			Expect(res.Raw().StatusCode).To(Equal(http.StatusNotFound))
+			Expect(status).To(Equal(http.StatusNotFound))
 
 			var playerDetails map[string]interface{}
-			json.Unmarshal([]byte(res.Body().Raw()), &playerDetails)
+			err := json.Unmarshal([]byte(body), &playerDetails)
+			Expect(err).NotTo(HaveOccurred())
 			Expect(playerDetails["success"]).To(BeFalse())
 			Expect(playerDetails["reason"]).To(Equal("Player was not found with id: invalid-player"))
 		})
@@ -244,11 +245,11 @@ var _ = Describe("Player API Handler", func() {
 				"name":     randomdata.FullName(randomdata.RandomGender),
 				"metadata": map[string]interface{}{"x": "a"},
 			}
-			res := PostJSON(app, GetGameRoute(gameID, "/players"), payload)
+			status, body := PostJSON(app, GetGameRoute(gameID, "/players"), payload)
 
-			Expect(res.Raw().StatusCode).To(Equal(http.StatusOK))
+			Expect(status).To(Equal(http.StatusOK))
 			var result map[string]interface{}
-			json.Unmarshal([]byte(res.Body().Raw()), &result)
+			json.Unmarshal([]byte(body), &result)
 			Expect(result["success"]).To(BeTrue())
 			Expect(result["publicID"]).To(Equal(payload["publicID"].(string)))
 
@@ -291,11 +292,11 @@ var _ = Describe("Player API Handler", func() {
 						"name":     player.Name,
 						"metadata": player.Metadata,
 					}
-					res := PutJSON(app, GetGameRoute(gameID, fmt.Sprintf("/players/%s", player.PublicID)), payload)
+					status, body := PutJSON(app, GetGameRoute(gameID, fmt.Sprintf("/players/%s", player.PublicID)), payload)
 
-					Expect(res.Raw().StatusCode).To(Equal(http.StatusOK))
+					Expect(status).To(Equal(http.StatusOK))
 					var result map[string]interface{}
-					json.Unmarshal([]byte(res.Body().Raw()), &result)
+					json.Unmarshal([]byte(body), &result)
 					Expect(result["success"]).To(BeTrue())
 
 					app.Dispatcher.Wait()
@@ -351,11 +352,11 @@ var _ = Describe("Player API Handler", func() {
 							"new": "metadata",
 						},
 					}
-					res := PutJSON(app, GetGameRoute(gameID, fmt.Sprintf("/players/%s", player.PublicID)), payload)
+					status, body := PutJSON(app, GetGameRoute(gameID, fmt.Sprintf("/players/%s", player.PublicID)), payload)
 
-					Expect(res.Raw().StatusCode).To(Equal(http.StatusOK))
+					Expect(status).To(Equal(http.StatusOK))
 					var result map[string]interface{}
-					json.Unmarshal([]byte(res.Body().Raw()), &result)
+					json.Unmarshal([]byte(body), &result)
 					Expect(result["success"]).To(BeTrue())
 
 					app.Dispatcher.Wait()
@@ -408,11 +409,11 @@ var _ = Describe("Player API Handler", func() {
 							"new": "metadata",
 						},
 					}
-					res := PutJSON(app, GetGameRoute(gameID, fmt.Sprintf("/players/%s", player.PublicID)), payload)
+					status, body := PutJSON(app, GetGameRoute(gameID, fmt.Sprintf("/players/%s", player.PublicID)), payload)
 
-					Expect(res.Raw().StatusCode).To(Equal(http.StatusOK))
+					Expect(status).To(Equal(http.StatusOK))
 					var result map[string]interface{}
-					json.Unmarshal([]byte(res.Body().Raw()), &result)
+					json.Unmarshal([]byte(body), &result)
 					Expect(result["success"]).To(BeTrue())
 
 					app.Dispatcher.Wait()
@@ -467,11 +468,11 @@ var _ = Describe("Player API Handler", func() {
 							"else": "metadata",
 						},
 					}
-					res := PutJSON(app, GetGameRoute(gameID, fmt.Sprintf("/players/%s", player.PublicID)), payload)
+					status, body := PutJSON(app, GetGameRoute(gameID, fmt.Sprintf("/players/%s", player.PublicID)), payload)
 
-					Expect(res.Raw().StatusCode).To(Equal(http.StatusOK))
+					Expect(status).To(Equal(http.StatusOK))
 					var result map[string]interface{}
-					json.Unmarshal([]byte(res.Body().Raw()), &result)
+					json.Unmarshal([]byte(body), &result)
 					Expect(result["success"]).To(BeTrue())
 
 					app.Dispatcher.Wait()
@@ -505,11 +506,11 @@ var _ = Describe("Player API Handler", func() {
 							"new": "metadata",
 						},
 					}
-					res := PutJSON(app, GetGameRoute(gameID, fmt.Sprintf("/players/%s", payload["publicID"])), payload)
+					status, body := PutJSON(app, GetGameRoute(gameID, fmt.Sprintf("/players/%s", payload["publicID"])), payload)
 
-					Expect(res.Raw().StatusCode).To(Equal(http.StatusOK))
+					Expect(status).To(Equal(http.StatusOK))
 					var result map[string]interface{}
-					json.Unmarshal([]byte(res.Body().Raw()), &result)
+					json.Unmarshal([]byte(body), &result)
 					Expect(result["success"]).To(BeTrue())
 
 					app.Dispatcher.Wait()

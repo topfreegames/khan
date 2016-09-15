@@ -60,11 +60,11 @@ var _ = Describe("Game API Handler", func() {
 			a := GetDefaultTestApp()
 
 			payload := getGamePayload("", "")
-			res := PostJSON(a, "/games", payload)
+			status, body := PostJSON(a, "/games", payload)
 
-			Expect(res.Raw().StatusCode).To(Equal(http.StatusOK))
+			Expect(status).To(Equal(http.StatusOK))
 			var result map[string]interface{}
-			json.Unmarshal([]byte(res.Body().Raw()), &result)
+			json.Unmarshal([]byte(body), &result)
 			Expect(result["success"]).To(BeTrue())
 			Expect(result["publicID"]).To(Equal(payload["publicID"].(string)))
 
@@ -103,11 +103,11 @@ var _ = Describe("Game API Handler", func() {
 			payload["cooldownBeforeInvite"] = 2384
 			payload["playerHookFieldsWhitelist"] = "a,b"
 			payload["clanHookFieldsWhitelist"] = "c,d"
-			res := PostJSON(a, "/games", payload)
+			status, body := PostJSON(a, "/games", payload)
 
-			Expect(res.Raw().StatusCode).To(Equal(http.StatusOK))
+			Expect(status).To(Equal(http.StatusOK))
 			var result map[string]interface{}
-			json.Unmarshal([]byte(res.Body().Raw()), &result)
+			json.Unmarshal([]byte(body), &result)
 			Expect(result["success"]).To(BeTrue())
 			Expect(result["publicID"]).To(Equal(payload["publicID"].(string)))
 
@@ -124,11 +124,11 @@ var _ = Describe("Game API Handler", func() {
 			a := GetDefaultTestApp()
 			payload := getGamePayload("", "")
 			delete(payload, "maxMembers")
-			res := PostJSON(a, "/games", payload)
+			status, body := PostJSON(a, "/games", payload)
 
-			Expect(res.Raw().StatusCode).To(Equal(http.StatusBadRequest))
+			Expect(status).To(Equal(http.StatusBadRequest))
 			var result map[string]interface{}
-			json.Unmarshal([]byte(res.Body().Raw()), &result)
+			json.Unmarshal([]byte(body), &result)
 			Expect(result["success"]).To(BeFalse())
 			Expect(result["reason"]).To(Equal("maxMembers is required"))
 		})
@@ -137,34 +137,34 @@ var _ = Describe("Game API Handler", func() {
 			a := GetDefaultTestApp()
 			payload := getGamePayload("", "")
 			payload["minLevelToCreateInvitation"] = 0
-			res := PostJSON(a, "/games", payload)
+			status, body := PostJSON(a, "/games", payload)
 
-			Expect(res.Raw().StatusCode).To(Equal(422))
+			Expect(status).To(Equal(422))
 			var result map[string]interface{}
-			json.Unmarshal([]byte(res.Body().Raw()), &result)
+			json.Unmarshal([]byte(body), &result)
 			Expect(result["success"]).To(BeFalse())
 			Expect(result["reason"]).To(Equal("minLevelToCreateInvitation should be greater or equal to minMembershipLevel"))
 		})
 
 		It("Should not create game if invalid payload", func() {
 			a := GetDefaultTestApp()
-			res := PostBody(a, "/games", "invalid")
+			status, body := Post(a, "/games", "invalid")
 
-			Expect(res.Raw().StatusCode).To(Equal(http.StatusBadRequest))
+			Expect(status).To(Equal(http.StatusBadRequest))
 			var result map[string]interface{}
-			json.Unmarshal([]byte(res.Body().Raw()), &result)
+			json.Unmarshal([]byte(body), &result)
 			Expect(result["success"]).To(BeFalse())
-			Expect(strings.Contains(result["reason"].(string), "While trying to read JSON")).To(BeTrue())
+			Expect(result["reason"].(string)).To(ContainSubstring("invalid character 'i' looking for beginning of value"))
 		})
 
 		It("Should not create game if invalid data", func() {
 			a := GetDefaultTestApp()
 			payload := getGamePayload("game-id-is-too-large-for-this-field-should-be-less-than-36-chars", "")
-			res := PostJSON(a, "/games", payload)
+			status, body := PostJSON(a, "/games", payload)
 
-			Expect(res.Raw().StatusCode).To(Equal(http.StatusInternalServerError))
+			Expect(status).To(Equal(http.StatusInternalServerError))
 			var result map[string]interface{}
-			json.Unmarshal([]byte(res.Body().Raw()), &result)
+			json.Unmarshal([]byte(body), &result)
 			Expect(result["success"]).To(BeFalse())
 			Expect(result["reason"]).To(Equal("pq: value too long for type character varying(36)"))
 		})
@@ -183,10 +183,10 @@ var _ = Describe("Game API Handler", func() {
 			payload["cooldownAfterDeny"] = 0
 
 			route := fmt.Sprintf("/games/%s", game.PublicID)
-			res := PutJSON(a, route, payload)
-			Expect(res.Raw().StatusCode).To(Equal(http.StatusOK))
+			status, body := PutJSON(a, route, payload)
+			Expect(status).To(Equal(http.StatusOK))
 			var result map[string]interface{}
-			json.Unmarshal([]byte(res.Body().Raw()), &result)
+			json.Unmarshal([]byte(body), &result)
 			Expect(result["success"]).To(BeTrue())
 
 			dbGame, err := models.GetGameByPublicID(a.Db, game.PublicID)
@@ -218,11 +218,11 @@ var _ = Describe("Game API Handler", func() {
 			payload := getGamePayload(gameID, gameID)
 
 			route := fmt.Sprintf("/games/%s", gameID)
-			res := PutJSON(a, route, payload)
+			status, body := PutJSON(a, route, payload)
 
-			Expect(res.Raw().StatusCode).To(Equal(http.StatusOK))
+			Expect(status).To(Equal(http.StatusOK))
 			var result map[string]interface{}
-			json.Unmarshal([]byte(res.Body().Raw()), &result)
+			json.Unmarshal([]byte(body), &result)
 			Expect(result["success"]).To(BeTrue())
 
 			dbGame, err := models.GetGameByPublicID(a.Db, gameID)
@@ -246,10 +246,10 @@ var _ = Describe("Game API Handler", func() {
 			delete(payload, "maxMembers")
 
 			route := fmt.Sprintf("/games/%s", game.PublicID)
-			res := PutJSON(a, route, payload)
-			Expect(res.Raw().StatusCode).To(Equal(http.StatusBadRequest))
+			status, body := PutJSON(a, route, payload)
+			Expect(status).To(Equal(http.StatusBadRequest))
 			var result map[string]interface{}
-			json.Unmarshal([]byte(res.Body().Raw()), &result)
+			json.Unmarshal([]byte(body), &result)
 			Expect(result["success"]).To(BeFalse())
 			Expect(result["reason"]).To(Equal("name is required, minLevelOffsetToPromoteMember is required, maxMembers is required"))
 		})
@@ -264,24 +264,24 @@ var _ = Describe("Game API Handler", func() {
 			payload["minLevelToCreateInvitation"] = 0
 
 			route := fmt.Sprintf("/games/%s", game.PublicID)
-			res := PutJSON(a, route, payload)
+			status, body := PutJSON(a, route, payload)
 
-			Expect(res.Raw().StatusCode).To(Equal(422))
+			Expect(status).To(Equal(422))
 			var result map[string]interface{}
-			json.Unmarshal([]byte(res.Body().Raw()), &result)
+			json.Unmarshal([]byte(body), &result)
 			Expect(result["success"]).To(BeFalse())
 			Expect(result["reason"]).To(Equal("minLevelToCreateInvitation should be greater or equal to minMembershipLevel"))
 		})
 
 		It("Should not update game if invalid payload", func() {
 			a := GetDefaultTestApp()
-			res := PutBody(a, "/games/game-id", "invalid")
+			status, body := Put(a, "/games/game-id", "invalid")
 
-			Expect(res.Raw().StatusCode).To(Equal(http.StatusBadRequest))
+			Expect(status).To(Equal(http.StatusBadRequest))
 			var result map[string]interface{}
-			json.Unmarshal([]byte(res.Body().Raw()), &result)
+			json.Unmarshal([]byte(body), &result)
 			Expect(result["success"]).To(BeFalse())
-			Expect(strings.Contains(result["reason"].(string), "While trying to read JSON")).To(BeTrue())
+			Expect(result["reason"].(string)).To(ContainSubstring("invalid character 'i' looking for beginning of value"))
 		})
 
 		It("Should not update game if invalid data", func() {
@@ -294,11 +294,11 @@ var _ = Describe("Game API Handler", func() {
 			payload := getGamePayload(game.PublicID, strings.Repeat("a", 256))
 
 			route := fmt.Sprintf("/games/%s", game.PublicID)
-			res := PutJSON(a, route, payload)
+			status, body := PutJSON(a, route, payload)
 
-			Expect(res.Raw().StatusCode).To(Equal(http.StatusInternalServerError))
+			Expect(status).To(Equal(http.StatusInternalServerError))
 			var result map[string]interface{}
-			json.Unmarshal([]byte(res.Body().Raw()), &result)
+			json.Unmarshal([]byte(body), &result)
 			Expect(result["success"]).To(BeFalse())
 			Expect(result["reason"]).To(Equal("pq: value too long for type character varying(255)"))
 		})
@@ -321,10 +321,10 @@ var _ = Describe("Game API Handler", func() {
 				payload := getGamePayload(gameID, uuid.NewV4().String())
 
 				route := fmt.Sprintf("/games/%s", gameID)
-				res := PutJSON(app, route, payload)
-				Expect(res.Raw().StatusCode).To(Equal(http.StatusOK))
+				status, body := PutJSON(app, route, payload)
+				Expect(status).To(Equal(http.StatusOK))
 				var result map[string]interface{}
-				json.Unmarshal([]byte(res.Body().Raw()), &result)
+				json.Unmarshal([]byte(body), &result)
 				Expect(result["success"]).To(BeTrue())
 
 				app.Dispatcher.Wait()

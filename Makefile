@@ -66,8 +66,14 @@ cross: assets
 install:
 	@go install
 
+run-verbose:
+	@go run main.go start -d -c ./config/local.yaml
+
 run:
-	@go run main.go start -d -v3 -c ./config/local.yaml
+	@go run main.go start -q -c ./config/local.yaml
+
+run-fast:
+	@go run main.go start -q --fast -c ./config/local.yaml
 
 build-docker:
 	@docker build -t khan .

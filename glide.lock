@@ -1,5 +1,5 @@
-hash: 0de373799adf43db39f9c397d03c953dcd1926b3dc3e5a909c41614f4547cf93
-updated: 2016-09-12T17:19:58.482928577-03:00
+hash: 10649f46043d21b73598d1b098cecbe20a2a8f50bc2f0cfefd368e8e537e87da
+updated: 2016-09-15T14:56:44.244033213-03:00
 imports:
 - name: github.com/ajg/form
   version: 7ff89c75808766205bfa4411abb436c98c33eb5e
@@ -56,46 +56,12 @@ imports:
   version: b9781c93ae51c8b4fc3af1b1426909721af0a624
 - name: github.com/inconshreveable/mousetrap
   version: 76626ae9c91c4f2a10f34cad8ce83ea42c93bb75
-- name: github.com/iris-contrib/color
-  version: 1f565954a55c42b9c66ead36206e91e1d79bafa1
-- name: github.com/iris-contrib/errors
-  version: 9d4599565f75fd376a8e4ae5ccc98fc078b93b69
-- name: github.com/iris-contrib/formBinder
-  version: 32009bbc76eda475a6d1eb24787d1fdcdaf80e71
-- name: github.com/iris-contrib/letsencrypt
-  version: 2a9ed749d24d8d2a8ece891b7b6242f0b3192d62
-- name: github.com/iris-contrib/logger
-  version: 6a08b11d1faefa8ce79ed6d6efec9d2e05cbc549
-- name: github.com/iris-contrib/middleware
-  version: c02acecac4079532e75b9b5e43c04d3a7f779512
-- name: github.com/iris-contrib/response
-  version: 959c7b8c27718d5a7a3d83ad05d677ae234e1152
-  subpackages:
-  - data
-  - json
-  - jsonp
-  - markdown
-  - text
-  - xml
-- name: github.com/iris-contrib/template
-  version: 53895cd7ea0a067c4f81b71af0d91ff0b6b4ba1d
-  subpackages:
-  - html
-- name: github.com/iris-contrib/websocket
-  version: 2f1c3fd901de3359a6452a212c8be784f04b7073
 - name: github.com/Joker/jade
   version: db4d7e4f68708c5020c392b380e3565df2132840
 - name: github.com/kardianos/osext
   version: c2c54e542fb797ad986b31721e1baedf214ca413
 - name: github.com/kardianos/service
   version: 5e335590050d6d00f3aa270217d288dda1c94d0a
-- name: github.com/kataras/iris
-  version: 2d067ac08101b10e9622d741a12a92c89fac5693
-  subpackages:
-  - config
-  - context
-  - iris
-  - utils
 - name: github.com/klauspost/compress
   version: 08fe86a420401e830c24114bdf9f1ba91331407a
   subpackages:
@@ -112,6 +78,17 @@ imports:
   version: 42fc2c7ee9b8bd0ff636cd2d7a8c0a49491044c5
   subpackages:
   - yaml
+- name: github.com/labstack/echo
+  version: fbcdf70c52c155ae9aa58e72ee0532fa2f1cad2e
+  subpackages:
+  - engine
+  - engine/standard
+  - log
+- name: github.com/labstack/gommon
+  version: 431777a5117c8de4352a400dad1e2a55f484b189
+  subpackages:
+  - color
+  - log
 - name: github.com/lib/pq
   version: 80f8150043c80fb52dee6bc863a709cdac7ec8f8
   subpackages:

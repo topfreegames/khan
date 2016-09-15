@@ -9,31 +9,28 @@ package api
 
 import (
 	"fmt"
+	"net/http"
 	"strings"
 
-	"github.com/kataras/iris"
+	"github.com/labstack/echo"
 )
 
-// HealthCheckHandler is the handler responsible for validating that the app is still up
-func HealthCheckHandler(app *App) func(c *iris.Context) {
-	return func(c *iris.Context) {
+//HealthCheckHandler is the handler responsible for validating that the app is still up
+func HealthCheckHandler(app *App) func(c echo.Context) error {
+	return func(c echo.Context) error {
 		c.Set("route", "Healthcheck")
 		db, err := app.GetCtxDB(c)
 		if err != nil {
-			FailWith(500, err.Error(), c)
-			return
+			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 
 		workingString := app.Config.GetString("healthcheck.workingText")
 		_, err = db.SelectInt("select count(*) from games")
 		if err != nil {
-			c.Write(fmt.Sprintf("Error connecting to database: %s", err))
-			c.SetStatusCode(500)
-			return
+			return FailWith(http.StatusInternalServerError, fmt.Sprintf("Error connecting to database: %s", err), c)
 		}
 
-		c.SetStatusCode(iris.StatusOK)
 		workingString = strings.TrimSpace(workingString)
-		c.Write(workingString)
+		return c.String(http.StatusOK, workingString)
 	}
 }

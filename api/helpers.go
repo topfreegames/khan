@@ -11,47 +11,51 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
+	"net/http"
 	"reflect"
 	"strings"
 	"unicode"
 	"unicode/utf8"
 
-	"github.com/kataras/iris"
+	"github.com/labstack/echo"
 	"github.com/uber-go/zap"
 )
 
 // FailWith fails with the specified message
-func FailWith(status int, message string, c *iris.Context) {
+func FailWith(status int, message string, c echo.Context) error {
 	result, _ := json.Marshal(map[string]interface{}{
 		"success": false,
 		"reason":  message,
 	})
-	c.SetStatusCode(status)
-	c.Write(string(result))
+	return c.String(status, string(result))
 }
 
 // SucceedWith sends payload to user with status 200
-func SucceedWith(payload map[string]interface{}, c *iris.Context) {
+func SucceedWith(payload map[string]interface{}, c echo.Context) error {
 	payload["success"] = true
 	result, _ := json.Marshal(payload)
-	c.SetStatusCode(200)
-	c.Write(string(result))
+	return c.String(http.StatusOK, string(result))
 }
 
-// LoadJSONPayload loads the JSON payload to the given struct validating all fields are not null
-func LoadJSONPayload(payloadStruct interface{}, c *iris.Context, l zap.Logger) error {
+//LoadJSONPayload loads the JSON payload to the given struct validating all fields are not null
+func LoadJSONPayload(payloadStruct interface{}, c echo.Context, l zap.Logger) error {
 	l.Debug("Loading payload...")
 
-	if err := c.ReadJSON(payloadStruct); err != nil {
-		if err != nil {
-			l.Error("Loading payload failed.", zap.Error(err))
-			return err
-		}
+	data, err := GetRequestBody(c)
+	if err != nil {
+		l.Error("Loading payload failed.", zap.Error(err))
+		return err
 	}
 
-	data := c.RequestCtx.Request.Body()
+	err = json.Unmarshal([]byte(data), payloadStruct)
+	if err != nil {
+		l.Error("Loading payload failed.", zap.Error(err))
+		return err
+	}
+
 	var jsonPayload map[string]interface{}
-	err := json.Unmarshal(data, &jsonPayload)
+	err = json.Unmarshal([]byte(data), &jsonPayload)
 	if err != nil {
 		l.Error("Loading payload failed.", zap.Error(err))
 		return err
@@ -70,11 +74,41 @@ func LoadJSONPayload(payloadStruct interface{}, c *iris.Context, l zap.Logger) e
 	}
 
 	if len(missingFieldErrors) != 0 {
-		error := errors.New(strings.Join(missingFieldErrors[:], ", "))
+		err := errors.New(strings.Join(missingFieldErrors[:], ", "))
 		l.Error("Loading payload failed.", zap.Error(err))
-		return error
+		return err
 	}
 
 	l.Debug("Payload loaded successfully.")
+	return nil
+}
+
+//GetRequestBody from echo context
+func GetRequestBody(c echo.Context) (string, error) {
+	bodyCache := c.Get("requestBody")
+	if bodyCache != nil {
+		return bodyCache.(string), nil
+	}
+	body := c.Request().Body()
+	b, err := ioutil.ReadAll(body)
+	if err != nil {
+		return "", err
+	}
+	c.Set("requestBody", string(b))
+	return string(b), nil
+}
+
+//GetRequestJSON as the specified interface from echo context
+func GetRequestJSON(payloadStruct interface{}, c echo.Context) error {
+	body, err := GetRequestBody(c)
+	if err != nil {
+		return err
+	}
+
+	err = json.Unmarshal([]byte(body), payloadStruct)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

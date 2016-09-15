@@ -19,12 +19,12 @@ var _ = Describe("Status API Handler", func() {
 	Describe("Status Handler", func() {
 		It("Should respond with status", func() {
 			a := GetDefaultTestApp()
-			res := Get(a, "/status")
+			status, body := Get(a, "/status")
 
-			Expect(res.Raw().StatusCode).To(Equal(http.StatusOK))
+			Expect(status).To(Equal(http.StatusOK))
 
 			var result map[string]interface{}
-			json.Unmarshal([]byte(res.Body().Raw()), &result)
+			json.Unmarshal([]byte(body), &result)
 
 			Expect(result["app"]).NotTo(BeEquivalentTo(nil))
 			app := result["app"].(map[string]interface{})

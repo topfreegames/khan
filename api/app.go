@@ -9,14 +9,17 @@ package api
 
 import (
 	"fmt"
+	"os"
 	"strings"
 	"time"
 
 	"gopkg.in/gorp.v1"
 
 	"github.com/getsentry/raven-go"
-	"github.com/kataras/iris"
-	"github.com/kataras/iris/config"
+	"github.com/labstack/echo"
+	"github.com/labstack/echo/engine"
+	"github.com/labstack/echo/engine/fasthttp"
+	"github.com/labstack/echo/engine/standard"
 	"github.com/rcrowley/go-metrics"
 	"github.com/spf13/viper"
 	"github.com/topfreegames/khan/es"
@@ -26,23 +29,29 @@ import (
 
 // App is a struct that represents a Khan API Application
 type App struct {
+	ID             string
 	Debug          bool
+	Background     bool
 	Port           int
 	Host           string
 	ConfigPath     string
 	Errors         metrics.EWMA
-	App            *iris.Framework
+	App            *echo.Echo
+	Engine         engine.Server
 	Db             models.DB
 	Config         *viper.Viper
 	Dispatcher     *Dispatcher
 	Logger         zap.Logger
 	ESClient       *es.ESClient
 	ReadBufferSize int
+	Fast           bool
 }
 
 // GetApp returns a new Khan API Application
-func GetApp(host string, port int, configPath string, debug bool, logger zap.Logger) *App {
+func GetApp(host string, port int, configPath string, debug bool, logger zap.Logger, fast bool) *App {
 	app := &App{
+		ID:             "default",
+		Fast:           fast,
 		Host:           host,
 		Port:           port,
 		ConfigPath:     configPath,
@@ -191,35 +200,20 @@ func (app *App) onErrorHandler(err error, stack []byte) {
 }
 
 func (app *App) configureApplication() {
-	c := config.Iris{
-		DisableBanner: true,
+	app.Engine = standard.New(fmt.Sprintf("%s:%d", app.Host, app.Port))
+	if app.Fast {
+		app.Engine = fasthttp.New(fmt.Sprintf("%s:%d", app.Host, app.Port))
 	}
-
-	app.App = iris.New(c)
+	app.App = echo.New()
 	a := app.App
 
-	a.Use(NewLoggerMiddleware(app.Logger))
-	a.Use(&RecoveryMiddleware{OnError: app.onErrorHandler})
-	//a.Use(&TransactionMiddleware{App: app})
-	a.Use(&VersionMiddleware{App: app})
-	a.Use(&SentryMiddleware{App: app})
+	_, w, _ := os.Pipe()
+	a.SetLogOutput(w)
 
-	a.OnError(iris.StatusInternalServerError, func(ctx *iris.Context) {
-		app.Logger.Error(
-			"Internal server error happened.",
-			zap.String("error", string(ctx.Response.Body())),
-			zap.String("source", "app"),
-		)
-		ctx.Write(fmt.Sprintf("INTERNAL SERVER ERROR: %s", ctx.Response.Body()))
-	})
-
-	a.OnError(iris.StatusNotFound, func(ctx *iris.Context) {
-		app.Logger.Warn(
-			"Route not found.", zap.String("url", ctx.Request.URI().String()),
-			zap.String("source", "app"),
-		)
-		ctx.Write("Not Found")
-	})
+	a.Use(NewLoggerMiddleware(app.Logger).Serve)
+	a.Use(NewRecoveryMiddleware(app.onErrorHandler).Serve)
+	a.Use(NewVersionMiddleware().Serve)
+	a.Use(NewSentryMiddleware(app).Serve)
 
 	a.Get("/healthcheck", HealthCheckHandler(app))
 	a.Get("/status", StatusHandler(app))
@@ -248,7 +242,7 @@ func (app *App) configureApplication() {
 	a.Post("/games/:gameID/clans/:clanPublicID/leave", LeaveClanHandler(app))
 	a.Post("/games/:gameID/clans/:clanPublicID/transfer-ownership", TransferOwnershipHandler(app))
 
-	// Membership Routes
+	//// Membership Routes
 	a.Post("/games/:gameID/clans/:clanPublicID/memberships/application", ApplyForMembershipHandler(app))
 	a.Post("/games/:gameID/clans/:clanPublicID/memberships/application/:action", ApproveOrDenyMembershipApplicationHandler(app))
 	a.Post("/games/:gameID/clans/:clanPublicID/memberships/invitation", InviteForMembershipHandler(app))
@@ -421,7 +415,7 @@ func (app *App) Commit(tx *gorp.Transaction, msg string, l zap.Logger) error {
 }
 
 // GetCtxDB returns the proper database connection depending on the request context
-func (app *App) GetCtxDB(ctx *iris.Context) (models.DB, error) {
+func (app *App) GetCtxDB(ctx echo.Context) (models.DB, error) {
 	val := ctx.Get("db")
 	if val != nil {
 		return val.(models.DB), nil
@@ -440,9 +434,11 @@ func (app *App) Start() {
 	defer app.finalizeApp()
 	l.Debug("App started.", zap.String("host", app.Host), zap.Int("port", app.Port))
 
-	cfg := config.Server{
-		ListeningAddr:  fmt.Sprintf("%s:%d", app.Host, app.Port),
-		ReadBufferSize: app.ReadBufferSize,
+	if app.Background {
+		go func() {
+			app.App.Run(app.Engine)
+		}()
+	} else {
+		app.App.Run(app.Engine)
 	}
-	app.App.Must(app.App.ListenTo(cfg))
 }

@@ -16,6 +16,8 @@ import (
 var host string
 var port int
 var debug bool
+var quiet bool
+var fast bool
 
 // startCmd represents the start command
 var startCmd = &cobra.Command{
@@ -27,6 +29,9 @@ environment variables to override configuration keys.`,
 		ll := zap.InfoLevel
 		if debug {
 			ll = zap.DebugLevel
+		}
+		if quiet {
+			ll = zap.ErrorLevel
 		}
 		l := zap.New(
 			zap.NewJSONEncoder(), // drop timestamps in tests
@@ -48,6 +53,7 @@ environment variables to override configuration keys.`,
 			ConfigFile,
 			debug,
 			l,
+			fast,
 		)
 		cmdL.Debug("Application created successfully.")
 
@@ -62,4 +68,6 @@ func init() {
 	startCmd.Flags().StringVarP(&host, "bind", "b", "0.0.0.0", "Host to bind khan to")
 	startCmd.Flags().IntVarP(&port, "port", "p", 8888, "Port to bind khan to")
 	startCmd.Flags().BoolVarP(&debug, "debug", "d", false, "Debug mode")
+	startCmd.Flags().BoolVarP(&quiet, "quiet", "q", false, "Quiet mode (log level error)")
+	startCmd.Flags().BoolVarP(&fast, "fast", "f", false, "Use FastHTTP as the Engine. If false, the net/http engine will be used")
 }

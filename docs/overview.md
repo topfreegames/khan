@@ -31,7 +31,7 @@ Khan also offers a JSON `metadata` field in its Player and Clan models. This mea
 
 For the devs out there, our code is in Go, but more specifically:
 
-* Web Framework - [Iris](https://www.gitbook.com/book/kataras/iris/details) based on the insanely fast [FastHTTP](https://github.com/valyala/fasthttp);
+* Web Framework - [Echo](https://github.com/labstack/echo) based on the insanely fast [FastHTTP](https://github.com/valyala/fasthttp);
 * Database - Postgres >= 9.5;
 * Cache - Redis.
 

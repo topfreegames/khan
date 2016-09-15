@@ -9,13 +9,14 @@ package api
 
 import (
 	"encoding/json"
+	"net/http"
 
-	"github.com/kataras/iris"
+	"github.com/labstack/echo"
 )
 
-// StatusHandler is the handler responsible for reporting khan status
-func StatusHandler(app *App) func(c *iris.Context) {
-	return func(c *iris.Context) {
+//StatusHandler is the handler responsible for reporting khan status
+func StatusHandler(app *App) func(c echo.Context) error {
+	return func(c echo.Context) error {
 		c.Set("route", "Status")
 		payload := map[string]interface{}{
 			"app": map[string]interface{}{
@@ -27,7 +28,6 @@ func StatusHandler(app *App) func(c *iris.Context) {
 		}
 
 		payloadJSON, _ := json.Marshal(payload)
-		c.SetStatusCode(iris.StatusOK)
-		c.Write(string(payloadJSON))
+		return c.String(http.StatusOK, string(payloadJSON))
 	}
 }

@@ -1,9 +1,6 @@
 package: github.com/topfreegames/khan
 import:
 - package: github.com/onsi/gomega
-- package: github.com/kataras/iris
-  subpackages:
-  - iris
 - package: github.com/Joker/jade
 - package: gopkg.in/gavv/httpexpect.v1
 - package: github.com/topfreegames/goose
@@ -21,14 +18,13 @@ import:
 - package: github.com/uber-go/zap
 - package: github.com/uber-go/atomic
 - package: github.com/valyala/fasttemplate
-- package: github.com/iris-contrib/middleware
 - package: github.com/getsentry/raven-go
 - package: github.com/onsi/ginkgo
 - package: gopkg.in/olivere/elastic.v3
   version: ^3.0.45
 - package: gopkg.in/square/go-jose.v1
   version: ^1.0.3
-- package: github.com/iris-contrib/template
-  version: 53895cd7ea0a067c4f81b71af0d91ff0b6b4ba1d
-- package: github.com/iris-contrib/response
-  version: 959c7b8c27718d5a7a3d83ad05d677ae234e1152
+- package: github.com/labstack/gommon
+  version: 431777a5117c8de4352a400dad1e2a55f484b189
+- package: github.com/labstack/echo
+  version: ^2.0.2

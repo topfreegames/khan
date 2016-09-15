@@ -8,9 +8,10 @@
 package api
 
 import (
+	"net/http"
 	"time"
 
-	"github.com/kataras/iris"
+	"github.com/labstack/echo"
 	"github.com/topfreegames/khan/models"
 	"github.com/uber-go/zap"
 )
@@ -19,8 +20,8 @@ import (
 // This module is only for handlers
 
 // ApplyForMembershipHandler is the handler responsible for applying for new memberships
-func ApplyForMembershipHandler(app *App) func(c *iris.Context) {
-	return func(c *iris.Context) {
+func ApplyForMembershipHandler(app *App) func(c echo.Context) error {
+	return func(c echo.Context) error {
 		c.Set("route", "ApplyForMembership")
 		start := time.Now()
 		gameID := c.Param("gameID")
@@ -35,14 +36,12 @@ func ApplyForMembershipHandler(app *App) func(c *iris.Context) {
 
 		var payload applyForMembershipPayload
 		if err := LoadJSONPayload(&payload, c, l); err != nil {
-			FailWith(400, err.Error(), c)
-			return
+			return FailWith(400, err.Error(), c)
 		}
 
 		optional, err := getMembershipOptionalParameters(app, c)
 		if err != nil {
-			FailWith(400, err.Error(), c)
-			return
+			return FailWith(400, err.Error(), c)
 		}
 
 		l = l.With(
@@ -53,14 +52,12 @@ func ApplyForMembershipHandler(app *App) func(c *iris.Context) {
 		game, err := app.GetGame(gameID)
 		if err != nil {
 			l.Warn("Could not find game.")
-			FailWith(404, err.Error(), c)
-			return
+			return FailWith(404, err.Error(), c)
 		}
 
 		tx, err := app.BeginTrans(l)
 		if err != nil {
-			FailWith(500, err.Error(), c)
-			return
+			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 
 		l.Debug("Applying for membership...")
@@ -78,13 +75,11 @@ func ApplyForMembershipHandler(app *App) func(c *iris.Context) {
 		if err != nil {
 			txErr := app.Rollback(tx, "Membership application failed", l, err)
 			if txErr != nil {
-				FailWith(500, txErr.Error(), c)
-				return
+				return FailWith(http.StatusInternalServerError, txErr.Error(), c)
 			}
 
 			l.Error("Membership application failed.", zap.Error(err))
-			FailWith(500, err.Error(), c)
-			return
+			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 
 		err = dispatchMembershipHookByID(
@@ -95,19 +90,16 @@ func ApplyForMembershipHandler(app *App) func(c *iris.Context) {
 		if err != nil {
 			txErr := app.Rollback(tx, "Membership application failed", l, err)
 			if txErr != nil {
-				FailWith(500, txErr.Error(), c)
-				return
+				return FailWith(http.StatusInternalServerError, txErr.Error(), c)
 			}
 
 			l.Error("Membership application created dispatch hook failed.", zap.Error(err))
-			FailWith(500, err.Error(), c)
-			return
+			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 
 		err = app.Commit(tx, "Membership application", l)
 		if err != nil {
-			FailWith(500, err.Error(), c)
-			return
+			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 
 		l.Info(
@@ -115,13 +107,13 @@ func ApplyForMembershipHandler(app *App) func(c *iris.Context) {
 			zap.Duration("duration", time.Now().Sub(start)),
 		)
 
-		SucceedWith(map[string]interface{}{}, c)
+		return SucceedWith(map[string]interface{}{}, c)
 	}
 }
 
 // InviteForMembershipHandler is the handler responsible for creating new memberships
-func InviteForMembershipHandler(app *App) func(c *iris.Context) {
-	return func(c *iris.Context) {
+func InviteForMembershipHandler(app *App) func(c echo.Context) error {
+	return func(c echo.Context) error {
 		c.Set("route", "InviteForMembership")
 		start := time.Now()
 		gameID := c.Param("gameID")
@@ -136,14 +128,12 @@ func InviteForMembershipHandler(app *App) func(c *iris.Context) {
 
 		var payload inviteForMembershipPayload
 		if err := LoadJSONPayload(&payload, c, l); err != nil {
-			FailWith(400, err.Error(), c)
-			return
+			return FailWith(400, err.Error(), c)
 		}
 
 		optional, err := getMembershipOptionalParameters(app, c)
 		if err != nil {
-			FailWith(400, err.Error(), c)
-			return
+			return FailWith(400, err.Error(), c)
 		}
 
 		l = l.With(
@@ -155,14 +145,12 @@ func InviteForMembershipHandler(app *App) func(c *iris.Context) {
 		game, err := app.GetGame(gameID)
 		if err != nil {
 			l.Warn("Could not find game.")
-			FailWith(404, err.Error(), c)
-			return
+			return FailWith(404, err.Error(), c)
 		}
 
 		tx, err := app.BeginTrans(l)
 		if err != nil {
-			FailWith(500, err.Error(), c)
-			return
+			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 
 		l.Debug("Inviting for membership...")
@@ -180,13 +168,11 @@ func InviteForMembershipHandler(app *App) func(c *iris.Context) {
 		if err != nil {
 			txErr := app.Rollback(tx, "Membership invitation failed", l, err)
 			if txErr != nil {
-				FailWith(500, txErr.Error(), c)
-				return
+				return FailWith(http.StatusInternalServerError, txErr.Error(), c)
 			}
 
 			l.Error("Membership invitation failed.", zap.Error(err))
-			FailWith(500, err.Error(), c)
-			return
+			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 
 		err = dispatchMembershipHookByID(
@@ -197,19 +183,16 @@ func InviteForMembershipHandler(app *App) func(c *iris.Context) {
 		if err != nil {
 			txErr := app.Rollback(tx, "Membership invitation dispatch hook failed", l, err)
 			if txErr != nil {
-				FailWith(500, txErr.Error(), c)
-				return
+				return FailWith(http.StatusInternalServerError, txErr.Error(), c)
 			}
 
 			l.Error("Membership invitation dispatch hook failed.", zap.Error(err))
-			FailWith(500, err.Error(), c)
-			return
+			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 
 		err = app.Commit(tx, "Membership invitation", l)
 		if err != nil {
-			FailWith(500, err.Error(), c)
-			return
+			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 
 		l.Info(
@@ -217,13 +200,13 @@ func InviteForMembershipHandler(app *App) func(c *iris.Context) {
 			zap.Duration("duration", time.Now().Sub(start)),
 		)
 
-		SucceedWith(map[string]interface{}{}, c)
+		return SucceedWith(map[string]interface{}{}, c)
 	}
 }
 
 // ApproveOrDenyMembershipApplicationHandler is the handler responsible for approving or denying a membership invitation
-func ApproveOrDenyMembershipApplicationHandler(app *App) func(c *iris.Context) {
-	return func(c *iris.Context) {
+func ApproveOrDenyMembershipApplicationHandler(app *App) func(c echo.Context) error {
+	return func(c echo.Context) error {
 		c.Set("route", "ApproverOrDenyApplication")
 		start := time.Now()
 		action := c.Param("action")
@@ -240,8 +223,7 @@ func ApproveOrDenyMembershipApplicationHandler(app *App) func(c *iris.Context) {
 
 		var payload basePayloadWithRequestorAndPlayerPublicIDs
 		if err := LoadJSONPayload(&payload, c, l); err != nil {
-			FailWith(400, err.Error(), c)
-			return
+			return FailWith(400, err.Error(), c)
 		}
 
 		l = l.With(
@@ -252,14 +234,12 @@ func ApproveOrDenyMembershipApplicationHandler(app *App) func(c *iris.Context) {
 		game, err := app.GetGame(gameID)
 		if err != nil {
 			l.Warn("Could not find game.")
-			FailWith(404, err.Error(), c)
-			return
+			return FailWith(404, err.Error(), c)
 		}
 
 		tx, err := app.BeginTrans(l)
 		if err != nil {
-			FailWith(500, err.Error(), c)
-			return
+			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 
 		rb := func(err error) error {
@@ -287,8 +267,7 @@ func ApproveOrDenyMembershipApplicationHandler(app *App) func(c *iris.Context) {
 			if txErr == nil {
 				l.Error("Approving/Denying membership application failed.", zap.Error(err))
 			}
-			FailWith(500, err.Error(), c)
-			return
+			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 
 		l.Debug("Retrieving requestor details.")
@@ -299,8 +278,7 @@ func ApproveOrDenyMembershipApplicationHandler(app *App) func(c *iris.Context) {
 			if txErr == nil {
 				l.Error(msg, zap.Error(err))
 			}
-			FailWith(500, err.Error(), c)
-			return
+			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 		l.Debug("Requestor details retrieved successfully.")
 
@@ -321,14 +299,12 @@ func ApproveOrDenyMembershipApplicationHandler(app *App) func(c *iris.Context) {
 			if txErr == nil {
 				l.Error(msg, zap.Error(err))
 			}
-			FailWith(500, err.Error(), c)
-			return
+			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 
 		err = app.Commit(tx, "Membership application approval/deny", l)
 		if err != nil {
-			FailWith(500, err.Error(), c)
-			return
+			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 
 		l.Info(
@@ -336,13 +312,13 @@ func ApproveOrDenyMembershipApplicationHandler(app *App) func(c *iris.Context) {
 			zap.Duration("duration", time.Now().Sub(start)),
 		)
 
-		SucceedWith(map[string]interface{}{}, c)
+		return SucceedWith(map[string]interface{}{}, c)
 	}
 }
 
 // ApproveOrDenyMembershipInvitationHandler is the handler responsible for approving or denying a membership invitation
-func ApproveOrDenyMembershipInvitationHandler(app *App) func(c *iris.Context) {
-	return func(c *iris.Context) {
+func ApproveOrDenyMembershipInvitationHandler(app *App) func(c echo.Context) error {
+	return func(c echo.Context) error {
 		c.Set("route", "ApproveOrDenyInvitation")
 		start := time.Now()
 		action := c.Param("action")
@@ -359,8 +335,7 @@ func ApproveOrDenyMembershipInvitationHandler(app *App) func(c *iris.Context) {
 
 		var payload approveOrDenyMembershipInvitationPayload
 		if err := LoadJSONPayload(&payload, c, l); err != nil {
-			FailWith(400, err.Error(), c)
-			return
+			return FailWith(400, err.Error(), c)
 		}
 
 		l = l.With(
@@ -370,14 +345,12 @@ func ApproveOrDenyMembershipInvitationHandler(app *App) func(c *iris.Context) {
 		game, err := app.GetGame(gameID)
 		if err != nil {
 			l.Warn("Could not find game.")
-			FailWith(404, err.Error(), c)
-			return
+			return FailWith(404, err.Error(), c)
 		}
 
 		tx, err := app.BeginTrans(l)
 		if err != nil {
-			FailWith(500, err.Error(), c)
-			return
+			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 
 		rb := func(err error) error {
@@ -404,8 +377,7 @@ func ApproveOrDenyMembershipInvitationHandler(app *App) func(c *iris.Context) {
 			if txErr == nil {
 				l.Error("Membership invitation approval/deny failed.", zap.Error(err))
 			}
-			FailWith(500, err.Error(), c)
-			return
+			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 
 		hookType := models.MembershipApprovedHook
@@ -424,8 +396,7 @@ func ApproveOrDenyMembershipInvitationHandler(app *App) func(c *iris.Context) {
 			if txErr == nil {
 				l.Error("Membership invitation approval/deny hook dispatch failed.", zap.Error(err))
 			}
-			FailWith(500, err.Error(), c)
-			return
+			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 
 		l.Info(
@@ -435,17 +406,16 @@ func ApproveOrDenyMembershipInvitationHandler(app *App) func(c *iris.Context) {
 
 		err = app.Commit(tx, "Membership invitation approval/deny", l)
 		if err != nil {
-			FailWith(500, err.Error(), c)
-			return
+			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 
-		SucceedWith(map[string]interface{}{}, c)
+		return SucceedWith(map[string]interface{}{}, c)
 	}
 }
 
 // DeleteMembershipHandler is the handler responsible for deleting a member
-func DeleteMembershipHandler(app *App) func(c *iris.Context) {
-	return func(c *iris.Context) {
+func DeleteMembershipHandler(app *App) func(c echo.Context) error {
+	return func(c echo.Context) error {
 		c.Set("route", "DeleteMembership")
 		start := time.Now()
 		clanPublicID := c.Param("clanPublicID")
@@ -458,8 +428,7 @@ func DeleteMembershipHandler(app *App) func(c *iris.Context) {
 
 		payload, game, status, err := getPayloadAndGame(app, c, l)
 		if err != nil {
-			FailWith(status, err.Error(), c)
-			return
+			return FailWith(status, err.Error(), c)
 		}
 
 		l = l.With(
@@ -470,8 +439,7 @@ func DeleteMembershipHandler(app *App) func(c *iris.Context) {
 
 		tx, err := app.BeginTrans(l)
 		if err != nil {
-			FailWith(500, err.Error(), c)
-			return
+			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 
 		rb := func(err error) error {
@@ -498,8 +466,7 @@ func DeleteMembershipHandler(app *App) func(c *iris.Context) {
 			if txErr == nil {
 				l.Error("Membership delete failed.", zap.Error(err))
 			}
-			FailWith(500, err.Error(), c)
-			return
+			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 
 		err = dispatchMembershipHookByPublicID(
@@ -512,8 +479,7 @@ func DeleteMembershipHandler(app *App) func(c *iris.Context) {
 			if txErr == nil {
 				l.Error("Membership deleted hook dispatch failed.", zap.Error(err))
 			}
-			FailWith(500, err.Error(), c)
-			return
+			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 
 		l.Info(
@@ -523,17 +489,16 @@ func DeleteMembershipHandler(app *App) func(c *iris.Context) {
 
 		err = app.Commit(tx, "Membership invitation approval/deny", l)
 		if err != nil {
-			FailWith(500, err.Error(), c)
-			return
+			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 
-		SucceedWith(map[string]interface{}{}, c)
+		return SucceedWith(map[string]interface{}{}, c)
 	}
 }
 
 // PromoteOrDemoteMembershipHandler is the handler responsible for promoting or demoting a member
-func PromoteOrDemoteMembershipHandler(app *App, action string) func(c *iris.Context) {
-	return func(c *iris.Context) {
+func PromoteOrDemoteMembershipHandler(app *App, action string) func(c echo.Context) error {
+	return func(c echo.Context) error {
 		c.Set("route", "PromoteOrDemoteMember")
 		start := time.Now()
 		clanPublicID := c.Param("clanPublicID")
@@ -547,8 +512,7 @@ func PromoteOrDemoteMembershipHandler(app *App, action string) func(c *iris.Cont
 
 		payload, game, status, err := getPayloadAndGame(app, c, l)
 		if err != nil {
-			FailWith(status, err.Error(), c)
-			return
+			return FailWith(status, err.Error(), c)
 		}
 
 		l = l.With(
@@ -559,8 +523,7 @@ func PromoteOrDemoteMembershipHandler(app *App, action string) func(c *iris.Cont
 
 		tx, err := app.BeginTrans(l)
 		if err != nil {
-			FailWith(500, err.Error(), c)
-			return
+			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 
 		rb := func(err error) error {
@@ -588,8 +551,7 @@ func PromoteOrDemoteMembershipHandler(app *App, action string) func(c *iris.Cont
 			if txErr == nil {
 				l.Error("Member promotion/demotion failed.", zap.Error(err))
 			}
-			FailWith(500, err.Error(), c)
-			return
+			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 		l.Info("Member promoted/demoted successful.")
 
@@ -600,8 +562,7 @@ func PromoteOrDemoteMembershipHandler(app *App, action string) func(c *iris.Cont
 			if txErr == nil {
 				l.Error("Promoter/Demoter member retrieval failed.", zap.Error(err))
 			}
-			FailWith(500, err.Error(), c)
-			return
+			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 		l.Debug("Promoter/Demoter member retrieved successfully.")
 
@@ -620,14 +581,12 @@ func PromoteOrDemoteMembershipHandler(app *App, action string) func(c *iris.Cont
 			if txErr == nil {
 				l.Error("Promote/Demote member hook dispatch failed.", zap.Error(err))
 			}
-			FailWith(500, err.Error(), c)
-			return
+			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 
 		err = app.Commit(tx, "Membership invitation approval/deny", l)
 		if err != nil {
-			FailWith(500, err.Error(), c)
-			return
+			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 
 		l.Info(
@@ -635,7 +594,7 @@ func PromoteOrDemoteMembershipHandler(app *App, action string) func(c *iris.Cont
 			zap.Duration("duration", time.Now().Sub(start)),
 		)
 
-		SucceedWith(map[string]interface{}{
+		return SucceedWith(map[string]interface{}{
 			"level": membership.Level,
 		}, c)
 	}

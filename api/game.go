@@ -11,14 +11,14 @@ import (
 	"strings"
 	"time"
 
-	"github.com/kataras/iris"
+	"github.com/labstack/echo"
 	"github.com/topfreegames/khan/models"
 	"github.com/uber-go/zap"
 )
 
-// CreateGameHandler is the handler responsible for creating new games
-func CreateGameHandler(app *App) func(c *iris.Context) {
-	return func(c *iris.Context) {
+//CreateGameHandler is the handler responsible for creating new games
+func CreateGameHandler(app *App) func(c echo.Context) error {
+	return func(c echo.Context) error {
 		c.Set("route", "CreateGame")
 		start := time.Now()
 		l := app.Logger.With(
@@ -30,8 +30,7 @@ func CreateGameHandler(app *App) func(c *iris.Context) {
 		payload, optional, err := getCreateGamePayload(app, c, l)
 		if err != nil {
 			l.Error("Failed to retrieve parameters.", zap.Error(err))
-			FailWith(400, err.Error(), c)
-			return
+			return FailWith(400, err.Error(), c)
 		}
 		l.Debug(
 			"Parameters retrieved successfully.",
@@ -43,14 +42,12 @@ func CreateGameHandler(app *App) func(c *iris.Context) {
 		if payloadErrors := validateGamePayload(payload); len(payloadErrors) != 0 {
 			logPayloadErrors(l, payloadErrors)
 			errorString := strings.Join(payloadErrors[:], ", ")
-			FailWith(422, errorString, c)
-			return
+			return FailWith(422, errorString, c)
 		}
 
 		tx, err := app.BeginTrans(l)
 		if err != nil {
-			FailWith(500, err.Error(), c)
-			return
+			return FailWith(500, err.Error(), c)
 		}
 		l.Debug("DB Tx begun successful.")
 
@@ -82,18 +79,15 @@ func CreateGameHandler(app *App) func(c *iris.Context) {
 		if err != nil {
 			txErr := app.Rollback(tx, "Create game failed", l, err)
 			if txErr != nil {
-				FailWith(500, txErr.Error(), c)
-				return
+				return FailWith(500, txErr.Error(), c)
 			}
 			l.Error("Create game failed.", zap.Error(err))
-			FailWith(500, err.Error(), c)
-			return
+			return FailWith(500, err.Error(), c)
 		}
 
 		err = app.Commit(tx, "Create game", l)
 		if err != nil {
-			FailWith(500, err.Error(), c)
-			return
+			return FailWith(500, err.Error(), c)
 		}
 
 		l.Info(
@@ -101,15 +95,15 @@ func CreateGameHandler(app *App) func(c *iris.Context) {
 			zap.Duration("duration", time.Now().Sub(start)),
 		)
 
-		SucceedWith(map[string]interface{}{
+		return SucceedWith(map[string]interface{}{
 			"publicID": game.PublicID,
 		}, c)
 	}
 }
 
-// UpdateGameHandler is the handler responsible for updating existing
-func UpdateGameHandler(app *App) func(c *iris.Context) {
-	return func(c *iris.Context) {
+//UpdateGameHandler is the handler responsible for updating existing
+func UpdateGameHandler(app *App) func(c echo.Context) error {
+	return func(c echo.Context) error {
 		c.Set("route", "UpdateGame")
 		start := time.Now()
 		gameID := c.Param("gameID")
@@ -125,15 +119,13 @@ func UpdateGameHandler(app *App) func(c *iris.Context) {
 		l.Debug("Retrieving parameters...")
 		if err := LoadJSONPayload(&payload, c, l); err != nil {
 			l.Error("Failed to retrieve parameters.", zap.Error(err))
-			FailWith(400, err.Error(), c)
-			return
+			return FailWith(400, err.Error(), c)
 		}
 
 		optional, err := getOptionalParameters(app, c)
 		if err != nil {
 			l.Error("Failed to retrieve optional parameters.", zap.Error(err))
-			FailWith(400, err.Error(), c)
-			return
+			return FailWith(400, err.Error(), c)
 		}
 
 		l.Debug(
@@ -147,14 +139,12 @@ func UpdateGameHandler(app *App) func(c *iris.Context) {
 		if payloadErrors := validateGamePayload(&payload); len(payloadErrors) != 0 {
 			logPayloadErrors(l, payloadErrors)
 			errorString := strings.Join(payloadErrors[:], ", ")
-			FailWith(422, errorString, c)
-			return
+			return FailWith(422, errorString, c)
 		}
 
 		tx, err := app.BeginTrans(l)
 		if err != nil {
-			FailWith(500, err.Error(), c)
-			return
+			return FailWith(500, err.Error(), c)
 		}
 
 		l.Debug("Updating game...")
@@ -184,13 +174,11 @@ func UpdateGameHandler(app *App) func(c *iris.Context) {
 		if err != nil {
 			txErr := app.Rollback(tx, "Game update failed", l, err)
 			if txErr != nil {
-				FailWith(500, txErr.Error(), c)
-				return
+				return FailWith(500, txErr.Error(), c)
 			}
 
 			l.Error("Game update failed.", zap.Error(err))
-			FailWith(500, err.Error(), c)
-			return
+			return FailWith(500, err.Error(), c)
 		}
 
 		successPayload := map[string]interface{}{
@@ -216,19 +204,16 @@ func UpdateGameHandler(app *App) func(c *iris.Context) {
 		if dErr != nil {
 			txErr := app.Rollback(tx, "Game update hook dispatch failed", l, dErr)
 			if txErr != nil {
-				FailWith(500, txErr.Error(), c)
-				return
+				return FailWith(500, txErr.Error(), c)
 			}
 
 			l.Error("Game update hook dispatch failed.", zap.Error(dErr))
-			FailWith(500, dErr.Error(), c)
-			return
+			return FailWith(500, dErr.Error(), c)
 		}
 
 		err = app.Commit(tx, "Update game", l)
 		if err != nil {
-			FailWith(500, err.Error(), c)
-			return
+			return FailWith(500, err.Error(), c)
 		}
 
 		l.Info(
@@ -236,6 +221,6 @@ func UpdateGameHandler(app *App) func(c *iris.Context) {
 			zap.Duration("duration", time.Now().Sub(start)),
 		)
 
-		SucceedWith(map[string]interface{}{}, c)
+		return SucceedWith(map[string]interface{}{}, c)
 	}
 }

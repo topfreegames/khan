@@ -10,7 +10,7 @@ package api
 import (
 	"encoding/json"
 
-	"github.com/kataras/iris"
+	"github.com/labstack/echo"
 	"github.com/topfreegames/khan/models"
 	"github.com/uber-go/zap"
 )
@@ -39,10 +39,14 @@ type membershipOptionalParams struct {
 	Message string
 }
 
-func getMembershipOptionalParameters(app *App, c *iris.Context) (*membershipOptionalParams, error) {
-	data := c.RequestCtx.Request.Body()
+func getMembershipOptionalParameters(app *App, c echo.Context) (*membershipOptionalParams, error) {
+	data, err := GetRequestBody(c)
+	if err != nil {
+		return nil, err
+	}
+
 	var jsonPayload map[string]interface{}
-	err := json.Unmarshal(data, &jsonPayload)
+	err = json.Unmarshal([]byte(data), &jsonPayload)
 	if err != nil {
 		return nil, err
 	}
@@ -190,7 +194,7 @@ func dispatchApproveDenyMembershipHook(app *App, db models.DB, hookType int, gam
 	return nil
 }
 
-func getPayloadAndGame(app *App, c *iris.Context, l zap.Logger) (*basePayloadWithRequestorAndPlayerPublicIDs, *models.Game, int, error) {
+func getPayloadAndGame(app *App, c echo.Context, l zap.Logger) (*basePayloadWithRequestorAndPlayerPublicIDs, *models.Game, int, error) {
 	gameID := c.Param("gameID")
 
 	var payload basePayloadWithRequestorAndPlayerPublicIDs

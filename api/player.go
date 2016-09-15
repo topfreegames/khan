@@ -9,16 +9,17 @@ package api
 
 import (
 	"fmt"
+	"net/http"
 	"time"
 
-	"github.com/kataras/iris"
+	"github.com/labstack/echo"
 	"github.com/topfreegames/khan/models"
 	"github.com/uber-go/zap"
 )
 
 // CreatePlayerHandler is the handler responsible for creating new players
-func CreatePlayerHandler(app *App) func(c *iris.Context) {
-	return func(c *iris.Context) {
+func CreatePlayerHandler(app *App) func(c echo.Context) error {
+	return func(c echo.Context) error {
 		c.Set("route", "CreatePlayer")
 		start := time.Now()
 		gameID := c.Param("gameID")
@@ -31,14 +32,12 @@ func CreatePlayerHandler(app *App) func(c *iris.Context) {
 
 		var payload createPlayerPayload
 		if err := LoadJSONPayload(&payload, c, l); err != nil {
-			FailWith(400, err.Error(), c)
-			return
+			return FailWith(http.StatusBadRequest, err.Error(), c)
 		}
 
 		tx, err := app.BeginTrans(l)
 		if err != nil {
-			FailWith(500, err.Error(), c)
-			return
+			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 
 		l.Debug("Creating player...")
@@ -54,13 +53,11 @@ func CreatePlayerHandler(app *App) func(c *iris.Context) {
 		if err != nil {
 			txErr := app.Rollback(tx, "Player creation failed", l, err)
 			if txErr != nil {
-				FailWith(500, txErr.Error(), c)
-				return
+				return FailWith(http.StatusInternalServerError, txErr.Error(), c)
 			}
 
 			l.Error("Player creation failed.", zap.Error(err))
-			FailWith(500, err.Error(), c)
-			return
+			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 
 		result := map[string]interface{}{
@@ -75,19 +72,16 @@ func CreatePlayerHandler(app *App) func(c *iris.Context) {
 		if err != nil {
 			txErr := app.Rollback(tx, "Player creation hook dispatch failed", l, err)
 			if txErr != nil {
-				FailWith(500, txErr.Error(), c)
-				return
+				return FailWith(http.StatusInternalServerError, txErr.Error(), c)
 			}
 
 			l.Error("Player creation hook dispatch failed.", zap.Error(err))
-			FailWith(500, err.Error(), c)
-			return
+			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 
 		err = app.Commit(tx, "Create player", l)
 		if err != nil {
-			FailWith(500, err.Error(), c)
-			return
+			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 
 		l.Info(
@@ -95,13 +89,13 @@ func CreatePlayerHandler(app *App) func(c *iris.Context) {
 			zap.Duration("duration", time.Now().Sub(start)),
 		)
 
-		SucceedWith(result, c)
+		return SucceedWith(result, c)
 	}
 }
 
 // UpdatePlayerHandler is the handler responsible for updating existing
-func UpdatePlayerHandler(app *App) func(c *iris.Context) {
-	return func(c *iris.Context) {
+func UpdatePlayerHandler(app *App) func(c echo.Context) error {
+	return func(c echo.Context) error {
 		c.Set("route", "UpdatePlayer")
 		start := time.Now()
 		gameID := c.Param("gameID")
@@ -116,14 +110,12 @@ func UpdatePlayerHandler(app *App) func(c *iris.Context) {
 
 		var payload updatePlayerPayload
 		if err := LoadJSONPayload(&payload, c, l); err != nil {
-			FailWith(400, err.Error(), c)
-			return
+			return FailWith(http.StatusBadRequest, err.Error(), c)
 		}
 
 		tx, err := app.BeginTrans(l)
 		if err != nil {
-			FailWith(500, err.Error(), c)
-			return
+			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 
 		//rollback function
@@ -144,8 +136,7 @@ func UpdatePlayerHandler(app *App) func(c *iris.Context) {
 			if txErr == nil {
 				l.Error("Updating player failed.", zap.Error(err))
 			}
-			FailWith(500, err.Error(), c)
-			return
+			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 		l.Debug("Game retrieved successfully")
 
@@ -156,8 +147,7 @@ func UpdatePlayerHandler(app *App) func(c *iris.Context) {
 			if txErr == nil {
 				l.Error("Updating player failed.", zap.Error(err))
 			}
-			FailWith(500, err.Error(), c)
-			return
+			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 		l.Debug("Player retrieved successfully")
 
@@ -175,8 +165,7 @@ func UpdatePlayerHandler(app *App) func(c *iris.Context) {
 			if txErr == nil {
 				l.Error("Updating player failed.", zap.Error(err))
 			}
-			FailWith(500, err.Error(), c)
-			return
+			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 
 		shouldDispatch := validateUpdatePlayerDispatch(game, beforeUpdatePlayer, player, payload.Metadata, l)
@@ -188,15 +177,13 @@ func UpdatePlayerHandler(app *App) func(c *iris.Context) {
 				if txErr == nil {
 					l.Error("Update player hook dispatch failed.", zap.Error(err))
 				}
-				FailWith(500, err.Error(), c)
-				return
+				return FailWith(http.StatusInternalServerError, err.Error(), c)
 			}
 		}
 
 		err = app.Commit(tx, "Update game", l)
 		if err != nil {
-			FailWith(500, err.Error(), c)
-			return
+			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 
 		l.Info(
@@ -204,13 +191,13 @@ func UpdatePlayerHandler(app *App) func(c *iris.Context) {
 			zap.Duration("duration", time.Now().Sub(start)),
 		)
 
-		SucceedWith(map[string]interface{}{}, c)
+		return SucceedWith(map[string]interface{}{}, c)
 	}
 }
 
 // RetrievePlayerHandler is the handler responsible for returning details for a given player
-func RetrievePlayerHandler(app *App) func(c *iris.Context) {
-	return func(c *iris.Context) {
+func RetrievePlayerHandler(app *App) func(c echo.Context) error {
+	return func(c echo.Context) error {
 		c.Set("route", "RetrievePlayer")
 		start := time.Now()
 		gameID := c.Param("gameID")
@@ -227,8 +214,7 @@ func RetrievePlayerHandler(app *App) func(c *iris.Context) {
 		db, err := app.GetCtxDB(c)
 		if err != nil {
 			l.Error("Failed to connect to DB.", zap.Error(err))
-			FailWith(500, err.Error(), c)
-			return
+			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 		l.Debug("DB Connection successful.")
 
@@ -242,13 +228,11 @@ func RetrievePlayerHandler(app *App) func(c *iris.Context) {
 		if err != nil {
 			if err.Error() == fmt.Sprintf("Player was not found with id: %s", publicID) {
 				l.Warn("Player was not found.", zap.Error(err))
-				FailWith(404, err.Error(), c)
-				return
+				return FailWith(http.StatusNotFound, err.Error(), c)
 			}
 
 			l.Error("Retrieve player details failed.", zap.Error(err))
-			FailWith(500, err.Error(), c)
-			return
+			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 
 		l.Info(
@@ -256,6 +240,6 @@ func RetrievePlayerHandler(app *App) func(c *iris.Context) {
 			zap.Duration("duration", time.Now().Sub(start)),
 		)
 
-		SucceedWith(player, c)
+		return SucceedWith(player, c)
 	}
 }

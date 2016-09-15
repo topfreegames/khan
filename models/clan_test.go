@@ -436,7 +436,7 @@ var _ = Describe("Clan Model", func() {
 				Expect(dbClan.AutoJoin).To(Equal(autoJoin))
 			})
 
-			FIt("Should update a indexed clan into ES when update Clan with UpdateClan", func() {
+			It("Should update a indexed clan into ES when update Clan with UpdateClan", func() {
 				es := GetTestES()
 				player, clans, err := GetTestClans(testDb, "", "", 1)
 				Expect(err).NotTo(HaveOccurred())

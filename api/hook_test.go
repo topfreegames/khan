@@ -11,7 +11,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strings"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -38,11 +37,11 @@ var _ = Describe("Hook API Handler", func() {
 				"type":    models.GameUpdatedHook,
 				"hookURL": "http://test/create",
 			}
-			res := PostJSON(a, GetGameRoute(game.PublicID, "/hooks"), payload)
+			status, body := PostJSON(a, GetGameRoute(game.PublicID, "/hooks"), payload)
 
-			Expect(res.Raw().StatusCode).To(Equal(http.StatusOK))
+			Expect(status).To(Equal(http.StatusOK))
 			var result map[string]interface{}
-			json.Unmarshal([]byte(res.Body().Raw()), &result)
+			json.Unmarshal([]byte(body), &result)
 			Expect(result["success"]).To(BeTrue())
 			Expect(result["publicID"]).NotTo(BeEquivalentTo(""))
 
@@ -59,11 +58,11 @@ var _ = Describe("Hook API Handler", func() {
 		It("Should not create hook if missing parameters", func() {
 			a := GetDefaultTestApp()
 			route := GetGameRoute("game-id", "/hooks")
-			res := PostJSON(a, route, map[string]interface{}{})
+			status, body := PostJSON(a, route, map[string]interface{}{})
 
-			Expect(res.Raw().StatusCode).To(Equal(http.StatusBadRequest))
+			Expect(status).To(Equal(http.StatusBadRequest))
 			var result map[string]interface{}
-			json.Unmarshal([]byte(res.Body().Raw()), &result)
+			json.Unmarshal([]byte(body), &result)
 			Expect(result["success"]).To(BeFalse())
 			Expect(result["reason"]).To(Equal("type is required, hookURL is required"))
 		})
@@ -71,13 +70,15 @@ var _ = Describe("Hook API Handler", func() {
 		It("Should not create hook if invalid payload", func() {
 			a := GetDefaultTestApp()
 			route := GetGameRoute("game-id", "/hooks")
-			res := PostBody(a, route, "invalid")
+			status, body := Post(a, route, "invalid")
 
-			Expect(res.Raw().StatusCode).To(Equal(http.StatusBadRequest))
+			Expect(status).To(Equal(http.StatusBadRequest))
 			var result map[string]interface{}
-			json.Unmarshal([]byte(res.Body().Raw()), &result)
+			json.Unmarshal([]byte(body), &result)
 			Expect(result["success"]).To(BeFalse())
-			Expect(strings.Contains(result["reason"].(string), "While trying to read JSON")).To(BeTrue())
+			Expect(result["reason"].(string)).To(ContainSubstring(
+				"invalid character 'i' looking for beginning of value",
+			))
 		})
 	})
 
@@ -88,12 +89,12 @@ var _ = Describe("Hook API Handler", func() {
 			hook, err := models.CreateHookFactory(testDb, "", models.GameUpdatedHook, "http://test/update")
 			Expect(err).NotTo(HaveOccurred())
 
-			res := Delete(a, GetGameRoute(hook.GameID, fmt.Sprintf("/hooks/%s", hook.PublicID)))
+			status, body := Delete(a, GetGameRoute(hook.GameID, fmt.Sprintf("/hooks/%s", hook.PublicID)))
 
-			Expect(res.Raw().StatusCode).To(Equal(http.StatusOK))
+			Expect(status).To(Equal(http.StatusOK))
 
 			var result map[string]interface{}
-			json.Unmarshal([]byte(res.Body().Raw()), &result)
+			json.Unmarshal([]byte(body), &result)
 			Expect(result["success"]).To(BeTrue())
 
 			number, err := testDb.SelectInt("select count(*) from hooks where id=$1", hook.ID)
