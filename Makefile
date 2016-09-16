@@ -130,10 +130,10 @@ drop-test:
 
 run-test-khan: build kill-test-khan
 	@rm -rf /tmp/khan-bench.log
-	@./khan start -p 8888 -c ./config/perf.yaml 2>&1 > /tmp/khan-bench.log &
+	@./khan start -p 8888 -q --fast -c ./config/perf.yaml 2>&1 > /tmp/khan-bench.log &
 
 kill-test-khan:
-	@-ps aux | egrep './khan.+perf.yaml' | egrep -v egrep | awk ' { print $$2 } ' | xargs kill -9
+	@-ps aux | egrep './khan.+perf.yaml' | egrep -v grep | awk ' { print $$2 } ' | xargs kill -9
 
 ci-perf: drop-perf migrate-perf run-test-khan run-perf
 

@@ -202,7 +202,9 @@ func (app *App) onErrorHandler(err error, stack []byte) {
 func (app *App) configureApplication() {
 	app.Engine = standard.New(fmt.Sprintf("%s:%d", app.Host, app.Port))
 	if app.Fast {
-		app.Engine = fasthttp.New(fmt.Sprintf("%s:%d", app.Host, app.Port))
+		engine := fasthttp.New(fmt.Sprintf("%s:%d", app.Host, app.Port))
+		engine.ReadBufferSize = app.ReadBufferSize
+		app.Engine = engine
 	}
 	app.App = echo.New()
 	a := app.App
