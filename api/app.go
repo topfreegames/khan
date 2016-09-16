@@ -142,7 +142,7 @@ func (app *App) loadConfiguration() {
 	if err := app.Config.ReadInConfig(); err == nil {
 		log.I(l, "Loaded config file successfully.")
 	} else {
-		l.Panic("Config file failed to load.")
+		log.P(l, "Config file failed to load.")
 	}
 }
 
@@ -168,18 +168,16 @@ func (app *App) connectDatabase() {
 	db, err := models.GetDB(host, user, port, sslMode, dbName, password)
 
 	if err != nil {
-		l.Panic(
-			"Could not connect to postgres...",
-			zap.String("error", err.Error()),
-		)
+		log.P(l, "Could not connect to postgres...", func(cm log.CM) {
+			cm.Write(zap.String("error", err.Error()))
+		})
 	}
 
 	_, err = db.SelectInt("select count(*) from games")
 	if err != nil {
-		l.Panic(
-			"Could not connect to postgres...",
-			zap.String("error", err.Error()),
-		)
+		log.P(l, "Could not connect to postgres...", func(cm log.CM) {
+			cm.Write(zap.String("error", err.Error()))
+		})
 	}
 
 	log.I(l, "Connected to database successfully.")
@@ -335,7 +333,9 @@ func (app *App) initDispatcher() {
 	log.D(l, "Initializing dispatcher...")
 	disp, err := NewDispatcher(app, 5, 1000)
 	if err != nil {
-		l.Panic("Dispatcher failed to initialize.", zap.Error(err))
+		log.P(l, "Dispatcher failed to initialize.", func(cm log.CM) {
+			cm.Write(zap.Error(err))
+		})
 		return
 	}
 	log.I(l, "Dispatcher initialized successfully")

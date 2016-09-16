@@ -18,14 +18,19 @@ func I(logger zap.Logger, message string, callback ...func(l CM)) {
 	log(logger, zap.InfoLevel, message, callback...)
 }
 
-//W is a info logger
+//W is a warn logger
 func W(logger zap.Logger, message string, callback ...func(l CM)) {
-	log(logger, zap.InfoLevel, message, callback...)
+	log(logger, zap.WarnLevel, message, callback...)
 }
 
-//E is a info logger
+//E is a error logger
 func E(logger zap.Logger, message string, callback ...func(l CM)) {
 	log(logger, zap.ErrorLevel, message, callback...)
+}
+
+//P is a panic logger
+func P(logger zap.Logger, message string, callback ...func(l CM)) {
+	log(logger, zap.PanicLevel, message, callback...)
 }
 
 func defaultWrite(l CM) {
