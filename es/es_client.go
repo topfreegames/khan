@@ -74,14 +74,24 @@ func (es *Client) configureClient() {
 		zap.String("source", "elasticsearch"),
 		zap.String("operation", "configureClient"),
 	)
-	log.I(l, "Connecting to elasticsearch...", zap.String("elasticsearch.url", fmt.Sprintf("http://%s:%d/%s", es.Host, es.Port, es.Index)), zap.Bool("sniff", es.Sniff))
+	log.I(l, "Connecting to elasticsearch...", func(cm log.CM) {
+		cm.Write(
+			zap.String("elasticsearch.url", fmt.Sprintf("http://%s:%d/%s", es.Host, es.Port, es.Index)),
+			zap.Bool("sniff", es.Sniff),
+		)
+	})
 	var err error
 	es.Client, err = elastic.NewClient(
 		elastic.SetURL(fmt.Sprintf("http://%s:%d", es.Host, es.Port)),
 		elastic.SetSniff(es.Sniff),
 	)
 	if err != nil {
-		log.E(l, "Failed to connect to elasticsearch!", zap.String("elasticsearch.url", fmt.Sprintf("http://%s:%d/%s", es.Host, es.Port, es.Index)), zap.Error(err))
+		log.E(l, "Failed to connect to elasticsearch!", func(cm log.CM) {
+			cm.Write(
+				zap.String("elasticsearch.url", fmt.Sprintf("http://%s:%d/%s", es.Host, es.Port, es.Index)),
+				zap.Error(err),
+			)
+		})
 		os.Exit(1)
 	}
 }
