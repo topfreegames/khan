@@ -187,12 +187,13 @@ func (app *App) connectDatabase() {
 }
 
 func (app *App) onErrorHandler(err error, stack []byte) {
-	app.Logger.Error(
-		"Panic occurred.",
-		zap.String("source", "app"),
-		zap.String("panicText", err.Error()),
-		zap.String("stack", string(stack)),
-	)
+	log.E(app.Logger, "Panic occurred.", func(cm log.CM) {
+		cm.Write(
+			zap.String("source", "app"),
+			zap.String("panicText", err.Error()),
+			zap.String("stack", string(stack)),
+		)
+	})
 	tags := map[string]string{
 		"source": "app",
 		"type":   "panic",
@@ -277,13 +278,14 @@ func (app *App) GetHooks() map[string]map[int][]*models.Hook {
 	log.D(l, "Retrieving hooks...")
 	dbHooks, err := models.GetAllHooks(app.Db)
 	if err != nil {
-		log.E(l,
-			"Retrieve hooks failed.",
-			zap.String("error", err.Error()),
-		)
+		log.E(l, "Retrieve hooks failed.", func(cm log.CM) {
+			cm.Write(zap.String("error", err.Error()))
+		})
 		return nil
 	}
-	log.I(l, "Hooks retrieved successfully.", zap.Duration("hookRetrievalDuration", time.Now().Sub(start)))
+	log.I(l, "Hooks retrieved successfully.", func(cm log.CM) {
+		cm.Write(zap.Duration("hookRetrievalDuration", time.Now().Sub(start)))
+	})
 
 	hooks := make(map[string]map[int][]*models.Hook)
 	for _, hook := range dbHooks {
@@ -312,17 +314,15 @@ func (app *App) GetGame(gameID string) (*models.Game, error) {
 
 	game, err := models.GetGameByPublicID(app.Db, gameID)
 	if err != nil {
-		log.E(l,
-			"Retrieve game failed.",
-			zap.Error(err),
-		)
+		log.E(l, "Retrieve game failed.", func(cm log.CM) {
+			cm.Write(zap.Error(err))
+		})
 		return nil, err
 	}
 
-	log.I(l,
-		"Game retrieved succesfully.",
-		zap.Duration("gameRetrievalDuration", time.Now().Sub(start)),
-	)
+	log.I(l, "Game retrieved succesfully.", func(cm log.CM) {
+		cm.Write(zap.Duration("gameRetrievalDuration", time.Now().Sub(start)))
+	})
 	return game, nil
 }
 
@@ -358,10 +358,9 @@ func (app *App) DispatchHooks(gameID string, eventType int, payload map[string]i
 	start := time.Now()
 	log.D(l, "Dispatching hook...")
 	app.Dispatcher.DispatchHook(gameID, eventType, payload)
-	log.I(l,
-		"Hook dispatched successfully.",
-		zap.Duration("hookDispatchDuration", time.Now().Sub(start)),
-	)
+	log.I(l, "Hook dispatched successfully.", func(cm log.CM) {
+		cm.Write(zap.Duration("hookDispatchDuration", time.Now().Sub(start)))
+	})
 	return nil
 }
 
@@ -381,7 +380,9 @@ func (app *App) BeginTrans(l zap.Logger) (*gorp.Transaction, error) {
 	log.D(l, "Beginning DB tx...")
 	tx, err := (app.Db).(*gorp.DbMap).Begin()
 	if err != nil {
-		log.E(l, "Failed to begin tx.", zap.Error(err))
+		log.E(l, "Failed to begin tx.", func(cm log.CM) {
+			cm.Write(zap.Error(err))
+		})
 		return nil, err
 	}
 	log.D(l, "Tx begun successfuly.")
@@ -392,12 +393,9 @@ func (app *App) BeginTrans(l zap.Logger) (*gorp.Transaction, error) {
 func (app *App) Rollback(tx *gorp.Transaction, msg string, l zap.Logger, err error) error {
 	txErr := tx.Rollback()
 	if txErr != nil {
-		log.E(l,
-			fmt.Sprintf("%s and failed to rollback transaction.", msg),
-			zap.Error(txErr),
-			zap.String("originalError", err.Error()),
-		)
-
+		log.E(l, fmt.Sprintf("%s and failed to rollback transaction.", msg), func(cm log.CM) {
+			cm.Write(zap.Error(txErr), zap.String("originalError", err.Error()))
+		})
 		return txErr
 	}
 	return nil
@@ -407,11 +405,9 @@ func (app *App) Rollback(tx *gorp.Transaction, msg string, l zap.Logger, err err
 func (app *App) Commit(tx *gorp.Transaction, msg string, l zap.Logger) error {
 	txErr := tx.Commit()
 	if txErr != nil {
-		log.E(l,
-			fmt.Sprintf("%s failed to commit transaction.", msg),
-			zap.Error(txErr),
-		)
-
+		log.E(l, fmt.Sprintf("%s failed to commit transaction.", msg), func(cm log.CM) {
+			cm.Write(zap.Error(txErr))
+		})
 		return txErr
 	}
 	return nil
@@ -435,7 +431,9 @@ func (app *App) Start() {
 	)
 
 	defer app.finalizeApp()
-	log.D(l, "App started.", zap.String("host", app.Host), zap.Int("port", app.Port))
+	log.D(l, "App started.", func(cm log.CM) {
+		cm.Write(zap.String("host", app.Host), zap.Int("port", app.Port))
+	})
 
 	if app.Background {
 		go func() {
