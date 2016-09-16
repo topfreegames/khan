@@ -168,7 +168,7 @@ func (l *LoggerMiddleware) Serve(next echo.HandlerFunc) echo.HandlerFunc {
 
 		route := c.Get("route")
 		if route == nil {
-			log.Debug("Route does not have route set in ctx")
+log.D(			log, "Route does not have route set in ctx")
 			return err
 		}
 

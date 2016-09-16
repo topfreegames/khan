@@ -24,7 +24,7 @@ import (
 	"github.com/Pallinder/go-randomdata"
 )
 
-func createIndex(indexName string, cli *es.ESClient) {
+func createIndex(indexName string, cli *es.Client) {
 	_, err := cli.Client.CreateIndex(indexName).Do()
 	Expect(err).NotTo(HaveOccurred())
 

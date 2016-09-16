@@ -74,7 +74,7 @@ func (c *Clan) PostDelete(s gorp.SqlExecutor) error {
 //IndexClanIntoElasticSearch after operation in PG
 func (c *Clan) IndexClanIntoElasticSearch() error {
 	go func() {
-		es := es.GetConfiguredESClient()
+		es := es.GetConfiguredClient()
 		if es != nil {
 			es.Client.Index().Index(es.Index + "-" + c.GameID).Type("clan").Id(c.PublicID).BodyJson(c).Do()
 		}
@@ -84,7 +84,7 @@ func (c *Clan) IndexClanIntoElasticSearch() error {
 
 //DeleteClanFromElasticSearch after deletion in PG
 func (c *Clan) DeleteClanFromElasticSearch() error {
-	es := es.GetConfiguredESClient()
+	es := es.GetConfiguredClient()
 	var err error
 	if es != nil {
 		_, err = es.Client.Delete().Index(es.Index + "-" + c.GameID).Type("clan").Id(c.PublicID).Do()

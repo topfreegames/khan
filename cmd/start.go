@@ -46,7 +46,7 @@ environment variables to override configuration keys.`,
 			zap.Bool("debug", debug),
 		)
 
-		cmdL.Debug("Creating application...")
+log.D(		cmdL, "Creating application...")
 		app := api.GetApp(
 			host,
 			port,
@@ -55,9 +55,9 @@ environment variables to override configuration keys.`,
 			l,
 			fast,
 		)
-		cmdL.Debug("Application created successfully.")
+log.D(		cmdL, "Application created successfully.")
 
-		cmdL.Debug("Starting application...")
+log.D(		cmdL, "Starting application...")
 		app.Start()
 	},
 }

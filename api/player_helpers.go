@@ -31,27 +31,27 @@ func validateUpdatePlayerDispatch(game *models.Game, sourcePlayer *models.Player
 	)
 
 	if sourcePlayer == nil {
-		cl.Debug("Player did not exist before. Dispatching event...")
+log.D(		cl, "Player did not exist before. Dispatching event...")
 		return true
 	}
 
 	changedName := player.Name != sourcePlayer.Name
 	if changedName {
-		cl.Debug("Player name changed")
+log.D(		cl, "Player name changed")
 		return true
 	}
 
 	if game.PlayerUpdateMetadataFieldsHookTriggerWhitelist == "" {
-		cl.Debug("Player has no metadata whitelist for update hook")
+log.D(		cl, "Player has no metadata whitelist for update hook")
 		return true
 	}
 
-	cl.Debug("Verifying fields for player update hook dispatch...")
+log.D(	cl, "Verifying fields for player update hook dispatch...")
 	fields := strings.Split(game.PlayerUpdateMetadataFieldsHookTriggerWhitelist, ",")
 	for _, field := range fields {
 		oldVal, existsOld := sourcePlayer.Metadata[field]
 		newVal, existsNew := metadata[field]
-		l.Debug(
+log.D(		l, 
 			"Verifying field for change...",
 			zap.Bool("existsOld", existsOld),
 			zap.Bool("existsNew", existsNew),
@@ -62,12 +62,12 @@ func validateUpdatePlayerDispatch(game *models.Game, sourcePlayer *models.Player
 		//fmt.Println("field", field, "existsOld", existsOld, "oldVal", oldVal, "existsNew", existsNew, "newVal", newVal)
 
 		if existsOld != existsNew {
-			l.Debug("Found difference in field. Dispatching hook...", zap.String("field", field))
+log.D(			l, "Found difference in field. Dispatching hook...", zap.String("field", field))
 			return true
 		}
 
 		if existsOld && oldVal != newVal {
-			l.Debug("Found difference in field. Dispatching hook...", zap.String("field", field))
+log.D(			l, "Found difference in field. Dispatching hook...", zap.String("field", field))
 			return true
 		}
 	}

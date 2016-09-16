@@ -10,6 +10,7 @@ package api
 import (
 	"strings"
 
+	"github.com/topfreegames/khan/log"
 	"github.com/topfreegames/khan/models"
 	"github.com/uber-go/zap"
 )
@@ -75,9 +76,9 @@ func dispatchClanOwnershipChangeHook(app *App, db models.DB, hookType int, clan 
 		result["isDeleted"] = false
 	}
 
-	l.Debug("Dispatching hook...")
+	log.D(l, "Dispatching hook...")
 	app.DispatchHooks(clan.GameID, hookType, result)
-	l.Debug("Hook dispatch succeeded.")
+	log.D(l, "Hook dispatch succeeded.")
 
 	return nil
 }
@@ -116,21 +117,21 @@ func validateUpdateClanDispatch(game *models.Game, sourceClan *models.Clan, clan
 	changedAllowApplication := clan.AllowApplication != sourceClan.AllowApplication
 	changedAutoJoin := clan.AutoJoin != sourceClan.AutoJoin
 	if changedName || changedAllowApplication || changedAutoJoin {
-		cl.Debug("One of the main clan properties changed")
+		log.D(cl, "One of the main clan properties changed")
 		return true
 	}
 
 	if game.ClanUpdateMetadataFieldsHookTriggerWhitelist == "" {
-		cl.Debug("Clan has no metadata whitelist for update hook")
+		log.D(cl, "Clan has no metadata whitelist for update hook")
 		return true
 	}
 
-	cl.Debug("Verifying fields for clan update hook dispatch...")
+	log.D(cl, "Verifying fields for clan update hook dispatch...")
 	fields := strings.Split(game.ClanUpdateMetadataFieldsHookTriggerWhitelist, ",")
 	for _, field := range fields {
 		oldVal, existsOld := sourceClan.Metadata[field]
 		newVal, existsNew := metadata[field]
-		l.Debug(
+		log.D(l,
 			"Verifying field for change...",
 			zap.Bool("existsOld", existsOld),
 			zap.Bool("existsNew", existsNew),
@@ -141,12 +142,12 @@ func validateUpdateClanDispatch(game *models.Game, sourceClan *models.Clan, clan
 		//fmt.Println("field", field, "existsOld", existsOld, "oldVal", oldVal, "existsNew", existsNew, "newVal", newVal)
 
 		if existsOld != existsNew {
-			l.Debug("Found difference in field. Dispatching hook...", zap.String("field", field))
+			log.D(l, "Found difference in field. Dispatching hook...", zap.String("field", field))
 			return true
 		}
 
 		if existsOld && oldVal != newVal {
-			l.Debug("Found difference in field. Dispatching hook...", zap.String("field", field))
+			log.D(l, "Found difference in field. Dispatching hook...", zap.String("field", field))
 			return true
 		}
 	}

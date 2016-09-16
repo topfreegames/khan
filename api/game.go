@@ -26,13 +26,13 @@ func CreateGameHandler(app *App) func(c echo.Context) error {
 			zap.String("operation", "createGame"),
 		)
 
-		l.Debug("Retrieving parameters...")
+log.D(		l, "Retrieving parameters...")
 		payload, optional, err := getCreateGamePayload(app, c, l)
 		if err != nil {
-			l.Error("Failed to retrieve parameters.", zap.Error(err))
+			log.E(l, "Failed to retrieve parameters.", zap.Error(err))
 			return FailWith(400, err.Error(), c)
 		}
-		l.Debug(
+log.D(		l, 
 			"Parameters retrieved successfully.",
 			zap.Int("maxPendingInvites", optional.maxPendingInvites),
 			zap.Int("cooldownBeforeInvite", optional.cooldownBeforeInvite),
@@ -49,9 +49,9 @@ func CreateGameHandler(app *App) func(c echo.Context) error {
 		if err != nil {
 			return FailWith(500, err.Error(), c)
 		}
-		l.Debug("DB Tx begun successful.")
+log.D(		l, "DB Tx begun successful.")
 
-		l.Debug("Creating game...")
+log.D(		l, "Creating game...")
 		game, err := models.CreateGame(
 			tx,
 			payload.PublicID,
@@ -81,7 +81,7 @@ func CreateGameHandler(app *App) func(c echo.Context) error {
 			if txErr != nil {
 				return FailWith(500, txErr.Error(), c)
 			}
-			l.Error("Create game failed.", zap.Error(err))
+			log.E(l, "Create game failed.", zap.Error(err))
 			return FailWith(500, err.Error(), c)
 		}
 
@@ -90,7 +90,7 @@ func CreateGameHandler(app *App) func(c echo.Context) error {
 			return FailWith(500, err.Error(), c)
 		}
 
-		l.Info(
+log.I(		l, 
 			"Game created succesfully.",
 			zap.Duration("duration", time.Now().Sub(start)),
 		)
@@ -116,26 +116,26 @@ func UpdateGameHandler(app *App) func(c echo.Context) error {
 
 		var payload gamePayload
 
-		l.Debug("Retrieving parameters...")
+log.D(		l, "Retrieving parameters...")
 		if err := LoadJSONPayload(&payload, c, l); err != nil {
-			l.Error("Failed to retrieve parameters.", zap.Error(err))
+			log.E(l, "Failed to retrieve parameters.", zap.Error(err))
 			return FailWith(400, err.Error(), c)
 		}
 
 		optional, err := getOptionalParameters(app, c)
 		if err != nil {
-			l.Error("Failed to retrieve optional parameters.", zap.Error(err))
+			log.E(l, "Failed to retrieve optional parameters.", zap.Error(err))
 			return FailWith(400, err.Error(), c)
 		}
 
-		l.Debug(
+log.D(		l, 
 			"Parameters retrieved successfully.",
 			zap.Int("maxPendingInvites", optional.maxPendingInvites),
 			zap.Int("cooldownBeforeInvite", optional.cooldownBeforeInvite),
 			zap.Int("cooldownBeforeApply", optional.cooldownBeforeApply),
 		)
 
-		l.Debug("Validating payload...")
+log.D(		l, "Validating payload...")
 		if payloadErrors := validateGamePayload(&payload); len(payloadErrors) != 0 {
 			logPayloadErrors(l, payloadErrors)
 			errorString := strings.Join(payloadErrors[:], ", ")
@@ -147,7 +147,7 @@ func UpdateGameHandler(app *App) func(c echo.Context) error {
 			return FailWith(500, err.Error(), c)
 		}
 
-		l.Debug("Updating game...")
+log.D(		l, "Updating game...")
 		_, err = models.UpdateGame(
 			tx,
 			gameID,
@@ -177,7 +177,7 @@ func UpdateGameHandler(app *App) func(c echo.Context) error {
 				return FailWith(500, txErr.Error(), c)
 			}
 
-			l.Error("Game update failed.", zap.Error(err))
+			log.E(l, "Game update failed.", zap.Error(err))
 			return FailWith(500, err.Error(), c)
 		}
 
@@ -207,7 +207,7 @@ func UpdateGameHandler(app *App) func(c echo.Context) error {
 				return FailWith(500, txErr.Error(), c)
 			}
 
-			l.Error("Game update hook dispatch failed.", zap.Error(dErr))
+			log.E(l, "Game update hook dispatch failed.", zap.Error(dErr))
 			return FailWith(500, dErr.Error(), c)
 		}
 
@@ -216,7 +216,7 @@ func UpdateGameHandler(app *App) func(c echo.Context) error {
 			return FailWith(500, err.Error(), c)
 		}
 
-		l.Info(
+log.I(		l, 
 			"Game updated succesfully.",
 			zap.Duration("duration", time.Now().Sub(start)),
 		)

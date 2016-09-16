@@ -95,7 +95,7 @@ func logPayloadErrors(l zap.Logger, errors []string) {
 	for _, err := range errors {
 		fields = append(fields, zap.String("validationError", err))
 	}
-	l.Warn(
+	log.W(l, 
 		"Payload is not valid",
 		fields...,
 	)

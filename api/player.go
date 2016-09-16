@@ -40,7 +40,7 @@ func CreatePlayerHandler(app *App) func(c echo.Context) error {
 			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 
-		l.Debug("Creating player...")
+log.D(		l, "Creating player...")
 		player, err := models.CreatePlayer(
 			tx,
 			gameID,
@@ -56,7 +56,7 @@ func CreatePlayerHandler(app *App) func(c echo.Context) error {
 				return FailWith(http.StatusInternalServerError, txErr.Error(), c)
 			}
 
-			l.Error("Player creation failed.", zap.Error(err))
+			log.E(l, "Player creation failed.", zap.Error(err))
 			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 
@@ -75,7 +75,7 @@ func CreatePlayerHandler(app *App) func(c echo.Context) error {
 				return FailWith(http.StatusInternalServerError, txErr.Error(), c)
 			}
 
-			l.Error("Player creation hook dispatch failed.", zap.Error(err))
+			log.E(l, "Player creation hook dispatch failed.", zap.Error(err))
 			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 
@@ -84,7 +84,7 @@ func CreatePlayerHandler(app *App) func(c echo.Context) error {
 			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 
-		l.Info(
+log.I(		l, 
 			"Player created successfully.",
 			zap.Duration("duration", time.Now().Sub(start)),
 		)
@@ -128,30 +128,30 @@ func UpdatePlayerHandler(app *App) func(c echo.Context) error {
 			return nil
 		}
 
-		l.Debug("Retrieving game...")
+log.D(		l, "Retrieving game...")
 		game, err := models.GetGameByPublicID(tx, gameID)
 
 		if err != nil {
 			txErr := rb(err)
 			if txErr == nil {
-				l.Error("Updating player failed.", zap.Error(err))
+				log.E(l, "Updating player failed.", zap.Error(err))
 			}
 			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
-		l.Debug("Game retrieved successfully")
+log.D(		l, "Game retrieved successfully")
 
-		l.Debug("Retrieving player...")
+log.D(		l, "Retrieving player...")
 		beforeUpdatePlayer, err := models.GetPlayerByPublicID(tx, gameID, playerPublicID)
 		if err != nil && err.Error() != (&models.ModelNotFoundError{"Player", playerPublicID}).Error() {
 			txErr := rb(err)
 			if txErr == nil {
-				l.Error("Updating player failed.", zap.Error(err))
+				log.E(l, "Updating player failed.", zap.Error(err))
 			}
 			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
-		l.Debug("Player retrieved successfully")
+log.D(		l, "Player retrieved successfully")
 
-		l.Debug("Updating player...")
+log.D(		l, "Updating player...")
 		player, err := models.UpdatePlayer(
 			tx,
 			gameID,
@@ -163,19 +163,19 @@ func UpdatePlayerHandler(app *App) func(c echo.Context) error {
 		if err != nil {
 			txErr := rb(err)
 			if txErr == nil {
-				l.Error("Updating player failed.", zap.Error(err))
+				log.E(l, "Updating player failed.", zap.Error(err))
 			}
 			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 
 		shouldDispatch := validateUpdatePlayerDispatch(game, beforeUpdatePlayer, player, payload.Metadata, l)
 		if shouldDispatch {
-			l.Debug("Dispatching player update hooks...")
+log.D(			l, "Dispatching player update hooks...")
 			err = app.DispatchHooks(gameID, models.PlayerUpdatedHook, player.Serialize())
 			if err != nil {
 				txErr := rb(err)
 				if txErr == nil {
-					l.Error("Update player hook dispatch failed.", zap.Error(err))
+					log.E(l, "Update player hook dispatch failed.", zap.Error(err))
 				}
 				return FailWith(http.StatusInternalServerError, err.Error(), c)
 			}
@@ -186,7 +186,7 @@ func UpdatePlayerHandler(app *App) func(c echo.Context) error {
 			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 
-		l.Info(
+log.I(		l, 
 			"Player updated successfully.",
 			zap.Duration("duration", time.Now().Sub(start)),
 		)
@@ -210,15 +210,15 @@ func RetrievePlayerHandler(app *App) func(c echo.Context) error {
 			zap.String("playerPublicID", publicID),
 		)
 
-		l.Debug("Getting DB connection...")
+log.D(		l, "Getting DB connection...")
 		db, err := app.GetCtxDB(c)
 		if err != nil {
-			l.Error("Failed to connect to DB.", zap.Error(err))
+			log.E(l, "Failed to connect to DB.", zap.Error(err))
 			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
-		l.Debug("DB Connection successful.")
+log.D(		l, "DB Connection successful.")
 
-		l.Debug("Retrieving player details...")
+log.D(		l, "Retrieving player details...")
 		player, err := models.GetPlayerDetails(
 			db,
 			gameID,
@@ -227,15 +227,15 @@ func RetrievePlayerHandler(app *App) func(c echo.Context) error {
 
 		if err != nil {
 			if err.Error() == fmt.Sprintf("Player was not found with id: %s", publicID) {
-				l.Warn("Player was not found.", zap.Error(err))
+				log.W(l, "Player was not found.", zap.Error(err))
 				return FailWith(http.StatusNotFound, err.Error(), c)
 			}
 
-			l.Error("Retrieve player details failed.", zap.Error(err))
+			log.E(l, "Retrieve player details failed.", zap.Error(err))
 			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 
-		l.Info(
+log.I(		l, 
 			"Player details retrieved successfully.",
 			zap.Duration("duration", time.Now().Sub(start)),
 		)

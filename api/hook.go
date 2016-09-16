@@ -35,7 +35,7 @@ func CreateHookHandler(app *App) func(c echo.Context) error {
 
 		var payload hookPayload
 		if err := LoadJSONPayload(&payload, c, l); err != nil {
-			l.Error("Failed to parse json payload.", zap.Error(err))
+			log.E(l, "Failed to parse json payload.", zap.Error(err))
 			return FailWith(http.StatusBadRequest, err.Error(), c)
 		}
 
@@ -44,7 +44,7 @@ func CreateHookHandler(app *App) func(c echo.Context) error {
 			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 
-		l.Debug("Creating hook...")
+log.D(		l, "Creating hook...")
 		hook, err := models.CreateHook(
 			tx,
 			gameID,
@@ -58,7 +58,7 @@ func CreateHookHandler(app *App) func(c echo.Context) error {
 				return FailWith(http.StatusInternalServerError, txErr.Error(), c)
 			}
 
-			l.Error("Failed to create the hook.", zap.Error(err))
+			log.E(l, "Failed to create the hook.", zap.Error(err))
 			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 
@@ -67,7 +67,7 @@ func CreateHookHandler(app *App) func(c echo.Context) error {
 			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 
-		l.Info(
+log.I(		l, 
 			"Created hook successfully.",
 			zap.String("hookPublicID", hook.PublicID),
 			zap.Duration("duration", time.Now().Sub(start)),
@@ -99,7 +99,7 @@ func RemoveHookHandler(app *App) func(c echo.Context) error {
 			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 
-		l.Debug("Removing hook...")
+log.D(		l, "Removing hook...")
 		err = models.RemoveHook(
 			tx,
 			gameID,
@@ -112,7 +112,7 @@ func RemoveHookHandler(app *App) func(c echo.Context) error {
 				return FailWith(http.StatusInternalServerError, txErr.Error(), c)
 			}
 
-			l.Error("Failed to remove hook.", zap.Error(err))
+			log.E(l, "Failed to remove hook.", zap.Error(err))
 			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 
@@ -121,7 +121,7 @@ func RemoveHookHandler(app *App) func(c echo.Context) error {
 			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 
-		l.Info(
+log.I(		l, 
 			"Hook removed successfully.",
 			zap.Duration("duration", time.Now().Sub(start)),
 		)

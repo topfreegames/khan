@@ -61,31 +61,31 @@ func (d *Dispatcher) Start() {
 		zap.Int("workerCount", d.workerCount),
 	)
 
-	l.Debug("Starting dispatcher...")
+log.D(	l, "Starting dispatcher...")
 	d.workerQueue = make(chan chan Dispatch, d.workerCount)
 	d.workQueue = make(chan Dispatch, d.bufferSize)
 
 	// Now, create all of our workers.
 	for i := 0; i < d.workerCount; i++ {
-		l.Debug("Starting worker...", zap.Int("workerId", i+1))
+log.D(		l, "Starting worker...", zap.Int("workerId", i+1))
 		worker := d.newWorker(i+1, d.workerQueue)
 		worker.Start()
-		l.Debug("Worker started successfully.", zap.Int("workerId", i+1))
+log.D(		l, "Worker started successfully.", zap.Int("workerId", i+1))
 	}
 
 	go func() {
 		for {
 			select {
 			case work := <-d.workQueue:
-				l.Info(
+log.I(				l, 
 					"Received work request.",
 					zap.String("gameID", work.gameID),
 					zap.Int("eventType", work.eventType),
 				)
 				go func() {
-					l.Debug("Waiting for available worker...")
+log.D(					l, "Waiting for available worker...")
 					worker := <-d.workerQueue
-					l.Debug("Worker found! Dispatching work request...")
+log.D(					l, "Worker found! Dispatching work request...")
 					worker <- work
 				}()
 			}
@@ -109,10 +109,10 @@ func (d *Dispatcher) Wait(timeout ...int) {
 	start := time.Now()
 	timeoutDuration := time.Duration(actualTimeout) * time.Millisecond
 	for d.Jobs > 0 {
-		l.Debug("Waiting for jobs to finish...", zap.Int("jobCount", d.Jobs))
+log.D(		l, "Waiting for jobs to finish...", zap.Int("jobCount", d.Jobs))
 		curr := time.Now().Sub(start)
 		if actualTimeout > 0 && curr > timeoutDuration {
-			l.Warn("Timeout waiting for jobs to finish.", zap.Duration("timeoutEllapsed", curr))
+			log.W(l, "Timeout waiting for jobs to finish.", zap.Duration("timeoutEllapsed", curr))
 			break
 		}
 		time.Sleep(time.Millisecond)
@@ -137,7 +137,7 @@ func (d *Dispatcher) DispatchHook(gameID string, eventType int, payload map[stri
 	defer d.startJob()
 	work := Dispatch{gameID: gameID, eventType: eventType, payload: payload, payloadJSON: payloadJSON}
 	// Push the work onto the queue.
-	d.app.Logger.Debug(
+log.D(	d.app.Logger, 
 		"Pushing work into dispatch queue.",
 		zap.String("source", "dispatcher"),
 		zap.String("operation", "DispatchHook"),
@@ -178,7 +178,7 @@ func (w *Worker) Start() {
 			select {
 			case work := <-w.Work:
 				// Receive a work request.
-				l.Info(
+log.I(				l, 
 					"Received work request for game.",
 					zap.Int("workerID", w.ID),
 					zap.String("gameID", work.gameID),
@@ -241,18 +241,18 @@ func (w *Worker) DispatchHook(d Dispatch) error {
 	app := w.App
 	hooks := app.GetHooks()
 	if _, ok := hooks[d.gameID]; !ok {
-		l.Debug("No hooks found for game.")
+log.D(		l, "No hooks found for game.")
 		return nil
 	}
 	if _, ok := hooks[d.gameID][d.eventType]; !ok {
-		l.Debug("No hooks found for event in specified game.")
+log.D(		l, "No hooks found for event in specified game.")
 		return nil
 	}
 
 	timeout := time.Duration(app.Config.GetInt("webhooks.timeout")) * time.Second
 
 	for _, hook := range hooks[d.gameID][d.eventType] {
-		w.Dispatcher.app.Logger.Info("Sending webhook...", zap.String("url", hook.URL))
+log.I(		w.Dispatcher.app.Logger, "Sending webhook...", zap.String("url", hook.URL))
 
 		client := fasthttp.Client{
 			Name: fmt.Sprintf("khan-%s", VERSION),
@@ -261,7 +261,7 @@ func (w *Worker) DispatchHook(d Dispatch) error {
 		url, err := w.interpolateURL(hook.URL, d.payload)
 		if err != nil {
 			w.App.addError()
-			l.Error(
+			log.E(l, 
 				"Could not interpolate webhook.",
 				zap.String("url", hook.URL),
 				zap.Error(err),
@@ -269,7 +269,7 @@ func (w *Worker) DispatchHook(d Dispatch) error {
 			continue
 		}
 
-		l.Debug("Requesting Hook URL...", zap.String("url", url))
+log.D(		l, "Requesting Hook URL...", zap.String("url", url))
 		req := fasthttp.AcquireRequest()
 		req.Header.SetMethod("POST")
 		req.SetRequestURI(url)
@@ -279,7 +279,7 @@ func (w *Worker) DispatchHook(d Dispatch) error {
 		err = client.DoTimeout(req, resp, timeout)
 		if err != nil {
 			w.App.addError()
-			l.Error(
+			log.E(l, 
 				"Could not request webhook.",
 				zap.String("url", hook.URL),
 				zap.Error(err),
@@ -289,7 +289,7 @@ func (w *Worker) DispatchHook(d Dispatch) error {
 
 		if resp.StatusCode() > 399 {
 			w.App.addError()
-			l.Error(
+			log.E(l, 
 				"Could not request webhook.",
 				zap.String("url", hook.URL),
 				zap.Int("statusCode", resp.StatusCode()),
@@ -298,7 +298,7 @@ func (w *Worker) DispatchHook(d Dispatch) error {
 			continue
 		}
 
-		l.Info(
+log.I(		l, 
 			"Webhook requested successfully.",
 			zap.Int("statusCode", resp.StatusCode()),
 			zap.String("url", url),
