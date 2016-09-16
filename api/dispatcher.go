@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"github.com/satori/go.uuid"
+	"github.com/topfreegames/khan/log"
 	"github.com/uber-go/zap"
 	"github.com/valyala/fasthttp"
 	"github.com/valyala/fasttemplate"
@@ -61,31 +62,34 @@ func (d *Dispatcher) Start() {
 		zap.Int("workerCount", d.workerCount),
 	)
 
-log.D(	l, "Starting dispatcher...")
+	log.D(l, "Starting dispatcher...")
 	d.workerQueue = make(chan chan Dispatch, d.workerCount)
 	d.workQueue = make(chan Dispatch, d.bufferSize)
 
 	// Now, create all of our workers.
 	for i := 0; i < d.workerCount; i++ {
-log.D(		l, "Starting worker...", zap.Int("workerId", i+1))
+		log.D(l, "Starting worker...", zap.Int("workerId", i+1))
 		worker := d.newWorker(i+1, d.workerQueue)
 		worker.Start()
-log.D(		l, "Worker started successfully.", zap.Int("workerId", i+1))
+		log.D(l, "Worker started successfully.", func(cm log.CM) {
+			cm.Write(zap.Int("workerId", i+1))
+		})
 	}
 
 	go func() {
 		for {
 			select {
 			case work := <-d.workQueue:
-log.I(				l, 
-					"Received work request.",
-					zap.String("gameID", work.gameID),
-					zap.Int("eventType", work.eventType),
-				)
+				log.I(l, "Received work request.", func(cm log.CM) {
+					cm.Write(
+						zap.String("gameID", work.gameID),
+						zap.Int("eventType", work.eventType),
+					)
+				})
 				go func() {
-log.D(					l, "Waiting for available worker...")
+					log.D(l, "Waiting for available worker...")
 					worker := <-d.workerQueue
-log.D(					l, "Worker found! Dispatching work request...")
+					log.D(l, "Worker found! Dispatching work request...")
 					worker <- work
 				}()
 			}
@@ -109,10 +113,14 @@ func (d *Dispatcher) Wait(timeout ...int) {
 	start := time.Now()
 	timeoutDuration := time.Duration(actualTimeout) * time.Millisecond
 	for d.Jobs > 0 {
-log.D(		l, "Waiting for jobs to finish...", zap.Int("jobCount", d.Jobs))
+		log.D(l, "Waiting for jobs to finish...", func(cm log.CM) {
+			cm.Write(zap.Int("jobCount", d.Jobs))
+		})
 		curr := time.Now().Sub(start)
 		if actualTimeout > 0 && curr > timeoutDuration {
-			log.W(l, "Timeout waiting for jobs to finish.", zap.Duration("timeoutEllapsed", curr))
+			log.W(l, "Timeout waiting for jobs to finish.", func(cm log.CM) {
+				cm.Write(zap.Duration("timeoutEllapsed", curr))
+			})
 			break
 		}
 		time.Sleep(time.Millisecond)
@@ -137,11 +145,12 @@ func (d *Dispatcher) DispatchHook(gameID string, eventType int, payload map[stri
 	defer d.startJob()
 	work := Dispatch{gameID: gameID, eventType: eventType, payload: payload, payloadJSON: payloadJSON}
 	// Push the work onto the queue.
-log.D(	d.app.Logger, 
-		"Pushing work into dispatch queue.",
-		zap.String("source", "dispatcher"),
-		zap.String("operation", "DispatchHook"),
-	)
+	log.D(d.app.Logger, "Pushing work into dispatch queue.", func(cm log.CM) {
+		cm.Write(
+			zap.String("source", "dispatcher"),
+			zap.String("operation", "DispatchHook"),
+		)
+	})
 	d.workQueue <- work
 }
 
@@ -178,13 +187,14 @@ func (w *Worker) Start() {
 			select {
 			case work := <-w.Work:
 				// Receive a work request.
-log.I(				l, 
-					"Received work request for game.",
-					zap.Int("workerID", w.ID),
-					zap.String("gameID", work.gameID),
-					zap.Int("eventType", work.eventType),
-					zap.String("payload", string(work.payloadJSON)),
-				)
+				log.I(l, "Received work request for game.", func(cm log.CM) {
+					cm.Write(
+						zap.Int("workerID", w.ID),
+						zap.String("gameID", work.gameID),
+						zap.Int("eventType", work.eventType),
+						zap.String("payload", string(work.payloadJSON)),
+					)
+				})
 				w.handleJob(work)
 			}
 		}
@@ -241,18 +251,20 @@ func (w *Worker) DispatchHook(d Dispatch) error {
 	app := w.App
 	hooks := app.GetHooks()
 	if _, ok := hooks[d.gameID]; !ok {
-log.D(		l, "No hooks found for game.")
+		log.D(l, "No hooks found for game.")
 		return nil
 	}
 	if _, ok := hooks[d.gameID][d.eventType]; !ok {
-log.D(		l, "No hooks found for event in specified game.")
+		log.D(l, "No hooks found for event in specified game.")
 		return nil
 	}
 
 	timeout := time.Duration(app.Config.GetInt("webhooks.timeout")) * time.Second
 
 	for _, hook := range hooks[d.gameID][d.eventType] {
-log.I(		w.Dispatcher.app.Logger, "Sending webhook...", zap.String("url", hook.URL))
+		log.I(w.Dispatcher.app.Logger, "Sending webhook...", func(cm log.CM) {
+			cm.Write(zap.String("url", hook.URL))
+		})
 
 		client := fasthttp.Client{
 			Name: fmt.Sprintf("khan-%s", VERSION),
@@ -261,15 +273,18 @@ log.I(		w.Dispatcher.app.Logger, "Sending webhook...", zap.String("url", hook.UR
 		url, err := w.interpolateURL(hook.URL, d.payload)
 		if err != nil {
 			w.App.addError()
-			log.E(l, 
-				"Could not interpolate webhook.",
-				zap.String("url", hook.URL),
-				zap.Error(err),
-			)
+			log.E(l, "Could not interpolate webhook.", func(cm log.CM) {
+				cm.Write(
+					zap.String("url", hook.URL),
+					zap.Error(err),
+				)
+			})
 			continue
 		}
 
-log.D(		l, "Requesting Hook URL...", zap.String("url", url))
+		log.D(l, "Requesting Hook URL...", func(cm log.CM) {
+			cm.Write(zap.String("url", url))
+		})
 		req := fasthttp.AcquireRequest()
 		req.Header.SetMethod("POST")
 		req.SetRequestURI(url)
@@ -279,31 +294,31 @@ log.D(		l, "Requesting Hook URL...", zap.String("url", url))
 		err = client.DoTimeout(req, resp, timeout)
 		if err != nil {
 			w.App.addError()
-			log.E(l, 
-				"Could not request webhook.",
-				zap.String("url", hook.URL),
-				zap.Error(err),
-			)
+			log.E(l, "Could not request webhook.", func(cm log.CM) {
+				cm.Write(zap.String("url", hook.URL), zap.Error(err))
+			})
 			continue
 		}
 
 		if resp.StatusCode() > 399 {
 			w.App.addError()
-			log.E(l, 
-				"Could not request webhook.",
-				zap.String("url", hook.URL),
-				zap.Int("statusCode", resp.StatusCode()),
-				zap.String("body", string(resp.Body())),
-			)
+			log.E(l, "Could not request webhook.", func(cm log.CM) {
+				cm.Write(
+					zap.String("url", hook.URL),
+					zap.Int("statusCode", resp.StatusCode()),
+					zap.String("body", string(resp.Body())),
+				)
+			})
 			continue
 		}
 
-log.I(		l, 
-			"Webhook requested successfully.",
-			zap.Int("statusCode", resp.StatusCode()),
-			zap.String("url", url),
-			zap.String("body", string(resp.Body())),
-		)
+		log.I(l, "Webhook requested successfully.", func(cm log.CM) {
+			cm.Write(
+				zap.Int("statusCode", resp.StatusCode()),
+				zap.String("url", url),
+				zap.String("body", string(resp.Body())),
+			)
+		})
 	}
 
 	return nil
