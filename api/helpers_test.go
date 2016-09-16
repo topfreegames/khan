@@ -92,12 +92,13 @@ func initClient() {
 	}
 }
 
-func doRequest(app *api.App, method, url, body string) (int, string) {
+func InitializeTestServer(app *api.App) *httptest.Server {
 	initClient()
-	defer transport.CloseIdleConnections()
 	app.Engine.SetHandler(app.App)
-	ts := httptest.NewServer(app.Engine.(*standard.Server))
+	return httptest.NewServer(app.Engine.(*standard.Server))
+}
 
+func GetRequest(app *api.App, ts *httptest.Server, method, url, body string) *http.Request {
 	var bodyBuff io.Reader
 	if body != "" {
 		bodyBuff = bytes.NewBuffer([]byte(body))
@@ -107,8 +108,11 @@ func doRequest(app *api.App, method, url, body string) (int, string) {
 	req.Close = true
 	Expect(err).NotTo(HaveOccurred())
 
+	return req
+}
+
+func PerformRequest(ts *httptest.Server, req *http.Request) (int, string) {
 	res, err := client.Do(req)
-	ts.Close()
 	//Wait for port of httptest to be reclaimed by OS
 	time.Sleep(50 * time.Millisecond)
 	Expect(err).NotTo(HaveOccurred())
@@ -118,6 +122,15 @@ func doRequest(app *api.App, method, url, body string) (int, string) {
 	Expect(err).NotTo(HaveOccurred())
 
 	return res.StatusCode, string(b)
+}
+
+func doRequest(app *api.App, method, url, body string) (int, string) {
+	ts := InitializeTestServer(app)
+	defer transport.CloseIdleConnections()
+	defer ts.Close()
+
+	req := GetRequest(app, ts, method, url, body)
+	return PerformRequest(ts, req)
 }
 
 // GetGameRoute returns a clan route for the given game id.
