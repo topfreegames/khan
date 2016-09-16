@@ -15,7 +15,7 @@ import (
 )
 
 func GetTestES() *es.Client {
-	return es.GetTestClient("localhost", 9200, "khan", false, zap.New(zap.NewJSONEncoder(), zap.ErrorLevel), false)
+	return es.GetTestClient("localhost", 9200, "", false, zap.New(zap.NewJSONEncoder(), zap.ErrorLevel), false)
 }
 
 func DestroyTestES() {

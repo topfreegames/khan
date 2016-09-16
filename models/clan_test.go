@@ -17,23 +17,11 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/satori/go.uuid"
-	"github.com/topfreegames/khan/es"
 	. "github.com/topfreegames/khan/models"
 	"github.com/topfreegames/khan/util"
 
 	"github.com/Pallinder/go-randomdata"
 )
-
-func createIndex(indexName string, cli *es.Client) {
-	_, err := cli.Client.CreateIndex(indexName).Do()
-	Expect(err).NotTo(HaveOccurred())
-
-	body := `{ "index":{ "refresh_interval":"30ms" } }`
-
-	// Put settings
-	_, err = cli.Client.IndexPutSettings().Index(indexName).BodyString(body).Do()
-	Expect(err).NotTo(HaveOccurred())
-}
 
 var _ = Describe("Clan Model", func() {
 	var testDb DB
@@ -301,9 +289,6 @@ var _ = Describe("Clan Model", func() {
 				game, player, err := CreatePlayerFactory(testDb, "")
 				Expect(err).NotTo(HaveOccurred())
 
-				indexName := fmt.Sprintf("khan-%s", player.GameID)
-				createIndex(indexName, es)
-
 				clan, err := CreateClan(
 					testDb,
 					player.GameID,
@@ -317,7 +302,7 @@ var _ = Describe("Clan Model", func() {
 				)
 				Expect(err).NotTo(HaveOccurred())
 
-				time.Sleep(500 * time.Millisecond)
+				indexName := "khan-test"
 				result, err := es.Client.Get().Index(indexName).Type("clan").Id(clan.PublicID).Do()
 				Expect(err).NotTo(HaveOccurred())
 				Expect(result).NotTo(BeNil())
@@ -442,9 +427,6 @@ var _ = Describe("Clan Model", func() {
 				Expect(err).NotTo(HaveOccurred())
 				clan := clans[0]
 
-				indexName := fmt.Sprintf("khan-%s", player.GameID)
-				createIndex(indexName, es)
-
 				metadata := map[string]interface{}{"x": 1, "totalScore": 9200}
 				allowApplication := !clan.AllowApplication
 				autoJoin := !clan.AutoJoin
@@ -468,12 +450,10 @@ var _ = Describe("Clan Model", func() {
 				Expect(dbClan.AllowApplication).To(Equal(allowApplication))
 				Expect(dbClan.AutoJoin).To(Equal(autoJoin))
 
-				time.Sleep(800 * time.Millisecond)
-
-				result, err := es.Client.Get().Index(indexName).Type("clan").Id(clan.PublicID).Do()
+				result, err := es.Client.Get().Index("khan-test").Type("clan").Id(clan.PublicID).Do()
 				Expect(err).NotTo(HaveOccurred())
 				Expect(result).NotTo(BeNil())
-				Expect(result.Index).To(Equal("khan-" + clan.GameID))
+				Expect(result.Index).To(Equal("khan-test"))
 				Expect(result.Type).To(Equal("clan"))
 				Expect(result.Id).To(Equal(clan.PublicID))
 
@@ -496,9 +476,8 @@ var _ = Describe("Clan Model", func() {
 				)
 				Expect(err).NotTo(HaveOccurred())
 
-				time.Sleep(800 * time.Millisecond)
-
-				result, err = es.Client.Get().Index("khan-" + player.GameID).Type("clan").Id(clan.PublicID).Do()
+				result, err = es.Client.Get().Index("khan-test").Type("clan").Id(clan.PublicID).Do()
+				Expect(err).NotTo(HaveOccurred())
 				json.Unmarshal(*result.Source, &updESClan)
 				Expect(updESClan.Metadata["x"]).To(BeEquivalentTo(metadata["x"]))
 				Expect(updESClan.Metadata["totalScore"]).To(Equal(float64(11000)))
@@ -626,9 +605,7 @@ var _ = Describe("Clan Model", func() {
 					Expect(err).NotTo(HaveOccurred())
 					Expect(dbClan.OwnerID).To(Equal(memberships[0].PlayerID))
 
-					time.Sleep(2100 * time.Millisecond)
-
-					result, err := es.Client.Get().Index("khan-" + dbClan.GameID).Type("clan").Id(dbClan.PublicID).Do()
+					result, err := es.Client.Get().Index("khan-test").Type("clan").Id(dbClan.PublicID).Do()
 					Expect(err).NotTo(HaveOccurred())
 					var updESClan Clan
 					json.Unmarshal(*result.Source, &updESClan)
@@ -658,8 +635,7 @@ var _ = Describe("Clan Model", func() {
 					es := GetTestES()
 					_, clan, owner, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
 
-					time.Sleep(1300 * time.Millisecond)
-					_, err = es.Client.Get().Index("khan-" + clan.GameID).Type("clan").Id(clan.PublicID).Do()
+					_, err = es.Client.Get().Index("khan-test").Type("clan").Id(clan.PublicID).Do()
 					Expect(err).NotTo(HaveOccurred())
 
 					clan, previousOwner, newOwner, err := LeaveClan(testDb, clan.GameID, clan.PublicID)
@@ -671,8 +647,7 @@ var _ = Describe("Clan Model", func() {
 					Expect(err).To(HaveOccurred())
 					Expect(err.Error()).To(Equal(fmt.Sprintf("Clan was not found with id: %s", clan.PublicID)))
 
-					time.Sleep(1300 * time.Millisecond)
-					_, err = es.Client.Get().Index("khan-" + clan.GameID).Type("clan").Id(clan.PublicID).Do()
+					_, err = es.Client.Get().Index("khan-test").Type("clan").Id(clan.PublicID).Do()
 					Expect(err).To(HaveOccurred())
 				})
 			})
@@ -750,8 +725,7 @@ var _ = Describe("Clan Model", func() {
 					dbClan, err := GetClanByPublicID(testDb, clan.GameID, clan.PublicID)
 					Expect(dbClan.OwnerID).To(Equal(players[0].ID))
 
-					time.Sleep(1300 * time.Millisecond)
-					result, err := es.Client.Get().Index("khan-" + dbClan.GameID).Type("clan").Id(dbClan.PublicID).Do()
+					result, err := es.Client.Get().Index("khan-test").Type("clan").Id(dbClan.PublicID).Do()
 					Expect(err).NotTo(HaveOccurred())
 
 					var updESClan Clan

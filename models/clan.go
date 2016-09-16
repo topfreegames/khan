@@ -76,7 +76,8 @@ func (c *Clan) IndexClanIntoElasticSearch() error {
 	go func() {
 		es := es.GetConfiguredClient()
 		if es != nil {
-			es.Client.Index().Index(es.Index + "-" + c.GameID).Type("clan").Id(c.PublicID).BodyJson(c).Do()
+			indexName := es.GetIndexName(c.GameID)
+			es.Client.Index().Index(indexName).Type("clan").Id(c.PublicID).BodyJson(c).Do()
 		}
 	}()
 	return nil
@@ -87,7 +88,8 @@ func (c *Clan) DeleteClanFromElasticSearch() error {
 	es := es.GetConfiguredClient()
 	var err error
 	if es != nil {
-		_, err = es.Client.Delete().Index(es.Index + "-" + c.GameID).Type("clan").Id(c.PublicID).Do()
+		indexName := es.GetIndexName(c.GameID)
+		_, err = es.Client.Delete().Index(indexName).Type("clan").Id(c.PublicID).Do()
 	}
 	return err
 }

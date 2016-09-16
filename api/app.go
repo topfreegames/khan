@@ -43,7 +43,7 @@ type App struct {
 	Config         *viper.Viper
 	Dispatcher     *Dispatcher
 	Logger         zap.Logger
-	Client         *es.Client
+	ESClient       *es.Client
 	ReadBufferSize int
 	Fast           bool
 }
@@ -90,7 +90,7 @@ func (app *App) configureSentry() {
 
 func (app *App) configureElasticsearch() {
 	if app.Config.GetBool("elasticsearch.enabled") == true {
-		app.Client = es.GetClient(
+		app.ESClient = es.GetClient(
 			app.Config.GetString("elasticsearch.host"),
 			app.Config.GetInt("elasticsearch.port"),
 			app.Config.GetString("elasticsearch.index"),

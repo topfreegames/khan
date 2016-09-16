@@ -375,7 +375,7 @@ var _ = Describe("Clan API Handler", func() {
 				Expect(status).To(Equal(http.StatusOK))
 			})
 
-			Expect(runtime.Seconds()).Should(BeNumerically("<", 0.2), "Operation shouldn't take this long")
+			Expect(runtime.Seconds()).Should(BeNumerically("<", 0.3), "Operation shouldn't take this long")
 		}, 200)
 	})
 

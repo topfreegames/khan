@@ -44,6 +44,10 @@ start-deps: stop-deps
 	@until docker exec khan_postgres_1 pg_isready; do echo 'Waiting for Postgres...' && sleep 1; done
 	@until docker exec khan_elasticsearch_1 curl localhost:9200; do echo 'Waiting for Elasticsearch...' && sleep 1; done
 	@sleep 5
+	@curl -XPUT 'http://localhost:9200/khan-test/' -d '{ "settings" : { "index" : { "number_of_shards" : 1, "number_of_replicas" : 1 } } }'
+	@sleep 5
+	@curl -XPUT 'http://localhost:9200/khan-test/test/1' -d '{"user" : "whatever"}'
+	@sleep 5
 	@docker exec khan_postgres_1 createuser -s -U postgres khan; true
 	@docker exec khan_postgres_1 createdb -U khan khan; true
 	@make migrate
@@ -93,12 +97,8 @@ run-docker:
 		-p 8080:80 \
 		khan
 
-test: start-deps assets drop-test db-test drop-es-test
+test: start-deps assets drop-test db-test
 	@ginkgo -r --cover .
-
-drop-es-test:
-	@curl -X DELETE localhost:9200/khan*
-	#@curl -XPUT localhost:9200/_settings -d '{ "index": { "refresh_interval": "20ms" } }'
 
 test-coverage coverage: test
 	@echo "mode: count" > coverage-all.out

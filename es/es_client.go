@@ -25,6 +25,14 @@ type Client struct {
 var once sync.Once
 var client *Client
 
+// GetIndexName returns the name of the index
+func (client *Client) GetIndexName(gameID string) string {
+	if client.Index != "" {
+		return fmt.Sprintf("%s-%s", client.Index, gameID)
+	}
+	return "khan-test"
+}
+
 // GetClient returns an elasticsearch client configures with the given the arguments
 func GetClient(host string, port int, index string, sniff bool, logger zap.Logger, debug bool) *Client {
 	once.Do(func() {
