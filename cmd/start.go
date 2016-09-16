@@ -10,6 +10,7 @@ package cmd
 import (
 	"github.com/spf13/cobra"
 	"github.com/topfreegames/khan/api"
+	"github.com/topfreegames/khan/log"
 	"github.com/uber-go/zap"
 )
 
@@ -46,7 +47,7 @@ environment variables to override configuration keys.`,
 			zap.Bool("debug", debug),
 		)
 
-log.D(		cmdL, "Creating application...")
+		log.D(cmdL, "Creating application...")
 		app := api.GetApp(
 			host,
 			port,
@@ -55,9 +56,9 @@ log.D(		cmdL, "Creating application...")
 			l,
 			fast,
 		)
-log.D(		cmdL, "Application created successfully.")
+		log.D(cmdL, "Application created successfully.")
 
-log.D(		cmdL, "Starting application...")
+		log.D(cmdL, "Starting application...")
 		app.Start()
 	},
 }
