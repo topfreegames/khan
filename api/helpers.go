@@ -19,6 +19,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/labstack/echo"
+	"github.com/topfreegames/khan/log"
 	"github.com/uber-go/zap"
 )
 
@@ -40,24 +41,30 @@ func SucceedWith(payload map[string]interface{}, c echo.Context) error {
 
 //LoadJSONPayload loads the JSON payload to the given struct validating all fields are not null
 func LoadJSONPayload(payloadStruct interface{}, c echo.Context, l zap.Logger) error {
-	l.Debug("Loading payload...")
+	log.D(l, "Loading payload...")
 
 	data, err := GetRequestBody(c)
 	if err != nil {
-		l.Error("Loading payload failed.", zap.Error(err))
+		log.E(l, "Loading payload failed.", func(cm log.CM) {
+			cm.Write(zap.Error(err))
+		})
 		return err
 	}
 
 	err = json.Unmarshal([]byte(data), payloadStruct)
 	if err != nil {
-		l.Error("Loading payload failed.", zap.Error(err))
+		log.E(l, "Loading payload failed.", func(cm log.CM) {
+			cm.Write(zap.Error(err))
+		})
 		return err
 	}
 
 	var jsonPayload map[string]interface{}
 	err = json.Unmarshal([]byte(data), &jsonPayload)
 	if err != nil {
-		l.Error("Loading payload failed.", zap.Error(err))
+		log.E(l, "Loading payload failed.", func(cm log.CM) {
+			cm.Write(zap.Error(err))
+		})
 		return err
 	}
 
@@ -75,11 +82,13 @@ func LoadJSONPayload(payloadStruct interface{}, c echo.Context, l zap.Logger) er
 
 	if len(missingFieldErrors) != 0 {
 		err := errors.New(strings.Join(missingFieldErrors[:], ", "))
-		l.Error("Loading payload failed.", zap.Error(err))
+		log.E(l, "Loading payload failed.", func(cm log.CM) {
+			cm.Write(zap.Error(err))
+		})
 		return err
 	}
 
-	l.Debug("Payload loaded successfully.")
+	log.D(l, "Payload loaded successfully.")
 	return nil
 }
 

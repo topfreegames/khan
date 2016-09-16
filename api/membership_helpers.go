@@ -11,6 +11,7 @@ import (
 	"encoding/json"
 
 	"github.com/labstack/echo"
+	"github.com/topfreegames/khan/log"
 	"github.com/topfreegames/khan/models"
 	"github.com/uber-go/zap"
 )
@@ -204,7 +205,7 @@ func getPayloadAndGame(app *App, c echo.Context, l zap.Logger) (*basePayloadWith
 
 	game, err := app.GetGame(gameID)
 	if err != nil {
-		l.Warn("Could not find game.")
+		log.W(l, "Could not find game.")
 		return nil, nil, 404, err
 	}
 

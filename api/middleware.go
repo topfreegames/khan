@@ -15,6 +15,7 @@ import (
 
 	"github.com/getsentry/raven-go"
 	"github.com/labstack/echo"
+	"github.com/topfreegames/khan/log"
 	"github.com/uber-go/zap"
 )
 
@@ -142,7 +143,7 @@ type LoggerMiddleware struct {
 // Serve serves the middleware
 func (l *LoggerMiddleware) Serve(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		log := l.Logger.With(
+		l := l.Logger.With(
 			zap.String("source", "request"),
 		)
 
@@ -168,11 +169,11 @@ func (l *LoggerMiddleware) Serve(next echo.HandlerFunc) echo.HandlerFunc {
 
 		route := c.Get("route")
 		if route == nil {
-			log.Debug("Route does not have route set in ctx")
+			log.D(l, "Route does not have route set in ctx")
 			return err
 		}
 
-		reqLog := log.With(
+		reqLog := l.With(
 			zap.String("route", route.(string)),
 			zap.Time("endTime", endTime),
 			zap.Int("statusCode", status),
@@ -184,13 +185,13 @@ func (l *LoggerMiddleware) Serve(next echo.HandlerFunc) echo.HandlerFunc {
 
 		//request failed
 		if status > 399 && status < 500 {
-			reqLog.Warn("Request failed.")
+			log.W(reqLog, "Request failed.")
 			return err
 		}
 
 		//request is ok, but server failed
 		if status > 499 {
-			reqLog.Error("Response failed.")
+			log.E(reqLog, "Response failed.")
 			return err
 		}
 

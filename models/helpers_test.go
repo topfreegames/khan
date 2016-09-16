@@ -14,8 +14,8 @@ import (
 	"github.com/uber-go/zap"
 )
 
-func GetTestES() *es.ESClient {
-	return es.GetTestESClient("localhost", 9200, "khan", false, zap.New(zap.NewJSONEncoder(), zap.ErrorLevel), false)
+func GetTestES() *es.Client {
+	return es.GetTestClient("localhost", 9200, "khan", false, zap.New(zap.NewJSONEncoder(), zap.ErrorLevel), false)
 }
 
 func DestroyTestES() {

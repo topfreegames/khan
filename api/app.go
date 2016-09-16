@@ -23,6 +23,7 @@ import (
 	"github.com/rcrowley/go-metrics"
 	"github.com/spf13/viper"
 	"github.com/topfreegames/khan/es"
+	"github.com/topfreegames/khan/log"
 	"github.com/topfreegames/khan/models"
 	"github.com/uber-go/zap"
 )
@@ -42,7 +43,7 @@ type App struct {
 	Config         *viper.Viper
 	Dispatcher     *Dispatcher
 	Logger         zap.Logger
-	ESClient       *es.ESClient
+	Client         *es.Client
 	ReadBufferSize int
 	Fast           bool
 }
@@ -82,14 +83,14 @@ func (app *App) configureSentry() {
 		zap.String("operation", "configureSentry"),
 	)
 	sentryURL := app.Config.GetString("sentry.url")
-	l.Info(fmt.Sprintf("Configuring sentry with URL %s", sentryURL))
+	log.I(l, fmt.Sprintf("Configuring sentry with URL %s", sentryURL))
 	raven.SetDSN(sentryURL)
 	raven.SetRelease(VERSION)
 }
 
 func (app *App) configureElasticsearch() {
 	if app.Config.GetBool("elasticsearch.enabled") == true {
-		app.ESClient = es.GetESClient(
+		app.Client = es.GetClient(
 			app.Config.GetString("elasticsearch.host"),
 			app.Config.GetInt("elasticsearch.port"),
 			app.Config.GetString("elasticsearch.index"),
@@ -120,7 +121,7 @@ func (app *App) setConfigurationDefaults() {
 	app.Config.SetDefault("khan.maxPendingInvites", -1)
 	app.Config.SetDefault("khan.defaultCooldownBeforeInvite", -1)
 	app.Config.SetDefault("khan.defaultCooldownBeforeApply", -1)
-	l.Debug("Configuration defaults set.")
+	log.D(l, "Configuration defaults set.")
 }
 
 func (app *App) loadConfiguration() {
@@ -137,11 +138,11 @@ func (app *App) loadConfiguration() {
 	app.Config.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	app.Config.AutomaticEnv()
 
-	l.Debug("Loading configuration file...")
+	log.D(l, "Loading configuration file...")
 	if err := app.Config.ReadInConfig(); err == nil {
-		l.Info("Loaded config file successfully.")
+		log.I(l, "Loaded config file successfully.")
 	} else {
-		l.Panic("Config file failed to load.")
+		log.P(l, "Config file failed to load.")
 	}
 }
 
@@ -163,35 +164,34 @@ func (app *App) connectDatabase() {
 		zap.String("sslMode", sslMode),
 	)
 
-	l.Debug("Connecting to database...")
+	log.D(l, "Connecting to database...")
 	db, err := models.GetDB(host, user, port, sslMode, dbName, password)
 
 	if err != nil {
-		l.Panic(
-			"Could not connect to postgres...",
-			zap.String("error", err.Error()),
-		)
+		log.P(l, "Could not connect to postgres...", func(cm log.CM) {
+			cm.Write(zap.String("error", err.Error()))
+		})
 	}
 
 	_, err = db.SelectInt("select count(*) from games")
 	if err != nil {
-		l.Panic(
-			"Could not connect to postgres...",
-			zap.String("error", err.Error()),
-		)
+		log.P(l, "Could not connect to postgres...", func(cm log.CM) {
+			cm.Write(zap.String("error", err.Error()))
+		})
 	}
 
-	l.Info("Connected to database successfully.")
+	log.I(l, "Connected to database successfully.")
 	app.Db = db
 }
 
 func (app *App) onErrorHandler(err error, stack []byte) {
-	app.Logger.Error(
-		"Panic occurred.",
-		zap.String("source", "app"),
-		zap.String("panicText", err.Error()),
-		zap.String("stack", string(stack)),
-	)
+	log.E(app.Logger, "Panic occurred.", func(cm log.CM) {
+		cm.Write(
+			zap.String("source", "app"),
+			zap.String("panicText", err.Error()),
+			zap.String("stack", string(stack)),
+		)
+	})
 	tags := map[string]string{
 		"source": "app",
 		"type":   "panic",
@@ -273,16 +273,17 @@ func (app *App) GetHooks() map[string]map[int][]*models.Hook {
 	)
 
 	start := time.Now()
-	l.Debug("Retrieving hooks...")
+	log.D(l, "Retrieving hooks...")
 	dbHooks, err := models.GetAllHooks(app.Db)
 	if err != nil {
-		l.Error(
-			"Retrieve hooks failed.",
-			zap.String("error", err.Error()),
-		)
+		log.E(l, "Retrieve hooks failed.", func(cm log.CM) {
+			cm.Write(zap.String("error", err.Error()))
+		})
 		return nil
 	}
-	l.Info("Hooks retrieved successfully.", zap.Duration("hookRetrievalDuration", time.Now().Sub(start)))
+	log.I(l, "Hooks retrieved successfully.", func(cm log.CM) {
+		cm.Write(zap.Duration("hookRetrievalDuration", time.Now().Sub(start)))
+	})
 
 	hooks := make(map[string]map[int][]*models.Hook)
 	for _, hook := range dbHooks {
@@ -307,21 +308,19 @@ func (app *App) GetGame(gameID string) (*models.Game, error) {
 	)
 
 	start := time.Now()
-	l.Debug("Retrieving game...")
+	log.D(l, "Retrieving game...")
 
 	game, err := models.GetGameByPublicID(app.Db, gameID)
 	if err != nil {
-		l.Error(
-			"Retrieve game failed.",
-			zap.Error(err),
-		)
+		log.E(l, "Retrieve game failed.", func(cm log.CM) {
+			cm.Write(zap.Error(err))
+		})
 		return nil, err
 	}
 
-	l.Info(
-		"Game retrieved succesfully.",
-		zap.Duration("gameRetrievalDuration", time.Now().Sub(start)),
-	)
+	log.I(l, "Game retrieved succesfully.", func(cm log.CM) {
+		cm.Write(zap.Duration("gameRetrievalDuration", time.Now().Sub(start)))
+	})
 	return game, nil
 }
 
@@ -331,18 +330,20 @@ func (app *App) initDispatcher() {
 		zap.String("operation", "initDispatcher"),
 	)
 
-	l.Debug("Initializing dispatcher...")
+	log.D(l, "Initializing dispatcher...")
 	disp, err := NewDispatcher(app, 5, 1000)
 	if err != nil {
-		l.Panic("Dispatcher failed to initialize.", zap.Error(err))
+		log.P(l, "Dispatcher failed to initialize.", func(cm log.CM) {
+			cm.Write(zap.Error(err))
+		})
 		return
 	}
-	l.Info("Dispatcher initialized successfully")
+	log.I(l, "Dispatcher initialized successfully")
 
-	l.Debug("Starting dispatcher...")
+	log.D(l, "Starting dispatcher...")
 	app.Dispatcher = disp
 	app.Dispatcher.Start()
-	l.Info("Dispatcher started successfully.")
+	log.I(l, "Dispatcher started successfully.")
 }
 
 // DispatchHooks dispatches web hooks for a specific game and event type
@@ -355,12 +356,11 @@ func (app *App) DispatchHooks(gameID string, eventType int, payload map[string]i
 	)
 
 	start := time.Now()
-	l.Debug("Dispatching hook...")
+	log.D(l, "Dispatching hook...")
 	app.Dispatcher.DispatchHook(gameID, eventType, payload)
-	l.Info(
-		"Hook dispatched successfully.",
-		zap.Duration("hookDispatchDuration", time.Now().Sub(start)),
-	)
+	log.I(l, "Hook dispatched successfully.", func(cm log.CM) {
+		cm.Write(zap.Duration("hookDispatchDuration", time.Now().Sub(start)))
+	})
 	return nil
 }
 
@@ -370,20 +370,22 @@ func (app *App) finalizeApp() {
 		zap.String("operation", "finalizeApp"),
 	)
 
-	l.Debug("Closing DB connection...")
+	log.D(l, "Closing DB connection...")
 	app.Db.(*gorp.DbMap).Db.Close()
-	l.Info("DB connection closed succesfully.")
+	log.I(l, "DB connection closed succesfully.")
 }
 
 //BeginTrans in the current Db connection
 func (app *App) BeginTrans(l zap.Logger) (*gorp.Transaction, error) {
-	l.Debug("Beginning DB tx...")
+	log.D(l, "Beginning DB tx...")
 	tx, err := (app.Db).(*gorp.DbMap).Begin()
 	if err != nil {
-		l.Error("Failed to begin tx.", zap.Error(err))
+		log.E(l, "Failed to begin tx.", func(cm log.CM) {
+			cm.Write(zap.Error(err))
+		})
 		return nil, err
 	}
-	l.Debug("Tx begun successfuly.")
+	log.D(l, "Tx begun successfuly.")
 	return tx, nil
 }
 
@@ -391,12 +393,9 @@ func (app *App) BeginTrans(l zap.Logger) (*gorp.Transaction, error) {
 func (app *App) Rollback(tx *gorp.Transaction, msg string, l zap.Logger, err error) error {
 	txErr := tx.Rollback()
 	if txErr != nil {
-		l.Error(
-			fmt.Sprintf("%s and failed to rollback transaction.", msg),
-			zap.Error(txErr),
-			zap.String("originalError", err.Error()),
-		)
-
+		log.E(l, fmt.Sprintf("%s and failed to rollback transaction.", msg), func(cm log.CM) {
+			cm.Write(zap.Error(txErr), zap.String("originalError", err.Error()))
+		})
 		return txErr
 	}
 	return nil
@@ -406,11 +405,9 @@ func (app *App) Rollback(tx *gorp.Transaction, msg string, l zap.Logger, err err
 func (app *App) Commit(tx *gorp.Transaction, msg string, l zap.Logger) error {
 	txErr := tx.Commit()
 	if txErr != nil {
-		l.Error(
-			fmt.Sprintf("%s failed to commit transaction.", msg),
-			zap.Error(txErr),
-		)
-
+		log.E(l, fmt.Sprintf("%s failed to commit transaction.", msg), func(cm log.CM) {
+			cm.Write(zap.Error(txErr))
+		})
 		return txErr
 	}
 	return nil
@@ -434,7 +431,9 @@ func (app *App) Start() {
 	)
 
 	defer app.finalizeApp()
-	l.Debug("App started.", zap.String("host", app.Host), zap.Int("port", app.Port))
+	log.D(l, "App started.", func(cm log.CM) {
+		cm.Write(zap.String("host", app.Host), zap.Int("port", app.Port))
+	})
 
 	if app.Background {
 		go func() {
