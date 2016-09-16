@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/labstack/echo"
+	"github.com/topfreegames/khan/log"
 	"github.com/topfreegames/khan/models"
 	"github.com/uber-go/zap"
 )
@@ -40,7 +41,7 @@ func CreatePlayerHandler(app *App) func(c echo.Context) error {
 			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 
-log.D(		l, "Creating player...")
+		log.D(l, "Creating player...")
 		player, err := models.CreatePlayer(
 			tx,
 			gameID,
@@ -56,7 +57,9 @@ log.D(		l, "Creating player...")
 				return FailWith(http.StatusInternalServerError, txErr.Error(), c)
 			}
 
-			log.E(l, "Player creation failed.", zap.Error(err))
+			log.E(l, "Player creation failed.", func(cm log.CM) {
+				cm.Write(zap.Error(err))
+			})
 			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 
@@ -75,7 +78,9 @@ log.D(		l, "Creating player...")
 				return FailWith(http.StatusInternalServerError, txErr.Error(), c)
 			}
 
-			log.E(l, "Player creation hook dispatch failed.", zap.Error(err))
+			log.E(l, "Player creation hook dispatch failed.", func(cm log.CM) {
+				cm.Write(zap.Error(err))
+			})
 			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 
@@ -84,10 +89,9 @@ log.D(		l, "Creating player...")
 			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 
-log.I(		l, 
-			"Player created successfully.",
-			zap.Duration("duration", time.Now().Sub(start)),
-		)
+		log.I(l, "Player created successfully.", func(cm log.CM) {
+			cm.Write(zap.Duration("duration", time.Now().Sub(start)))
+		})
 
 		return SucceedWith(result, c)
 	}
@@ -128,30 +132,34 @@ func UpdatePlayerHandler(app *App) func(c echo.Context) error {
 			return nil
 		}
 
-log.D(		l, "Retrieving game...")
+		log.D(l, "Retrieving game...")
 		game, err := models.GetGameByPublicID(tx, gameID)
 
 		if err != nil {
 			txErr := rb(err)
 			if txErr == nil {
-				log.E(l, "Updating player failed.", zap.Error(err))
+				log.E(l, "Updating player failed.", func(cm log.CM) {
+					cm.Write(zap.Error(err))
+				})
 			}
 			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
-log.D(		l, "Game retrieved successfully")
+		log.D(l, "Game retrieved successfully")
 
-log.D(		l, "Retrieving player...")
+		log.D(l, "Retrieving player...")
 		beforeUpdatePlayer, err := models.GetPlayerByPublicID(tx, gameID, playerPublicID)
-		if err != nil && err.Error() != (&models.ModelNotFoundError{"Player", playerPublicID}).Error() {
+		if err != nil && err.Error() != (&models.ModelNotFoundError{Type: "Player", ID: playerPublicID}).Error() {
 			txErr := rb(err)
 			if txErr == nil {
-				log.E(l, "Updating player failed.", zap.Error(err))
+				log.E(l, "Updating player failed.", func(cm log.CM) {
+					cm.Write(zap.Error(err))
+				})
 			}
 			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
-log.D(		l, "Player retrieved successfully")
+		log.D(l, "Player retrieved successfully")
 
-log.D(		l, "Updating player...")
+		log.D(l, "Updating player...")
 		player, err := models.UpdatePlayer(
 			tx,
 			gameID,
@@ -163,19 +171,23 @@ log.D(		l, "Updating player...")
 		if err != nil {
 			txErr := rb(err)
 			if txErr == nil {
-				log.E(l, "Updating player failed.", zap.Error(err))
+				log.E(l, "Updating player failed.", func(cm log.CM) {
+					cm.Write(zap.Error(err))
+				})
 			}
 			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 
 		shouldDispatch := validateUpdatePlayerDispatch(game, beforeUpdatePlayer, player, payload.Metadata, l)
 		if shouldDispatch {
-log.D(			l, "Dispatching player update hooks...")
+			log.D(l, "Dispatching player update hooks...")
 			err = app.DispatchHooks(gameID, models.PlayerUpdatedHook, player.Serialize())
 			if err != nil {
 				txErr := rb(err)
 				if txErr == nil {
-					log.E(l, "Update player hook dispatch failed.", zap.Error(err))
+					log.E(l, "Update player hook dispatch failed.", func(cm log.CM) {
+						cm.Write(zap.Error(err))
+					})
 				}
 				return FailWith(http.StatusInternalServerError, err.Error(), c)
 			}
@@ -186,11 +198,9 @@ log.D(			l, "Dispatching player update hooks...")
 			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 
-log.I(		l, 
-			"Player updated successfully.",
-			zap.Duration("duration", time.Now().Sub(start)),
-		)
-
+		log.I(l, "Player updated successfully.", func(cm log.CM) {
+			cm.Write(zap.Duration("duration", time.Now().Sub(start)))
+		})
 		return SucceedWith(map[string]interface{}{}, c)
 	}
 }
@@ -210,15 +220,17 @@ func RetrievePlayerHandler(app *App) func(c echo.Context) error {
 			zap.String("playerPublicID", publicID),
 		)
 
-log.D(		l, "Getting DB connection...")
+		log.D(l, "Getting DB connection...")
 		db, err := app.GetCtxDB(c)
 		if err != nil {
-			log.E(l, "Failed to connect to DB.", zap.Error(err))
+			log.E(l, "Failed to connect to DB.", func(cm log.CM) {
+				cm.Write(zap.Error(err))
+			})
 			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
-log.D(		l, "DB Connection successful.")
+		log.D(l, "DB Connection successful.")
 
-log.D(		l, "Retrieving player details...")
+		log.D(l, "Retrieving player details...")
 		player, err := models.GetPlayerDetails(
 			db,
 			gameID,
@@ -227,18 +239,21 @@ log.D(		l, "Retrieving player details...")
 
 		if err != nil {
 			if err.Error() == fmt.Sprintf("Player was not found with id: %s", publicID) {
-				log.W(l, "Player was not found.", zap.Error(err))
+				log.W(l, "Player was not found.", func(cm log.CM) {
+					cm.Write(zap.Error(err))
+				})
 				return FailWith(http.StatusNotFound, err.Error(), c)
 			}
 
-			log.E(l, "Retrieve player details failed.", zap.Error(err))
+			log.E(l, "Retrieve player details failed.", func(cm log.CM) {
+				cm.Write(zap.Error(err))
+			})
 			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 
-log.I(		l, 
-			"Player details retrieved successfully.",
-			zap.Duration("duration", time.Now().Sub(start)),
-		)
+		log.I(l, "Player details retrieved successfully.", func(cm log.CM) {
+			cm.Write(zap.Duration("duration", time.Now().Sub(start)))
+		})
 
 		return SucceedWith(player, c)
 	}

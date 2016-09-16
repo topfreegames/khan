@@ -11,6 +11,7 @@ import (
 	"encoding/json"
 
 	"github.com/labstack/echo"
+	"github.com/topfreegames/khan/log"
 	"github.com/topfreegames/khan/util"
 	"github.com/uber-go/zap"
 )
@@ -95,10 +96,9 @@ func logPayloadErrors(l zap.Logger, errors []string) {
 	for _, err := range errors {
 		fields = append(fields, zap.String("validationError", err))
 	}
-	log.W(l, 
-		"Payload is not valid",
-		fields...,
-	)
+	log.W(l, "Payload is not valid", func(cm log.CM) {
+		cm.Write(fields...)
+	})
 }
 
 type optionalParams struct {

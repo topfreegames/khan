@@ -11,6 +11,7 @@ import (
 	"encoding/json"
 
 	"github.com/labstack/echo"
+	"github.com/topfreegames/khan/log"
 	"github.com/topfreegames/khan/models"
 	"github.com/uber-go/zap"
 )

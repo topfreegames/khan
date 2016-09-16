@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/labstack/echo"
+	"github.com/topfreegames/khan/log"
 	"github.com/topfreegames/khan/models"
 	"github.com/uber-go/zap"
 )
@@ -35,7 +36,9 @@ func CreateHookHandler(app *App) func(c echo.Context) error {
 
 		var payload hookPayload
 		if err := LoadJSONPayload(&payload, c, l); err != nil {
-			log.E(l, "Failed to parse json payload.", zap.Error(err))
+			log.E(l, "Failed to parse json payload.", func(cm log.CM) {
+				cm.Write(zap.Error(err))
+			})
 			return FailWith(http.StatusBadRequest, err.Error(), c)
 		}
 
@@ -44,7 +47,7 @@ func CreateHookHandler(app *App) func(c echo.Context) error {
 			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 
-log.D(		l, "Creating hook...")
+		log.D(l, "Creating hook...")
 		hook, err := models.CreateHook(
 			tx,
 			gameID,
@@ -58,7 +61,9 @@ log.D(		l, "Creating hook...")
 				return FailWith(http.StatusInternalServerError, txErr.Error(), c)
 			}
 
-			log.E(l, "Failed to create the hook.", zap.Error(err))
+			log.E(l, "Failed to create the hook.", func(cm log.CM) {
+				cm.Write(zap.Error(err))
+			})
 			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 
@@ -67,12 +72,12 @@ log.D(		l, "Creating hook...")
 			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 
-log.I(		l, 
-			"Created hook successfully.",
-			zap.String("hookPublicID", hook.PublicID),
-			zap.Duration("duration", time.Now().Sub(start)),
-		)
-
+		log.I(l, "Created hook successfully.", func(cm log.CM) {
+			cm.Write(
+				zap.String("hookPublicID", hook.PublicID),
+				zap.Duration("duration", time.Now().Sub(start)),
+			)
+		})
 		return SucceedWith(map[string]interface{}{
 			"publicID": hook.PublicID,
 		}, c)
@@ -99,7 +104,7 @@ func RemoveHookHandler(app *App) func(c echo.Context) error {
 			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 
-log.D(		l, "Removing hook...")
+		log.D(l, "Removing hook...")
 		err = models.RemoveHook(
 			tx,
 			gameID,
@@ -112,7 +117,9 @@ log.D(		l, "Removing hook...")
 				return FailWith(http.StatusInternalServerError, txErr.Error(), c)
 			}
 
-			log.E(l, "Failed to remove hook.", zap.Error(err))
+			log.E(l, "Failed to remove hook.", func(cm log.CM) {
+				cm.Write(zap.Error(err))
+			})
 			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 
@@ -121,10 +128,9 @@ log.D(		l, "Removing hook...")
 			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 
-log.I(		l, 
-			"Hook removed successfully.",
-			zap.Duration("duration", time.Now().Sub(start)),
-		)
+		log.I(l, "Hook removed successfully.", func(cm log.CM) {
+			cm.Write(zap.Duration("duration", time.Now().Sub(start)))
+		})
 		return SucceedWith(map[string]interface{}{}, c)
 	}
 }

@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/labstack/echo"
+	"github.com/topfreegames/khan/log"
 	"github.com/topfreegames/khan/models"
 	"github.com/uber-go/zap"
 )
@@ -60,7 +61,7 @@ func ApplyForMembershipHandler(app *App) func(c echo.Context) error {
 			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 
-log.D(		l, "Applying for membership...")
+		log.D(l, "Applying for membership...")
 		membership, err := models.CreateMembership(
 			tx,
 			game,
@@ -78,7 +79,9 @@ log.D(		l, "Applying for membership...")
 				return FailWith(http.StatusInternalServerError, txErr.Error(), c)
 			}
 
-			log.E(l, "Membership application failed.", zap.Error(err))
+			log.E(l, "Membership application failed.", func(cm log.CM) {
+				cm.Write(zap.Error(err))
+			})
 			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 
@@ -93,7 +96,9 @@ log.D(		l, "Applying for membership...")
 				return FailWith(http.StatusInternalServerError, txErr.Error(), c)
 			}
 
-			log.E(l, "Membership application created dispatch hook failed.", zap.Error(err))
+			log.E(l, "Membership application created dispatch hook failed.", func(cm log.CM) {
+				cm.Write(zap.Error(err))
+			})
 			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 
@@ -102,10 +107,9 @@ log.D(		l, "Applying for membership...")
 			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 
-log.I(		l, 
-			"Membership application created successfully.",
-			zap.Duration("duration", time.Now().Sub(start)),
-		)
+		log.I(l, "Membership application created successfully.", func(cm log.CM) {
+			cm.Write(zap.Duration("duration", time.Now().Sub(start)))
+		})
 
 		return SucceedWith(map[string]interface{}{}, c)
 	}
@@ -153,7 +157,7 @@ func InviteForMembershipHandler(app *App) func(c echo.Context) error {
 			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 
-log.D(		l, "Inviting for membership...")
+		log.D(l, "Inviting for membership...")
 		membership, err := models.CreateMembership(
 			tx,
 			game,
@@ -171,7 +175,9 @@ log.D(		l, "Inviting for membership...")
 				return FailWith(http.StatusInternalServerError, txErr.Error(), c)
 			}
 
-			log.E(l, "Membership invitation failed.", zap.Error(err))
+			log.E(l, "Membership invitation failed.", func(cm log.CM) {
+				cm.Write(zap.Error(err))
+			})
 			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 
@@ -186,7 +192,9 @@ log.D(		l, "Inviting for membership...")
 				return FailWith(http.StatusInternalServerError, txErr.Error(), c)
 			}
 
-			log.E(l, "Membership invitation dispatch hook failed.", zap.Error(err))
+			log.E(l, "Membership invitation dispatch hook failed.", func(cm log.CM) {
+				cm.Write(zap.Error(err))
+			})
 			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 
@@ -195,10 +203,9 @@ log.D(		l, "Inviting for membership...")
 			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 
-log.I(		l, 
-			"Membership invitation created successfully.",
-			zap.Duration("duration", time.Now().Sub(start)),
-		)
+		log.I(l, "Membership invitation created successfully.", func(cm log.CM) {
+			cm.Write(zap.Duration("duration", time.Now().Sub(start)))
+		})
 
 		return SucceedWith(map[string]interface{}{}, c)
 	}
@@ -251,7 +258,7 @@ func ApproveOrDenyMembershipApplicationHandler(app *App) func(c echo.Context) er
 			return nil
 		}
 
-log.D(		l, "Approving/Denying membership application.")
+		log.D(l, "Approving/Denying membership application.")
 		membership, err := models.ApproveOrDenyMembershipApplication(
 			tx,
 			game,
@@ -265,22 +272,26 @@ log.D(		l, "Approving/Denying membership application.")
 		if err != nil {
 			txErr := rb(err)
 			if txErr == nil {
-				log.E(l, "Approving/Denying membership application failed.", zap.Error(err))
+				log.E(l, "Approving/Denying membership application failed.", func(cm log.CM) {
+					cm.Write(zap.Error(err))
+				})
 			}
 			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 
-log.D(		l, "Retrieving requestor details.")
+		log.D(l, "Retrieving requestor details.")
 		requestor, err := models.GetPlayerByPublicID(tx, gameID, payload.RequestorPublicID)
 		if err != nil {
 			msg := "Requestor details retrieval failed."
 			txErr := rb(err)
 			if txErr == nil {
-				log.E(l, msg, zap.Error(err))
+				log.E(l, msg, func(cm log.CM) {
+					cm.Write(zap.Error(err))
+				})
 			}
 			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
-log.D(		l, "Requestor details retrieved successfully.")
+		log.D(l, "Requestor details retrieved successfully.")
 
 		hookType := models.MembershipApprovedHook
 		if action == "deny" {
@@ -297,7 +308,9 @@ log.D(		l, "Requestor details retrieved successfully.")
 			msg := "Membership approved/denied application dispatch hook failed."
 			txErr := rb(err)
 			if txErr == nil {
-				log.E(l, msg, zap.Error(err))
+				log.E(l, msg, func(cm log.CM) {
+					cm.Write(zap.Error(err))
+				})
 			}
 			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
@@ -307,10 +320,9 @@ log.D(		l, "Requestor details retrieved successfully.")
 			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 
-log.I(		l, 
-			"Membership application approved/denied successfully.",
-			zap.Duration("duration", time.Now().Sub(start)),
-		)
+		log.I(l, "Membership application approved/denied successfully.", func(cm log.CM) {
+			cm.Write(zap.Duration("duration", time.Now().Sub(start)))
+		})
 
 		return SucceedWith(map[string]interface{}{}, c)
 	}
@@ -362,7 +374,7 @@ func ApproveOrDenyMembershipInvitationHandler(app *App) func(c echo.Context) err
 			return nil
 		}
 
-log.D(		l, "Approving/Denying membership invitation...")
+		log.D(l, "Approving/Denying membership invitation...")
 		membership, err := models.ApproveOrDenyMembershipInvitation(
 			tx,
 			game,
@@ -375,7 +387,9 @@ log.D(		l, "Approving/Denying membership invitation...")
 		if err != nil {
 			txErr := rb(err)
 			if txErr == nil {
-				log.E(l, "Membership invitation approval/deny failed.", zap.Error(err))
+				log.E(l, "Membership invitation approval/deny failed.", func(cm log.CM) {
+					cm.Write(zap.Error(err))
+				})
 			}
 			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
@@ -394,15 +408,16 @@ log.D(		l, "Approving/Denying membership invitation...")
 		if err != nil {
 			txErr := rb(err)
 			if txErr == nil {
-				log.E(l, "Membership invitation approval/deny hook dispatch failed.", zap.Error(err))
+				log.E(l, "Membership invitation approval/deny hook dispatch failed.", func(cm log.CM) {
+					cm.Write(zap.Error(err))
+				})
 			}
 			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 
-log.I(		l, 
-			"Membership invitation approved/denied successfully.",
-			zap.Duration("duration", time.Now().Sub(start)),
-		)
+		log.I(l, "Membership invitation approved/denied successfully.", func(cm log.CM) {
+			cm.Write(zap.Duration("duration", time.Now().Sub(start)))
+		})
 
 		err = app.Commit(tx, "Membership invitation approval/deny", l)
 		if err != nil {
@@ -451,7 +466,7 @@ func DeleteMembershipHandler(app *App) func(c echo.Context) error {
 			return nil
 		}
 
-log.D(		l, "Deleting membership...")
+		log.D(l, "Deleting membership...")
 		err = models.DeleteMembership(
 			tx,
 			game,
@@ -464,7 +479,9 @@ log.D(		l, "Deleting membership...")
 		if err != nil {
 			txErr := rb(err)
 			if txErr == nil {
-				log.E(l, "Membership delete failed.", zap.Error(err))
+				log.E(l, "Membership delete failed.", func(cm log.CM) {
+					cm.Write(zap.Error(err))
+				})
 			}
 			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
@@ -477,15 +494,16 @@ log.D(		l, "Deleting membership...")
 		if err != nil {
 			txErr := rb(err)
 			if txErr == nil {
-				log.E(l, "Membership deleted hook dispatch failed.", zap.Error(err))
+				log.E(l, "Membership deleted hook dispatch failed.", func(cm log.CM) {
+					cm.Write(zap.Error(err))
+				})
 			}
 			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 
-log.I(		l, 
-			"Membership deleted successfully.",
-			zap.Duration("duration", time.Now().Sub(start)),
-		)
+		log.I(l, "Membership deleted successfully.", func(cm log.CM) {
+			cm.Write(zap.Duration("duration", time.Now().Sub(start)))
+		})
 
 		err = app.Commit(tx, "Membership invitation approval/deny", l)
 		if err != nil {
@@ -535,7 +553,7 @@ func PromoteOrDemoteMembershipHandler(app *App, action string) func(c echo.Conte
 			return nil
 		}
 
-log.D(		l, "Promoting/Demoting member...")
+		log.D(l, "Promoting/Demoting member...")
 		membership, err := models.PromoteOrDemoteMember(
 			tx,
 			game,
@@ -549,22 +567,26 @@ log.D(		l, "Promoting/Demoting member...")
 		if err != nil {
 			txErr := rb(err)
 			if txErr == nil {
-				log.E(l, "Member promotion/demotion failed.", zap.Error(err))
+				log.E(l, "Member promotion/demotion failed.", func(cm log.CM) {
+					cm.Write(zap.Error(err))
+				})
 			}
 			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
-log.I(		l, "Member promoted/demoted successful.")
+		log.I(l, "Member promoted/demoted successful.")
 
-log.D(		l, "Retrieving promoter/demoter member...")
+		log.D(l, "Retrieving promoter/demoter member...")
 		requestor, err := models.GetPlayerByPublicID(tx, membership.GameID, payload.RequestorPublicID)
 		if err != nil {
 			txErr := rb(err)
 			if txErr == nil {
-				log.E(l, "Promoter/Demoter member retrieval failed.", zap.Error(err))
+				log.E(l, "Promoter/Demoter member retrieval failed.", func(cm log.CM) {
+					cm.Write(zap.Error(err))
+				})
 			}
 			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
-log.D(		l, "Promoter/Demoter member retrieved successfully.")
+		log.D(l, "Promoter/Demoter member retrieved successfully.")
 
 		hookType := models.MembershipPromotedHook
 		if action == "demote" {
@@ -579,7 +601,9 @@ log.D(		l, "Promoter/Demoter member retrieved successfully.")
 		if err != nil {
 			txErr := rb(err)
 			if txErr == nil {
-				log.E(l, "Promote/Demote member hook dispatch failed.", zap.Error(err))
+				log.E(l, "Promote/Demote member hook dispatch failed.", func(cm log.CM) {
+					cm.Write(zap.Error(err))
+				})
 			}
 			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
@@ -589,10 +613,9 @@ log.D(		l, "Promoter/Demoter member retrieved successfully.")
 			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 
-log.I(		l, 
-			"Member promoted/demoted successfully.",
-			zap.Duration("duration", time.Now().Sub(start)),
-		)
+		log.I(l, "Member promoted/demoted successfully.", func(cm log.CM) {
+			cm.Write(zap.Duration("duration", time.Now().Sub(start)))
+		})
 
 		return SucceedWith(map[string]interface{}{
 			"level": membership.Level,

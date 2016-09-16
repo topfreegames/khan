@@ -131,23 +131,28 @@ func validateUpdateClanDispatch(game *models.Game, sourceClan *models.Clan, clan
 	for _, field := range fields {
 		oldVal, existsOld := sourceClan.Metadata[field]
 		newVal, existsNew := metadata[field]
-		log.D(l,
-			"Verifying field for change...",
-			zap.Bool("existsOld", existsOld),
-			zap.Bool("existsNew", existsNew),
-			zap.Object("oldVal", oldVal),
-			zap.Object("newVal", newVal),
-			zap.String("field", field),
-		)
+		log.D(l, "Verifying field for change...", func(cm log.CM) {
+			cm.Write(
+				zap.Bool("existsOld", existsOld),
+				zap.Bool("existsNew", existsNew),
+				zap.Object("oldVal", oldVal),
+				zap.Object("newVal", newVal),
+				zap.String("field", field),
+			)
+		})
 		//fmt.Println("field", field, "existsOld", existsOld, "oldVal", oldVal, "existsNew", existsNew, "newVal", newVal)
 
 		if existsOld != existsNew {
-			log.D(l, "Found difference in field. Dispatching hook...", zap.String("field", field))
+			log.D(l, "Found difference in field. Dispatching hook...", func(cm log.CM) {
+				cm.Write(zap.String("field", field))
+			})
 			return true
 		}
 
 		if existsOld && oldVal != newVal {
-			log.D(l, "Found difference in field. Dispatching hook...", zap.String("field", field))
+			log.D(l, "Found difference in field. Dispatching hook...", func(cm log.CM) {
+				cm.Write(zap.String("field", field))
+			})
 			return true
 		}
 	}

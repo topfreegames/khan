@@ -68,7 +68,9 @@ func (d *Dispatcher) Start() {
 
 	// Now, create all of our workers.
 	for i := 0; i < d.workerCount; i++ {
-		log.D(l, "Starting worker...", zap.Int("workerId", i+1))
+		log.D(l, "Starting worker...", func(cm log.CM) {
+			cm.Write(zap.Int("workerId", i+1))
+		})
 		worker := d.newWorker(i+1, d.workerQueue)
 		worker.Start()
 		log.D(l, "Worker started successfully.", func(cm log.CM) {
