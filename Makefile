@@ -10,6 +10,7 @@ PMD = "pmd-bin-5.3.3"
 OS = "$(shell uname | awk '{ print tolower($$0) }')"
 
 setup:
+	@go get github.com/mailru/easyjson/...
 	@go get -u github.com/Masterminds/glide/...
 	@go get -v github.com/spf13/cobra/cobra
 	@go get github.com/fzipp/gocyclo
@@ -97,7 +98,7 @@ run-docker:
 		-p 8080:80 \
 		khan
 
-test: start-deps assets drop-test db-test
+test: schema-update start-deps assets drop-test db-test
 	@ginkgo -r --cover .
 
 test-coverage coverage: test
@@ -185,3 +186,9 @@ rtfd:
 	@rm -rf docs/_build
 	@sphinx-build -b html -d ./docs/_build/doctrees ./docs/ docs/_build/html
 	@open docs/_build/html/index.html
+
+schema-update: schema-clean
+	@go generate ./models/*.go
+
+schema-clean:
+	@rm -rf ./models/*easyjson.go

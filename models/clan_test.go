@@ -74,7 +74,7 @@ var _ = Describe("Clan Model", func() {
 				dt := clan.UpdatedAt
 				time.Sleep(time.Millisecond)
 
-				clan.Metadata = map[string]interface{}{"x": 1}
+				clan.Metadata = map[string]interface{}{"x": "1"}
 				count, err := testDb.Update(clan)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(count).To(BeEquivalentTo(1))
@@ -397,7 +397,7 @@ var _ = Describe("Clan Model", func() {
 				Expect(err).NotTo(HaveOccurred())
 				clan := clans[0]
 
-				metadata := map[string]interface{}{"x": 1}
+				metadata := map[string]interface{}{"x": "1"}
 				allowApplication := !clan.AllowApplication
 				autoJoin := !clan.AutoJoin
 				updClan, err := UpdateClan(
@@ -427,7 +427,7 @@ var _ = Describe("Clan Model", func() {
 				Expect(err).NotTo(HaveOccurred())
 				clan := clans[0]
 
-				metadata := map[string]interface{}{"x": 1, "totalScore": 9200}
+				metadata := map[string]interface{}{"x": "1", "totalScore": 9200}
 				allowApplication := !clan.AllowApplication
 				autoJoin := !clan.AutoJoin
 				updClan, err := UpdateClan(
@@ -457,13 +457,12 @@ var _ = Describe("Clan Model", func() {
 				Expect(result.Type).To(Equal("clan"))
 				Expect(result.Id).To(Equal(clan.PublicID))
 
-				var updESClan Clan
-				err = json.Unmarshal(*result.Source, &updESClan)
+				updESClan, err := GetClanFromJSON(*result.Source)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(updESClan.Metadata["x"]).To(BeEquivalentTo(metadata["x"]))
 				Expect(updESClan.Metadata["totalScore"]).To(Equal(float64(9200)))
 
-				metadata = map[string]interface{}{"x": 10, "totalScore": 11000, "foo": "bar"}
+				metadata = map[string]interface{}{"x": "10", "totalScore": 11000, "foo": "bar"}
 				updClan, err = UpdateClan(
 					testDb,
 					clan.GameID,
@@ -478,7 +477,8 @@ var _ = Describe("Clan Model", func() {
 
 				result, err = es.Client.Get().Index("khan-test").Type("clan").Id(clan.PublicID).Do()
 				Expect(err).NotTo(HaveOccurred())
-				json.Unmarshal(*result.Source, &updESClan)
+
+				updESClan, err = GetClanFromJSON(*result.Source)
 				Expect(updESClan.Metadata["x"]).To(BeEquivalentTo(metadata["x"]))
 				Expect(updESClan.Metadata["totalScore"]).To(Equal(float64(11000)))
 				Expect(updESClan.Metadata["foo"]).To(BeEquivalentTo(metadata["foo"]))
@@ -492,7 +492,7 @@ var _ = Describe("Clan Model", func() {
 				_, player, err := CreatePlayerFactory(testDb, "")
 				Expect(err).NotTo(HaveOccurred())
 
-				metadata := map[string]interface{}{"x": 1}
+				metadata := map[string]interface{}{"x": "1"}
 				_, err = UpdateClan(
 					testDb,
 					clan.GameID,
@@ -534,7 +534,7 @@ var _ = Describe("Clan Model", func() {
 				Expect(err).NotTo(HaveOccurred())
 				clan := clans[0]
 
-				metadata := map[string]interface{}{"x": 1}
+				metadata := map[string]interface{}{"x": "1"}
 				allowApplication := !clan.AllowApplication
 				autoJoin := !clan.AutoJoin
 

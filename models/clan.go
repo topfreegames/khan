@@ -5,12 +5,16 @@
 // http://www.opensource.org/licenses/mit-license
 // Copyright © 2016 Top Free Games <backend@tfgco.com>
 
+//go:generate easyjson -no_std_marshalers $GOFILE
+
 package models
 
 import (
 	"fmt"
 	"strings"
 
+	"github.com/mailru/easyjson/jlexer"
+	"github.com/mailru/easyjson/jwriter"
 	"github.com/topfreegames/khan/es"
 	"github.com/topfreegames/khan/util"
 
@@ -25,6 +29,7 @@ func (a ClanByName) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 func (a ClanByName) Less(i, j int) bool { return a[i].Name < a[j].Name }
 
 // Clan identifies uniquely one clan in a given game
+//easyjson:json
 type Clan struct {
 	ID               int                    `db:"id" json:"id"`
 	GameID           string                 `db:"game_id" json:"gameId"`
@@ -38,6 +43,21 @@ type Clan struct {
 	CreatedAt        int64                  `db:"created_at" json:"createdAt"`
 	UpdatedAt        int64                  `db:"updated_at" json:"updatedAt"`
 	DeletedAt        int64                  `db:"deleted_at" json:"deletedAt"`
+}
+
+//ToJSON returns the clan as JSON
+func (c *Clan) ToJSON() ([]byte, error) {
+	w := jwriter.Writer{}
+	c.MarshalEasyJSON(&w)
+	return w.BuildBytes()
+}
+
+//GetClanFromJSON unmarshals the clan from the specified JSON
+func GetClanFromJSON(data []byte) (*Clan, error) {
+	clan := &Clan{}
+	l := jlexer.Lexer{Data: data}
+	clan.UnmarshalEasyJSON(&l)
+	return clan, l.Error()
 }
 
 //PreInsert populates fields before inserting a new clan
@@ -73,13 +93,20 @@ func (c *Clan) PostDelete(s gorp.SqlExecutor) error {
 
 //IndexClanIntoElasticSearch after operation in PG
 func (c *Clan) IndexClanIntoElasticSearch() error {
-	go func() {
-		es := es.GetConfiguredClient()
-		if es != nil {
-			indexName := es.GetIndexName(c.GameID)
-			es.Client.Index().Index(indexName).Type("clan").Id(c.PublicID).BodyJson(c).Do()
+	//go func() {
+	es := es.GetConfiguredClient()
+	if es != nil {
+		indexName := es.GetIndexName(c.GameID)
+		body, err := c.ToJSON()
+		if err != nil {
+			return err
 		}
-	}()
+		_, err = es.Client.Index().Index(indexName).Type("clan").Id(c.PublicID).BodyString(string(body)).Do()
+		if err != nil {
+			return err
+		}
+	}
+	//}()
 	return nil
 }
 
