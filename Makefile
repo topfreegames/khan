@@ -9,7 +9,10 @@ GODIRS = $(shell go list ./... | grep -v /vendor/ | sed s@github.com/topfreegame
 PMD = "pmd-bin-5.3.3"
 OS = "$(shell uname | awk '{ print tolower($$0) }')"
 
-setup:
+setup-hooks:
+	@cd .git/hooks && ln -sf ../../hooks/pre-commit.sh pre-commit
+
+setup: setup-hooks
 	@go get github.com/mailru/easyjson/...
 	@go get -u github.com/Masterminds/glide/...
 	@go get -v github.com/spf13/cobra/cobra
