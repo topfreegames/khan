@@ -134,7 +134,7 @@ var _ = Describe("Membership API Handler", func() {
 			var result map[string]interface{}
 			json.Unmarshal([]byte(body), &result)
 			Expect(result["success"]).To(BeFalse())
-			Expect(result["reason"]).To(ContainSubstring("looking for beginning of value"))
+			Expect(result["reason"]).To(ContainSubstring(InvalidJSONError))
 		})
 
 		It("Should not create membership application if player does not exist", func() {
@@ -188,7 +188,7 @@ var _ = Describe("Membership API Handler", func() {
 			var result map[string]interface{}
 			json.Unmarshal([]byte(body), &result)
 			Expect(result["success"]).To(BeFalse())
-			Expect(result["reason"]).To(ContainSubstring("value of type string"))
+			Expect(result["reason"]).To(ContainSubstring("expected string near offset"))
 		})
 	})
 
@@ -337,7 +337,7 @@ var _ = Describe("Membership API Handler", func() {
 			var result map[string]interface{}
 			json.Unmarshal([]byte(body), &result)
 			Expect(result["success"]).To(BeFalse())
-			Expect(result["reason"]).To(ContainSubstring("looking for beginning of value"))
+			Expect(result["reason"]).To(ContainSubstring(InvalidJSONError))
 		})
 
 		It("Should not create membership invitation if player does not exist", func() {
@@ -393,7 +393,7 @@ var _ = Describe("Membership API Handler", func() {
 			var result map[string]interface{}
 			json.Unmarshal([]byte(body), &result)
 			Expect(result["success"]).To(BeFalse())
-			Expect(result["reason"]).To(ContainSubstring("of type string"))
+			Expect(result["reason"]).To(ContainSubstring("expected string near offset"))
 		})
 	})
 
@@ -476,7 +476,7 @@ var _ = Describe("Membership API Handler", func() {
 			var result map[string]interface{}
 			json.Unmarshal([]byte(body), &result)
 			Expect(result["success"]).To(BeFalse())
-			Expect(result["reason"]).To(ContainSubstring("looking for beginning of value"))
+			Expect(result["reason"]).To(ContainSubstring(InvalidJSONError))
 		})
 
 		It("Should not approve membership invitation if player does not exist", func() {
@@ -586,7 +586,7 @@ var _ = Describe("Membership API Handler", func() {
 			var result map[string]interface{}
 			json.Unmarshal([]byte(body), &result)
 			Expect(result["success"]).To(BeFalse())
-			Expect(result["reason"]).To(ContainSubstring("looking for beginning of value"))
+			Expect(result["reason"]).To(ContainSubstring(InvalidJSONError))
 		})
 
 		It("Should not approve membership application if player does not exist", func() {
@@ -698,7 +698,7 @@ var _ = Describe("Membership API Handler", func() {
 			var result map[string]interface{}
 			json.Unmarshal([]byte(body), &result)
 			Expect(result["success"]).To(BeFalse())
-			Expect(result["reason"]).To(ContainSubstring("looking for beginning of value"))
+			Expect(result["reason"]).To(ContainSubstring(InvalidJSONError))
 		})
 
 		It("Should not promote member if player does not exist", func() {
@@ -776,7 +776,7 @@ var _ = Describe("Membership API Handler", func() {
 			var result map[string]interface{}
 			json.Unmarshal([]byte(body), &result)
 			Expect(result["success"]).To(BeFalse())
-			Expect(result["reason"]).To(ContainSubstring("looking for beginning of value"))
+			Expect(result["reason"]).To(ContainSubstring(InvalidJSONError))
 		})
 
 		It("Should not delete member if player does not exist", func() {
