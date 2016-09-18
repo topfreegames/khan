@@ -15,7 +15,61 @@ var (
 	_ = jwriter.Writer{}
 )
 
-func easyjsonA8a797f8DecodeGithubComTopfreegamesKhanApi(in *jlexer.Lexer, out *ApproveOrDenyMembershipInvitationPayload) {
+func easyjsonA8a797f8DecodeGithubComTopfreegamesKhanApi(in *jlexer.Lexer, out *HookPayload) {
+	if in.IsNull() {
+		in.Skip()
+		return
+	}
+	in.Delim('{')
+	for !in.IsDelim('}') {
+		key := in.UnsafeString()
+		in.WantColon()
+		if in.IsNull() {
+			in.Skip()
+			in.WantComma()
+			continue
+		}
+		switch key {
+		case "type":
+			out.Type = int(in.Int())
+		case "hookURL":
+			out.HookURL = string(in.String())
+		default:
+			in.SkipRecursive()
+		}
+		in.WantComma()
+	}
+	in.Delim('}')
+}
+func easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi(out *jwriter.Writer, in HookPayload) {
+	out.RawByte('{')
+	first := true
+	_ = first
+	if !first {
+		out.RawByte(',')
+	}
+	first = false
+	out.RawString("\"type\":")
+	out.Int(int(in.Type))
+	if !first {
+		out.RawByte(',')
+	}
+	first = false
+	out.RawString("\"hookURL\":")
+	out.String(string(in.HookURL))
+	out.RawByte('}')
+}
+
+// MarshalEasyJSON supports easyjson.Marshaler interface
+func (v HookPayload) MarshalEasyJSON(w *jwriter.Writer) {
+	easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi(w, v)
+}
+
+// UnmarshalEasyJSON supports easyjson.Unmarshaler interface
+func (v *HookPayload) UnmarshalEasyJSON(l *jlexer.Lexer) {
+	easyjsonA8a797f8DecodeGithubComTopfreegamesKhanApi(l, v)
+}
+func easyjsonA8a797f8DecodeGithubComTopfreegamesKhanApi1(in *jlexer.Lexer, out *ApproveOrDenyMembershipInvitationPayload) {
 	if in.IsNull() {
 		in.Skip()
 		return
@@ -39,7 +93,7 @@ func easyjsonA8a797f8DecodeGithubComTopfreegamesKhanApi(in *jlexer.Lexer, out *A
 	}
 	in.Delim('}')
 }
-func easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi(out *jwriter.Writer, in ApproveOrDenyMembershipInvitationPayload) {
+func easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi1(out *jwriter.Writer, in ApproveOrDenyMembershipInvitationPayload) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -54,14 +108,14 @@ func easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi(out *jwriter.Writer, in 
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v ApproveOrDenyMembershipInvitationPayload) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi(w, v)
+	easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi1(w, v)
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *ApproveOrDenyMembershipInvitationPayload) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjsonA8a797f8DecodeGithubComTopfreegamesKhanApi(l, v)
+	easyjsonA8a797f8DecodeGithubComTopfreegamesKhanApi1(l, v)
 }
-func easyjsonA8a797f8DecodeGithubComTopfreegamesKhanApi1(in *jlexer.Lexer, out *BasePayloadWithRequestorAndPlayerPublicIDs) {
+func easyjsonA8a797f8DecodeGithubComTopfreegamesKhanApi2(in *jlexer.Lexer, out *BasePayloadWithRequestorAndPlayerPublicIDs) {
 	if in.IsNull() {
 		in.Skip()
 		return
@@ -87,7 +141,7 @@ func easyjsonA8a797f8DecodeGithubComTopfreegamesKhanApi1(in *jlexer.Lexer, out *
 	}
 	in.Delim('}')
 }
-func easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi1(out *jwriter.Writer, in BasePayloadWithRequestorAndPlayerPublicIDs) {
+func easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi2(out *jwriter.Writer, in BasePayloadWithRequestorAndPlayerPublicIDs) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -108,14 +162,14 @@ func easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi1(out *jwriter.Writer, in
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v BasePayloadWithRequestorAndPlayerPublicIDs) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi1(w, v)
+	easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi2(w, v)
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *BasePayloadWithRequestorAndPlayerPublicIDs) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjsonA8a797f8DecodeGithubComTopfreegamesKhanApi1(l, v)
+	easyjsonA8a797f8DecodeGithubComTopfreegamesKhanApi2(l, v)
 }
-func easyjsonA8a797f8DecodeGithubComTopfreegamesKhanApi2(in *jlexer.Lexer, out *InviteForMembershipPayload) {
+func easyjsonA8a797f8DecodeGithubComTopfreegamesKhanApi3(in *jlexer.Lexer, out *InviteForMembershipPayload) {
 	if in.IsNull() {
 		in.Skip()
 		return
@@ -143,7 +197,7 @@ func easyjsonA8a797f8DecodeGithubComTopfreegamesKhanApi2(in *jlexer.Lexer, out *
 	}
 	in.Delim('}')
 }
-func easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi2(out *jwriter.Writer, in InviteForMembershipPayload) {
+func easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi3(out *jwriter.Writer, in InviteForMembershipPayload) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -170,14 +224,14 @@ func easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi2(out *jwriter.Writer, in
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v InviteForMembershipPayload) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi2(w, v)
+	easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi3(w, v)
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *InviteForMembershipPayload) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjsonA8a797f8DecodeGithubComTopfreegamesKhanApi2(l, v)
+	easyjsonA8a797f8DecodeGithubComTopfreegamesKhanApi3(l, v)
 }
-func easyjsonA8a797f8DecodeGithubComTopfreegamesKhanApi3(in *jlexer.Lexer, out *ApplyForMembershipPayload) {
+func easyjsonA8a797f8DecodeGithubComTopfreegamesKhanApi4(in *jlexer.Lexer, out *ApplyForMembershipPayload) {
 	if in.IsNull() {
 		in.Skip()
 		return
@@ -203,7 +257,7 @@ func easyjsonA8a797f8DecodeGithubComTopfreegamesKhanApi3(in *jlexer.Lexer, out *
 	}
 	in.Delim('}')
 }
-func easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi3(out *jwriter.Writer, in ApplyForMembershipPayload) {
+func easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi4(out *jwriter.Writer, in ApplyForMembershipPayload) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -224,14 +278,14 @@ func easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi3(out *jwriter.Writer, in
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v ApplyForMembershipPayload) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi3(w, v)
+	easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi4(w, v)
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *ApplyForMembershipPayload) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjsonA8a797f8DecodeGithubComTopfreegamesKhanApi3(l, v)
+	easyjsonA8a797f8DecodeGithubComTopfreegamesKhanApi4(l, v)
 }
-func easyjsonA8a797f8DecodeGithubComTopfreegamesKhanApi4(in *jlexer.Lexer, out *CreateGamePayload) {
+func easyjsonA8a797f8DecodeGithubComTopfreegamesKhanApi5(in *jlexer.Lexer, out *CreateGamePayload) {
 	if in.IsNull() {
 		in.Skip()
 		return
@@ -317,7 +371,7 @@ func easyjsonA8a797f8DecodeGithubComTopfreegamesKhanApi4(in *jlexer.Lexer, out *
 	}
 	in.Delim('}')
 }
-func easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi4(out *jwriter.Writer, in CreateGamePayload) {
+func easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi5(out *jwriter.Writer, in CreateGamePayload) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -440,14 +494,14 @@ func easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi4(out *jwriter.Writer, in
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v CreateGamePayload) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi4(w, v)
+	easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi5(w, v)
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *CreateGamePayload) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjsonA8a797f8DecodeGithubComTopfreegamesKhanApi4(l, v)
+	easyjsonA8a797f8DecodeGithubComTopfreegamesKhanApi5(l, v)
 }
-func easyjsonA8a797f8DecodeGithubComTopfreegamesKhanApi5(in *jlexer.Lexer, out *UpdateGamePayload) {
+func easyjsonA8a797f8DecodeGithubComTopfreegamesKhanApi6(in *jlexer.Lexer, out *UpdateGamePayload) {
 	if in.IsNull() {
 		in.Skip()
 		return
@@ -531,7 +585,7 @@ func easyjsonA8a797f8DecodeGithubComTopfreegamesKhanApi5(in *jlexer.Lexer, out *
 	}
 	in.Delim('}')
 }
-func easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi5(out *jwriter.Writer, in UpdateGamePayload) {
+func easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi6(out *jwriter.Writer, in UpdateGamePayload) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -648,14 +702,14 @@ func easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi5(out *jwriter.Writer, in
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v UpdateGamePayload) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi5(w, v)
+	easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi6(w, v)
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *UpdateGamePayload) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjsonA8a797f8DecodeGithubComTopfreegamesKhanApi5(l, v)
+	easyjsonA8a797f8DecodeGithubComTopfreegamesKhanApi6(l, v)
 }
-func easyjsonA8a797f8DecodeGithubComTopfreegamesKhanApi6(in *jlexer.Lexer, out *UpdatePlayerPayload) {
+func easyjsonA8a797f8DecodeGithubComTopfreegamesKhanApi7(in *jlexer.Lexer, out *UpdatePlayerPayload) {
 	if in.IsNull() {
 		in.Skip()
 		return
@@ -699,7 +753,7 @@ func easyjsonA8a797f8DecodeGithubComTopfreegamesKhanApi6(in *jlexer.Lexer, out *
 	}
 	in.Delim('}')
 }
-func easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi6(out *jwriter.Writer, in UpdatePlayerPayload) {
+func easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi7(out *jwriter.Writer, in UpdatePlayerPayload) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -735,14 +789,14 @@ func easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi6(out *jwriter.Writer, in
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v UpdatePlayerPayload) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi6(w, v)
+	easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi7(w, v)
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *UpdatePlayerPayload) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjsonA8a797f8DecodeGithubComTopfreegamesKhanApi6(l, v)
+	easyjsonA8a797f8DecodeGithubComTopfreegamesKhanApi7(l, v)
 }
-func easyjsonA8a797f8DecodeGithubComTopfreegamesKhanApi7(in *jlexer.Lexer, out *CreatePlayerPayload) {
+func easyjsonA8a797f8DecodeGithubComTopfreegamesKhanApi8(in *jlexer.Lexer, out *CreatePlayerPayload) {
 	if in.IsNull() {
 		in.Skip()
 		return
@@ -788,7 +842,7 @@ func easyjsonA8a797f8DecodeGithubComTopfreegamesKhanApi7(in *jlexer.Lexer, out *
 	}
 	in.Delim('}')
 }
-func easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi7(out *jwriter.Writer, in CreatePlayerPayload) {
+func easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi8(out *jwriter.Writer, in CreatePlayerPayload) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -830,14 +884,14 @@ func easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi7(out *jwriter.Writer, in
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v CreatePlayerPayload) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi7(w, v)
+	easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi8(w, v)
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *CreatePlayerPayload) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjsonA8a797f8DecodeGithubComTopfreegamesKhanApi7(l, v)
+	easyjsonA8a797f8DecodeGithubComTopfreegamesKhanApi8(l, v)
 }
-func easyjsonA8a797f8DecodeGithubComTopfreegamesKhanApi8(in *jlexer.Lexer, out *TransferClanOwnershipPayload) {
+func easyjsonA8a797f8DecodeGithubComTopfreegamesKhanApi9(in *jlexer.Lexer, out *TransferClanOwnershipPayload) {
 	if in.IsNull() {
 		in.Skip()
 		return
@@ -861,7 +915,7 @@ func easyjsonA8a797f8DecodeGithubComTopfreegamesKhanApi8(in *jlexer.Lexer, out *
 	}
 	in.Delim('}')
 }
-func easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi8(out *jwriter.Writer, in TransferClanOwnershipPayload) {
+func easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi9(out *jwriter.Writer, in TransferClanOwnershipPayload) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -876,14 +930,14 @@ func easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi8(out *jwriter.Writer, in
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v TransferClanOwnershipPayload) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi8(w, v)
+	easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi9(w, v)
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *TransferClanOwnershipPayload) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjsonA8a797f8DecodeGithubComTopfreegamesKhanApi8(l, v)
+	easyjsonA8a797f8DecodeGithubComTopfreegamesKhanApi9(l, v)
 }
-func easyjsonA8a797f8DecodeGithubComTopfreegamesKhanApi9(in *jlexer.Lexer, out *UpdateClanPayload) {
+func easyjsonA8a797f8DecodeGithubComTopfreegamesKhanApi10(in *jlexer.Lexer, out *UpdateClanPayload) {
 	if in.IsNull() {
 		in.Skip()
 		return
@@ -933,7 +987,7 @@ func easyjsonA8a797f8DecodeGithubComTopfreegamesKhanApi9(in *jlexer.Lexer, out *
 	}
 	in.Delim('}')
 }
-func easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi9(out *jwriter.Writer, in UpdateClanPayload) {
+func easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi10(out *jwriter.Writer, in UpdateClanPayload) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -987,14 +1041,14 @@ func easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi9(out *jwriter.Writer, in
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v UpdateClanPayload) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi9(w, v)
+	easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi10(w, v)
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *UpdateClanPayload) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjsonA8a797f8DecodeGithubComTopfreegamesKhanApi9(l, v)
+	easyjsonA8a797f8DecodeGithubComTopfreegamesKhanApi10(l, v)
 }
-func easyjsonA8a797f8DecodeGithubComTopfreegamesKhanApi10(in *jlexer.Lexer, out *CreateClanPayload) {
+func easyjsonA8a797f8DecodeGithubComTopfreegamesKhanApi11(in *jlexer.Lexer, out *CreateClanPayload) {
 	if in.IsNull() {
 		in.Skip()
 		return
@@ -1046,7 +1100,7 @@ func easyjsonA8a797f8DecodeGithubComTopfreegamesKhanApi10(in *jlexer.Lexer, out 
 	}
 	in.Delim('}')
 }
-func easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi10(out *jwriter.Writer, in CreateClanPayload) {
+func easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi11(out *jwriter.Writer, in CreateClanPayload) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -1106,14 +1160,14 @@ func easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi10(out *jwriter.Writer, i
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v CreateClanPayload) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi10(w, v)
+	easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi11(w, v)
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *CreateClanPayload) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjsonA8a797f8DecodeGithubComTopfreegamesKhanApi10(l, v)
+	easyjsonA8a797f8DecodeGithubComTopfreegamesKhanApi11(l, v)
 }
-func easyjsonA8a797f8DecodeGithubComTopfreegamesKhanApi11(in *jlexer.Lexer, out *Validation) {
+func easyjsonA8a797f8DecodeGithubComTopfreegamesKhanApi12(in *jlexer.Lexer, out *Validation) {
 	if in.IsNull() {
 		in.Skip()
 		return
@@ -1135,7 +1189,7 @@ func easyjsonA8a797f8DecodeGithubComTopfreegamesKhanApi11(in *jlexer.Lexer, out 
 	}
 	in.Delim('}')
 }
-func easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi11(out *jwriter.Writer, in Validation) {
+func easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi12(out *jwriter.Writer, in Validation) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -1144,10 +1198,10 @@ func easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi11(out *jwriter.Writer, i
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v Validation) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi11(w, v)
+	easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi12(w, v)
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *Validation) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjsonA8a797f8DecodeGithubComTopfreegamesKhanApi11(l, v)
+	easyjsonA8a797f8DecodeGithubComTopfreegamesKhanApi12(l, v)
 }

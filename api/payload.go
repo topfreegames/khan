@@ -51,9 +51,21 @@ func (v *Validation) validateRequiredString(name, value string) {
 	}
 }
 
+func (v *Validation) validateRequiredInt(name string, value int) {
+	if value == 0 {
+		v.errors = append(v.errors, fmt.Sprintf("%s is required", name))
+	}
+}
+
+func (v *Validation) validateRequiredMap(name string, value map[string]interface{}) {
+	if value == nil || len(value) == 0 {
+		v.errors = append(v.errors, fmt.Sprintf("%s is required", name))
+	}
+}
+
 func (v *Validation) validateCustom(name string, valFunc func() []string) {
 	errors := valFunc()
-	if len(errors) > 1 {
+	if len(errors) > 0 {
 		v.errors = append(v.errors, errors...)
 	}
 }
@@ -173,6 +185,16 @@ type UpdateGamePayload struct {
 //Validate the update game payload
 func (p *UpdateGamePayload) Validate() []string {
 	v := NewValidation()
+
+	v.validateRequiredString("name", p.Name)
+	v.validateRequiredMap("membershipLevels", p.MembershipLevels)
+	v.validateRequired("metadata", p.Metadata)
+	v.validateRequiredInt("minLevelOffsetToRemoveMember", p.MinLevelOffsetToRemoveMember)
+	v.validateRequiredInt("minLevelOffsetToPromoteMember", p.MinLevelOffsetToPromoteMember)
+	v.validateRequiredInt("minLevelOffsetToDemoteMember", p.MinLevelOffsetToDemoteMember)
+	v.validateRequiredInt("maxMembers", p.MaxMembers)
+	v.validateRequiredInt("maxClansPerPlayer", p.MaxClansPerPlayer)
+
 	sortedLevels := util.SortLevels(p.MembershipLevels)
 	minMembershipLevel := sortedLevels[0].Value
 
@@ -221,6 +243,15 @@ func (p *CreateGamePayload) Validate() []string {
 	v := NewValidation()
 	sortedLevels := util.SortLevels(p.MembershipLevels)
 	minMembershipLevel := sortedLevels[0].Value
+
+	v.validateRequiredString("name", p.Name)
+	v.validateRequiredMap("membershipLevels", p.MembershipLevels)
+	v.validateRequired("metadata", p.Metadata)
+	v.validateRequiredInt("minLevelOffsetToRemoveMember", p.MinLevelOffsetToRemoveMember)
+	v.validateRequiredInt("minLevelOffsetToPromoteMember", p.MinLevelOffsetToPromoteMember)
+	v.validateRequiredInt("minLevelOffsetToDemoteMember", p.MinLevelOffsetToDemoteMember)
+	v.validateRequiredInt("maxMembers", p.MaxMembers)
+	v.validateRequiredInt("maxClansPerPlayer", p.MaxClansPerPlayer)
 
 	v.validateCustom("minLevelToAcceptApplication", func() []string {
 		if p.MinLevelToAcceptApplication < minMembershipLevel {
@@ -297,5 +328,18 @@ type ApproveOrDenyMembershipInvitationPayload struct {
 func (admip *ApproveOrDenyMembershipInvitationPayload) Validate() []string {
 	v := NewValidation()
 	v.validateRequiredString("playerPublicID", admip.PlayerPublicID)
+	return v.Errors()
+}
+
+//HookPayload maps the payload required to create or update hooks
+type HookPayload struct {
+	Type    int    `json:"type"`
+	HookURL string `json:"hookURL"`
+}
+
+//Validate all the required fields
+func (hp *HookPayload) Validate() []string {
+	v := NewValidation()
+	v.validateRequiredString("hookURL", hp.HookURL)
 	return v.Errors()
 }

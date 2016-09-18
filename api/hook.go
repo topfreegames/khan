@@ -17,11 +17,6 @@ import (
 	"github.com/uber-go/zap"
 )
 
-type hookPayload struct {
-	Type    int
-	HookURL string
-}
-
 //CreateHookHandler is the handler responsible for creating new hooks
 func CreateHookHandler(app *App) func(c echo.Context) error {
 	return func(c echo.Context) error {
@@ -34,7 +29,7 @@ func CreateHookHandler(app *App) func(c echo.Context) error {
 			zap.String("gameID", gameID),
 		)
 
-		var payload hookPayload
+		var payload HookPayload
 		if err := LoadJSONPayload(&payload, c, l); err != nil {
 			log.E(l, "Failed to parse json payload.", func(cm log.CM) {
 				cm.Write(zap.Error(err))

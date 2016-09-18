@@ -64,7 +64,7 @@ var _ = Describe("Hook API Handler", func() {
 			var result map[string]interface{}
 			json.Unmarshal([]byte(body), &result)
 			Expect(result["success"]).To(BeFalse())
-			Expect(result["reason"]).To(Equal("type is required, hookURL is required"))
+			Expect(result["reason"]).To(Equal("hookURL is required"))
 		})
 
 		It("Should not create hook if invalid payload", func() {
@@ -76,9 +76,7 @@ var _ = Describe("Hook API Handler", func() {
 			var result map[string]interface{}
 			json.Unmarshal([]byte(body), &result)
 			Expect(result["success"]).To(BeFalse())
-			Expect(result["reason"].(string)).To(ContainSubstring(
-				"invalid character 'i' looking for beginning of value",
-			))
+			Expect(result["reason"].(string)).To(ContainSubstring(InvalidJSONError))
 		})
 	})
 

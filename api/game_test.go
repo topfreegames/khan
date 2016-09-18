@@ -139,7 +139,7 @@ var _ = Describe("Game API Handler", func() {
 			payload["minLevelToCreateInvitation"] = 0
 			status, body := PostJSON(a, "/games", payload)
 
-			Expect(status).To(Equal(422))
+			Expect(status).To(Equal(400))
 			var result map[string]interface{}
 			json.Unmarshal([]byte(body), &result)
 			Expect(result["success"]).To(BeFalse())
@@ -154,7 +154,7 @@ var _ = Describe("Game API Handler", func() {
 			var result map[string]interface{}
 			json.Unmarshal([]byte(body), &result)
 			Expect(result["success"]).To(BeFalse())
-			Expect(result["reason"].(string)).To(ContainSubstring("invalid character 'i' looking for beginning of value"))
+			Expect(result["reason"].(string)).To(ContainSubstring(InvalidJSONError))
 		})
 
 		It("Should not create game if invalid data", func() {
@@ -266,7 +266,7 @@ var _ = Describe("Game API Handler", func() {
 			route := fmt.Sprintf("/games/%s", game.PublicID)
 			status, body := PutJSON(a, route, payload)
 
-			Expect(status).To(Equal(422))
+			Expect(status).To(Equal(400))
 			var result map[string]interface{}
 			json.Unmarshal([]byte(body), &result)
 			Expect(result["success"]).To(BeFalse())
@@ -281,7 +281,7 @@ var _ = Describe("Game API Handler", func() {
 			var result map[string]interface{}
 			json.Unmarshal([]byte(body), &result)
 			Expect(result["success"]).To(BeFalse())
-			Expect(result["reason"].(string)).To(ContainSubstring("invalid character 'i' looking for beginning of value"))
+			Expect(result["reason"].(string)).To(ContainSubstring(InvalidJSONError))
 		})
 
 		It("Should not update game if invalid data", func() {

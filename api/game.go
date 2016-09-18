@@ -42,12 +42,6 @@ func CreateGameHandler(app *App) func(c echo.Context) error {
 				zap.Int("cooldownBeforeApply", optional.cooldownBeforeApply),
 			)
 		})
-		if payloadErrors := ValidatePayload(payload); len(payloadErrors) != 0 {
-			logPayloadErrors(l, payloadErrors)
-			errorString := strings.Join(payloadErrors[:], ", ")
-			return FailWith(422, errorString, c)
-		}
-
 		tx, err := app.BeginTrans(l)
 		if err != nil {
 			return FailWith(500, err.Error(), c)
