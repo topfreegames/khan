@@ -12,21 +12,16 @@ OS = "$(shell uname | awk '{ print tolower($$0) }')"
 setup-hooks:
 	@cd .git/hooks && ln -sf ../../hooks/pre-commit.sh pre-commit
 
-setup: setup-hooks
-	@go get github.com/mailru/easyjson/...
-	@go get -u github.com/Masterminds/glide/...
+setup: setup-ci setup-hooks
 	@go get -v github.com/spf13/cobra/cobra
 	@go get github.com/fzipp/gocyclo
-	@go get github.com/topfreegames/goose/cmd/goose
-	@go get github.com/fzipp/gocyclo
 	@go get github.com/gordonklaus/ineffassign
-	@go get -u github.com/jteeuwen/go-bindata/...
-	@glide install
 
 setup-docs:
 	@pip install -q --log /tmp/pip.log --no-cache-dir sphinx recommonmark sphinx_rtd_theme
 
 setup-ci:
+	@go get github.com/mailru/easyjson/...
 	@go get -u github.com/Masterminds/glide/...
 	@go get -u github.com/jteeuwen/go-bindata/...
 	@go get github.com/topfreegames/goose/cmd/goose
