@@ -69,7 +69,7 @@ var _ = Describe("Player API Handler", func() {
 			var result map[string]interface{}
 			json.Unmarshal([]byte(body), &result)
 			Expect(result["success"]).To(BeFalse())
-			Expect(result["reason"]).To(Equal("publicID is required, name is required, metadata is required"))
+			Expect(result["reason"]).To(Equal("publicID is required, name is required"))
 		})
 
 		It("Should not create player if invalid payload", func() {
@@ -81,7 +81,7 @@ var _ = Describe("Player API Handler", func() {
 			var result map[string]interface{}
 			json.Unmarshal([]byte(body), &result)
 			Expect(result["success"]).To(BeFalse())
-			Expect(result["reason"].(string)).To(ContainSubstring("invalid character 'i' looking for beginning of value"))
+			Expect(result["reason"].(string)).To(ContainSubstring(InvalidJSONError))
 		})
 
 		It("Should not create player if invalid data", func() {
@@ -141,7 +141,7 @@ var _ = Describe("Player API Handler", func() {
 			var result map[string]interface{}
 			json.Unmarshal([]byte(body), &result)
 			Expect(result["success"]).To(BeFalse())
-			Expect(result["reason"]).To(Equal("name is required, metadata is required"))
+			Expect(result["reason"]).To(Equal("name is required"))
 		})
 
 		It("Should not update player if invalid payload", func() {
@@ -153,7 +153,7 @@ var _ = Describe("Player API Handler", func() {
 			var result map[string]interface{}
 			json.Unmarshal([]byte(body), &result)
 			Expect(result["success"]).To(BeFalse())
-			Expect(result["reason"].(string)).To(ContainSubstring("invalid character 'i' looking for beginning of value"))
+			Expect(result["reason"].(string)).To(ContainSubstring(InvalidJSONError))
 		})
 
 		It("Should not update player if invalid data", func() {
@@ -290,7 +290,7 @@ var _ = Describe("Player API Handler", func() {
 					payload := map[string]interface{}{
 						"publicID": player.PublicID,
 						"name":     player.Name,
-						"metadata": player.Metadata,
+						"metadata": map[string]interface{}{"x": "1"},
 					}
 					status, body := PutJSON(app, GetGameRoute(gameID, fmt.Sprintf("/players/%s", player.PublicID)), payload)
 

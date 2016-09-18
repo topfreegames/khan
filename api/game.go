@@ -42,7 +42,7 @@ func CreateGameHandler(app *App) func(c echo.Context) error {
 				zap.Int("cooldownBeforeApply", optional.cooldownBeforeApply),
 			)
 		})
-		if payloadErrors := validateGamePayload(payload); len(payloadErrors) != 0 {
+		if payloadErrors := ValidatePayload(payload); len(payloadErrors) != 0 {
 			logPayloadErrors(l, payloadErrors)
 			errorString := strings.Join(payloadErrors[:], ", ")
 			return FailWith(422, errorString, c)
@@ -118,7 +118,7 @@ func UpdateGameHandler(app *App) func(c echo.Context) error {
 			zap.String("gameID", gameID),
 		)
 
-		var payload gamePayload
+		var payload UpdateGamePayload
 
 		log.D(l, "Retrieving parameters...")
 		if err := LoadJSONPayload(&payload, c, l); err != nil {
@@ -144,7 +144,7 @@ func UpdateGameHandler(app *App) func(c echo.Context) error {
 			)
 		})
 		log.D(l, "Validating payload...")
-		if payloadErrors := validateGamePayload(&payload); len(payloadErrors) != 0 {
+		if payloadErrors := ValidatePayload(&payload); len(payloadErrors) != 0 {
 			logPayloadErrors(l, payloadErrors)
 			errorString := strings.Join(payloadErrors[:], ", ")
 			return FailWith(422, errorString, c)

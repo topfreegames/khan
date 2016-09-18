@@ -11,95 +11,8 @@ import (
 	"encoding/json"
 
 	"github.com/labstack/echo"
-	"github.com/topfreegames/khan/log"
-	"github.com/topfreegames/khan/util"
 	"github.com/uber-go/zap"
 )
-
-type validatable interface {
-	Validate() []string
-}
-
-type gamePayload struct {
-	Name                          string
-	MembershipLevels              map[string]interface{}
-	Metadata                      map[string]interface{}
-	MinLevelToAcceptApplication   int
-	MinLevelToCreateInvitation    int
-	MinLevelToRemoveMember        int
-	MinLevelOffsetToRemoveMember  int
-	MinLevelOffsetToPromoteMember int
-	MinLevelOffsetToDemoteMember  int
-	MaxMembers                    int
-	MaxClansPerPlayer             int
-	CooldownAfterDeny             int
-	CooldownAfterDelete           int
-}
-
-func (p *gamePayload) Validate() []string {
-	sortedLevels := util.SortLevels(p.MembershipLevels)
-	minMembershipLevel := sortedLevels[0].Value
-
-	var errors []string
-	if p.MinLevelToAcceptApplication < minMembershipLevel {
-		errors = append(errors, "minLevelToAcceptApplication should be greater or equal to minMembershipLevel")
-	}
-	if p.MinLevelToCreateInvitation < minMembershipLevel {
-		errors = append(errors, "minLevelToCreateInvitation should be greater or equal to minMembershipLevel")
-	}
-	if p.MinLevelToRemoveMember < minMembershipLevel {
-		errors = append(errors, "minLevelToRemoveMember should be greater or equal to minMembershipLevel")
-	}
-	return errors
-}
-
-type createGamePayload struct {
-	PublicID                      string
-	Name                          string
-	MembershipLevels              map[string]interface{}
-	Metadata                      map[string]interface{}
-	MinLevelToAcceptApplication   int
-	MinLevelToCreateInvitation    int
-	MinLevelToRemoveMember        int
-	MinLevelOffsetToRemoveMember  int
-	MinLevelOffsetToPromoteMember int
-	MinLevelOffsetToDemoteMember  int
-	MaxMembers                    int
-	MaxClansPerPlayer             int
-	CooldownAfterDeny             int
-	CooldownAfterDelete           int
-}
-
-func (p *createGamePayload) Validate() []string {
-	sortedLevels := util.SortLevels(p.MembershipLevels)
-	minMembershipLevel := sortedLevels[0].Value
-
-	var errors []string
-	if p.MinLevelToAcceptApplication < minMembershipLevel {
-		errors = append(errors, "minLevelToAcceptApplication should be greater or equal to minMembershipLevel")
-	}
-	if p.MinLevelToCreateInvitation < minMembershipLevel {
-		errors = append(errors, "minLevelToCreateInvitation should be greater or equal to minMembershipLevel")
-	}
-	if p.MinLevelToRemoveMember < minMembershipLevel {
-		errors = append(errors, "minLevelToRemoveMember should be greater or equal to minMembershipLevel")
-	}
-	return errors
-}
-
-func validateGamePayload(payload validatable) []string {
-	return payload.Validate()
-}
-
-func logPayloadErrors(l zap.Logger, errors []string) {
-	var fields []zap.Field
-	for _, err := range errors {
-		fields = append(fields, zap.String("validationError", err))
-	}
-	log.W(l, "Payload is not valid", func(cm log.CM) {
-		cm.Write(fields...)
-	})
-}
 
 type optionalParams struct {
 	maxPendingInvites                              int
@@ -116,7 +29,7 @@ func getOptionalParameters(app *App, c echo.Context) (*optionalParams, error) {
 	}
 
 	var jsonPayload map[string]interface{}
-	err = json.Unmarshal([]byte(data), &jsonPayload)
+	err = json.Unmarshal(data, &jsonPayload)
 	if err != nil {
 		return nil, err
 	}
@@ -165,12 +78,11 @@ func getOptionalParameters(app *App, c echo.Context) (*optionalParams, error) {
 	}, nil
 }
 
-func getCreateGamePayload(app *App, c echo.Context, l zap.Logger) (*createGamePayload, *optionalParams, error) {
-	var payload createGamePayload
+func getCreateGamePayload(app *App, c echo.Context, l zap.Logger) (*CreateGamePayload, *optionalParams, error) {
+	var payload CreateGamePayload
 	if err := LoadJSONPayload(&payload, c, l); err != nil {
 		return nil, nil, err
 	}
-
 	optional, err := getOptionalParameters(app, c)
 	if err != nil {
 		return nil, nil, err

@@ -16,26 +16,6 @@ import (
 	"github.com/uber-go/zap"
 )
 
-type applyForMembershipPayload struct {
-	Level          string
-	PlayerPublicID string
-}
-
-type inviteForMembershipPayload struct {
-	Level             string
-	PlayerPublicID    string
-	RequestorPublicID string
-}
-
-type basePayloadWithRequestorAndPlayerPublicIDs struct {
-	PlayerPublicID    string
-	RequestorPublicID string
-}
-
-type approveOrDenyMembershipInvitationPayload struct {
-	PlayerPublicID string
-}
-
 type membershipOptionalParams struct {
 	Message string
 }
@@ -195,10 +175,10 @@ func dispatchApproveDenyMembershipHook(app *App, db models.DB, hookType int, gam
 	return nil
 }
 
-func getPayloadAndGame(app *App, c echo.Context, l zap.Logger) (*basePayloadWithRequestorAndPlayerPublicIDs, *models.Game, int, error) {
+func getPayloadAndGame(app *App, c echo.Context, l zap.Logger) (*BasePayloadWithRequestorAndPlayerPublicIDs, *models.Game, int, error) {
 	gameID := c.Param("gameID")
 
-	var payload basePayloadWithRequestorAndPlayerPublicIDs
+	var payload BasePayloadWithRequestorAndPlayerPublicIDs
 	if err := LoadJSONPayload(&payload, c, l.With(zap.String("gameID", gameID))); err != nil {
 		return nil, nil, 400, err
 	}

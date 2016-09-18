@@ -15,30 +15,6 @@ import (
 	"github.com/uber-go/zap"
 )
 
-// clanPayload maps the payload for the Create Clan route
-type clanPayload struct {
-	PublicID         string
-	Name             string
-	OwnerPublicID    string
-	Metadata         map[string]interface{}
-	AllowApplication bool
-	AutoJoin         bool
-}
-
-// updateClanPayload maps the payload for the Update Clan route
-type updateClanPayload struct {
-	Name             string
-	OwnerPublicID    string
-	Metadata         map[string]interface{}
-	AllowApplication bool
-	AutoJoin         bool
-}
-
-// transferClanOwnershipPayload maps the payload for the Transfer Clan Ownership route
-type transferClanOwnershipPayload struct {
-	PlayerPublicID string
-}
-
 func dispatchClanOwnershipChangeHook(app *App, db models.DB, hookType int, clan *models.Clan, previousOwner *models.Player, newOwner *models.Player) error {
 	newOwnerPublicID := ""
 	if newOwner != nil {
@@ -140,7 +116,6 @@ func validateUpdateClanDispatch(game *models.Game, sourceClan *models.Clan, clan
 				zap.String("field", field),
 			)
 		})
-		//fmt.Println("field", field, "existsOld", existsOld, "oldVal", oldVal, "existsNew", existsNew, "newVal", newVal)
 
 		if existsOld != existsNew {
 			log.D(l, "Found difference in field. Dispatching hook...", func(cm log.CM) {

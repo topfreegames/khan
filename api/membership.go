@@ -35,7 +35,7 @@ func ApplyForMembershipHandler(app *App) func(c echo.Context) error {
 			zap.String("clanPublicID", clanPublicID),
 		)
 
-		var payload applyForMembershipPayload
+		var payload ApplyForMembershipPayload
 		if err := LoadJSONPayload(&payload, c, l); err != nil {
 			return FailWith(400, err.Error(), c)
 		}
@@ -130,7 +130,7 @@ func InviteForMembershipHandler(app *App) func(c echo.Context) error {
 			zap.String("clanPublicID", clanPublicID),
 		)
 
-		var payload inviteForMembershipPayload
+		var payload InviteForMembershipPayload
 		if err := LoadJSONPayload(&payload, c, l); err != nil {
 			return FailWith(400, err.Error(), c)
 		}
@@ -228,7 +228,7 @@ func ApproveOrDenyMembershipApplicationHandler(app *App) func(c echo.Context) er
 			zap.String("action", action),
 		)
 
-		var payload basePayloadWithRequestorAndPlayerPublicIDs
+		var payload BasePayloadWithRequestorAndPlayerPublicIDs
 		if err := LoadJSONPayload(&payload, c, l); err != nil {
 			return FailWith(400, err.Error(), c)
 		}
@@ -345,7 +345,7 @@ func ApproveOrDenyMembershipInvitationHandler(app *App) func(c echo.Context) err
 			zap.String("action", action),
 		)
 
-		var payload approveOrDenyMembershipInvitationPayload
+		var payload ApproveOrDenyMembershipInvitationPayload
 		if err := LoadJSONPayload(&payload, c, l); err != nil {
 			return FailWith(400, err.Error(), c)
 		}

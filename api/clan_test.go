@@ -11,6 +11,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/http/httptest"
 	"sort"
 	"strings"
 
@@ -18,6 +19,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/satori/go.uuid"
+	"github.com/topfreegames/khan/api"
 	"github.com/topfreegames/khan/models"
 )
 
@@ -83,7 +85,7 @@ var _ = Describe("Clan API Handler", func() {
 			var result map[string]interface{}
 			json.Unmarshal([]byte(body), &result)
 			Expect(result["success"]).To(BeFalse())
-			Expect(result["reason"]).To(Equal(fmt.Sprintf("name is required, ownerPublicID is required, metadata is required")))
+			Expect(result["reason"]).To(Equal(fmt.Sprintf("name is required, ownerPublicID is required")))
 		})
 
 		It("Should not create clan if invalid payload", func() {
@@ -95,7 +97,7 @@ var _ = Describe("Clan API Handler", func() {
 			var result map[string]interface{}
 			json.Unmarshal([]byte(body), &result)
 			Expect(result["success"]).To(BeFalse())
-			Expect(result["reason"]).To(ContainSubstring("looking for beginning of value"))
+			Expect(result["reason"]).To(ContainSubstring(InvalidJSONError))
 		})
 
 		It("Should not create clan if owner does not exist", func() {
@@ -230,7 +232,7 @@ var _ = Describe("Clan API Handler", func() {
 			var result map[string]interface{}
 			json.Unmarshal([]byte(body), &result)
 			Expect(result["success"]).To(BeFalse())
-			Expect(result["reason"]).To(ContainSubstring("looking for beginning of value"))
+			Expect(result["reason"]).To(ContainSubstring(InvalidJSONError))
 		})
 	})
 
@@ -281,7 +283,7 @@ var _ = Describe("Clan API Handler", func() {
 			var result map[string]interface{}
 			json.Unmarshal([]byte(body), &result)
 			Expect(result["success"]).To(BeFalse())
-			Expect(result["reason"]).To(Equal("name is required, ownerPublicID is required, metadata is required, allowApplication is required, autoJoin is required"))
+			Expect(result["reason"]).To(Equal("name is required, ownerPublicID is required"))
 		})
 
 		It("Should not update clan if invalid payload", func() {
@@ -294,7 +296,7 @@ var _ = Describe("Clan API Handler", func() {
 			var result map[string]interface{}
 			json.Unmarshal([]byte(body), &result)
 			Expect(result["success"]).To(BeFalse())
-			Expect(result["reason"]).To(ContainSubstring("looking for beginning of value"))
+			Expect(result["reason"]).To(ContainSubstring(InvalidJSONError))
 		})
 
 		It("Should not update clan if player is not the owner", func() {
@@ -350,33 +352,52 @@ var _ = Describe("Clan API Handler", func() {
 			Expect(result["reason"]).To(Equal("pq: value too long for type character varying(255)"))
 		})
 
-		Measure("Should update a Clan with UpdateClan", func(b Benchmarker) {
-			_, clan, owner, _, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
-			Expect(err).NotTo(HaveOccurred())
+		Describe("Measure", func() {
+			hasRun := false
+			var ts *httptest.Server
+			var app *api.App
+			var route string
+			var payloadJSON string
 
-			gameID := clan.GameID
-			publicID := clan.PublicID
-			clanName := randomdata.FullName(randomdata.RandomGender)
-			ownerPublicID := owner.PublicID
-			metadata := map[string]interface{}{"new": "metadata"}
+			BeforeEach(func() {
+				if !hasRun {
+					_, clan, owner, _, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
+					Expect(err).NotTo(HaveOccurred())
 
-			payload := map[string]interface{}{
-				"name":             clanName,
-				"ownerPublicID":    ownerPublicID,
-				"metadata":         metadata,
-				"allowApplication": !clan.AllowApplication,
-				"autoJoin":         !clan.AutoJoin,
-			}
-			route := GetGameRoute(gameID, fmt.Sprintf("/clans/%s", publicID))
-			a := GetDefaultTestApp()
+					gameID := clan.GameID
+					publicID := clan.PublicID
+					clanName := randomdata.FullName(randomdata.RandomGender)
+					ownerPublicID := owner.PublicID
+					metadata := map[string]interface{}{"new": "metadata"}
 
-			runtime := b.Time("runtime", func() {
-				status, _ := PutJSON(a, route, payload)
-				Expect(status).To(Equal(http.StatusOK))
+					payload := map[string]interface{}{
+						"name":             clanName,
+						"ownerPublicID":    ownerPublicID,
+						"metadata":         metadata,
+						"allowApplication": !clan.AllowApplication,
+						"autoJoin":         !clan.AutoJoin,
+					}
+					payloadJSONB, err := json.Marshal(payload)
+					payloadJSON = string(payloadJSONB)
+					Expect(err).NotTo(HaveOccurred())
+					route = GetGameRoute(gameID, fmt.Sprintf("/clans/%s", publicID))
+
+					app = GetDefaultTestApp()
+					ts = InitializeTestServer(app)
+
+					hasRun = true
+				}
 			})
+			Measure("Should update a Clan with UpdateClan", func(b Benchmarker) {
+				req := GetRequest(app, ts, "PUT", route, payloadJSON)
+				runtime := b.Time("runtime", func() {
+					status, _ := PerformRequest(ts, req)
+					Expect(status).To(Equal(http.StatusOK))
+				})
 
-			Expect(runtime.Seconds()).Should(BeNumerically("<", 0.3), "Operation shouldn't take this long")
-		}, 200)
+				Expect(runtime.Seconds()).Should(BeNumerically("<", 0.3), "Operation shouldn't take this long")
+			}, 200)
+		})
 	})
 
 	Describe("List All Clans Handler", func() {
@@ -1123,7 +1144,7 @@ var _ = Describe("Clan API Handler", func() {
 			Expect(ownerDetails["ownershipCount"]).To(BeEquivalentTo(1))
 		})
 
-		XIt("Should call leave clan hook when last member", func() {
+		It("Should call leave clan hook when last member", func() {
 			hooks, err := models.GetHooksForRoutes(testDb, []string{
 				"http://localhost:52525/clanleave2",
 			}, models.ClanLeftHook)
@@ -1141,7 +1162,6 @@ var _ = Describe("Clan API Handler", func() {
 			a := GetDefaultTestApp()
 			status, body := PostJSON(a, route, payload)
 
-			fmt.Println(body)
 			Expect(status).To(Equal(http.StatusOK))
 			var result map[string]interface{}
 			json.Unmarshal([]byte(body), &result)

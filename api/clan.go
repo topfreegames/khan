@@ -30,7 +30,7 @@ func CreateClanHandler(app *App) func(c echo.Context) error {
 			zap.String("gameID", gameID),
 		)
 
-		var payload clanPayload
+		var payload CreateClanPayload
 		if err := LoadJSONPayload(&payload, c, l); err != nil {
 			log.E(l, "Failed to parse json payload.", func(cm log.CM) {
 				cm.Write(zap.Error(err))
@@ -145,7 +145,7 @@ func UpdateClanHandler(app *App) func(c echo.Context) error {
 			zap.String("clanPublicID", publicID),
 		)
 
-		var payload updateClanPayload
+		var payload UpdateClanPayload
 		if err := LoadJSONPayload(&payload, c, l); err != nil {
 			log.E(l, "Could not load payload.", func(cm log.CM) {
 				cm.Write(zap.Error(err))
@@ -377,7 +377,7 @@ func TransferOwnershipHandler(app *App) func(c echo.Context) error {
 			zap.String("clanPublicID", publicID),
 		)
 
-		var payload transferClanOwnershipPayload
+		var payload TransferClanOwnershipPayload
 		if err := LoadJSONPayload(&payload, c, l); err != nil {
 			return FailWith(400, err.Error(), c)
 		}

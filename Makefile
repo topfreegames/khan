@@ -189,6 +189,7 @@ rtfd:
 
 schema-update: schema-clean
 	@go generate ./models/*.go
+	@go generate ./api/payload.go
 
 schema-clean:
 	@rm -rf ./models/*easyjson.go

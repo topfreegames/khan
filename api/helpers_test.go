@@ -25,6 +25,9 @@ import (
 	kt "github.com/topfreegames/khan/testing"
 )
 
+//InvalidJSONError returned by the API
+var InvalidJSONError = "syntax error near offset"
+
 // GetTestDB returns a connection to the test database
 func GetTestDB() (models.DB, error) {
 	return models.GetDB("localhost", "khan_test", 5433, "disable", "khan_test", "")

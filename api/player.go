@@ -31,7 +31,7 @@ func CreatePlayerHandler(app *App) func(c echo.Context) error {
 			zap.String("gameID", gameID),
 		)
 
-		var payload createPlayerPayload
+		var payload CreatePlayerPayload
 		if err := LoadJSONPayload(&payload, c, l); err != nil {
 			return FailWith(http.StatusBadRequest, err.Error(), c)
 		}
@@ -112,7 +112,7 @@ func UpdatePlayerHandler(app *App) func(c echo.Context) error {
 			zap.String("playerPublicID", playerPublicID),
 		)
 
-		var payload updatePlayerPayload
+		var payload UpdatePlayerPayload
 		if err := LoadJSONPayload(&payload, c, l); err != nil {
 			return FailWith(http.StatusBadRequest, err.Error(), c)
 		}

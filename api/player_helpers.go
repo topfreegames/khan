@@ -15,17 +15,6 @@ import (
 	"github.com/uber-go/zap"
 )
 
-type createPlayerPayload struct {
-	PublicID string
-	Name     string
-	Metadata map[string]interface{}
-}
-
-type updatePlayerPayload struct {
-	Name     string
-	Metadata map[string]interface{}
-}
-
 func validateUpdatePlayerDispatch(game *models.Game, sourcePlayer *models.Player, player *models.Player, metadata map[string]interface{}, l zap.Logger) bool {
 	cl := l.With(
 		zap.String("playerUpdateMetadataFieldsHookTriggerWhitelist", game.PlayerUpdateMetadataFieldsHookTriggerWhitelist),
