@@ -295,7 +295,8 @@ Payload:
             "name": [string],                           // Player Name
             "metadata": [JSON],                         // JSON Object containing player metadata
             "membershipCount": [int],                   // Number of clans this player is a member of
-            "ownershipCount":  [int]                    // Number of clans this player is an owner of
+            "ownershipCount":  [int],                   // Number of clans this player is an owner of
+            "membershipLevel":  [string]                // The level of the player's membership
         },
         "requestor": {                                  // Player that requested this membership application/invite
             "publicID": [string],                       // Requestor PublicID
@@ -333,7 +334,8 @@ Payload:
             "name": [string],                           // Player Name
             "metadata": [JSON],                         // JSON Object containing player metadata
             "membershipCount": [int],                   // Number of clans this player is a member of
-            "ownershipCount":  [int]                    // Number of clans this player is an owner of
+            "ownershipCount":  [int],                   // Number of clans this player is an owner of
+            "membershipLevel":  [string]                // The level of the player's membership
         },
         "requestor": {                                  // Player that approved the membership
             "publicID": [string],                       // Requestor PublicID
@@ -378,7 +380,8 @@ Payload:
             "name": [string],                           // Player Name
             "metadata": [JSON],                         // JSON Object containing player metadata
             "membershipCount": [int],                   // Number of clans this player is a member of
-            "ownershipCount":  [int]                    // Number of clans this player is an owner of
+            "ownershipCount":  [int],                   // Number of clans this player is an owner of
+            "membershipLevel":  [string]                // The level of the player's membership
         },
         "requestor": {                                  // Player that denied the membership
             "publicID": [string],                       // Requestor PublicID
@@ -421,7 +424,8 @@ Payload:
             "name": [string],                           // Player Name
             "metadata": [JSON],                         // JSON Object containing player metadata
             "membershipCount": [int],                   // Number of clans this player is a member of
-            "ownershipCount":  [int]                    // Number of clans this player is an owner of
+            "ownershipCount":  [int],                   // Number of clans this player is an owner of
+            "membershipLevel":  [string]                // The new level of the player's membership
         },
         "requestor": {                                  // Player that promoted this member
             "publicID": [string],                       // Requestor PublicID
@@ -457,7 +461,8 @@ Payload:
             "name": [string],                           // Player Name
             "metadata": [JSON],                         // JSON Object containing player metadata
             "membershipCount": [int],                   // Number of clans this player is a member of
-            "ownershipCount":  [int]                    // Number of clans this player is an owner of
+            "ownershipCount":  [int]                    // Number of clans this player is an owner of,
+            "membershipLevel":  [string]                // The new level of the player's membership
         },
         "requestor": {                                  // Player that demoted this member
             "publicID": [string],                       // Requestor PublicID
@@ -493,7 +498,8 @@ Payload:
             "name": [string],                           // Player Name
             "metadata": [JSON],                         // JSON Object containing player metadata
             "membershipCount": [int],                   // Number of clans this player is a member of
-            "ownershipCount":  [int]                    // Number of clans this player is an owner of
+            "ownershipCount":  [int],                   // Number of clans this player is an owner of
+            "membershipLevel":  [string]                // The level of the player's membership
         },
         "requestor": {                                  // Player that removed leaving player (if they left
                                                         // on their own, then this is the same as player)
