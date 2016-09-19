@@ -35,6 +35,7 @@ type VersionMiddleware struct {
 func (v *VersionMiddleware) Serve(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		c.Response().Header().Set(echo.HeaderServer, fmt.Sprintf("Khan/v%s", v.Version))
+		c.Response().Header().Set("Khan-Server", fmt.Sprintf("Khan/v%s", v.Version))
 		return next(c)
 	}
 }
@@ -56,6 +57,11 @@ func (s *SentryMiddleware) Serve(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		err := next(c)
 		if err != nil {
+			if httpErr, ok := err.(*echo.HTTPError); ok {
+				if httpErr.Code < 500 {
+					return err
+				}
+			}
 			tags := map[string]string{
 				"source": "app",
 				"type":   "Internal server error",
