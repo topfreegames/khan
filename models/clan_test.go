@@ -1172,6 +1172,20 @@ var _ = Describe("Clan Model", func() {
 				Expect(len(clans)).To(Equal(0))
 			})
 
+			It("Should return empty list if matches only PublicID", func() {
+				player, clans, err := GetTestClans(testDb, "", "super-specific-name-and-ID", 10)
+				Expect(err).NotTo(HaveOccurred())
+				clan := clans[0]
+				clan.Name = "should-not-match"
+				_, err = testDb.Update(clan)
+				Expect(err).NotTo(HaveOccurred())
+
+				searchedClans, err := SearchClan(testDb, player.GameID, "specific")
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(len(searchedClans)).To(Equal(9))
+			})
+
 			It("Should return invalid response if empty term", func() {
 				_, err := SearchClan(testDb, "some-game-id", "")
 				Expect(err).To(HaveOccurred())
