@@ -180,6 +180,7 @@ func validateMembershipHookResponse(apply map[string]interface{}, gameID string,
 	Expect(rPlayer["name"]).To(Equal(player.Name))
 	Expect(rPlayer["membershipCount"].(float64)).To(BeNumerically(">=", 0))
 	Expect(rPlayer["ownershipCount"].(float64)).To(BeNumerically(">=", 0))
+	Expect(rPlayer["membershipLevel"]).ToNot(BeEmpty())
 	playerMetadata := rPlayer["metadata"].(map[string]interface{})
 	metadata = player.Metadata
 	for pk, pv := range playerMetadata {

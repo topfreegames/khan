@@ -479,6 +479,7 @@ var _ = Describe("Clan Model", func() {
 				Expect(err).NotTo(HaveOccurred())
 
 				updESClan, err = GetClanFromJSON(*result.Source)
+				Expect(err).NotTo(HaveOccurred())
 				Expect(updESClan.Metadata["x"]).To(BeEquivalentTo(metadata["x"]))
 				Expect(updESClan.Metadata["totalScore"]).To(Equal(float64(11000)))
 				Expect(updESClan.Metadata["foo"]).To(BeEquivalentTo(metadata["foo"]))

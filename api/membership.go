@@ -88,7 +88,7 @@ func ApplyForMembershipHandler(app *App) func(c echo.Context) error {
 		err = dispatchMembershipHookByID(
 			app, tx, models.MembershipApplicationCreatedHook,
 			membership.GameID, membership.ClanID, membership.PlayerID,
-			membership.RequestorID, membership.Message,
+			membership.RequestorID, membership.Message, membership.Level,
 		)
 		if err != nil {
 			txErr := app.Rollback(tx, "Membership application failed", l, err)
@@ -184,7 +184,7 @@ func InviteForMembershipHandler(app *App) func(c echo.Context) error {
 		err = dispatchMembershipHookByID(
 			app, tx, models.MembershipApplicationCreatedHook,
 			membership.GameID, membership.ClanID, membership.PlayerID,
-			membership.RequestorID, membership.Message,
+			membership.RequestorID, membership.Message, membership.Level,
 		)
 		if err != nil {
 			txErr := app.Rollback(tx, "Membership invitation dispatch hook failed", l, err)
@@ -301,7 +301,7 @@ func ApproveOrDenyMembershipApplicationHandler(app *App) func(c echo.Context) er
 		err = dispatchApproveDenyMembershipHookByID(
 			app, tx, hookType,
 			membership.GameID, membership.ClanID, membership.PlayerID,
-			requestor.ID, membership.RequestorID, membership.Message,
+			requestor.ID, membership.RequestorID, membership.Message, membership.Level,
 		)
 
 		if err != nil {
@@ -402,7 +402,7 @@ func ApproveOrDenyMembershipInvitationHandler(app *App) func(c echo.Context) err
 		err = dispatchApproveDenyMembershipHookByID(
 			app, tx, hookType,
 			membership.GameID, membership.ClanID, membership.PlayerID,
-			membership.PlayerID, membership.RequestorID, membership.Message,
+			membership.PlayerID, membership.RequestorID, membership.Message, membership.Level,
 		)
 
 		if err != nil {
@@ -467,7 +467,7 @@ func DeleteMembershipHandler(app *App) func(c echo.Context) error {
 		}
 
 		log.D(l, "Deleting membership...")
-		err = models.DeleteMembership(
+		membership, err := models.DeleteMembership(
 			tx,
 			game,
 			game.PublicID,
@@ -489,7 +489,7 @@ func DeleteMembershipHandler(app *App) func(c echo.Context) error {
 		err = dispatchMembershipHookByPublicID(
 			app, tx, models.MembershipLeftHook,
 			game.PublicID, clanPublicID, payload.PlayerPublicID,
-			payload.RequestorPublicID,
+			payload.RequestorPublicID, membership.Level,
 		)
 		if err != nil {
 			txErr := rb(err)
@@ -596,7 +596,7 @@ func PromoteOrDemoteMembershipHandler(app *App, action string) func(c echo.Conte
 		err = dispatchMembershipHookByID(
 			app, tx, hookType,
 			membership.GameID, membership.ClanID, membership.PlayerID,
-			requestor.ID, membership.Message,
+			requestor.ID, membership.Message, membership.Level,
 		)
 		if err != nil {
 			txErr := rb(err)

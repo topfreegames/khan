@@ -253,7 +253,7 @@ var _ = Describe("Player Model", func() {
 				game, clan, _, players, _, err := GetClanWithMemberships(testDb, 1, 0, 0, 0, "", "")
 				Expect(err).NotTo(HaveOccurred())
 
-				err = DeleteMembership(
+				_, err = DeleteMembership(
 					testDb,
 					game,
 					game.PublicID,
@@ -299,7 +299,7 @@ var _ = Describe("Player Model", func() {
 				game, clan, _, players, _, err := GetClanWithMemberships(testDb, 1, 0, 0, 0, "", "")
 				Expect(err).NotTo(HaveOccurred())
 
-				err = DeleteMembership(
+				_, err = DeleteMembership(
 					testDb,
 					game,
 					game.PublicID,

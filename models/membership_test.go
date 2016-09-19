@@ -670,7 +670,7 @@ var _ = Describe("Hook Model", func() {
 				_, err = testDb.Update(clan)
 				Expect(err).NotTo(HaveOccurred())
 
-				err = DeleteMembership(
+				_, err = DeleteMembership(
 					testDb,
 					game,
 					clan.GameID,
@@ -2395,7 +2395,7 @@ var _ = Describe("Hook Model", func() {
 				game, clan, owner, players, memberships, err := GetClanWithMemberships(testDb, 1, 0, 0, 0, "", "")
 				Expect(err).NotTo(HaveOccurred())
 
-				err = DeleteMembership(
+				_, err = DeleteMembership(
 					testDb,
 					game,
 					clan.GameID,
@@ -2426,7 +2426,7 @@ var _ = Describe("Hook Model", func() {
 				game, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 1, 0, 0, 0, "", "")
 				Expect(err).NotTo(HaveOccurred())
 
-				err = DeleteMembership(
+				_, err = DeleteMembership(
 					testDb,
 					game,
 					clan.GameID,
@@ -2461,7 +2461,7 @@ var _ = Describe("Hook Model", func() {
 				_, err = testDb.Update(memberships[1])
 				Expect(err).NotTo(HaveOccurred())
 
-				err = DeleteMembership(
+				_, err = DeleteMembership(
 					testDb,
 					game,
 					clan.GameID,
@@ -2498,7 +2498,7 @@ var _ = Describe("Hook Model", func() {
 				_, err = testDb.Update(memberships[1])
 				Expect(err).NotTo(HaveOccurred())
 
-				err = DeleteMembership(
+				_, err = DeleteMembership(
 					testDb,
 					game,
 					clan.GameID,
@@ -2514,7 +2514,7 @@ var _ = Describe("Hook Model", func() {
 				game, clan, _, players, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 2, "", "")
 				Expect(err).NotTo(HaveOccurred())
 
-				err = DeleteMembership(
+				_, err = DeleteMembership(
 					testDb,
 					game,
 					clan.GameID,
@@ -2536,7 +2536,7 @@ var _ = Describe("Hook Model", func() {
 				err = testDb.Insert(requestor)
 				Expect(err).NotTo(HaveOccurred())
 
-				err = DeleteMembership(
+				_, err = DeleteMembership(
 					testDb,
 					game,
 					clan.GameID,
@@ -2558,7 +2558,7 @@ var _ = Describe("Hook Model", func() {
 				_, err = testDb.Update(memberships[1])
 				Expect(err).NotTo(HaveOccurred())
 
-				err = DeleteMembership(
+				_, err = DeleteMembership(
 					testDb,
 					game,
 					clan.GameID,
@@ -2579,7 +2579,7 @@ var _ = Describe("Hook Model", func() {
 				_, err = testDb.Update(memberships[1])
 				Expect(err).NotTo(HaveOccurred())
 
-				err = DeleteMembership(
+				_, err = DeleteMembership(
 					testDb,
 					game,
 					clan.GameID,

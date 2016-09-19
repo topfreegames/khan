@@ -362,7 +362,7 @@ func LeaveClan(db DB, gameID, publicID string) (*Clan, *Player, *Player, error) 
 		return nil, nil, nil, err
 	}
 
-	err = deleteMembershipHelper(db, newOwnerMembership, newOwnerMembership.PlayerID)
+	_, err = deleteMembershipHelper(db, newOwnerMembership, newOwnerMembership.PlayerID)
 	if err != nil {
 		return nil, nil, nil, err
 	}
@@ -438,7 +438,7 @@ func TransferClanOwnership(db DB, gameID, clanPublicID, playerPublicID string, l
 	}
 
 	//Update new owner memberships
-	err = deleteMembershipHelper(db, newOwnerMembership, newOwnerMembership.PlayerID)
+	_, err = deleteMembershipHelper(db, newOwnerMembership, newOwnerMembership.PlayerID)
 	if err != nil {
 		return nil, nil, nil, err
 	}

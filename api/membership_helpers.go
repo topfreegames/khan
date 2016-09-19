@@ -44,7 +44,7 @@ func getMembershipOptionalParameters(app *App, c echo.Context) (*membershipOptio
 	}, nil
 }
 
-func dispatchMembershipHookByPublicID(app *App, db models.DB, hookType int, gameID, clanID, playerID, requestorID string) error {
+func dispatchMembershipHookByPublicID(app *App, db models.DB, hookType int, gameID, clanID, playerID, requestorID, membershipLevel string) error {
 	clan, err := models.GetClanByPublicID(db, gameID, clanID)
 	if err != nil {
 		return err
@@ -63,10 +63,10 @@ func dispatchMembershipHookByPublicID(app *App, db models.DB, hookType int, game
 		}
 	}
 
-	return dispatchMembershipHook(app, db, hookType, gameID, clan, player, requestor, "")
+	return dispatchMembershipHook(app, db, hookType, gameID, clan, player, requestor, "", membershipLevel)
 }
 
-func dispatchMembershipHookByID(app *App, db models.DB, hookType int, gameID string, clanID, playerID, requestorID int, message string) error {
+func dispatchMembershipHookByID(app *App, db models.DB, hookType int, gameID string, clanID, playerID, requestorID int, message, membershipLevel string) error {
 	clan, err := models.GetClanByID(db, clanID)
 	if err != nil {
 		return err
@@ -85,10 +85,10 @@ func dispatchMembershipHookByID(app *App, db models.DB, hookType int, gameID str
 		}
 	}
 
-	return dispatchMembershipHook(app, db, hookType, gameID, clan, player, requestor, message)
+	return dispatchMembershipHook(app, db, hookType, gameID, clan, player, requestor, message, membershipLevel)
 }
 
-func dispatchApproveDenyMembershipHookByID(app *App, db models.DB, hookType int, gameID string, clanID, playerID, requestorID, creatorID int, message string) error {
+func dispatchApproveDenyMembershipHookByID(app *App, db models.DB, hookType int, gameID string, clanID, playerID, requestorID, creatorID int, message, membershipLevel string) error {
 	clan, err := models.GetClanByID(db, clanID)
 	if err != nil {
 		return err
@@ -118,14 +118,15 @@ func dispatchApproveDenyMembershipHookByID(app *App, db models.DB, hookType int,
 		}
 	}
 
-	return dispatchApproveDenyMembershipHook(app, db, hookType, gameID, clan, player, requestor, creator, message)
+	return dispatchApproveDenyMembershipHook(app, db, hookType, gameID, clan, player, requestor, creator, message, membershipLevel)
 }
 
-func dispatchMembershipHook(app *App, db models.DB, hookType int, gameID string, clan *models.Clan, player *models.Player, requestor *models.Player, message string) error {
+func dispatchMembershipHook(app *App, db models.DB, hookType int, gameID string, clan *models.Clan, player *models.Player, requestor *models.Player, message, membershipLevel string) error {
 	clanJSON := clan.Serialize()
 	delete(clanJSON, "gameID")
 
 	playerJSON := player.Serialize()
+	playerJSON["membershipLevel"] = membershipLevel
 	delete(playerJSON, "gameID")
 
 	requestorJSON := requestor.Serialize()
@@ -146,11 +147,12 @@ func dispatchMembershipHook(app *App, db models.DB, hookType int, gameID string,
 	return nil
 }
 
-func dispatchApproveDenyMembershipHook(app *App, db models.DB, hookType int, gameID string, clan *models.Clan, player *models.Player, requestor *models.Player, creator *models.Player, message string) error {
+func dispatchApproveDenyMembershipHook(app *App, db models.DB, hookType int, gameID string, clan *models.Clan, player *models.Player, requestor *models.Player, creator *models.Player, message, playerMembershipLevel string) error {
 	clanJSON := clan.Serialize()
 	delete(clanJSON, "gameID")
 
 	playerJSON := player.Serialize()
+	playerJSON["membershipLevel"] = playerMembershipLevel
 	delete(playerJSON, "gameID")
 
 	requestorJSON := requestor.Serialize()

@@ -460,10 +460,10 @@ func PromoteOrDemoteMember(db DB, game *Game, gameID, playerPublicID, clanPublic
 }
 
 // DeleteMembership soft deletes a membership
-func DeleteMembership(db DB, game *Game, gameID, playerPublicID, clanPublicID, requestorPublicID string) error {
+func DeleteMembership(db DB, game *Game, gameID, playerPublicID, clanPublicID, requestorPublicID string) (*Membership, error) {
 	membership, err := GetValidMembershipByClanAndPlayerPublicID(db, gameID, clanPublicID, playerPublicID)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if playerPublicID == requestorPublicID {
 		return deleteMembershipHelper(db, membership, membership.PlayerID)
@@ -472,7 +472,7 @@ func DeleteMembership(db DB, game *Game, gameID, playerPublicID, clanPublicID, r
 	if reqMembership == nil {
 		clan, clanErr := GetClanByPublicIDAndOwnerPublicID(db, gameID, clanPublicID, requestorPublicID)
 		if clanErr != nil {
-			return &PlayerCannotPerformMembershipActionError{"delete", playerPublicID, clanPublicID, requestorPublicID}
+			return nil, &PlayerCannotPerformMembershipActionError{"delete", playerPublicID, clanPublicID, requestorPublicID}
 		}
 		return deleteMembershipHelper(db, membership, clan.OwnerID)
 	}
@@ -482,7 +482,7 @@ func DeleteMembership(db DB, game *Game, gameID, playerPublicID, clanPublicID, r
 	if isValidMember(reqMembership) && reqLevelInt >= game.MinLevelToRemoveMember && reqLevelInt >= levelInt+game.MinLevelOffsetToRemoveMember {
 		return deleteMembershipHelper(db, membership, reqMembership.PlayerID)
 	}
-	return &PlayerCannotPerformMembershipActionError{"delete", playerPublicID, clanPublicID, requestorPublicID}
+	return nil, &PlayerCannotPerformMembershipActionError{"delete", playerPublicID, clanPublicID, requestorPublicID}
 }
 
 func isValidMember(membership *Membership) bool {
@@ -597,15 +597,15 @@ func promoteOrDemoteMemberHelper(db DB, membership *Membership, action string, l
 	return membership, nil
 }
 
-func deleteMembershipHelper(db DB, membership *Membership, deletedBy int) error {
+func deleteMembershipHelper(db DB, membership *Membership, deletedBy int) (*Membership, error) {
 	if membership.Approved {
 		err := IncrementPlayerMembershipCount(db, membership.PlayerID, -1)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		err = IncrementClanMembershipCount(db, membership.ClanID, -1)
 		if err != nil {
-			return err
+			return nil, err
 		}
 	}
 
@@ -617,7 +617,7 @@ func deleteMembershipHelper(db DB, membership *Membership, deletedBy int) error 
 	membership.Banned = deletedBy != membership.PlayerID // TODO: Test this
 
 	_, err := db.Update(membership)
-	return err
+	return membership, err
 }
 
 // GetLevelByLevelInt returns the level string given the level int
