@@ -91,6 +91,35 @@ var _ = Describe("Hook Model", func() {
 				Expect(err.Error()).To(Equal(expected))
 			})
 
+			It("Should not create a new membership for the clan owner", func() {
+				game, clan, owner, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
+				Expect(err).NotTo(HaveOccurred())
+				Expect(clan).NotTo(BeEquivalentTo(nil))
+
+				game.MaxClansPerPlayer = 2
+				_, err = testDb.Update(game)
+				Expect(err).NotTo(HaveOccurred())
+
+				_, err = CreateMembership(
+					testDb,
+					game,
+					game.PublicID,
+					"Member",
+					owner.PublicID,
+					clan.PublicID,
+					owner.PublicID,
+					"",
+				)
+
+				Expect(err).To(HaveOccurred())
+
+				expected := fmt.Sprintf(
+					"Player %s already has a valid membership in clan %s.",
+					owner.PublicID, clan.PublicID,
+				)
+				Expect(err.Error()).To(Equal(expected))
+			})
+
 			It("Should create a new membership for a member when game MaxPendingInvites is -1", func() {
 				gameID := uuid.NewV4().String()
 				player, err := GetTestPlayerWithMemberships(testDb, gameID, 0, 0, 0, 20)
@@ -1285,7 +1314,39 @@ var _ = Describe("Hook Model", func() {
 				)
 
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(Equal(fmt.Sprintf("Player %s cannot create membership for clan %s", requestorPublicID, clan.PublicID)))
+				Expect(err.Error()).To(Equal(fmt.Sprintf("Player was not found with id: %s", requestorPublicID)))
+			})
+
+			It("Requestor is not clan member/owner", func() {
+				game, clan, _, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
+				Expect(err).NotTo(HaveOccurred())
+
+				player := PlayerFactory.MustCreateWithOption(map[string]interface{}{
+					"GameID": clan.GameID,
+				}).(*Player)
+				err = testDb.Insert(player)
+				Expect(err).NotTo(HaveOccurred())
+
+				requestor := PlayerFactory.MustCreateWithOption(map[string]interface{}{
+					"GameID": clan.GameID,
+				}).(*Player)
+				err = testDb.Insert(requestor)
+				Expect(err).NotTo(HaveOccurred())
+
+				_, err = CreateMembership(
+					testDb,
+					game,
+					player.GameID,
+					"Member",
+					player.PublicID,
+					clan.PublicID,
+					requestor.PublicID,
+					"Please accept me",
+				)
+
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(Equal(fmt.Sprintf("Player %s cannot create membership for clan %s",
+					requestor.PublicID, clan.PublicID)))
 			})
 
 			It("Requestor's level is less than min level", func() {
