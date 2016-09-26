@@ -217,3 +217,56 @@ func (p *playerDetailsDAO) Serialize() map[string]interface{} {
 	}
 	return result
 }
+
+type membershipSummaryDAO struct {
+	// Player Details
+	PlayerID        int
+	PlayerName      string
+	PlayerMetadata  map[string]interface{}
+	PlayerPublicID  string
+	PlayerCreatedAt int64
+	PlayerUpdatedAt int64
+
+	// Membership Details
+	MembershipLevel      string
+	MembershipApproved   bool
+	MembershipDenied     bool
+	MembershipBanned     bool
+	MembershipCreatedAt  int64
+	MembershipUpdatedAt  int64
+	MembershipDeletedAt  int64
+	MembershipApprovedAt int64
+	MembershipDeniedAt   int64
+	MembershipMessage    string
+
+	// Clan Details
+	ClanPublicID sql.NullString
+}
+
+func (p *membershipSummaryDAO) Serialize() map[string]interface{} {
+	result := map[string]interface{}{
+		"level":      p.MembershipLevel,
+		"approved":   p.MembershipApproved,
+		"denied":     p.MembershipDenied,
+		"banned":     p.MembershipBanned,
+		"createdAt":  p.MembershipCreatedAt,
+		"updatedAt":  p.MembershipUpdatedAt,
+		"deletedAt":  p.MembershipDeletedAt,
+		"approvedAt": p.MembershipApprovedAt,
+		"deniedAt":   p.MembershipDeniedAt,
+		"message":    p.MembershipMessage,
+		"clan": map[string]interface{}{
+			"publicID": p.ClanPublicID,
+		},
+		"player": map[string]interface{}{
+			"ID":        p.PlayerID,
+			"name":      p.PlayerName,
+			"publicID":  p.PlayerPublicID,
+			"createdAt": p.PlayerCreatedAt,
+			"updatedAt": p.PlayerUpdatedAt,
+			"metadata":  p.PlayerMetadata,
+		},
+	}
+
+	return result
+}

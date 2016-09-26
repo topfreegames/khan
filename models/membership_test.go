@@ -2652,5 +2652,29 @@ var _ = Describe("Hook Model", func() {
 				Expect(err.Error()).To(Equal(fmt.Sprintf("Player %s cannot %s membership for player %s and clan %s", players[1].PublicID, "delete", players[0].PublicID, clan.PublicID)))
 			})
 		})
+		Describe("Get Membership summary", func() {
+			It("Should get a Membership Summary", func() {
+				_, _, _, _, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
+				Expect(err).NotTo(HaveOccurred())
+
+				membership := memberships[0]
+				Expect(membership.ID).NotTo(BeEquivalentTo(0))
+
+				dbMembership, err := GetMembershipByID(testDb, membership.ID)
+				Expect(err).NotTo(HaveOccurred())
+
+				dbPlayer, err := GetPlayerByID(testDb, dbMembership.PlayerID)
+				Expect(err).NotTo(HaveOccurred())
+
+				dbClan, err := GetClanByID(testDb, dbMembership.ClanID)
+				Expect(err).NotTo(HaveOccurred())
+
+				membershipSummary, err := GetMembershipSummaryByGameIDClanIDAndPlayerID(testDb,
+					dbMembership.GameID, dbClan.PublicID, dbPlayer.PublicID)
+				Expect(err).NotTo(HaveOccurred())
+
+				fmt.Println(membershipSummary)
+			})
+		})
 	})
 })

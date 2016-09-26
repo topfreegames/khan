@@ -655,3 +655,43 @@ func GetLevelIntByLevel(level string, levels map[string]interface{}) int {
 		return v.(int)
 	}
 }
+
+// GetMembershipSummaryByGameIDClanIDAndPlayerID returns detailed information about a player and his
+// active membership
+func GetMembershipSummaryByGameIDClanIDAndPlayerID(db DB, gameID, clanID, publicID string) (
+	map[string]interface{}, error) {
+	query := `
+    SELECT
+      p.id PlayerID,
+      p.name PlayerName,
+      p.metadata PlayerMetadata,
+      p.public_id PlayerPublicID,
+      p.created_at PlayerCreatedAt,
+      p.updated_at PlayerUpdatedAt,
+      m.membership_level MembershipLevel,
+      m.approved MembershipApproved,
+      m.denied MembershipDenied,
+      m.banned MembershipBanned,
+      m.created_at MembershipCreatedAt,
+      m.updated_at MembershipUpdatedAt,
+      m.deleted_at MembershipDeletedAt,
+      m.approved_at MembershipApprovedAt,
+      m.denied_at MembershipDeniedAt,
+      m.message MembershipMessage,
+      m.clan_id ClanPublicID
+    FROM memberships m
+    INNER JOIN players p ON p.id = m.player_id
+    INNER JOIN clans c ON c.id = m.clan_id
+    WHERE p.public_id = $1
+      AND c.public_id = $2
+      AND m.game_id = $3
+      AND m.deleted_at = 0
+	`
+
+	var summary membershipSummaryDAO
+	err := db.SelectOne(&summary, query, publicID, clanID, gameID)
+	if err != nil {
+		return nil, err
+	}
+	return summary.Serialize(), nil
+}
