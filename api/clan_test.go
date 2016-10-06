@@ -1243,7 +1243,6 @@ var _ = Describe("Clan API Handler", func() {
 			Expect(previousOwnerDetails["name"]).To(Equal(owner.Name))
 			Expect(previousOwnerDetails["membershipCount"]).To(BeEquivalentTo(1))
 			Expect(previousOwnerDetails["ownershipCount"]).To(BeEquivalentTo(0))
-
 		})
 	})
 })

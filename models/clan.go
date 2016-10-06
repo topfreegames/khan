@@ -145,13 +145,20 @@ func (c *Clan) Serialize() map[string]interface{} {
 	}
 }
 
-// IncrementClanMembershipCount increments the clan membership count
-func IncrementClanMembershipCount(db DB, id, by int) error {
+// UpdateClanMembershipCount updates the clan membership count
+func UpdateClanMembershipCount(db DB, id int) error {
 	query := `
-	UPDATE clans SET membership_count=membership_count+$1
-	WHERE clans.id=$2
+	UPDATE clans SET membership_count=membership.count+1
+	FROM (
+		SELECT COUNT(*) as count
+		FROM memberships m
+		WHERE
+			m.clan_id = $1 AND m.deleted_at = 0 AND m.approved = true AND
+			m.denied = false AND m.banned = false
+	) as membership
+	WHERE clans.id=$1
 	`
-	res, err := db.Exec(query, by, id)
+	res, err := db.Exec(query, id)
 	if err != nil {
 		return err
 	}
@@ -308,7 +315,7 @@ func CreateClan(db DB, gameID, publicID, name, ownerPublicID string, metadata ma
 		return nil, err
 	}
 
-	err = IncrementPlayerOwnershipCount(db, player.ID, 1)
+	err = UpdatePlayerOwnershipCount(db, player.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -323,10 +330,6 @@ func LeaveClan(db DB, gameID, publicID string) (*Clan, *Player, *Player, error) 
 	}
 
 	oldOwnerID := clan.OwnerID
-	err = IncrementPlayerOwnershipCount(db, oldOwnerID, -1)
-	if err != nil {
-		return nil, nil, nil, err
-	}
 	oldOwner, err := GetPlayerByID(db, oldOwnerID)
 	if err != nil {
 		return nil, nil, nil, err
@@ -342,6 +345,10 @@ func LeaveClan(db DB, gameID, publicID string) (*Clan, *Player, *Player, error) 
 				return nil, nil, nil, err
 			}
 			_, err = db.Delete(clan)
+			if err != nil {
+				return nil, nil, nil, err
+			}
+			err = UpdatePlayerOwnershipCount(db, oldOwnerID)
 			if err != nil {
 				return nil, nil, nil, err
 			}
@@ -367,7 +374,11 @@ func LeaveClan(db DB, gameID, publicID string) (*Clan, *Player, *Player, error) 
 		return nil, nil, nil, err
 	}
 
-	err = IncrementPlayerOwnershipCount(db, newOwnerMembership.PlayerID, 1)
+	err = UpdatePlayerOwnershipCount(db, oldOwnerID)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+	err = UpdatePlayerOwnershipCount(db, newOwner.ID)
 	if err != nil {
 		return nil, nil, nil, err
 	}
@@ -443,7 +454,7 @@ func TransferClanOwnership(db DB, gameID, clanPublicID, playerPublicID string, l
 		return nil, nil, nil, err
 	}
 
-	err = IncrementPlayerOwnershipCount(db, newOwnerMembership.PlayerID, 1)
+	err = UpdatePlayerOwnershipCount(db, newOwnerMembership.PlayerID)
 	if err != nil {
 		return nil, nil, nil, err
 	}
@@ -454,12 +465,12 @@ func TransferClanOwnership(db DB, gameID, clanPublicID, playerPublicID string, l
 	}
 
 	//Update old owner membership
-	err = IncrementPlayerOwnershipCount(db, oldOwnerID, -1)
+	err = UpdatePlayerOwnershipCount(db, oldOwnerID)
 	if err != nil {
 		return nil, nil, nil, err
 	}
 
-	err = IncrementPlayerMembershipCount(db, oldOwnerID, 1)
+	err = UpdatePlayerMembershipCount(db, oldOwnerID)
 	if err != nil {
 		return nil, nil, nil, err
 	}

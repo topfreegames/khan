@@ -516,11 +516,11 @@ func approveOrDenyMembershipHelper(db DB, membership *Membership, action string,
 		return nil, err
 	}
 	if approve {
-		err = IncrementPlayerMembershipCount(db, membership.PlayerID, 1)
+		err = UpdatePlayerMembershipCount(db, membership.PlayerID)
 		if err != nil {
 			return nil, err
 		}
-		err = IncrementClanMembershipCount(db, membership.ClanID, 1)
+		err = UpdateClanMembershipCount(db, membership.ClanID)
 		if err != nil {
 			return nil, err
 		}
@@ -545,11 +545,11 @@ func createMembershipHelper(db DB, gameID, level string, playerID, clanID, reque
 		return nil, err
 	}
 	if approved {
-		err = IncrementPlayerMembershipCount(db, membership.PlayerID, 1)
+		err = UpdatePlayerMembershipCount(db, membership.PlayerID)
 		if err != nil {
 			return nil, err
 		}
-		err = IncrementClanMembershipCount(db, membership.ClanID, 1)
+		err = UpdateClanMembershipCount(db, membership.ClanID)
 		if err != nil {
 			return nil, err
 		}
@@ -572,11 +572,11 @@ func updatePreviousMembershipHelper(db DB, membership *Membership, level string,
 		return nil, err
 	}
 	if approved {
-		err = IncrementPlayerMembershipCount(db, membership.PlayerID, 1)
+		err = UpdatePlayerMembershipCount(db, membership.PlayerID)
 		if err != nil {
 			return nil, err
 		}
-		err = IncrementClanMembershipCount(db, membership.ClanID, 1)
+		err = UpdateClanMembershipCount(db, membership.ClanID)
 		if err != nil {
 			return nil, err
 		}
@@ -606,17 +606,7 @@ func promoteOrDemoteMemberHelper(db DB, membership *Membership, action string, l
 }
 
 func deleteMembershipHelper(db DB, membership *Membership, deletedBy int) (*Membership, error) {
-	if membership.Approved {
-		err := IncrementPlayerMembershipCount(db, membership.PlayerID, -1)
-		if err != nil {
-			return nil, err
-		}
-		err = IncrementClanMembershipCount(db, membership.ClanID, -1)
-		if err != nil {
-			return nil, err
-		}
-	}
-
+	membershipWasApproved := membership.Approved
 	membership.DeletedAt = util.NowMilli()
 	membership.DeletedBy = deletedBy
 	membership.Approved = false
@@ -625,6 +615,20 @@ func deleteMembershipHelper(db DB, membership *Membership, deletedBy int) (*Memb
 	membership.Banned = deletedBy != membership.PlayerID // TODO: Test this
 
 	_, err := db.Update(membership)
+	if err != nil {
+		return nil, err
+	}
+
+	if membershipWasApproved {
+		err := UpdatePlayerMembershipCount(db, membership.PlayerID)
+		if err != nil {
+			return nil, err
+		}
+		err = UpdateClanMembershipCount(db, membership.ClanID)
+		if err != nil {
+			return nil, err
+		}
+	}
 	return membership, err
 }
 

@@ -1695,48 +1695,47 @@ var _ = Describe("Hook Model", func() {
 
 			It("Requestor is member of the clan with level > minLevel", func() {
 				action := "approve"
-				game, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 2, "", "")
+				game, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 1, 0, 0, 1, "", "")
 				Expect(err).NotTo(HaveOccurred())
 
-				memberships[0].RequestorID = memberships[0].PlayerID
+				memberships[0].Level = "CoLeader"
 				_, err = testDb.Update(memberships[0])
 				Expect(err).NotTo(HaveOccurred())
 
-				memberships[1].Level = "CoLeader"
-				memberships[1].Approved = true
+				memberships[1].RequestorID = memberships[1].PlayerID
 				_, err = testDb.Update(memberships[1])
 				Expect(err).NotTo(HaveOccurred())
 
 				updatedMembership, err := ApproveOrDenyMembershipApplication(
 					testDb,
 					game,
-					players[0].GameID,
-					players[0].PublicID,
-					clan.PublicID,
+					players[1].GameID,
 					players[1].PublicID,
+					clan.PublicID,
+					players[0].PublicID,
 					action,
 				)
 
 				Expect(err).NotTo(HaveOccurred())
-				Expect(updatedMembership.ID).To(Equal(memberships[0].ID))
+				Expect(updatedMembership.ID).To(Equal(memberships[1].ID))
 				Expect(updatedMembership.Approved).To(Equal(true))
 				Expect(updatedMembership.Denied).To(Equal(false))
 
 				Expect(updatedMembership.ApproverID.Valid).To(BeTrue())
-				Expect(updatedMembership.ApproverID.Int64).To(Equal(int64(players[1].ID)))
+				Expect(updatedMembership.ApproverID.Int64).To(Equal(int64(players[0].ID)))
 
 				dbMembership, err := GetMembershipByID(testDb, updatedMembership.ID)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(dbMembership.Approved).To(Equal(true))
 				Expect(dbMembership.Denied).To(Equal(false))
 
-				dbPlayer, err := GetPlayerByID(testDb, players[0].ID)
+				dbPlayer, err := GetPlayerByID(testDb, players[1].ID)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(dbPlayer.MembershipCount).To(Equal(1))
 
 				dbClan, err := GetClanByID(testDb, clan.ID)
 				Expect(err).NotTo(HaveOccurred())
-				Expect(dbClan.MembershipCount).To(Equal(2))
+				Expect(dbClan.MembershipCount).To(Equal(3))
 			})
 		})
 

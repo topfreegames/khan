@@ -218,33 +218,50 @@ var _ = Describe("Clan Model", func() {
 				Expect(err.Error()).To(Equal(fmt.Sprintf("Clan was not found with id: %s", clan.PublicID)))
 			})
 
-			Describe("Increment Clan Membership Count", func() {
-				It("Should work if positive value", func() {
-					amount := 1
-					_, clans, err := GetTestClans(testDb, "", "", 1)
+			Describe("Update Clan Membership Count", func() {
+				It("Should work if membership is created", func() {
+					previousAmount := 5
+					_, clan, _, _, _, err := GetClanWithMemberships(testDb, previousAmount-1, 2, 3, 4, "", "")
 					Expect(err).NotTo(HaveOccurred())
 
-					err = IncrementClanMembershipCount(testDb, clans[0].ID, amount)
+					_, player, err := CreatePlayerFactory(testDb, clan.GameID, true)
 					Expect(err).NotTo(HaveOccurred())
-					dbClan, err := GetClanByID(testDb, clans[0].ID)
+
+					membership := MembershipFactory.MustCreateWithOption(map[string]interface{}{
+						"GameID":      player.GameID,
+						"PlayerID":    player.ID,
+						"ClanID":      clan.ID,
+						"RequestorID": player.ID,
+						"Metadata":    map[string]interface{}{"x": "a"},
+						"Approved":    true,
+					}).(*Membership)
+					err = testDb.Insert(membership)
 					Expect(err).NotTo(HaveOccurred())
-					Expect(dbClan.MembershipCount).To(Equal(clans[0].MembershipCount + amount))
+
+					err = UpdateClanMembershipCount(testDb, clan.ID)
+					Expect(err).NotTo(HaveOccurred())
+					dbClan, err := GetClanByID(testDb, clan.ID)
+					Expect(err).NotTo(HaveOccurred())
+					Expect(dbClan.MembershipCount).To(Equal(previousAmount + 1))
 				})
 
-				It("Should work if negative value", func() {
-					amount := -1
-					_, clans, err := GetTestClans(testDb, "", "", 1)
+				It("Should work if membership is deleted", func() {
+					previousAmount := 5
+					_, clan, _, _, memberships, err := GetClanWithMemberships(testDb, previousAmount-1, 2, 3, 4, "", "")
 					Expect(err).NotTo(HaveOccurred())
 
-					err = IncrementClanMembershipCount(testDb, clans[0].ID, amount)
+					_, err = testDb.Delete(memberships[0])
 					Expect(err).NotTo(HaveOccurred())
-					dbClan, err := GetClanByID(testDb, clans[0].ID)
+
+					err = UpdateClanMembershipCount(testDb, clan.ID)
 					Expect(err).NotTo(HaveOccurred())
-					Expect(dbClan.MembershipCount).To(Equal(clans[0].MembershipCount + amount))
+					dbClan, err := GetClanByID(testDb, clan.ID)
+					Expect(err).NotTo(HaveOccurred())
+					Expect(dbClan.MembershipCount).To(Equal(previousAmount - 1))
 				})
 
 				It("Should not work if non-existing Player", func() {
-					err := IncrementClanMembershipCount(testDb, -1, 1)
+					err := UpdateClanMembershipCount(testDb, -1)
 					Expect(err).To(HaveOccurred())
 					Expect(err.Error()).To(Equal("Clan was not found with id: -1"))
 				})

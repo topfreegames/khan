@@ -13,6 +13,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	. "github.com/topfreegames/khan/models"
+	"github.com/topfreegames/khan/util"
 
 	"github.com/satori/go.uuid"
 )
@@ -471,65 +472,133 @@ var _ = Describe("Player Model", func() {
 			})
 		})
 
-		Describe("Increment Player Membership Count", func() {
-			It("Should work if positive value", func() {
-				amount := 1
-				_, player, err := CreatePlayerFactory(testDb, "")
+		Describe("Update Player Membership Count", func() {
+			It("Should work if membership is created", func() {
+				prevMemberships := 5
+				player, err := GetTestPlayerWithMemberships(testDb, "", prevMemberships, 2, 3, 4)
 				Expect(err).NotTo(HaveOccurred())
 
-				err = IncrementPlayerMembershipCount(testDb, player.ID, amount)
+				clan := ClanFactory.MustCreateWithOption(map[string]interface{}{
+					"GameID":          player.GameID,
+					"PublicID":        uuid.NewV4().String(),
+					"OwnerID":         player.ID,
+					"Metadata":        map[string]interface{}{"x": "a"},
+					"MembershipCount": 1,
+				}).(*Clan)
+				err = testDb.Insert(clan)
 				Expect(err).NotTo(HaveOccurred())
+
+				membership := MembershipFactory.MustCreateWithOption(map[string]interface{}{
+					"GameID":      player.GameID,
+					"PlayerID":    player.ID,
+					"ClanID":      clan.ID,
+					"RequestorID": player.ID,
+					"Metadata":    map[string]interface{}{"x": "a"},
+					"Approved":    true,
+					"Denied":      false,
+					"Banned":      false,
+				}).(*Membership)
+				err = testDb.Insert(membership)
+				Expect(err).NotTo(HaveOccurred())
+
+				err = UpdatePlayerMembershipCount(testDb, player.ID)
+				Expect(err).NotTo(HaveOccurred())
+
 				dbPlayer, err := GetPlayerByID(testDb, player.ID)
 				Expect(err).NotTo(HaveOccurred())
-				Expect(dbPlayer.MembershipCount).To(Equal(player.MembershipCount + amount))
+				Expect(dbPlayer.MembershipCount).To(Equal(prevMemberships + 1))
 			})
 
-			It("Should work if negative value", func() {
-				amount := -1
-				_, player, err := CreatePlayerFactory(testDb, "")
+			It("Should work if membership is deleted", func() {
+				prevMemberships := 5
+				player, err := GetTestPlayerWithMemberships(testDb, "", prevMemberships, 2, 3, 4)
 				Expect(err).NotTo(HaveOccurred())
 
-				err = IncrementPlayerMembershipCount(testDb, player.ID, amount)
+				var membership *Membership
+				err = testDb.SelectOne(&membership, "SELECT * FROM memberships WHERE game_id=$1 AND player_id=$2 AND approved=true LIMIT 1", player.GameID, player.ID)
+				Expect(membership).ToNot(BeNil())
+				membership.DeletedAt = util.NowMilli()
+				_, err = testDb.Update(membership)
 				Expect(err).NotTo(HaveOccurred())
+
+				err = UpdatePlayerMembershipCount(testDb, player.ID)
+				Expect(err).NotTo(HaveOccurred())
+
 				dbPlayer, err := GetPlayerByID(testDb, player.ID)
 				Expect(err).NotTo(HaveOccurred())
-				Expect(dbPlayer.MembershipCount).To(Equal(player.MembershipCount + amount))
+				Expect(dbPlayer.MembershipCount).To(Equal(prevMemberships - 1))
 			})
 
 			It("Should not work if non-existing Player", func() {
-				err := IncrementPlayerMembershipCount(testDb, -1, 1)
+				err := UpdatePlayerMembershipCount(testDb, -1)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(Equal("Player was not found with id: -1"))
 			})
 		})
 
-		Describe("Increment Player Ownership Count", func() {
-			It("Should work if positive value", func() {
-				amount := 1
+		Describe("Update Player Ownership Count", func() {
+			It("Should work if clan is created", func() {
 				_, player, err := CreatePlayerFactory(testDb, "")
 				Expect(err).NotTo(HaveOccurred())
+				player.OwnershipCount = 123 // some random value
+				_, err = testDb.Update(player)
+				Expect(err).NotTo(HaveOccurred())
 
-				err = IncrementPlayerOwnershipCount(testDb, player.ID, amount)
+				clan := ClanFactory.MustCreateWithOption(map[string]interface{}{
+					"GameID":          player.GameID,
+					"PublicID":        uuid.NewV4().String(),
+					"OwnerID":         player.ID,
+					"Metadata":        map[string]interface{}{"x": "a"},
+					"MembershipCount": 1,
+				}).(*Clan)
+				err = testDb.Insert(clan)
+				Expect(err).NotTo(HaveOccurred())
+
+				err = UpdatePlayerOwnershipCount(testDb, player.ID)
 				Expect(err).NotTo(HaveOccurred())
 				dbPlayer, err := GetPlayerByID(testDb, player.ID)
 				Expect(err).NotTo(HaveOccurred())
-				Expect(dbPlayer.OwnershipCount).To(Equal(player.OwnershipCount + amount))
+				Expect(dbPlayer.OwnershipCount).To(Equal(1))
 			})
 
-			It("Should work if negative value", func() {
-				amount := -1
+			It("Should work if clan is deleted", func() {
 				_, player, err := CreatePlayerFactory(testDb, "")
 				Expect(err).NotTo(HaveOccurred())
 
-				err = IncrementPlayerOwnershipCount(testDb, player.ID, amount)
+				clan := ClanFactory.MustCreateWithOption(map[string]interface{}{
+					"GameID":          player.GameID,
+					"PublicID":        uuid.NewV4().String(),
+					"OwnerID":         player.ID,
+					"Metadata":        map[string]interface{}{"x": "a"},
+					"MembershipCount": 1,
+				}).(*Clan)
+				err = testDb.Insert(clan)
+				Expect(err).NotTo(HaveOccurred())
+
+				err = UpdatePlayerOwnershipCount(testDb, player.ID)
+				Expect(err).NotTo(HaveOccurred())
+
+				clanToBeDeleted := ClanFactory.MustCreateWithOption(map[string]interface{}{
+					"GameID":          player.GameID,
+					"PublicID":        uuid.NewV4().String(),
+					"OwnerID":         player.ID,
+					"Metadata":        map[string]interface{}{"x": "a"},
+					"MembershipCount": 1,
+				}).(*Clan)
+				err = testDb.Insert(clanToBeDeleted)
+				Expect(err).NotTo(HaveOccurred())
+
+				testDb.Delete(clanToBeDeleted)
+
+				err = UpdatePlayerOwnershipCount(testDb, player.ID)
 				Expect(err).NotTo(HaveOccurred())
 				dbPlayer, err := GetPlayerByID(testDb, player.ID)
 				Expect(err).NotTo(HaveOccurred())
-				Expect(dbPlayer.OwnershipCount).To(Equal(player.OwnershipCount + amount))
+				Expect(dbPlayer.OwnershipCount).To(Equal(1))
 			})
 
 			It("Should not work if non-existing Player", func() {
-				err := IncrementPlayerOwnershipCount(testDb, -1, 1)
+				err := UpdatePlayerOwnershipCount(testDb, -1)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(Equal("Player was not found with id: -1"))
 			})

@@ -506,6 +506,9 @@ func GetTestHooks(db DB, gameID string, numberOfHooks int) ([]*Hook, error) {
 
 //GetTestPlayerWithMemberships returns a player with approved, rejected and banned memberships
 func GetTestPlayerWithMemberships(db DB, gameID string, approvedMemberships, rejectedMemberships, bannedMemberships, pendingMemberships int) (*Player, error) {
+	if gameID == "" {
+		gameID = uuid.NewV4().String()
+	}
 	game := GameFactory.MustCreateWithOption(map[string]interface{}{
 		"PublicID": gameID,
 	}).(*Game)

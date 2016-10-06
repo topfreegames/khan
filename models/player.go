@@ -54,13 +54,20 @@ func (p *Player) Serialize() map[string]interface{} {
 	}
 }
 
-// IncrementPlayerMembershipCount increments the player membership count
-func IncrementPlayerMembershipCount(db DB, id, by int) error {
+// UpdatePlayerMembershipCount updates the player membership count
+func UpdatePlayerMembershipCount(db DB, id int) error {
 	query := `
-	UPDATE players SET membership_count=membership_count+$1
-	WHERE players.id=$2
+	UPDATE players SET membership_count=membership.count
+	FROM (
+		SELECT COUNT(*) as count
+		FROM memberships m
+		WHERE
+			m.player_id = $1 AND m.deleted_at = 0 AND m.approved = true AND
+			m.denied = false AND m.banned = false
+	) as membership
+	WHERE players.id=$1
 	`
-	res, err := db.Exec(query, by, id)
+	res, err := db.Exec(query, id)
 	if err != nil {
 		return err
 	}
@@ -75,13 +82,18 @@ func IncrementPlayerMembershipCount(db DB, id, by int) error {
 	return nil
 }
 
-// IncrementPlayerOwnershipCount increments the player ownership count
-func IncrementPlayerOwnershipCount(db DB, id, by int) error {
+// UpdatePlayerOwnershipCount updates the player ownership count
+func UpdatePlayerOwnershipCount(db DB, id int) error {
 	query := `
-	UPDATE players SET ownership_count=ownership_count+$1
-	WHERE players.id=$2
+	UPDATE players SET ownership_count=ownership.count
+	FROM (
+		SELECT COUNT(*) as count
+		FROM clans c
+		WHERE c.owner_id = $1
+	) as ownership
+	WHERE players.id=$1
 	`
-	res, err := db.Exec(query, by, id)
+	res, err := db.Exec(query, id)
 	if err != nil {
 		return err
 	}
