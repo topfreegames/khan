@@ -27,7 +27,11 @@ func StatusHandler(app *App) func(c echo.Context) error {
 			},
 		}
 
-		payloadJSON, _ := json.Marshal(payload)
+		var payloadJSON []byte
+		WithSegment("response-marshalling", c, func() error {
+			payloadJSON, _ = json.Marshal(payload)
+			return nil
+		})
 		return c.String(http.StatusOK, string(payloadJSON))
 	}
 }

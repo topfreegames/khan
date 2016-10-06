@@ -20,6 +20,7 @@ import (
 	"github.com/labstack/echo/engine"
 	"github.com/labstack/echo/engine/fasthttp"
 	"github.com/labstack/echo/engine/standard"
+	newrelic "github.com/newrelic/go-agent"
 	"github.com/rcrowley/go-metrics"
 	"github.com/spf13/viper"
 	"github.com/topfreegames/khan/es"
@@ -46,6 +47,7 @@ type App struct {
 	ESClient       *es.Client
 	ReadBufferSize int
 	Fast           bool
+	NewRelic       newrelic.Application
 }
 
 // GetApp returns a new Khan API Application
@@ -71,6 +73,7 @@ func (app *App) Configure() {
 	app.setConfigurationDefaults()
 	app.loadConfiguration()
 	app.configureSentry()
+	app.configureNewRelic()
 	app.connectDatabase()
 	app.configureApplication()
 	app.configureElasticsearch()
@@ -88,6 +91,31 @@ func (app *App) configureSentry() {
 	raven.SetRelease(VERSION)
 }
 
+func (app *App) configureNewRelic() error {
+	newRelicKey := app.Config.GetString("newrelic.key")
+
+	l := app.Logger.With(
+		zap.String("source", "app"),
+		zap.String("operation", "configureNewRelic"),
+	)
+
+	config := newrelic.NewConfig("Khan", newRelicKey)
+	if newRelicKey == "" {
+		l.Info("New Relic is not enabled..")
+		config.Enabled = false
+	}
+	nr, err := newrelic.NewApplication(config)
+	if err != nil {
+		l.Error("Failed to initialize New Relic.", zap.Error(err))
+		return err
+	}
+
+	app.NewRelic = nr
+	l.Info("Initialized New Relic successfully.")
+
+	return nil
+}
+
 func (app *App) configureElasticsearch() {
 	if app.Config.GetBool("elasticsearch.enabled") == true {
 		app.ESClient = es.GetClient(
@@ -97,6 +125,7 @@ func (app *App) configureElasticsearch() {
 			app.Config.GetBool("elasticsearch.sniff"),
 			app.Logger,
 			app.Debug,
+			app.NewRelic,
 		)
 	}
 }
@@ -216,6 +245,7 @@ func (app *App) configureApplication() {
 	a.Use(NewRecoveryMiddleware(app.onErrorHandler).Serve)
 	a.Use(NewVersionMiddleware().Serve)
 	a.Use(NewSentryMiddleware(app).Serve)
+	a.Use(NewNewRelicMiddleware(app, app.Logger).Serve)
 
 	a.Get("/healthcheck", HealthCheckHandler(app))
 	a.Get("/status", StatusHandler(app))
@@ -390,27 +420,34 @@ func (app *App) BeginTrans(l zap.Logger) (*gorp.Transaction, error) {
 }
 
 //Rollback transaction
-func (app *App) Rollback(tx *gorp.Transaction, msg string, l zap.Logger, err error) error {
-	txErr := tx.Rollback()
-	if txErr != nil {
-		log.E(l, fmt.Sprintf("%s and failed to rollback transaction.", msg), func(cm log.CM) {
-			cm.Write(zap.Error(txErr), zap.String("originalError", err.Error()))
-		})
-		return txErr
-	}
-	return nil
+func (app *App) Rollback(tx *gorp.Transaction, msg string, c echo.Context, l zap.Logger, err error) error {
+	sErr := WithSegment("tx-rollback", c, func() error {
+		txErr := tx.Rollback()
+		if txErr != nil {
+			log.E(l, fmt.Sprintf("%s and failed to rollback transaction.", msg), func(cm log.CM) {
+				cm.Write(zap.Error(txErr), zap.String("originalError", err.Error()))
+			})
+			return txErr
+		}
+		return nil
+	})
+	return sErr
 }
 
 //Commit transaction
-func (app *App) Commit(tx *gorp.Transaction, msg string, l zap.Logger) error {
-	txErr := tx.Commit()
-	if txErr != nil {
-		log.E(l, fmt.Sprintf("%s failed to commit transaction.", msg), func(cm log.CM) {
-			cm.Write(zap.Error(txErr))
-		})
-		return txErr
-	}
-	return nil
+func (app *App) Commit(tx *gorp.Transaction, msg string, c echo.Context, l zap.Logger) error {
+	err := WithSegment("tx-commit", c, func() error {
+		txErr := tx.Commit()
+		if txErr != nil {
+			log.E(l, fmt.Sprintf("%s failed to commit transaction.", msg), func(cm log.CM) {
+				cm.Write(zap.Error(txErr))
+			})
+			return txErr
+		}
+
+		return nil
+	})
+	return err
 }
 
 // GetCtxDB returns the proper database connection depending on the request context

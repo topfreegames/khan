@@ -4,3 +4,6 @@ postgres:
   host: "localhost"
   port: 5433
   sslMode: "disable"
+
+newrelic:
+  key: ""

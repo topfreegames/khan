@@ -68,6 +68,11 @@ func (m *MockKeyValue) AddUint64(key string, value uint64) {
 	m.Values[key] = value
 }
 
+//AddUintptr to the kv
+func (m *MockKeyValue) AddUintptr(key string, value uintptr) {
+	m.Values[key] = value
+}
+
 //NewMockLogger returns a mock logger for tests
 func NewMockLogger(defaultFields ...zap.Field) *MockLogger {
 	return &MockLogger{
