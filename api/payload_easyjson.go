@@ -404,7 +404,11 @@ func easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi5(out *jwriter.Writer, in
 			v3First = false
 			out.String(string(v3Name))
 			out.RawByte(':')
-			out.Raw(json.Marshal(v3Value))
+			if m, ok := v3Value.(json.Marshaler); ok {
+				out.Raw(m.MarshalJSON())
+			} else {
+				out.Raw(json.Marshal(v3Value))
+			}
 		}
 		out.RawByte('}')
 	}
@@ -425,7 +429,11 @@ func easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi5(out *jwriter.Writer, in
 			v4First = false
 			out.String(string(v4Name))
 			out.RawByte(':')
-			out.Raw(json.Marshal(v4Value))
+			if m, ok := v4Value.(json.Marshaler); ok {
+				out.Raw(m.MarshalJSON())
+			} else {
+				out.Raw(json.Marshal(v4Value))
+			}
 		}
 		out.RawByte('}')
 	}
@@ -612,7 +620,11 @@ func easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi6(out *jwriter.Writer, in
 			v7First = false
 			out.String(string(v7Name))
 			out.RawByte(':')
-			out.Raw(json.Marshal(v7Value))
+			if m, ok := v7Value.(json.Marshaler); ok {
+				out.Raw(m.MarshalJSON())
+			} else {
+				out.Raw(json.Marshal(v7Value))
+			}
 		}
 		out.RawByte('}')
 	}
@@ -633,7 +645,11 @@ func easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi6(out *jwriter.Writer, in
 			v8First = false
 			out.String(string(v8Name))
 			out.RawByte(':')
-			out.Raw(json.Marshal(v8Value))
+			if m, ok := v8Value.(json.Marshaler); ok {
+				out.Raw(m.MarshalJSON())
+			} else {
+				out.Raw(json.Marshal(v8Value))
+			}
 		}
 		out.RawByte('}')
 	}
@@ -780,7 +796,11 @@ func easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi7(out *jwriter.Writer, in
 			v10First = false
 			out.String(string(v10Name))
 			out.RawByte(':')
-			out.Raw(json.Marshal(v10Value))
+			if m, ok := v10Value.(json.Marshaler); ok {
+				out.Raw(m.MarshalJSON())
+			} else {
+				out.Raw(json.Marshal(v10Value))
+			}
 		}
 		out.RawByte('}')
 	}
@@ -875,7 +895,11 @@ func easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi8(out *jwriter.Writer, in
 			v12First = false
 			out.String(string(v12Name))
 			out.RawByte(':')
-			out.Raw(json.Marshal(v12Value))
+			if m, ok := v12Value.(json.Marshaler); ok {
+				out.Raw(m.MarshalJSON())
+			} else {
+				out.Raw(json.Marshal(v12Value))
+			}
 		}
 		out.RawByte('}')
 	}
@@ -1020,7 +1044,11 @@ func easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi10(out *jwriter.Writer, i
 			v14First = false
 			out.String(string(v14Name))
 			out.RawByte(':')
-			out.Raw(json.Marshal(v14Value))
+			if m, ok := v14Value.(json.Marshaler); ok {
+				out.Raw(m.MarshalJSON())
+			} else {
+				out.Raw(json.Marshal(v14Value))
+			}
 		}
 		out.RawByte('}')
 	}
@@ -1139,7 +1167,11 @@ func easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi11(out *jwriter.Writer, i
 			v16First = false
 			out.String(string(v16Name))
 			out.RawByte(':')
-			out.Raw(json.Marshal(v16Value))
+			if m, ok := v16Value.(json.Marshaler); ok {
+				out.Raw(m.MarshalJSON())
+			} else {
+				out.Raw(json.Marshal(v16Value))
+			}
 		}
 		out.RawByte('}')
 	}

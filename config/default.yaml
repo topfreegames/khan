@@ -4,12 +4,14 @@ postgres:
   host: "localhost"
   port: 5433
   sslMode: "disable"
+
 elasticsearch:
   enabled: true
   host: "localhost"
   port: 9200
   sniff: false
   index: "khan"
+
 khan:
   maxPendingInvites: -1
   defaultCooldownBeforeInvite: 0
@@ -20,3 +22,6 @@ healthcheck:
 
 webhooks:
   timeout: 2
+
+newrelic:
+  key: ""

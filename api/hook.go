@@ -11,6 +11,8 @@ import (
 	"net/http"
 	"time"
 
+	gorp "gopkg.in/gorp.v1"
+
 	"github.com/labstack/echo"
 	"github.com/topfreegames/khan/log"
 	"github.com/topfreegames/khan/models"
@@ -30,39 +32,59 @@ func CreateHookHandler(app *App) func(c echo.Context) error {
 		)
 
 		var payload HookPayload
-		if err := LoadJSONPayload(&payload, c, l); err != nil {
-			log.E(l, "Failed to parse json payload.", func(cm log.CM) {
-				cm.Write(zap.Error(err))
-			})
+
+		err := WithSegment("payload", c, func() error {
+			if err := LoadJSONPayload(&payload, c, l); err != nil {
+				log.E(l, "Failed to parse json payload.", func(cm log.CM) {
+					cm.Write(zap.Error(err))
+				})
+				return err
+			}
+
+			return nil
+		})
+		if err != nil {
 			return FailWith(http.StatusBadRequest, err.Error(), c)
 		}
 
-		tx, err := app.BeginTrans(l)
-		if err != nil {
-			return FailWith(http.StatusInternalServerError, err.Error(), c)
-		}
-
-		log.D(l, "Creating hook...")
-		hook, err := models.CreateHook(
-			tx,
-			gameID,
-			payload.Type,
-			payload.HookURL,
-		)
-
-		if err != nil {
-			txErr := app.Rollback(tx, "Failed to create hook", l, err)
-			if txErr != nil {
-				return FailWith(http.StatusInternalServerError, txErr.Error(), c)
+		var hook *models.Hook
+		var tx *gorp.Transaction
+		err = WithSegment("hook-create", c, func() error {
+			err := WithSegment("tx-begin", c, func() error {
+				tx, err = app.BeginTrans(l)
+				return err
+			})
+			if err != nil {
+				return err
 			}
 
-			log.E(l, "Failed to create the hook.", func(cm log.CM) {
-				cm.Write(zap.Error(err))
-			})
+			log.D(l, "Creating hook...")
+			hook, err = models.CreateHook(
+				tx,
+				gameID,
+				payload.Type,
+				payload.HookURL,
+			)
+
+			if err != nil {
+				txErr := app.Rollback(tx, "Failed to create hook", c, l, err)
+				if txErr != nil {
+					return txErr
+				}
+
+				log.E(l, "Failed to create the hook.", func(cm log.CM) {
+					cm.Write(zap.Error(err))
+				})
+				return err
+			}
+
+			return nil
+		})
+		if err != nil {
 			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 
-		err = app.Commit(tx, "Create hook", l)
+		err = app.Commit(tx, "Create hook", c, l)
 		if err != nil {
 			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
@@ -94,31 +116,42 @@ func RemoveHookHandler(app *App) func(c echo.Context) error {
 			zap.String("hookPublicID", publicID),
 		)
 
-		tx, err := app.BeginTrans(l)
-		if err != nil {
-			return FailWith(http.StatusInternalServerError, err.Error(), c)
-		}
-
-		log.D(l, "Removing hook...")
-		err = models.RemoveHook(
-			tx,
-			gameID,
-			publicID,
-		)
-
-		if err != nil {
-			txErr := app.Rollback(tx, "Remove hook failed", l, err)
-			if txErr != nil {
-				return FailWith(http.StatusInternalServerError, txErr.Error(), c)
+		var tx *gorp.Transaction
+		var err error
+		err = WithSegment("hook-remove", c, func() error {
+			err = WithSegment("tx-begin", c, func() error {
+				tx, err = app.BeginTrans(l)
+				return err
+			})
+			if err != nil {
+				return err
 			}
 
-			log.E(l, "Failed to remove hook.", func(cm log.CM) {
-				cm.Write(zap.Error(err))
-			})
+			log.D(l, "Removing hook...")
+			err = models.RemoveHook(
+				tx,
+				gameID,
+				publicID,
+			)
+
+			if err != nil {
+				txErr := app.Rollback(tx, "Remove hook failed", c, l, err)
+				if txErr != nil {
+					return txErr
+				}
+
+				log.E(l, "Failed to remove hook.", func(cm log.CM) {
+					cm.Write(zap.Error(err))
+				})
+				return err
+			}
+			return nil
+		})
+		if err != nil {
 			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 
-		err = app.Commit(tx, "Remove hook", l)
+		err = app.Commit(tx, "Remove hook", c, l)
 		if err != nil {
 			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}

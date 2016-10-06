@@ -25,7 +25,14 @@ func HealthCheckHandler(app *App) func(c echo.Context) error {
 		}
 
 		workingString := app.Config.GetString("healthcheck.workingText")
-		_, err = db.SelectInt("select count(*) from games")
+
+		err = WithSegment("postgres", c, func() error {
+			_, err = db.SelectInt("select count(*) from games")
+			if err != nil {
+				return err
+			}
+			return nil
+		})
 		if err != nil {
 			return FailWith(http.StatusInternalServerError, fmt.Sprintf("Error connecting to database: %s", err), c)
 		}

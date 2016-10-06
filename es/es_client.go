@@ -7,42 +7,45 @@ import (
 
 	"gopkg.in/olivere/elastic.v3"
 
+	newrelic "github.com/newrelic/go-agent"
 	"github.com/topfreegames/khan/log"
 	"github.com/uber-go/zap"
 )
 
 // Client is the struct of an elasticsearch client
 type Client struct {
-	Debug  bool
-	Host   string
-	Port   int
-	Index  string
-	Logger zap.Logger
-	Sniff  bool
-	Client *elastic.Client
+	Debug    bool
+	Host     string
+	Port     int
+	Index    string
+	Logger   zap.Logger
+	Sniff    bool
+	Client   *elastic.Client
+	NewRelic newrelic.Application
 }
 
 var once sync.Once
 var client *Client
 
 // GetIndexName returns the name of the index
-func (client *Client) GetIndexName(gameID string) string {
-	if client.Index != "" {
-		return fmt.Sprintf("%s-%s", client.Index, gameID)
+func (es *Client) GetIndexName(gameID string) string {
+	if es.Index != "" {
+		return fmt.Sprintf("%s-%s", es.Index, gameID)
 	}
 	return "khan-test"
 }
 
 // GetClient returns an elasticsearch client configures with the given the arguments
-func GetClient(host string, port int, index string, sniff bool, logger zap.Logger, debug bool) *Client {
+func GetClient(host string, port int, index string, sniff bool, logger zap.Logger, debug bool, newRelic newrelic.Application) *Client {
 	once.Do(func() {
 		client = &Client{
-			Debug:  debug,
-			Host:   host,
-			Port:   port,
-			Logger: logger,
-			Index:  index,
-			Sniff:  sniff,
+			Debug:    debug,
+			Host:     host,
+			Port:     port,
+			Logger:   logger,
+			Index:    index,
+			Sniff:    sniff,
+			NewRelic: newRelic,
 		}
 		client.configure()
 	})
@@ -52,12 +55,13 @@ func GetClient(host string, port int, index string, sniff bool, logger zap.Logge
 // GetTestClient returns a test elasticsearch client configures with the given the arguments
 func GetTestClient(host string, port int, index string, sniff bool, logger zap.Logger, debug bool) *Client {
 	client = &Client{
-		Debug:  debug,
-		Host:   host,
-		Port:   port,
-		Logger: logger,
-		Index:  index,
-		Sniff:  sniff,
+		Debug:    debug,
+		Host:     host,
+		Port:     port,
+		Logger:   logger,
+		Index:    index,
+		Sniff:    sniff,
+		NewRelic: nil,
 	}
 	client.configure()
 	return client

@@ -136,7 +136,11 @@ func easyjson91eb9988EncodeGithubComTopfreegamesKhanModels(out *jwriter.Writer, 
 			v2First = false
 			out.String(string(v2Name))
 			out.RawByte(':')
-			out.Raw(json.Marshal(v2Value))
+			if m, ok := v2Value.(json.Marshaler); ok {
+				out.Raw(m.MarshalJSON())
+			} else {
+				out.Raw(json.Marshal(v2Value))
+			}
 		}
 		out.RawByte('}')
 	}

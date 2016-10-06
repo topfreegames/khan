@@ -11,6 +11,8 @@ import (
 	"strings"
 	"time"
 
+	gorp "gopkg.in/gorp.v1"
+
 	"github.com/labstack/echo"
 	"github.com/topfreegames/khan/log"
 	"github.com/topfreegames/khan/models"
@@ -31,29 +33,40 @@ func CreateClanHandler(app *App) func(c echo.Context) error {
 		)
 
 		var payload CreateClanPayload
-		if err := LoadJSONPayload(&payload, c, l); err != nil {
-			log.E(l, "Failed to parse json payload.", func(cm log.CM) {
-				cm.Write(zap.Error(err))
-			})
+		err := WithSegment("payload", c, func() error {
+			if err := LoadJSONPayload(&payload, c, l); err != nil {
+				log.E(l, "Failed to parse json payload.", func(cm log.CM) {
+					cm.Write(zap.Error(err))
+				})
+				return err
+			}
+			return nil
+		})
+		if err != nil {
 			return FailWith(400, err.Error(), c)
 		}
 
-		game, err := app.GetGame(gameID)
+		var game *models.Game
+		err = WithSegment("game-retrieve", c, func() error {
+			game, err = app.GetGame(gameID)
+			if err != nil {
+				log.W(l, "Could not find game.", func(cm log.CM) {
+					cm.Write(zap.Error(err))
+				})
+				return err
+			}
+			return nil
+		})
 		if err != nil {
-			log.W(l, "Could not find game.", func(cm log.CM) {
-				cm.Write(zap.Error(err))
-			})
 			return FailWith(404, err.Error(), c)
 		}
 
-		tx, err := app.BeginTrans(l)
-		if err != nil {
-			return FailWith(500, err.Error(), c)
-		}
+		var clan *models.Clan
+		var tx *gorp.Transaction
 
 		//rollback function
 		rb := func(err error) error {
-			txErr := app.Rollback(tx, "Creating clan failed", l, err)
+			txErr := app.Rollback(tx, "Creating clan failed", c, l, err)
 			if txErr != nil {
 				return txErr
 			}
@@ -61,26 +74,41 @@ func CreateClanHandler(app *App) func(c echo.Context) error {
 			return nil
 		}
 
-		log.D(l, "Creating clan...")
-		clan, err := models.CreateClan(
-			tx,
-			gameID,
-			payload.PublicID,
-			payload.Name,
-			payload.OwnerPublicID,
-			payload.Metadata,
-			payload.AllowApplication,
-			payload.AutoJoin,
-			game.MaxClansPerPlayer,
-		)
-
-		if err != nil {
-			txErr := rb(err)
-			if txErr == nil {
-				log.E(l, "Create clan failed.", func(cm log.CM) {
-					cm.Write(zap.Error(err))
-				})
+		err = WithSegment("clan-create", c, func() error {
+			err = WithSegment("tx-begin", c, func() error {
+				tx, err = app.BeginTrans(l)
+				return err
+			})
+			if err != nil {
+				return err
 			}
+			log.D(l, "DB Tx begun successful.")
+
+			log.D(l, "Creating clan...")
+			clan, err = models.CreateClan(
+				tx,
+				gameID,
+				payload.PublicID,
+				payload.Name,
+				payload.OwnerPublicID,
+				payload.Metadata,
+				payload.AllowApplication,
+				payload.AutoJoin,
+				game.MaxClansPerPlayer,
+			)
+
+			if err != nil {
+				txErr := rb(err)
+				if txErr == nil {
+					log.E(l, "Create clan failed.", func(cm log.CM) {
+						cm.Write(zap.Error(err))
+					})
+				}
+				return err
+			}
+			return nil
+		})
+		if err != nil {
 			return FailWith(500, err.Error(), c)
 		}
 
@@ -99,20 +127,26 @@ func CreateClanHandler(app *App) func(c echo.Context) error {
 			"clan":   clanJSON,
 		}
 
-		log.D(l, "Dispatching hooks")
-		err = app.DispatchHooks(gameID, models.ClanCreatedHook, result)
-		if err != nil {
-			txErr := rb(err)
-			if txErr == nil {
-				log.E(l, "Clan created hook dispatch failed.", func(cm log.CM) {
-					cm.Write(zap.Error(err))
-				})
+		err = WithSegment("hook-dispatch", c, func() error {
+			log.D(l, "Dispatching hooks")
+			err = app.DispatchHooks(gameID, models.ClanCreatedHook, result)
+			if err != nil {
+				txErr := rb(err)
+				if txErr == nil {
+					log.E(l, "Clan created hook dispatch failed.", func(cm log.CM) {
+						cm.Write(zap.Error(err))
+					})
+				}
+				return err
 			}
+			log.D(l, "Hook dispatched successfully.")
+			return nil
+		})
+		if err != nil {
 			return FailWith(500, err.Error(), c)
 		}
-		log.D(l, "Hook dispatched successfully.")
 
-		err = app.Commit(tx, "Clan created", l)
+		err = app.Commit(tx, "Clan created", c, l)
 		if err != nil {
 			return FailWith(500, err.Error(), c)
 		}
@@ -146,21 +180,26 @@ func UpdateClanHandler(app *App) func(c echo.Context) error {
 		)
 
 		var payload UpdateClanPayload
-		if err := LoadJSONPayload(&payload, c, l); err != nil {
-			log.E(l, "Could not load payload.", func(cm log.CM) {
-				cm.Write(zap.Error(err))
-			})
+		err := WithSegment("payload", c, func() error {
+			if err := LoadJSONPayload(&payload, c, l); err != nil {
+				log.E(l, "Could not load payload.", func(cm log.CM) {
+					cm.Write(zap.Error(err))
+				})
+				return err
+			}
+			return nil
+		})
+		if err != nil {
 			return FailWith(400, err.Error(), c)
 		}
 
-		tx, err := app.BeginTrans(l)
-		if err != nil {
-			return FailWith(500, err.Error(), c)
-		}
+		var tx *gorp.Transaction
+		var clan, beforeUpdateClan *models.Clan
+		var game *models.Game
 
 		//rollback function
 		rb := func(err error) error {
-			txErr := app.Rollback(tx, "Updating clan failed", l, err)
+			txErr := app.Rollback(tx, "Updating clan failed", c, l, err)
 			if txErr != nil {
 				return txErr
 			}
@@ -168,52 +207,78 @@ func UpdateClanHandler(app *App) func(c echo.Context) error {
 			return nil
 		}
 
-		log.D(l, "Retrieving game...")
-		game, err := models.GetGameByPublicID(tx, gameID)
-
-		if err != nil {
-			txErr := rb(err)
-			if txErr == nil {
-				log.E(l, "Updating clan failed.", func(cm log.CM) {
-					cm.Write(zap.Error(err))
-				})
+		err = WithSegment("clan-update", c, func() error {
+			err = WithSegment("tx-begin", c, func() error {
+				tx, err = app.BeginTrans(l)
+				return err
+			})
+			if err != nil {
+				return err
 			}
-			return FailWith(500, err.Error(), c)
-		}
-		log.D(l, "Game retrieved successfully")
+			log.D(l, "DB Tx begun successful.")
 
-		log.D(l, "Retrieving clan...")
-		beforeUpdateClan, err := models.GetClanByPublicID(tx, gameID, publicID)
-		if err != nil {
-			txErr := rb(err)
-			if txErr == nil {
-				log.E(l, "Updating clan failed.", func(cm log.CM) {
-					cm.Write(zap.Error(err))
-				})
+			err = WithSegment("game-retrieve", c, func() error {
+				log.D(l, "Retrieving game...")
+				game, err = models.GetGameByPublicID(tx, gameID)
+				return err
+			})
+
+			if err != nil {
+				txErr := rb(err)
+				if txErr == nil {
+					log.E(l, "Updating clan failed.", func(cm log.CM) {
+						cm.Write(zap.Error(err))
+					})
+				}
+				return err
 			}
-			return FailWith(500, err.Error(), c)
-		}
-		log.D(l, "Clan retrieved successfully")
+			log.D(l, "Game retrieved successfully")
 
-		log.D(l, "Updating clan...")
-		clan, err := models.UpdateClan(
-			tx,
-			gameID,
-			publicID,
-			payload.Name,
-			payload.OwnerPublicID,
-			payload.Metadata,
-			payload.AllowApplication,
-			payload.AutoJoin,
-		)
-
-		if err != nil {
-			txErr := rb(err)
-			if txErr == nil {
-				log.E(l, "Updating clan failed.", func(cm log.CM) {
-					cm.Write(zap.Error(err))
-				})
+			err = WithSegment("clan-retrieve", c, func() error {
+				log.D(l, "Retrieving clan...")
+				beforeUpdateClan, err = models.GetClanByPublicID(tx, gameID, publicID)
+				if err != nil {
+					txErr := rb(err)
+					if txErr == nil {
+						log.E(l, "Updating clan failed.", func(cm log.CM) {
+							cm.Write(zap.Error(err))
+						})
+					}
+					return err
+				}
+				log.D(l, "Clan retrieved successfully")
+				return nil
+			})
+			if err != nil {
+				return err
 			}
+
+			err = WithSegment("clan-update-query", c, func() error {
+				log.D(l, "Updating clan...")
+				clan, err = models.UpdateClan(
+					tx,
+					gameID,
+					publicID,
+					payload.Name,
+					payload.OwnerPublicID,
+					payload.Metadata,
+					payload.AllowApplication,
+					payload.AutoJoin,
+				)
+				return err
+			})
+			if err != nil {
+				txErr := rb(err)
+				if txErr == nil {
+					log.E(l, "Updating clan failed.", func(cm log.CM) {
+						cm.Write(zap.Error(err))
+					})
+				}
+				return err
+			}
+			return nil
+		})
+		if err != nil {
 			return FailWith(500, err.Error(), c)
 		}
 
@@ -232,22 +297,28 @@ func UpdateClanHandler(app *App) func(c echo.Context) error {
 			"clan":   clanJSON,
 		}
 
-		shouldDispatch := validateUpdateClanDispatch(game, beforeUpdateClan, clan, payload.Metadata, l)
-		if shouldDispatch {
-			log.D(l, "Dispatching clan update hooks...")
-			err = app.DispatchHooks(gameID, models.ClanUpdatedHook, result)
-			if err != nil {
-				txErr := rb(err)
-				if txErr == nil {
-					log.E(l, "Clan updated hook dispatch failed.", func(cm log.CM) {
-						cm.Write(zap.Error(err))
-					})
+		err = WithSegment("hook-dispatch", c, func() error {
+			shouldDispatch := validateUpdateClanDispatch(game, beforeUpdateClan, clan, payload.Metadata, l)
+			if shouldDispatch {
+				log.D(l, "Dispatching clan update hooks...")
+				err = app.DispatchHooks(gameID, models.ClanUpdatedHook, result)
+				if err != nil {
+					txErr := rb(err)
+					if txErr == nil {
+						log.E(l, "Clan updated hook dispatch failed.", func(cm log.CM) {
+							cm.Write(zap.Error(err))
+						})
+					}
+					return err
 				}
-				return FailWith(500, err.Error(), c)
 			}
+			return nil
+		})
+		if err != nil {
+			return FailWith(500, err.Error(), c)
 		}
 
-		err = app.Commit(tx, "Clan updated", l)
+		err = app.Commit(tx, "Clan updated", c, l)
 		if err != nil {
 			return FailWith(500, err.Error(), c)
 		}
@@ -274,14 +345,15 @@ func LeaveClanHandler(app *App) func(c echo.Context) error {
 			zap.String("clanPublicID", publicID),
 		)
 
-		tx, err := app.BeginTrans(l)
-		if err != nil {
-			return FailWith(500, err.Error(), c)
-		}
+		var tx *gorp.Transaction
+		var clan *models.Clan
+		var previousOwner, newOwner *models.Player
+		var err error
+		status := 500
 
 		//rollback function
 		rb := func(err error) error {
-			txErr := app.Rollback(tx, "Leaving clan failed", l, err)
+			txErr := app.Rollback(tx, "Leaving clan failed", c, l, err)
 			if txErr != nil {
 				return txErr
 			}
@@ -289,67 +361,94 @@ func LeaveClanHandler(app *App) func(c echo.Context) error {
 			return nil
 		}
 
-		log.D(l, "Leaving clan...")
-		clan, previousOwner, newOwner, err := models.LeaveClan(
-			tx,
-			gameID,
-			publicID,
-		)
+		err = WithSegment("clan-leave", c, func() error {
+			err = WithSegment("tx-begin", c, func() error {
+				tx, err = app.BeginTrans(l)
+				return err
+			})
+			if err != nil {
+				return err
+			}
+			log.D(l, "DB Tx begun successful.")
 
-		if err != nil {
-			txErr := rb(err)
-			if txErr == nil {
-				if strings.HasPrefix(err.Error(), "Clan was not found with id") {
-					log.W(l, "Clan was not found.", func(cm log.CM) {
+			err = WithSegment("clan-leave-query", c, func() error {
+				log.D(l, "Leaving clan...")
+				clan, previousOwner, newOwner, err = models.LeaveClan(
+					tx,
+					gameID,
+					publicID,
+				)
+				return err
+			})
+
+			if err != nil {
+				txErr := rb(err)
+				if txErr == nil {
+					if strings.HasPrefix(err.Error(), "Clan was not found with id") {
+						log.W(l, "Clan was not found.", func(cm log.CM) {
+							cm.Write(zap.Error(err))
+						})
+						status = 400
+						return &models.ModelNotFoundError{Type: "Clan", ID: publicID}
+					}
+					log.E(l, "Clan leave failed.", func(cm log.CM) {
 						cm.Write(zap.Error(err))
 					})
-					return FailWith(400, (&models.ModelNotFoundError{Type: "Clan", ID: publicID}).Error(), c)
 				}
-				log.E(l, "Clan leave failed.", func(cm log.CM) {
-					cm.Write(zap.Error(err))
-				})
+				return err
 			}
-			return FailWith(500, err.Error(), c)
-		}
-
-		err = dispatchClanOwnershipChangeHook(app, tx, models.ClanLeftHook, clan, previousOwner, newOwner)
+			return nil
+		})
 		if err != nil {
-			txErr := rb(err)
-			if txErr == nil {
-				log.E(l, "Leaving clan hook dispatch failed.", func(cm log.CM) {
-					cm.Write(zap.Error(err))
-				})
+			return FailWith(status, err.Error(), c)
+		}
+
+		err = WithSegment("hook-dispatch", c, func() error {
+			err = dispatchClanOwnershipChangeHook(app, tx, models.ClanLeftHook, clan, previousOwner, newOwner)
+			if err != nil {
+				txErr := rb(err)
+				if txErr == nil {
+					log.E(l, "Leaving clan hook dispatch failed.", func(cm log.CM) {
+						cm.Write(zap.Error(err))
+					})
+				}
+				return err
 			}
+			return nil
+		})
+		if err != nil {
 			return FailWith(500, err.Error(), c)
 		}
 
-		pOwnerJSON := previousOwner.Serialize()
-		delete(pOwnerJSON, "gameID")
+		res := map[string]interface{}{}
+		fields := []zap.Field{}
 
-		res := map[string]interface{}{
-			"previousOwner": pOwnerJSON,
-			"newOwner":      nil,
-			"isDeleted":     true,
-		}
+		WithSegment("response-serialize", c, func() error {
+			pOwnerJSON := previousOwner.Serialize()
+			delete(pOwnerJSON, "gameID")
 
-		if newOwner != nil {
-			nOwnerJSON := newOwner.Serialize()
-			delete(nOwnerJSON, "gameID")
-			res["newOwner"] = nOwnerJSON
-			res["isDeleted"] = false
-		}
+			res["previousOwner"] = pOwnerJSON
+			res["newOwner"] = nil
+			res["isDeleted"] = true
 
-		fields := []zap.Field{
-			zap.String("clanPublicID", publicID),
-			zap.String("previousOwnerPublicID", previousOwner.PublicID),
-			zap.Duration("duration", time.Now().Sub(start)),
-		}
+			if newOwner != nil {
+				nOwnerJSON := newOwner.Serialize()
+				delete(nOwnerJSON, "gameID")
+				res["newOwner"] = nOwnerJSON
+				res["isDeleted"] = false
+			}
 
-		if newOwner != nil {
-			fields = append(fields, zap.String("newOwnerPublicID", newOwner.PublicID))
-		}
+			fields = append(fields, zap.String("clanPublicID", publicID))
+			fields = append(fields, zap.String("previousOwnerPublicID", previousOwner.PublicID))
+			fields = append(fields, zap.Duration("duration", time.Now().Sub(start)))
 
-		err = app.Commit(tx, "Clan updated", l)
+			if newOwner != nil {
+				fields = append(fields, zap.String("newOwnerPublicID", newOwner.PublicID))
+			}
+			return nil
+		})
+
+		err = app.Commit(tx, "Clan left", c, l)
 		if err != nil {
 			return FailWith(500, err.Error(), c)
 		}
@@ -376,9 +475,14 @@ func TransferOwnershipHandler(app *App) func(c echo.Context) error {
 			zap.String("gameID", gameID),
 			zap.String("clanPublicID", publicID),
 		)
-
 		var payload TransferClanOwnershipPayload
-		if err := LoadJSONPayload(&payload, c, l); err != nil {
+		err := WithSegment("payload", c, func() error {
+			if err := LoadJSONPayload(&payload, c, l); err != nil {
+				return err
+			}
+			return nil
+		})
+		if err != nil {
 			return FailWith(400, err.Error(), c)
 		}
 
@@ -386,20 +490,26 @@ func TransferOwnershipHandler(app *App) func(c echo.Context) error {
 			zap.String("newOwnerPublicID", payload.PlayerPublicID),
 		)
 
-		game, err := app.GetGame(gameID)
+		var game *models.Game
+
+		err = WithSegment("game-retrieve", c, func() error {
+			game, err = app.GetGame(gameID)
+			if err != nil {
+				log.W(l, "Could not find game.")
+				return err
+			}
+			return nil
+		})
 		if err != nil {
-			log.W(l, "Could not find game.")
 			return FailWith(404, err.Error(), c)
 		}
 
-		tx, err := app.BeginTrans(l)
-		if err != nil {
-			return FailWith(500, err.Error(), c)
-		}
+		var tx *gorp.Transaction
+		var clan *models.Clan
+		var previousOwner, newOwner *models.Player
 
-		//rollback function
 		rb := func(err error) error {
-			txErr := app.Rollback(tx, "Clan ownership transfer failed", l, err)
+			txErr := app.Rollback(tx, "Clan ownership transfer failed", c, l, err)
 			if txErr != nil {
 				return txErr
 			}
@@ -407,47 +517,75 @@ func TransferOwnershipHandler(app *App) func(c echo.Context) error {
 			return nil
 		}
 
-		log.D(l, "Transferring clan ownership...")
-		clan, previousOwner, newOwner, err := models.TransferClanOwnership(
-			tx,
-			gameID,
-			publicID,
-			payload.PlayerPublicID,
-			game.MembershipLevels,
-			game.MaxMembershipLevel,
-		)
-
-		if err != nil {
-			txErr := rb(err)
-			if txErr == nil {
-				log.E(l, "Clan ownership transfer failed.", func(cm log.CM) {
-					cm.Write(zap.Error(err))
-				})
+		err = WithSegment("clan-transfer", c, func() error {
+			err = WithSegment("tx-begin", c, func() error {
+				tx, err = app.BeginTrans(l)
+				return err
+			})
+			if err != nil {
+				return err
 			}
+
+			err = WithSegment("clan-transfer-query", c, func() error {
+				log.D(l, "Transferring clan ownership...")
+				clan, previousOwner, newOwner, err = models.TransferClanOwnership(
+					tx,
+					gameID,
+					publicID,
+					payload.PlayerPublicID,
+					game.MembershipLevels,
+					game.MaxMembershipLevel,
+				)
+				return err
+			})
+
+			if err != nil {
+				txErr := rb(err)
+				if txErr == nil {
+					log.E(l, "Clan ownership transfer failed.", func(cm log.CM) {
+						cm.Write(zap.Error(err))
+					})
+				}
+				return err
+			}
+			return nil
+		})
+		if err != nil {
 			return FailWith(500, err.Error(), c)
 		}
 
-		err = dispatchClanOwnershipChangeHook(
-			app, tx, models.ClanOwnershipTransferredHook,
-			clan, previousOwner, newOwner,
-		)
-		if err != nil {
-			txErr := rb(err)
-			if txErr == nil {
-				log.E(l, "Clan ownership transfer hook dispatch failed.", func(cm log.CM) {
-					cm.Write(zap.Error(err))
-				})
+		err = WithSegment("hook-dispatch", c, func() error {
+			err = dispatchClanOwnershipChangeHook(
+				app, tx, models.ClanOwnershipTransferredHook,
+				clan, previousOwner, newOwner,
+			)
+			if err != nil {
+				txErr := rb(err)
+				if txErr == nil {
+					log.E(l, "Clan ownership transfer hook dispatch failed.", func(cm log.CM) {
+						cm.Write(zap.Error(err))
+					})
+				}
+				return err
 			}
+			return nil
+		})
+		if err != nil {
 			return FailWith(500, err.Error(), c)
 		}
 
-		pOwnerJSON := previousOwner.Serialize()
-		delete(pOwnerJSON, "gameID")
+		var pOwnerJSON, nOwnerJSON map[string]interface{}
+		err = WithSegment("response-serialize", c, func() error {
+			pOwnerJSON = previousOwner.Serialize()
+			delete(pOwnerJSON, "gameID")
 
-		nOwnerJSON := newOwner.Serialize()
-		delete(nOwnerJSON, "gameID")
+			nOwnerJSON = newOwner.Serialize()
+			delete(nOwnerJSON, "gameID")
 
-		err = app.Commit(tx, "Clan ownership transfer", l)
+			return nil
+		})
+
+		err = app.Commit(tx, "Clan ownership transfer", c, l)
 		if err != nil {
 			return FailWith(500, err.Error(), c)
 		}
@@ -489,20 +627,31 @@ func ListClansHandler(app *App) func(c echo.Context) error {
 		}
 		log.D(l, "DB Connection successful.")
 
-		log.D(l, "Retrieving all clans...")
-		clans, err := models.GetAllClans(
-			db,
-			gameID,
-		)
+		var clans []models.Clan
+		err = WithSegment("clan-get-all", c, func() error {
+			log.D(l, "Retrieving all clans...")
+			clans, err = models.GetAllClans(
+				db,
+				gameID,
+			)
 
+			if err != nil {
+				log.E(l, "Retrieve all clans failed.", func(cm log.CM) {
+					cm.Write(zap.Error(err))
+				})
+				return err
+			}
+			return nil
+		})
 		if err != nil {
-			log.E(l, "Retrieve all clans failed.", func(cm log.CM) {
-				cm.Write(zap.Error(err))
-			})
 			return FailWith(500, err.Error(), c)
 		}
 
-		serializedClans := serializeClans(clans, true)
+		var serializedClans []map[string]interface{}
+		err = WithSegment("response-serialize", c, func() error {
+			serializedClans = serializeClans(clans, true)
+			return nil
+		})
 
 		log.I(l, "Retrieve all clans completed successfully.", func(cm log.CM) {
 			cm.Write(zap.Duration("duration", time.Now().Sub(start)))
@@ -544,21 +693,32 @@ func SearchClansHandler(app *App) func(c echo.Context) error {
 			return FailWith(400, (&models.EmptySearchTermError{}).Error(), c)
 		}
 
-		log.D(l, "Searching clans...")
-		clans, err := models.SearchClan(
-			db,
-			gameID,
-			term,
-		)
+		var clans []models.Clan
+		err = WithSegment("clan-search", c, func() error {
+			log.D(l, "Searching clans...")
+			clans, err = models.SearchClan(
+				db,
+				gameID,
+				term,
+			)
 
+			if err != nil {
+				log.E(l, "Clan search failed.", func(cm log.CM) {
+					cm.Write(zap.Error(err))
+				})
+				return err
+			}
+			return nil
+		})
 		if err != nil {
-			log.E(l, "Clan search failed.", func(cm log.CM) {
-				cm.Write(zap.Error(err))
-			})
 			return FailWith(500, err.Error(), c)
 		}
 
-		serializedClans := serializeClans(clans, true)
+		var serializedClans []map[string]interface{}
+		WithSegment("response-serialize", c, func() error {
+			serializedClans = serializeClans(clans, true)
+			return nil
+		})
 
 		log.I(l, "Clan search successful.", func(cm log.CM) {
 			cm.Write(zap.Duration("duration", time.Now().Sub(start)))
@@ -595,24 +755,39 @@ func RetrieveClanHandler(app *App) func(c echo.Context) error {
 		}
 		log.D(l, "DB Connection successful.")
 
-		game, err := app.GetGame(gameID)
+		var game *models.Game
+		err = WithSegment("game-retrieve", c, func() error {
+			game, err = app.GetGame(gameID)
+			if err != nil {
+				log.W(l, "Could not find game.")
+				return err
+			}
+			return nil
+		})
 		if err != nil {
-			log.W(l, "Could not find game.")
 			return FailWith(404, err.Error(), c)
 		}
 
-		log.D(l, "Retrieving clan details...")
-		clan, err := models.GetClanDetails(
-			db,
-			gameID,
-			publicID,
-			game.MaxClansPerPlayer,
-		)
+		var clan map[string]interface{}
+		err = WithSegment("clan-retrieve", c, func() error {
+			log.D(l, "Retrieving clan details...")
+			clan, err = models.GetClanDetails(
+				db,
+				gameID,
+				publicID,
+				game.MaxClansPerPlayer,
+			)
 
+			if err != nil {
+				log.E(l, "Retrieve clan details failed.", func(cm log.CM) {
+					cm.Write(zap.Error(err))
+				})
+				return err
+			}
+
+			return nil
+		})
 		if err != nil {
-			log.E(l, "Retrieve clan details failed.", func(cm log.CM) {
-				cm.Write(zap.Error(err))
-			})
 			return FailWith(500, err.Error(), c)
 		}
 
@@ -648,17 +823,24 @@ func RetrieveClanSummaryHandler(app *App) func(c echo.Context) error {
 		}
 		log.D(l, "DB Connection successful.")
 
-		log.D(l, "Retrieving clan summary...")
-		clan, err := models.GetClanSummary(
-			db,
-			gameID,
-			publicID,
-		)
+		var clan map[string]interface{}
+		err = WithSegment("clan-get-summary", c, func() error {
+			log.D(l, "Retrieving clan summary...")
+			clan, err = models.GetClanSummary(
+				db,
+				gameID,
+				publicID,
+			)
 
+			if err != nil {
+				log.E(l, "Clan summary retrieval failed.", func(cm log.CM) {
+					cm.Write(zap.Error(err))
+				})
+				return err
+			}
+			return nil
+		})
 		if err != nil {
-			log.E(l, "Clan summary retrieval failed.", func(cm log.CM) {
-				cm.Write(zap.Error(err))
-			})
 			return FailWith(500, err.Error(), c)
 		}
 
@@ -705,25 +887,34 @@ func RetrieveClansSummariesHandler(app *App) func(c echo.Context) error {
 		}
 		log.D(l, "DB Connection successful.")
 
-		log.D(l, "Retrieving clans summaries...")
-		clans, err := models.GetClansSummaries(
-			db,
-			gameID,
-			publicIDs,
-		)
+		status := 500
+		var clans []map[string]interface{}
+		err = WithSegment("clan-get-summaries", c, func() error {
+			log.D(l, "Retrieving clans summaries...")
+			clans, err = models.GetClansSummaries(
+				db,
+				gameID,
+				publicIDs,
+			)
 
-		if err != nil {
-			if _, ok := err.(*models.CouldNotFindAllClansError); ok {
-				log.E(l, "Clans summaries retrieval failed, 404.", func(cm log.CM) {
+			if err != nil {
+				if _, ok := err.(*models.CouldNotFindAllClansError); ok {
+					log.E(l, "Clans summaries retrieval failed, 404.", func(cm log.CM) {
+						cm.Write(zap.Error(err))
+					})
+					status = 404
+					return err
+				}
+
+				log.E(l, "Clans summaries retrieval failed, 500.", func(cm log.CM) {
 					cm.Write(zap.Error(err))
 				})
-				return FailWith(404, err.Error(), c)
+				return err
 			}
-
-			log.E(l, "Clans summaries retrieval failed, 500.", func(cm log.CM) {
-				cm.Write(zap.Error(err))
-			})
-			return FailWith(500, err.Error(), c)
+			return nil
+		})
+		if err != nil {
+			return FailWith(status, err.Error(), c)
 		}
 
 		log.I(l, "Clans summaries retrieved successfully.", func(cm log.CM) {
