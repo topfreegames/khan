@@ -31,7 +31,7 @@ setup-ci:
 
 build:
 	@go build $(PACKAGES)
-	@go build
+	@go build -o ./bin/khan main.go
 
 assets:
 	@for pkg in $(GODIRS) ; do \
