@@ -23,5 +23,8 @@ healthcheck:
 webhooks:
   timeout: 2
 
+sentry:
+  url: ""
+
 newrelic:
   key: ""

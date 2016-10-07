@@ -15,6 +15,7 @@ Khan allows your app to focus on the interaction required to creating clans and 
 * **Top Clans** - Choose from a specific dimension to return a list of the top clans in that specific range (SOON);
 * **Web Hooks** - Need to integrate your clan system with another application? We got your back! Use our web hooks sytem and plug into whatever events you need;
 * **Auditing Trail** - Track every action coming from your games (SOON);
+* **New Relic Support** - Natively support new relic with segments in each API route for easy detection of bottlenecks;
 * **Easy to deploy** - Khan comes with containers already exported to docker hub for every single of our successful builds. Just pick your choice!
 
 ## Architecture

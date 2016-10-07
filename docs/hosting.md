@@ -1,4 +1,44 @@
 Hosting Khan
 ============
 
-TBW.
+There are three ways to host Khan: docker, binaries or from source.
+
+## Docker
+
+Running Khan with docker is rather simple. Our docker container image comes bundled with the API binary. All you need to do is load balance all the containers and you're good to go. The API runs at port `8080` in the docker image.
+
+Khan uses PostgreSQL to store clans information. The container takes environment variables to specify this connection:
+
+* `KHAN_POSTGRES_HOST` - PostgreSQL host to connect to;
+* `KHAN_POSTGRES_PORT` - PostgreSQL port to connect to;
+* `KHAN_POSTGRES_USER` - Password of the PostgreSQL Server to connect to;
+* `KHAN_POSTGRES_DBNAME` - Database name of the PostgreSQL Server to connect to;
+* `KHAN_POSTGRES_SSLMODE` - SSL Mode to connect to postgres with.
+
+Other than that, there are a couple more configurations you can pass using environment variables:
+
+* `KHAN_NEWRELIC_KEY` - If you have a [New Relic](https://newrelic.com/) account, you can use this variable to specify your API Key to populate data with New Relic API;
+* `KHAN_SENTRY_URL` - If you have a [sentry server](https://docs.getsentry.com/hosted/) you can use this variable to specify your project's URL to send errors to.
+
+If you want to expose Khan outside your internal network it's advised to use Basic Authentication. You can specify basic authentication parameters with the following environment variables:
+
+* `USE_BASICAUTH` - If you specify this key to `true`, Khan will use basic authentication;
+* `BASICAUTH_USERNAME` - If you specify this key, Khan will be configured to use basic auth with this user;
+* `BASICAUTH_PASSWORD` - If you specify `BASICAUTH_USERNAME`, Khan will be configured to use basic auth with this password.
+
+### Example command for running with Docker
+
+```
+    $ docker pull tfgco/khan
+    $ docker run -t --rm -e "KHAN_POSTGRES_HOST=<postgres host>" -e "KHAN_POSTGRES_PORT=<postgres port>" -p 8080:8080 tfgco/khan
+```
+
+## Binaries
+
+Whenever we publish a new version of Khan, we'll always supply binaries for both Linux and Darwin, on i386 and x86_64 architectures. If you'd rather run your own servers instead of containers, just use the binaries that match your platform and architecture.
+
+The API server is the `khan` binary. It takes a configuration yaml file that specifies the connection to PostgreSQL and some additional parameters. You can learn more about it at [default.yaml](https://github.com/topfreegames/khan/blob/master/config/default.yaml).
+
+## Source
+
+Left as an exercise to the reader.
