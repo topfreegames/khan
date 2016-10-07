@@ -6,6 +6,7 @@ EXPOSE 80
 
 RUN apk update
 RUN apk add git make g++ nginx supervisor apache2-utils
+RUN apk add --update bash
 
 RUN go get -u github.com/Masterminds/glide/...
 RUN go get -u github.com/topfreegames/goose/cmd/goose
