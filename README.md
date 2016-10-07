@@ -10,41 +10,41 @@
 
 Khan will drive all your enemies to the sea (and also take care of your game's clans)!
 
-## Setup
+What is Khan? Khan is an HTTP "resty" API for managing clans for games. It could be used to manage groups of people, but our aim is players in a game.
+
+Khan allows your app to focus on the interaction required to creating clans and managing applications, instead of the backend required for actually doing it.
+
+## Features
+
+* **Multi-tenant** - Khan already works for as many games as you need, just keep adding new games;
+* **Clan Management** - Create and manage clans, their metadata as well as promote and demote people in their rosters;
+* **Player Management** - Manage players and their metadata, as well as their applications to clans;
+* **Applications** - Khan handles the work involved with applying to clans, inviting people to clans, accepting, denying and kicking;
+* **Clan Search** - Search a list of clans to present your player with relevant options;
+* **Top Clans** - Choose from a specific dimension to return a list of the top clans in that specific range (SOON);
+* **Web Hooks** - Need to integrate your clan system with another application? We got your back! Use our web hooks sytem and plug into whatever events you need;
+* **Auditing Trail** - Track every action coming from your games (SOON);
+* **New Relic Support** - Natively support new relic with segments in each API route for easy detection of bottlenecks;
+* **Easy to deploy** - Khan comes with containers already exported to docker hub for every single of our successful builds. Just pick your choice!
+
+Read more about Khan in our [comprehensive documentation](http://khan-api.readthedocs.io/).
+
+## Hacking Khan
+
+### Setup
 
 Make sure you have go installed on your machine.
 If you use homebrew you can install it with `brew install go`.
 
 Run `make setup`.
 
-## Running the application
+### Running the application
 
 Create the development database with `make migrate` (first time only).
 
 Run the api with `make run`.
 
-## Hosting the Application
-
-You can run it easily in one of the cloud providers using our [docker images](https://hub.docker.com/r/tfgco/khan/).
-
-The following environment variables are available to you:
-
-* KHAN_POSTGRES_HOST
-* KHAN_POSTGRES_PORT
-* KHAN_POSTGRES_DBNAME
-* KHAN_POSTGRES_USER
-* KHAN_POSTGRES_PASSWORD
-* KHAN_POSTGRES_SSLMODE
-* KHAN_SENTRY_URL
-* KHAN_ELASTICSEARCH_ENABLED
-* KHAN_ELASTICSEARCH_HOST
-* KHAN_ELASTICSEARCH_PORT
-* KHAN_ELASTICSEARCH_SNIFF
-* KHAN_ELASTICSEARCH_INDEX
-
-If elasticsearch is set to enabled, khan will save clans into KHAN_ELASTICSEARCH_INDEX and keep them updated with all the clan's updates.
-
-## Running with docker
+### Running with docker
 
 Provided you have docker installed, to build Khan's image run:
 
@@ -54,23 +54,19 @@ To run a new khan instance, run:
 
     $ make run-docker
 
-## Docker Image
-
-You can get a docker image from our [dockerhub page](https://hub.docker.com/r/tfgco/khan/).
-
-## Tests
+### Tests
 
 Running tests can be done with `make test`, while creating the test database can be accomplished with `make drop-test` and `make db-test`.
 
-## Benchmark
+### Benchmark
 
 Running benchmarks can be done with `make ci-perf`.
 
-## Coverage
+### Coverage
 
 Getting coverage data can be achieved with `make coverage`, while reading the actual results can be done with `make coverage-html`.
 
-## Static Analysis
+### Static Analysis
 
 Khan goes through some static analysis tools for go. To run them just use `make static`.
 
