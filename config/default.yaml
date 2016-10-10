@@ -27,4 +27,5 @@ sentry:
   url: ""
 
 newrelic:
+  appName: "khan"
   key: ""

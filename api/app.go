@@ -93,13 +93,18 @@ func (app *App) configureSentry() {
 
 func (app *App) configureNewRelic() error {
 	newRelicKey := app.Config.GetString("newrelic.key")
+	appName := app.Config.GetString("newrelic.appName")
+	if appName == "" {
+		appName = "Khan"
+	}
 
 	l := app.Logger.With(
 		zap.String("source", "app"),
+		zap.String("appName", appName),
 		zap.String("operation", "configureNewRelic"),
 	)
 
-	config := newrelic.NewConfig("Khan", newRelicKey)
+	config := newrelic.NewConfig(appName, newRelicKey)
 	if newRelicKey == "" {
 		l.Info("New Relic is not enabled..")
 		config.Enabled = false
@@ -241,11 +246,13 @@ func (app *App) configureApplication() {
 	_, w, _ := os.Pipe()
 	a.SetLogOutput(w)
 
-	a.Use(NewLoggerMiddleware(app.Logger).Serve)
+	//NewRelicMiddleware has to stand out from all others
+	a.Use(NewNewRelicMiddleware(app, app.Logger).Serve)
+
 	a.Use(NewRecoveryMiddleware(app.onErrorHandler).Serve)
 	a.Use(NewVersionMiddleware().Serve)
 	a.Use(NewSentryMiddleware(app).Serve)
-	a.Use(NewNewRelicMiddleware(app, app.Logger).Serve)
+	a.Use(NewLoggerMiddleware(app.Logger).Serve)
 
 	a.Get("/healthcheck", HealthCheckHandler(app))
 	a.Get("/status", StatusHandler(app))
