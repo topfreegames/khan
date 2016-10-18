@@ -1,5 +1,5 @@
-hash: fa5778f8e13e93112df4a63dbf8319342cd5dd6223f6702688586dbfa7950f66
-updated: 2016-10-06T14:33:49.857530171-03:00
+hash: 916ec286f952fa620b857d691342e00db0d043cd00d76f2db045206f934d0a12
+updated: 2016-10-18T17:45:53.603934184-02:00
 imports:
 - name: github.com/bluele/factory-go
   version: 8a28e9752dbc744626695b749a3ab474b8b372fa
@@ -7,6 +7,8 @@ imports:
   - factory
 - name: github.com/certifi/gocertifi
   version: a61bf5eafa3aee233ec8043e9da052447e5463dd
+- name: github.com/dgrijalva/jwt-go
+  version: 24c63f56522a87ec5339cc3567883f1039378fdb
 - name: github.com/fsnotify/fsnotify
   version: 944cff21b3baf3ced9a880365682152ba577d348
 - name: github.com/getsentry/raven-go
@@ -24,10 +26,10 @@ imports:
   subpackages:
   - hcl/ast
   - hcl/parser
-  - hcl/scanner
-  - hcl/strconv
   - hcl/token
   - json/parser
+  - hcl/scanner
+  - hcl/strconv
   - json/scanner
   - json/token
 - name: github.com/inconshreveable/mousetrap
@@ -53,16 +55,19 @@ imports:
 - name: github.com/labstack/echo
   version: 04e6901d05b58ddbae579a6252a3d1bb3f334adc
   subpackages:
-  - context
   - engine
   - engine/fasthttp
   - engine/standard
+  - middleware
+  - context
   - log
 - name: github.com/labstack/gommon
   version: 431777a5117c8de4352a400dad1e2a55f484b189
   subpackages:
-  - color
   - log
+  - bytes
+  - color
+  - random
 - name: github.com/lib/pq
   version: 50761b0867bd1d9d069276790bcd4a3bccf2324a
   subpackages:
@@ -72,9 +77,9 @@ imports:
 - name: github.com/mailru/easyjson
   version: a5759050626e5d52afe79bbb6d77a59e98df5d2d
   subpackages:
-  - buffer
   - jlexer
   - jwriter
+  - buffer
 - name: github.com/mattn/go-colorable
   version: 6c903ff4aa50920ca86087a280590b36b3152b9c
 - name: github.com/mattn/go-isatty
@@ -82,44 +87,17 @@ imports:
 - name: github.com/mitchellh/mapstructure
   version: ca63d7c062ee3c9f34db231e352b60012b4fd0c1
 - name: github.com/newrelic/go-agent
-  version: a923caa59930cbb1b27d2a9fb2d5663d9e5c637c
+  version: 372845e16294c9fa73951b27d5631b601643fc51
   subpackages:
   - internal
-  - internal/jsonx
   - internal/logger
-  - internal/sysinfo
   - internal/utilization
+  - internal/jsonx
+  - internal/sysinfo
 - name: github.com/onsi/ginkgo
   version: 45a5f6ffb2a14e4f29698c16ae4c0a34018a8951
-  subpackages:
-  - config
-  - internal/codelocation
-  - internal/containernode
-  - internal/failer
-  - internal/leafnodes
-  - internal/remote
-  - internal/spec
-  - internal/specrunner
-  - internal/suite
-  - internal/testingtproxy
-  - internal/writer
-  - reporters
-  - reporters/stenographer
-  - types
 - name: github.com/onsi/gomega
   version: d59fa0ac68bb5dd932ee8d24eed631cdd519efc3
-  subpackages:
-  - format
-  - internal/assertion
-  - internal/asyncassertion
-  - internal/oraclematcher
-  - internal/testingtsupport
-  - matchers
-  - matchers/support/goraph/bipartitegraph
-  - matchers/support/goraph/edge
-  - matchers/support/goraph/node
-  - matchers/support/goraph/util
-  - types
 - name: github.com/Pallinder/go-randomdata
   version: 01563c9f5c2dd648444bde7b3705a37698581364
 - name: github.com/pelletier/go-buffruneio
@@ -175,10 +153,10 @@ imports:
 - name: golang.org/x/crypto
   version: 7682e7e3945130cf3cde089834664f68afdd1523
   subpackages:
+  - ssh
   - curve25519
   - ed25519
   - ed25519/internal/edwards25519
-  - ssh
 - name: golang.org/x/net
   version: 2a824cf9226006580a06d9fa8f10901c17b49ed5
   subpackages:
@@ -198,7 +176,7 @@ imports:
 - name: gopkg.in/gorp.v1
   version: c87af80f3cc5036b55b83d77171e156791085e2e
 - name: gopkg.in/olivere/elastic.v3
-  version: eaecbad7a83e6b60f131825553e5eb7fd5a50b41
+  version: 1ad75b5396674e9c783400e89106bc0c8da9d786
   subpackages:
   - backoff
   - uritemplates
@@ -206,4 +184,4 @@ imports:
   version: aa2e30fdd1fe9dd3394119af66451ae790d50e0d
 - name: gopkg.in/yaml.v2
   version: a5b47d31c556af34a302ce5d659e6fea44d90de0
-testImports: []
+devImports: []
