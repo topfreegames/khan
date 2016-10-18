@@ -5,7 +5,7 @@ MAINTAINER TFG Co <backend@tfgco.com>
 EXPOSE 80
 
 RUN apk update
-RUN apk add git make g++ nginx supervisor apache2-utils
+RUN apk add git make g++ apache2-utils
 RUN apk add --update bash
 
 RUN go get -u github.com/Masterminds/glide/...
@@ -22,16 +22,7 @@ ENV KHAN_POSTGRES_PORT 5432
 ENV KHAN_POSTGRES_USER khan
 ENV KHAN_POSTGRES_DBNAME khan
 ENV KHAN_SENTRY_URL ""
-ENV BASICAUTH_USERNAME khan
-ENV BASICAUTH_PASSWORD khan
-ENV USE_BASICAUTH false
+ENV KHAN_BASICAUTH_USERNAME ""
+ENV KHAN_BASICAUTH_PASSWORD ""
 
-RUN mkdir -p /etc/nginx/sites-enabled
-
-# configure supervisord
-ADD ./docker/supervisord-khan.conf /etc/supervisord-khan.conf
-
-# Configure nginx
-ADD ./docker/nginx_conf /etc/nginx/nginx.conf
-
-CMD /bin/sh -l -c docker/start.sh
+CMD /go/bin/khan start --bind 0.0.0.0 --port 8080 --fast --config /go/src/github.com/topfreegames/khan/config/default.yaml

@@ -20,6 +20,7 @@ import (
 	"github.com/labstack/echo/engine"
 	"github.com/labstack/echo/engine/fasthttp"
 	"github.com/labstack/echo/engine/standard"
+	"github.com/labstack/echo/middleware"
 	newrelic "github.com/newrelic/go-agent"
 	"github.com/rcrowley/go-metrics"
 	"github.com/spf13/viper"
@@ -245,6 +246,15 @@ func (app *App) configureApplication() {
 
 	_, w, _ := os.Pipe()
 	a.SetLogOutput(w)
+
+	basicAuthUser := app.Config.GetString("basicauth.username")
+	if basicAuthUser != "" {
+		basicAuthPass := app.Config.GetString("basicauth.password")
+
+		a.Use(middleware.BasicAuth(func(username, password string) bool {
+			return username == basicAuthUser && password == basicAuthPass
+		}))
+	}
 
 	//NewRelicMiddleware has to stand out from all others
 	a.Use(NewNewRelicMiddleware(app, app.Logger).Serve)

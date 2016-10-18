@@ -22,9 +22,8 @@ Other than that, there are a couple more configurations you can pass using envir
 
 If you want to expose Khan outside your internal network it's advised to use Basic Authentication. You can specify basic authentication parameters with the following environment variables:
 
-* `USE_BASICAUTH` - If you specify this key to `true`, Khan will use basic authentication;
-* `BASICAUTH_USERNAME` - If you specify this key, Khan will be configured to use basic auth with this user;
-* `BASICAUTH_PASSWORD` - If you specify `BASICAUTH_USERNAME`, Khan will be configured to use basic auth with this password.
+* `KHAN_BASICAUTH_USERNAME` - If you specify this key, Khan will be configured to use basic auth with this user;
+* `KHAN_BASICAUTH_PASSWORD` - If you specify `BASICAUTH_USERNAME`, Khan will be configured to use basic auth with this password.
 
 ### Example command for running with Docker
 
