@@ -25,4 +25,4 @@ ENV KHAN_SENTRY_URL ""
 ENV KHAN_BASICAUTH_USERNAME ""
 ENV KHAN_BASICAUTH_PASSWORD ""
 
-CMD /go/bin/khan start --bind 0.0.0.0 --port 8080 --fast --config /go/src/github.com/topfreegames/khan/config/default.yaml
+CMD /go/bin/khan start --bind 0.0.0.0 --port 80 --fast --config /go/src/github.com/topfreegames/khan/config/default.yaml
