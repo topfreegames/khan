@@ -574,15 +574,35 @@ func ApproveOrDenyMembershipInvitationHandler(app *App) func(c echo.Context) err
 	}
 }
 
+func loadDeleteMembershipPayloadHelper(app *App, method string, c echo.Context, l zap.Logger) (*models.Game, int, string, string, error) {
+	if c.Request().Method() == "DELETE" {
+		var payload *BasePayloadWithRequestorPublicID
+		payload, game, status, err := getPayloadWithRequestorOnlyAndGame(app, c, l)
+		if err != nil {
+			return nil, status, "", "", err
+		}
+		playerPublicID := c.Param("playerPublicID")
+		return game, status, playerPublicID, payload.RequestorPublicID, nil
+	}
+
+	var payload *BasePayloadWithRequestorAndPlayerPublicIDs
+	payload, game, status, err := getPayloadAndGame(app, c, l)
+	if err != nil {
+		return nil, status, "", "", err
+	}
+	return game, status, payload.PlayerPublicID, payload.RequestorPublicID, nil
+}
+
 // DeleteMembershipHandler is the handler responsible for deleting a member
 func DeleteMembershipHandler(app *App) func(c echo.Context) error {
 	return func(c echo.Context) error {
 		var err error
 		var status int
-		var payload *BasePayloadWithRequestorAndPlayerPublicIDs
 		var game *models.Game
 		var membership *models.Membership
 		var tx *gorp.Transaction
+		var playerPublicID string
+		var requestorPublicID string
 
 		c.Set("route", "DeleteMembership")
 		start := time.Now()
@@ -595,11 +615,8 @@ func DeleteMembershipHandler(app *App) func(c echo.Context) error {
 		)
 
 		err = WithSegment("payload", c, func() error {
-			payload, game, status, err = getPayloadAndGame(app, c, l)
-			if err != nil {
-				return err
-			}
-			return nil
+			game, status, playerPublicID, requestorPublicID, err = loadDeleteMembershipPayloadHelper(app, c.Request().Method(), c, l)
+			return err
 		})
 		if err != nil {
 			return FailWith(status, err.Error(), c)
@@ -607,8 +624,8 @@ func DeleteMembershipHandler(app *App) func(c echo.Context) error {
 
 		l = l.With(
 			zap.String("gameID", game.PublicID),
-			zap.String("playerPublicID", payload.PlayerPublicID),
-			zap.String("requestorPublicID", payload.RequestorPublicID),
+			zap.String("playerPublicID", playerPublicID),
+			zap.String("requestorPublicID", requestorPublicID),
 		)
 
 		rb := func(err error) error {
@@ -635,9 +652,9 @@ func DeleteMembershipHandler(app *App) func(c echo.Context) error {
 				tx,
 				game,
 				game.PublicID,
-				payload.PlayerPublicID,
+				playerPublicID,
 				clanPublicID,
-				payload.RequestorPublicID,
+				requestorPublicID,
 			)
 
 			if err != nil {
@@ -658,8 +675,8 @@ func DeleteMembershipHandler(app *App) func(c echo.Context) error {
 		err = WithSegment("hook-dispatch", c, func() error {
 			err = dispatchMembershipHookByPublicID(
 				app, tx, models.MembershipLeftHook,
-				game.PublicID, clanPublicID, payload.PlayerPublicID,
-				payload.RequestorPublicID, membership.Level,
+				game.PublicID, clanPublicID, playerPublicID,
+				requestorPublicID, membership.Level,
 			)
 			if err != nil {
 				txErr := rb(err)

@@ -1286,12 +1286,22 @@ Khan API
 
   ### Delete Membership
 
-  `POST /games/:gameID/clans/:clanPublicID/memberships/delete`
+  `DELETE /games/:gameID/clans/:clanPublicID/memberships/:playerPublicID`
+
+  `POST /games/:gameID/clans/:clanPublicID/memberships/delete`  // Will be deprecated in future releases
 
   Allows a the clan owner or a clan member to remove another member from the clan. The member's membership level must be at least `minLevelToRemoveMember`. A member can leave the clan by sending the same `playerPublicID` and `requestorPublicID`.
 
   * Payload
 
+    If DELETE method:
+    ```
+    {
+      "requestorPublicID": [string] // the public id of the member or the clan owner who is deleting the membership
+    }
+    ```
+
+    If POST method (will be deprecated in future releases):
     ```
     {
       "playerPublicID": [string],   // the public id player being deleted

@@ -85,6 +85,15 @@ func Delete(app *api.App, url string) (int, string) {
 	return doRequest(app, "DELETE", url, "")
 }
 
+//Delete with JSON
+func DeleteJSON(app *api.App, url string, body interface{}) (int, string) {
+	result, err := json.Marshal(body)
+	if err != nil {
+		return 510, "Failed to marshal specified body to JSON format"
+	}
+	return doRequest(app, "DELETE", url, string(result))
+}
+
 var client *http.Client
 var transport *http.Transport
 
