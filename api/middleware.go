@@ -116,8 +116,6 @@ func (s *SentryMiddleware) Serve(next echo.HandlerFunc) echo.HandlerFunc {
 				}
 				raven.SetHttpContext(newHTTPFromCtx(c))
 				raven.CaptureError(err, tags)
-			} else {
-
 			}
 
 			return err
