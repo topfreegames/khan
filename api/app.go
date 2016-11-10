@@ -263,6 +263,7 @@ func (app *App) configureApplication() {
 	a.Use(NewVersionMiddleware().Serve)
 	a.Use(NewSentryMiddleware(app).Serve)
 	a.Use(NewLoggerMiddleware(app.Logger).Serve)
+	a.Use(NewBodyExtractionMiddleware().Serve)
 
 	a.Get("/healthcheck", HealthCheckHandler(app))
 	a.Get("/status", StatusHandler(app))

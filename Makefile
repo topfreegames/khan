@@ -52,7 +52,8 @@ start-deps: stop-deps
 	@make migrate
 
 stop-deps:
-	@cd ./scripts && docker-compose --project-name=khan down
+	@cd ./scripts && docker-compose --project-name=khan stop
+	@cd ./scripts && docker-compose --project-name=khan rm -f
 
 cross: assets
 	@mkdir -p ./bin

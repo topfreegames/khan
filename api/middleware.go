@@ -8,8 +8,10 @@
 package api
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"runtime/debug"
 	"time"
 
@@ -18,6 +20,35 @@ import (
 	"github.com/topfreegames/khan/log"
 	"github.com/uber-go/zap"
 )
+
+func getBodyFromNext(c echo.Context, next echo.HandlerFunc) (string, error) {
+	res := c.Response()
+	rw := res.Writer()
+	buf := new(bytes.Buffer)
+	mw := io.MultiWriter(rw, buf)
+	res.SetWriter(mw)
+
+	err := next(c)
+
+	body := buf.String()
+	return body, err
+}
+
+//NewBodyExtractionMiddleware with API version
+func NewBodyExtractionMiddleware() *BodyExtractionMiddleware {
+	return &BodyExtractionMiddleware{}
+}
+
+type BodyExtractionMiddleware struct{}
+
+// Serve serves the middleware
+func (v *BodyExtractionMiddleware) Serve(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		body, err := getBodyFromNext(c, next)
+		c.Set("body", body)
+		return err
+	}
+}
 
 //NewVersionMiddleware with API version
 func NewVersionMiddleware() *VersionMiddleware {
@@ -59,6 +90,17 @@ func (s *SentryMiddleware) Serve(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		return WithSegment("middleware-sentry", c, func() error {
 			err := next(c)
+			body := c.Get("body").(string)
+
+			if err == nil {
+				status := c.Response().Status()
+
+				//request is ok, but server failed
+				if status > 499 {
+					err = fmt.Errorf("Server failed to process response with status code 500.", body)
+				}
+			}
+
 			if err != nil {
 				if httpErr, ok := err.(*echo.HTTPError); ok {
 					if httpErr.Code < 500 {
@@ -70,10 +112,14 @@ func (s *SentryMiddleware) Serve(next echo.HandlerFunc) echo.HandlerFunc {
 					"type":   "Internal server error",
 					"url":    c.Request().URI(),
 					"status": fmt.Sprintf("%d", c.Response().Status()),
+					"body":   body,
 				}
 				raven.SetHttpContext(newHTTPFromCtx(c))
 				raven.CaptureError(err, tags)
+			} else {
+
 			}
+
 			return err
 		})
 	}
@@ -169,6 +215,7 @@ func (l *LoggerMiddleware) Serve(next echo.HandlerFunc) echo.HandlerFunc {
 		startTime = time.Now()
 
 		err := next(c)
+		body := c.Get("body").(string)
 
 		//no time.Since in order to format it well after
 		endTime = time.Now()
@@ -191,6 +238,7 @@ func (l *LoggerMiddleware) Serve(next echo.HandlerFunc) echo.HandlerFunc {
 			zap.String("ip", ip),
 			zap.String("method", method),
 			zap.String("path", path),
+			zap.String("body", body),
 		)
 
 		//request failed
@@ -209,6 +257,7 @@ func (l *LoggerMiddleware) Serve(next echo.HandlerFunc) echo.HandlerFunc {
 		if cm := reqLog.Check(zap.InfoLevel, "Request successful."); cm.OK() {
 			cm.Write()
 		}
+
 		return err
 	}
 }

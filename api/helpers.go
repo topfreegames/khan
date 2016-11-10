@@ -35,7 +35,9 @@ type EasyJSONMarshaler interface {
 
 // FailWith fails with the specified message
 func FailWith(status int, message string, c echo.Context) error {
-	return c.String(status, fmt.Sprintf(`{"success":false,"reason":"%s"}`, message))
+	msg := fmt.Sprintf(`{"success":false,"reason":"%s"}`, message)
+	c.Set("text", msg)
+	return c.String(status, msg)
 }
 
 // SucceedWith sends payload to user with status 200
