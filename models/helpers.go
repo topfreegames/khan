@@ -69,6 +69,9 @@ func InitDb(host string, user string, port int, sslmode string, dbName string, p
 		return nil, err
 	}
 
+	db.SetMaxIdleConns(5)
+	db.SetMaxOpenConns(10)
+
 	dbmap := &gorp.DbMap{Db: db, Dialect: gorp.PostgresDialect{}}
 	dbmap.TypeConverter = util.TypeConverter{}
 

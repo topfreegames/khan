@@ -200,6 +200,7 @@ func (app *App) connectDatabase() {
 	)
 
 	log.D(l, "Connecting to database...")
+
 	db, err := models.GetDB(host, user, port, sslMode, dbName, password)
 
 	if err != nil {
