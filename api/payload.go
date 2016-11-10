@@ -319,18 +319,6 @@ func (base *BasePayloadWithRequestorAndPlayerPublicIDs) Validate() []string {
 	return v.Errors()
 }
 
-//BasePayloadWithRequestorPublicID maps the payload required for many routes
-type BasePayloadWithRequestorPublicID struct {
-	RequestorPublicID string `json:"requestorPublicID"`
-}
-
-//Validate all the required fields
-func (base *BasePayloadWithRequestorPublicID) Validate() []string {
-	v := NewValidation()
-	v.validateRequiredString("requestorPublicID", base.RequestorPublicID)
-	return v.Errors()
-}
-
 //ApproveOrDenyMembershipInvitationPayload maps the payload required for Approving or Denying a membership
 type ApproveOrDenyMembershipInvitationPayload struct {
 	PlayerPublicID string `json:"playerPublicID"`

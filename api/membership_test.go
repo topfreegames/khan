@@ -15,7 +15,6 @@ import (
 	"github.com/Pallinder/go-randomdata"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	uuid "github.com/satori/go.uuid"
 	"github.com/topfreegames/khan/models"
 )
 
@@ -796,67 +795,6 @@ var _ = Describe("Membership API Handler", func() {
 			}
 
 			status, body := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "delete"), payload)
-
-			Expect(status).To(Equal(http.StatusInternalServerError))
-			var result map[string]interface{}
-			json.Unmarshal([]byte(body), &result)
-			Expect(result["success"]).To(BeFalse())
-			Expect(result["reason"]).To(Equal(fmt.Sprintf("Membership was not found with id: %s", playerPublicID)))
-		})
-	})
-
-	Describe("Delete Member Handler -  Using DELETE route", func() {
-		It("Should delete member", func() {
-			_, clan, owner, players, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
-			Expect(err).NotTo(HaveOccurred())
-
-			gameID := clan.GameID
-			clanPublicID := clan.PublicID
-
-			a := GetDefaultTestApp()
-
-			payload := map[string]interface{}{
-				"requestorPublicID": owner.PublicID,
-			}
-			status, body := DeleteJSON(a, CreateMembershipRoute(gameID, clanPublicID, players[0].PublicID), payload)
-
-			Expect(status).To(Equal(http.StatusOK))
-			var result map[string]interface{}
-			json.Unmarshal([]byte(body), &result)
-			Expect(result["success"]).To(BeTrue())
-
-			_, err = models.GetValidMembershipByClanAndPlayerPublicID(a.Db, gameID, clanPublicID, players[0].PublicID)
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(Equal(fmt.Sprintf("Membership was not found with id: %s", players[0].PublicID)))
-		})
-
-		It("Should not delete member if missing parameters", func() {
-			a := GetDefaultTestApp()
-			playerPublicID := uuid.NewV4().String()
-			status, body := DeleteJSON(a, CreateMembershipRoute("gameID", "clanPublicID", playerPublicID), map[string]interface{}{})
-
-			Expect(status).To(Equal(http.StatusBadRequest))
-			var result map[string]interface{}
-			json.Unmarshal([]byte(body), &result)
-			Expect(result["success"]).To(BeFalse())
-			Expect(result["reason"]).To(Equal("requestorPublicID is required"))
-		})
-
-		It("Should not delete member if player does not exist", func() {
-			playerPublicID := uuid.NewV4().String()
-			_, clan, owner, _, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
-			Expect(err).NotTo(HaveOccurred())
-
-			gameID := owner.GameID
-			clanPublicID := clan.PublicID
-
-			a := GetDefaultTestApp()
-
-			payload := map[string]interface{}{
-				"requestorPublicID": owner.PublicID,
-			}
-
-			status, body := DeleteJSON(a, CreateMembershipRoute(gameID, clanPublicID, playerPublicID), payload)
 
 			Expect(status).To(Equal(http.StatusInternalServerError))
 			var result map[string]interface{}

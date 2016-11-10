@@ -193,20 +193,3 @@ func getPayloadAndGame(app *App, c echo.Context, l zap.Logger) (*BasePayloadWith
 
 	return &payload, game, 200, nil
 }
-
-func getPayloadWithRequestorOnlyAndGame(app *App, c echo.Context, l zap.Logger) (*BasePayloadWithRequestorPublicID, *models.Game, int, error) {
-	gameID := c.Param("gameID")
-
-	var payload BasePayloadWithRequestorPublicID
-	if err := LoadJSONPayload(&payload, c, l.With(zap.String("gameID", gameID))); err != nil {
-		return nil, nil, 400, err
-	}
-
-	game, err := app.GetGame(gameID)
-	if err != nil {
-		log.W(l, "Could not find game.")
-		return nil, nil, 404, err
-	}
-
-	return &payload, game, 200, nil
-}

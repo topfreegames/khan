@@ -291,7 +291,7 @@ func (app *App) configureApplication() {
 	a.Post("/games/:gameID/clans/:clanPublicID/leave", LeaveClanHandler(app))
 	a.Post("/games/:gameID/clans/:clanPublicID/transfer-ownership", TransferOwnershipHandler(app))
 
-	// Membership Routes
+	//// Membership Routes
 	a.Post("/games/:gameID/clans/:clanPublicID/memberships/application", ApplyForMembershipHandler(app))
 	a.Post("/games/:gameID/clans/:clanPublicID/memberships/application/:action", ApproveOrDenyMembershipApplicationHandler(app))
 	a.Post("/games/:gameID/clans/:clanPublicID/memberships/invitation", InviteForMembershipHandler(app))
@@ -299,7 +299,6 @@ func (app *App) configureApplication() {
 	a.Post("/games/:gameID/clans/:clanPublicID/memberships/delete", DeleteMembershipHandler(app))
 	a.Post("/games/:gameID/clans/:clanPublicID/memberships/promote", PromoteOrDemoteMembershipHandler(app, "promote"))
 	a.Post("/games/:gameID/clans/:clanPublicID/memberships/demote", PromoteOrDemoteMembershipHandler(app, "demote"))
-	a.Delete("/games/:gameID/clans/:clanPublicID/memberships/:playerPublicID", DeleteMembershipHandler(app))
 
 	app.Errors = metrics.NewEWMA15()
 
