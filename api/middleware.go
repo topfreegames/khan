@@ -97,7 +97,7 @@ func (s *SentryMiddleware) Serve(next echo.HandlerFunc) echo.HandlerFunc {
 
 				//request is ok, but server failed
 				if status > 499 {
-					err = fmt.Errorf("Server failed to process response with status code 500.", body)
+					err = fmt.Errorf("Server failed to process response with status code 500: %s", body)
 				}
 			}
 
