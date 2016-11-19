@@ -144,7 +144,7 @@ func CreatePlayer(db DB, gameID, publicID, name string, metadata map[string]inte
 
 	query := `
 			INSERT INTO players(game_id, public_id, name, metadata, created_at, updated_at)
-						VALUES($1, $2, $3, $4, $5, $5)%s`
+						VALUES($1, $2, $3, $4, $5, $5)%s RETURNING id`
 	onConflict := ` ON CONFLICT (game_id, public_id)
 			DO UPDATE set name=$3, metadata=$4, updated_at=$5
 			WHERE players.game_id=$1 and players.public_id=$2`
@@ -154,12 +154,14 @@ func CreatePlayer(db DB, gameID, publicID, name string, metadata map[string]inte
 	} else {
 		query = fmt.Sprintf(query, "")
 	}
-	_, err = db.Exec(query,
+
+	var lastID int64
+	lastID, err = db.SelectInt(query,
 		gameID, publicID, name, metadataJSON, util.NowMilli())
 	if err != nil {
 		return nil, err
 	}
-	return GetPlayerByPublicID(db, gameID, publicID)
+	return GetPlayerByID(db, int(lastID))
 }
 
 // UpdatePlayer updates an existing player

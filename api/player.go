@@ -150,6 +150,33 @@ func UpdatePlayerHandler(app *App) func(c echo.Context) error {
 		var player, beforeUpdatePlayer *models.Player
 		var game *models.Game
 
+		err = WithSegment("game-retrieve", c, func() error {
+			log.D(l, "Retrieving game...")
+			game, err = models.GetGameByPublicID(app.Db, gameID)
+
+			if err != nil {
+				return err
+			}
+			log.D(l, "Game retrieved successfully")
+			return nil
+		})
+		if err != nil {
+			return FailWith(http.StatusBadRequest, err.Error(), c)
+		}
+
+		err = WithSegment("player-retrieve", c, func() error {
+			log.D(l, "Retrieving player...")
+			beforeUpdatePlayer, err = models.GetPlayerByPublicID(app.Db, gameID, playerPublicID)
+			if err != nil && err.Error() != (&models.ModelNotFoundError{Type: "Player", ID: playerPublicID}).Error() {
+				return err
+			}
+			log.D(l, "Player retrieved successfully")
+			return nil
+		})
+		if err != nil {
+			return FailWith(http.StatusBadRequest, err.Error(), c)
+		}
+
 		//rollback function
 		rb := func(err error) error {
 			txErr := app.Rollback(tx, "Updating player failed", c, l, err)
@@ -169,45 +196,6 @@ func UpdatePlayerHandler(app *App) func(c echo.Context) error {
 				return err
 			}
 			log.D(l, "DB Tx begun successful.")
-
-			err = WithSegment("game-retrieve", c, func() error {
-				log.D(l, "Retrieving game...")
-				game, err = models.GetGameByPublicID(tx, gameID)
-
-				if err != nil {
-					txErr := rb(err)
-					if txErr == nil {
-						log.E(l, "Updating player failed.", func(cm log.CM) {
-							cm.Write(zap.Error(err))
-						})
-					}
-					return err
-				}
-				log.D(l, "Game retrieved successfully")
-				return nil
-			})
-			if err != nil {
-				return nil
-			}
-
-			err = WithSegment("player-retrieve", c, func() error {
-				log.D(l, "Retrieving player...")
-				beforeUpdatePlayer, err = models.GetPlayerByPublicID(tx, gameID, playerPublicID)
-				if err != nil && err.Error() != (&models.ModelNotFoundError{Type: "Player", ID: playerPublicID}).Error() {
-					txErr := rb(err)
-					if txErr == nil {
-						log.E(l, "Updating player failed.", func(cm log.CM) {
-							cm.Write(zap.Error(err))
-						})
-					}
-					return err
-				}
-				log.D(l, "Player retrieved successfully")
-				return nil
-			})
-			if err != nil {
-				return err
-			}
 
 			err = WithSegment("player-update-query", c, func() error {
 				log.D(l, "Updating player...")
@@ -236,6 +224,11 @@ func UpdatePlayerHandler(app *App) func(c echo.Context) error {
 			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 
+		err = app.Commit(tx, "Update player", c, l)
+		if err != nil {
+			return FailWith(http.StatusInternalServerError, err.Error(), c)
+		}
+
 		err = WithSegment("hook-dispatch", c, func() error {
 			shouldDispatch := validateUpdatePlayerDispatch(game, beforeUpdatePlayer, player, payload.Metadata, l)
 			if shouldDispatch {
@@ -253,11 +246,6 @@ func UpdatePlayerHandler(app *App) func(c echo.Context) error {
 			}
 			return nil
 		})
-		if err != nil {
-			return FailWith(http.StatusInternalServerError, err.Error(), c)
-		}
-
-		err = app.Commit(tx, "Update game", c, l)
 		if err != nil {
 			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
