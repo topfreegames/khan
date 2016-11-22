@@ -10,6 +10,7 @@ package models
 import (
 	"database/sql"
 	"fmt"
+	"time"
 
 	"github.com/Pallinder/go-randomdata"
 	"github.com/bluele/factory-go/factory"
@@ -615,4 +616,73 @@ func GetTestPlayerWithMemberships(db DB, gameID string, approvedMemberships, rej
 	}
 
 	return player, nil
+}
+
+//GetTestClanWithStaleData returns a player with approved, rejected and banned memberships
+func GetTestClanWithStaleData(db DB, staleApplications int) error {
+	gameID := uuid.NewV4().String()
+	game := GameFactory.MustCreateWithOption(map[string]interface{}{
+		"PublicID": gameID,
+	}).(*Game)
+	err := db.Insert(game)
+	if err != nil {
+		return err
+	}
+
+	owner := PlayerFactory.MustCreateWithOption(map[string]interface{}{
+		"GameID":         gameID,
+		"OwnershipCount": 1,
+	}).(*Player)
+	err = db.Insert(owner)
+	if err != nil {
+		return err
+	}
+
+	clan := ClanFactory.MustCreateWithOption(map[string]interface{}{
+		"GameID":   owner.GameID,
+		"PublicID": uuid.NewV4().String(),
+		"OwnerID":  owner.ID,
+		"Metadata": map[string]interface{}{"x": "a"},
+	}).(*Clan)
+	err = db.Insert(clan)
+	if err != nil {
+		return err
+	}
+
+	createMembership := func(createdAt int64) (*Player, *Membership, error) {
+		player := PlayerFactory.MustCreateWithOption(map[string]interface{}{
+			"GameID": gameID,
+		}).(*Player)
+		err = db.Insert(player)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		payload := map[string]interface{}{
+			"GameID":      owner.GameID,
+			"PlayerID":    player.ID,
+			"ClanID":      clan.ID,
+			"RequestorID": owner.ID,
+			"Metadata":    map[string]interface{}{"x": "a"},
+			"Approved":    false,
+			"Denied":      false,
+			"Banned":      false,
+		}
+		membership := MembershipFactory.MustCreateWithOption(payload).(*Membership)
+		err = db.Insert(membership)
+		if err != nil {
+			return nil, nil, err
+		}
+		return player, membership, nil
+	}
+
+	for i := 0; i < staleApplications*2; i++ {
+		createMembership(time.Now().UTC().Unix())
+	}
+
+	for i := 0; i < staleApplications; i++ {
+		createMembership(time.Now().Add(time.Duration(-600) * time.Hour).UTC().Unix())
+	}
+
+	return nil
 }
