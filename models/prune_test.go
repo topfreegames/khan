@@ -32,19 +32,30 @@ var _ = Describe("Prune Stale Data Model", func() {
 	})
 
 	Describe("Prune Stale Data Model", func() {
-		Describe("Pruning Pending Applications", func() {
-			FIt("Should remove pending applications", func() {
-				err := GetTestClanWithStaleData(testDb, 20)
+		Describe("Pruning Stale data", func() {
+			It("Should remove pending applications", func() {
+				gameID, err := GetTestClanWithStaleData(testDb, 5, 6, 7, 8)
 				Expect(err).NotTo(HaveOccurred())
 
 				expiration := int((2 * time.Hour).Seconds())
 				options := &PruneOptions{
+					GameID: gameID,
 					PendingApplicationsExpiration: expiration,
+					PendingInvitesExpiration:      expiration,
+					DeniedMembershipsExpiration:   expiration,
+					DeletedMembershipsExpiration:  expiration,
 				}
 				pruneStats, err := PruneStaleData(options, testDb, logger)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(pruneStats).NotTo(BeNil())
-				Expect(pruneStats.PendingApplicationsPruned).To(Equal(20))
+				Expect(pruneStats.PendingApplicationsPruned).To(Equal(5))
+				Expect(pruneStats.PendingInvitesPruned).To(Equal(6))
+				Expect(pruneStats.DeniedMembershipsPruned).To(Equal(7))
+				Expect(pruneStats.DeletedMembershipsPruned).To(Equal(8))
+
+				count, err := testDb.SelectInt(`SELECT COUNT(*) FROM memberships WHERE game_id=$1`, gameID)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(int(count)).To(Equal(52))
 			})
 		})
 	})

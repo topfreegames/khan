@@ -14,10 +14,10 @@ import (
 
 // PruneStats show stats about what has been pruned
 type PruneStats struct {
-	PendingApplicationsPruned int64
-	PendingInvitesPruned      int64
-	DeniedMembershipsPruned   int64
-	DeletedMembershipsPruned  int64
+	PendingApplicationsPruned int
+	PendingInvitesPruned      int
+	DeniedMembershipsPruned   int
+	DeletedMembershipsPruned  int
 }
 
 // PruneOptions has all the prunable memberships TTL
@@ -29,16 +29,16 @@ type PruneOptions struct {
 	DeletedMembershipsExpiration  int
 }
 
-func runAndReturnRowsAffected(query string, db DB, args ...interface{}) (int64, error) {
+func runAndReturnRowsAffected(query string, db DB, args ...interface{}) (int, error) {
 	res, err := db.Exec(query, args...)
 	if err != nil {
 		return 0, err
 	}
 	rows, err := res.RowsAffected()
-	return rows, err
+	return int(rows), err
 }
 
-func prunePendingApplications(options *PruneOptions, db DB, logger zap.Logger) (int64, error) {
+func prunePendingApplications(options *PruneOptions, db DB, logger zap.Logger) (int, error) {
 	query := `DELETE FROM memberships m WHERE
 		m.game_id=$1 AND
 		m.deleted_at=0 AND
@@ -51,7 +51,7 @@ func prunePendingApplications(options *PruneOptions, db DB, logger zap.Logger) (
 	return runAndReturnRowsAffected(query, db, options.GameID, updatedAt)
 }
 
-func prunePendingInvites(options *PruneOptions, db DB, logger zap.Logger) (int64, error) {
+func prunePendingInvites(options *PruneOptions, db DB, logger zap.Logger) (int, error) {
 	query := `DELETE FROM memberships m WHERE
 		m.game_id=$1 AND
 		m.deleted_at=0 AND
@@ -64,7 +64,7 @@ func prunePendingInvites(options *PruneOptions, db DB, logger zap.Logger) (int64
 	return runAndReturnRowsAffected(query, db, options.GameID, updatedAt)
 }
 
-func pruneDeniedMemberships(options *PruneOptions, db DB, logger zap.Logger) (int64, error) {
+func pruneDeniedMemberships(options *PruneOptions, db DB, logger zap.Logger) (int, error) {
 	query := `DELETE FROM memberships m WHERE
 		m.game_id=$1 AND
 		m.denied=TRUE AND
@@ -74,7 +74,7 @@ func pruneDeniedMemberships(options *PruneOptions, db DB, logger zap.Logger) (in
 	return runAndReturnRowsAffected(query, db, options.GameID, updatedAt)
 }
 
-func pruneDeletedMemberships(options *PruneOptions, db DB, logger zap.Logger) (int64, error) {
+func pruneDeletedMemberships(options *PruneOptions, db DB, logger zap.Logger) (int, error) {
 	query := `DELETE FROM memberships m WHERE
 		m.game_id=$1 AND
 		m.deleted_at > 0 AND
