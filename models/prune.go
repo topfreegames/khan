@@ -8,18 +8,16 @@
 package models
 
 import (
-	"fmt"
-
 	"github.com/topfreegames/khan/util"
 	"github.com/uber-go/zap"
 )
 
 // PruneStats show stats about what has been pruned
 type PruneStats struct {
-	PendingApplicationsPruned int
-	PendingInvitesPruned      int
-	DeniedMembershipsPruned   int
-	DeletedMembershipsPruned  int
+	PendingApplicationsPruned int64
+	PendingInvitesPruned      int64
+	DeniedMembershipsPruned   int64
+	DeletedMembershipsPruned  int64
 }
 
 // PruneOptions has all the prunable memberships TTL
@@ -31,7 +29,16 @@ type PruneOptions struct {
 	DeletedMembershipsExpiration  int
 }
 
-func prunePendingApplications(options *PruneOptions, db DB, logger zap.Logger) (int, error) {
+func runAndReturnRowsAffected(query string, db DB, args ...interface{}) (int64, error) {
+	res, err := db.Exec(query, args...)
+	if err != nil {
+		return 0, err
+	}
+	rows, err := res.RowsAffected()
+	return rows, err
+}
+
+func prunePendingApplications(options *PruneOptions, db DB, logger zap.Logger) (int64, error) {
 	query := `DELETE FROM memberships m WHERE
 		m.game_id=$1 AND
 		m.deleted_at=0 AND
@@ -41,48 +48,40 @@ func prunePendingApplications(options *PruneOptions, db DB, logger zap.Logger) (
 		m.updated_at < $2`
 
 	updatedAt := util.NowMilli() - int64(options.PendingApplicationsExpiration*1000)
-	res, err := db.Exec(query, options.GameID, updatedAt)
-	fmt.Println(res)
-	return 0, err
+	return runAndReturnRowsAffected(query, db, options.GameID, updatedAt)
 }
 
-func prunePendingInvites(options *PruneOptions, db DB, logger zap.Logger) (int, error) {
+func prunePendingInvites(options *PruneOptions, db DB, logger zap.Logger) (int64, error) {
 	query := `DELETE FROM memberships m WHERE
 		m.game_id=$1 AND
 		m.deleted_at=0 AND
 		m.approved=FALSE AND
 		m.denied=FALSE AND
-		m.requestor_id!=m.player_id AND
+		m.requestor_id != m.player_id AND
 		m.updated_at < $2`
 
 	updatedAt := util.NowMilli() - int64(options.PendingInvitesExpiration*1000)
-	res, err := db.Exec(query, options.GameID, updatedAt)
-	fmt.Println(res)
-	return 0, err
+	return runAndReturnRowsAffected(query, db, options.GameID, updatedAt)
 }
 
-func pruneDeniedMemberships(options *PruneOptions, db DB, logger zap.Logger) (int, error) {
+func pruneDeniedMemberships(options *PruneOptions, db DB, logger zap.Logger) (int64, error) {
 	query := `DELETE FROM memberships m WHERE
 		m.game_id=$1 AND
 		m.denied=TRUE AND
 		m.updated_at < $2`
 
 	updatedAt := util.NowMilli() - int64(options.DeniedMembershipsExpiration*1000)
-	res, err := db.Exec(query, options.GameID, updatedAt)
-	fmt.Println(res)
-	return 0, err
+	return runAndReturnRowsAffected(query, db, options.GameID, updatedAt)
 }
 
-func pruneDeletedMemberships(options *PruneOptions, db DB, logger zap.Logger) (int, error) {
+func pruneDeletedMemberships(options *PruneOptions, db DB, logger zap.Logger) (int64, error) {
 	query := `DELETE FROM memberships m WHERE
 		m.game_id=$1 AND
 		m.deleted_at > 0 AND
 		m.updated_at < $2`
 
 	updatedAt := util.NowMilli() - int64(options.DeletedMembershipsExpiration*1000)
-	res, err := db.Exec(query, options.GameID, updatedAt)
-	fmt.Println(res)
-	return 0, err
+	return runAndReturnRowsAffected(query, db, options.GameID, updatedAt)
 }
 
 // PruneStaleData off of Khan's database
