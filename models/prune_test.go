@@ -33,12 +33,15 @@ var _ = Describe("Prune Stale Data Model", func() {
 
 	Describe("Prune Stale Data Model", func() {
 		Describe("Pruning Pending Applications", func() {
-			It("Should remove pending applications", func() {
+			FIt("Should remove pending applications", func() {
 				err := GetTestClanWithStaleData(testDb, 20)
 				Expect(err).NotTo(HaveOccurred())
 
 				expiration := int((2 * time.Hour).Seconds())
-				pruneStats, err := PruneStaleData(expiration, testDb, logger)
+				options := &PruneOptions{
+					PendingApplicationsExpiration: expiration,
+				}
+				pruneStats, err := PruneStaleData(options, testDb, logger)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(pruneStats).NotTo(BeNil())
 				Expect(pruneStats.PendingApplicationsPruned).To(Equal(20))
