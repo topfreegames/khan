@@ -623,6 +623,12 @@ func GetTestClanWithStaleData(db DB, staleApplications, staleInvites, staleDenie
 	gameID := uuid.NewV4().String()
 	game := GameFactory.MustCreateWithOption(map[string]interface{}{
 		"PublicID": gameID,
+		"Metadata": map[string]interface{}{
+			"pendingApplicationsExpiration": 3600,
+			"pendingInvitesExpiration":      3600,
+			"deniedMembershipsExpiration":   3600,
+			"deletedMembershipsExpiration":  3600,
+		},
 	}).(*Game)
 	err := db.Insert(game)
 	if err != nil {

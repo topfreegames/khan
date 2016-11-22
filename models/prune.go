@@ -8,6 +8,8 @@
 package models
 
 import (
+	"fmt"
+
 	"github.com/topfreegames/khan/log"
 	"github.com/topfreegames/khan/util"
 	"github.com/uber-go/zap"
@@ -19,6 +21,17 @@ type PruneStats struct {
 	PendingInvitesPruned      int
 	DeniedMembershipsPruned   int
 	DeletedMembershipsPruned  int
+}
+
+//GetStats returns a formatted message
+func (ps *PruneStats) GetStats() string {
+	return fmt.Sprintf(
+		"-Pending Applications: %d\n-Pending Invites: %d\nDenied Memberships: %d\nDeleted Memberships: %d\n",
+		ps.PendingApplicationsPruned,
+		ps.PendingInvitesPruned,
+		ps.DeniedMembershipsPruned,
+		ps.DeletedMembershipsPruned,
+	)
 }
 
 // PruneOptions has all the prunable memberships TTL
