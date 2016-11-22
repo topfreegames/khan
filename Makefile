@@ -4,10 +4,13 @@
 # http://www.opensource.org/licenses/mit-license
 # Copyright © 2016 Top Free Games <backend@tfgco.com>
 
+.PHONY: db
+
 PACKAGES = $(shell glide novendor)
 GODIRS = $(shell go list ./... | grep -v /vendor/ | sed s@github.com/topfreegames/khan@.@g | egrep -v "^[.]$$")
 PMD = "pmd-bin-5.3.3"
 OS = "$(shell uname | awk '{ print tolower($$0) }')"
+MYIP = $(shell ifconfig | egrep inet | egrep -v inet6 | egrep -v 127.0.0.1 | awk ' { print $$2 } ' | head -n 1)
 
 setup-hooks:
 	@cd .git/hooks && ln -sf ../../hooks/pre-commit.sh pre-commit
@@ -87,15 +90,26 @@ build-dev-docker:
 	@cp ./bin/khan-linux-x86_64 ./dev
 	@cd dev && docker build -t khan-dev .
 
+build-prune-docker:
+	@docker build -t khan-prune -f PruneDockerfile .
+
 # the crypto
 run-docker:
 	@docker run -i -t --rm \
 		-e "KHAN_POSTGRES_HOST=`ifconfig | egrep inet | egrep -v inet6 | egrep -v 127.0.0.1 | awk ' { print $$2 } '`" \
+		-e "KHAN_POSTGRES_PORT=5433" \
 		-e "SERVER_NAME=localhost" \
 		-e "AUTH_USERNAME=auth-username" \
 		-e "AUTH_PASSWORD=auth-password" \
 		-p 8080:80 \
 		khan
+
+run-prune-docker:
+	@docker run -i -t --rm \
+		-e "KHAN_POSTGRES_HOST=${MYIP}" \
+		-e "KHAN_POSTGRES_PORT=5433" \
+		-e "KHAN_PRUNING_SLEEP=10" \
+		khan-prune
 
 test: schema-update start-deps assets drop-test db-test
 	@ginkgo -r --cover .
@@ -107,15 +121,15 @@ test-coverage coverage: test
 test-coverage-html coverage-html: test-coverage
 	@go tool cover -html=coverage-all.out
 
-db migrate:
-	@go run main.go migrate -c ./config/local.yaml
-
 random-data:
 	@go run perf/main.go -games 5 -pwc 100 -cpg 10 -use-main
 
 drop:
-	@psql -d postgres -f db/drop.sql > /dev/null
+	@psql -d postgres -U postgres -p 5433 -h ${MYIP} -f db/drop.sql > /dev/null
 	@echo "Database created successfully!"
+
+db migrate:
+	@go run main.go migrate -c ./config/local.yaml
 
 db-test migrate-test:
 	@psql -h localhost -p 5433 -U postgres -d postgres -c "SHOW SERVER_VERSION"

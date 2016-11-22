@@ -19,6 +19,7 @@ Contents:
    game
    using_webhooks
    API
+   pruning
    postman
    benchmark
 

@@ -19,7 +19,7 @@ import (
 	"github.com/topfreegames/khan/util"
 )
 
-var _ = Describe("Hook Model", func() {
+var _ = Describe("Membership Model", func() {
 	var testDb DB
 
 	BeforeEach(func() {
