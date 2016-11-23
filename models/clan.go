@@ -521,7 +521,7 @@ func GetAllClans(db DB, gameID string) ([]Clan, error) {
 }
 
 // GetClanDetails returns all details for a given clan by its game id and public id
-func GetClanDetails(db DB, gameID, publicID string, maxClansPerPlayer int) (map[string]interface{}, error) {
+func GetClanDetails(db DB, gameID string, clan *Clan, maxClansPerPlayer int) (map[string]interface{}, error) {
 	query := `
 	SELECT
 		c.game_id GameID,
@@ -541,22 +541,34 @@ func GetClanDetails(db DB, gameID, publicID string, maxClansPerPlayer int) (map[
 		Coalesce(p.ownership_count, 0) OwnershipCount
 	FROM clans c
 		INNER JOIN players o ON c.owner_id=o.id
-		LEFT OUTER JOIN memberships m ON m.clan_id=c.id AND m.deleted_at=0
+		LEFT OUTER JOIN (
+			(
+				SELECT *
+				FROM memberships im
+				WHERE im.clan_id=$2 AND im.deleted_at=0 AND im.approved=false AND im.denied=false AND im.banned=false
+				ORDER BY im.updated_at DESC
+				LIMIT $3
+		    )
+			UNION ALL
+				SELECT *
+				FROM memberships im
+				WHERE im.clan_id=$2 AND im.deleted_at=0 AND (im.approved=true OR im.denied=true OR im.banned=true)
+		) m ON m.clan_id=c.id
 		LEFT OUTER JOIN players r ON m.requestor_id=r.id
 		LEFT OUTER JOIN players a ON m.approver_id=a.id
 		LEFT OUTER JOIN players p ON m.player_id=p.id
 		LEFT OUTER JOIN players y ON m.denier_id=y.id
 	WHERE
-		c.game_id=$1 AND c.public_id=$2
+		c.game_id=$1 AND c.id=$2
 	`
 	var details []clanDetailsDAO
-	_, err := db.Select(&details, query, gameID, publicID)
+	_, err := db.Select(&details, query, gameID, clan.ID, 100)
 	if err != nil {
 		return nil, err
 	}
 
 	if len(details) == 0 {
-		return nil, &ModelNotFoundError{"Clan", publicID}
+		return nil, &ModelNotFoundError{"Clan", clan.PublicID}
 	}
 
 	result := make(map[string]interface{})

@@ -885,7 +885,7 @@ var _ = Describe("Clan Model", func() {
 				)
 				Expect(err).NotTo(HaveOccurred())
 
-				clanData, err := GetClanDetails(testDb, clan.GameID, clan.PublicID, 1)
+				clanData, err := GetClanDetails(testDb, clan.GameID, clan, 1)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(clanData["name"]).To(Equal(clan.Name))
 				Expect(clanData["metadata"]).To(Equal(clan.Metadata))
@@ -989,7 +989,7 @@ var _ = Describe("Clan Model", func() {
 				_, err = testDb.Update(memberships[9])
 				Expect(err).NotTo(HaveOccurred())
 
-				clanData, err := GetClanDetails(testDb, clan.GameID, clan.PublicID, 1)
+				clanData, err := GetClanDetails(testDb, clan.GameID, clan, 1)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(clanData["name"]).To(Equal(clan.Name))
 				Expect(clanData["metadata"]).To(Equal(clan.Metadata))
@@ -1021,7 +1021,7 @@ var _ = Describe("Clan Model", func() {
 				_, err = testDb.Update(clan)
 				Expect(err).NotTo(HaveOccurred())
 
-				clanData, err := GetClanDetails(testDb, clan.GameID, clan.PublicID, 1)
+				clanData, err := GetClanDetails(testDb, clan.GameID, clan, 1)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(clanData["name"]).To(Equal(clan.Name))
 				Expect(clanData["metadata"]).To(Equal(clan.Metadata))
@@ -1033,7 +1033,7 @@ var _ = Describe("Clan Model", func() {
 			})
 
 			It("Should fail if clan does not exist", func() {
-				clanData, err := GetClanDetails(testDb, "fake-game-id", "fake-public-id", 1)
+				clanData, err := GetClanDetails(testDb, "fake-game-id", &Clan{PublicID: "fake-public-id"}, 1)
 				Expect(clanData).To(BeNil())
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(Equal("Clan was not found with id: fake-public-id"))
@@ -1060,7 +1060,7 @@ var _ = Describe("Clan Model", func() {
 			})
 
 			It("Should fail if clan does not exist", func() {
-				clanData, err := GetClanDetails(testDb, "fake-game-id", "fake-public-id", 1)
+				clanData, err := GetClanDetails(testDb, "fake-game-id", &Clan{PublicID: "fake-public-id"}, 1)
 				Expect(clanData).To(BeNil())
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(Equal("Clan was not found with id: fake-public-id"))

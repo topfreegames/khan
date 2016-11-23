@@ -768,13 +768,26 @@ func RetrieveClanHandler(app *App) func(c echo.Context) error {
 			return FailWith(404, err.Error(), c)
 		}
 
-		var clan map[string]interface{}
+		var clan *models.Clan
+		err = WithSegment("clan-retrieve", c, func() error {
+			clan, err = models.GetClanByPublicID(app.Db, gameID, publicID)
+			if err != nil {
+				log.W(l, "Could not find clan.")
+				return err
+			}
+			return nil
+		})
+		if err != nil {
+			return FailWith(404, err.Error(), c)
+		}
+
+		var clanResult map[string]interface{}
 		err = WithSegment("clan-retrieve", c, func() error {
 			log.D(l, "Retrieving clan details...")
-			clan, err = models.GetClanDetails(
+			clanResult, err = models.GetClanDetails(
 				db,
 				gameID,
-				publicID,
+				clan,
 				game.MaxClansPerPlayer,
 			)
 
@@ -794,7 +807,7 @@ func RetrieveClanHandler(app *App) func(c echo.Context) error {
 		log.I(l, "Clan details retrieved successfully.", func(cm log.CM) {
 			cm.Write(zap.Duration("duration", time.Now().Sub(start)))
 		})
-		return SucceedWith(clan, c)
+		return SucceedWith(clanResult, c)
 	}
 }
 
