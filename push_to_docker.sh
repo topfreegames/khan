@@ -6,6 +6,7 @@ cp ./config/default.yaml ./dev
 
 docker build -t khan .
 docker build -t khan-dev ./dev
+docker build -t khan-prune -f PruneDockerfile .
 docker login -e="$DOCKER_EMAIL" -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
 
 docker tag khan:latest tfgco/khan:$VERSION.$TRAVIS_BUILD_NUMBER
@@ -21,6 +22,14 @@ docker tag khan-dev:latest tfgco/khan-dev:latest
 docker push tfgco/khan-dev:$VERSION.$TRAVIS_BUILD_NUMBER
 docker push tfgco/khan-dev:$VERSION
 docker push tfgco/khan-dev:latest
+
+docker tag khan-prune:latest tfgco/khan-prune:$VERSION.$TRAVIS_BUILD_NUMBER
+docker tag khan-prune:latest tfgco/khan-prune:$VERSION
+docker tag khan-prune:latest tfgco/khan-prune:latest
+docker push tfgco/khan-prune:$VERSION.$TRAVIS_BUILD_NUMBER
+docker push tfgco/khan-prune:$VERSION
+docker push tfgco/khan-prune:latest
+
 
 DOCKERHUB_LATEST=$(python get_latest_tag.py)
 
