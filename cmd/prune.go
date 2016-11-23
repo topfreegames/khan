@@ -161,12 +161,12 @@ It is VERY advisable to run this command frequently as it is idempotent.
 	Please ensure that you have frequent backups before running this command continuously.
 `,
 	Run: func(cmd *cobra.Command, args []string) {
-		stats, err := PruneStaleData(pruneDebug, pruneQuiet)
+		_, err := PruneStaleData(pruneDebug, pruneQuiet)
 		if err != nil {
 			fmt.Printf("Stale data pruning failed with: %s\n", err.Error())
 			os.Exit(1)
 		}
-		fmt.Printf("Stale data pruned successfully:\n%s\n", stats.GetStats())
+		//fmt.Printf("Stale data pruned successfully:\n%s\n", stats.GetStats())
 	},
 }
 

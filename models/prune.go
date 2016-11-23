@@ -26,7 +26,7 @@ type PruneStats struct {
 //GetStats returns a formatted message
 func (ps *PruneStats) GetStats() string {
 	return fmt.Sprintf(
-		"-Pending Applications: %d\n-Pending Invites: %d\nDenied Memberships: %d\nDeleted Memberships: %d\n",
+		"-Pending Applications: %d\n-Pending Invites: %d\n-Denied Memberships: %d\n-Deleted Memberships: %d\n",
 		ps.PendingApplicationsPruned,
 		ps.PendingInvitesPruned,
 		ps.DeniedMembershipsPruned,
