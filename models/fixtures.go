@@ -10,6 +10,7 @@ package models
 import (
 	"database/sql"
 	"fmt"
+	"time"
 
 	"github.com/Pallinder/go-randomdata"
 	"github.com/bluele/factory-go/factory"
@@ -615,4 +616,123 @@ func GetTestPlayerWithMemberships(db DB, gameID string, approvedMemberships, rej
 	}
 
 	return player, nil
+}
+
+//GetTestClanWithStaleData returns a player with approved, rejected and banned memberships
+func GetTestClanWithStaleData(db DB, staleApplications, staleInvites, staleDenies, staleDeletes int) (string, error) {
+	gameID := uuid.NewV4().String()
+	game := GameFactory.MustCreateWithOption(map[string]interface{}{
+		"PublicID": gameID,
+		"Metadata": map[string]interface{}{
+			"pendingApplicationsExpiration": 3600,
+			"pendingInvitesExpiration":      3600,
+			"deniedMembershipsExpiration":   3600,
+			"deletedMembershipsExpiration":  3600,
+		},
+	}).(*Game)
+	err := db.Insert(game)
+	if err != nil {
+		return "", err
+	}
+
+	owner := PlayerFactory.MustCreateWithOption(map[string]interface{}{
+		"GameID":         gameID,
+		"OwnershipCount": 1,
+	}).(*Player)
+	err = db.Insert(owner)
+	if err != nil {
+		return "", err
+	}
+
+	clan := ClanFactory.MustCreateWithOption(map[string]interface{}{
+		"GameID":   owner.GameID,
+		"PublicID": uuid.NewV4().String(),
+		"OwnerID":  owner.ID,
+		"Metadata": map[string]interface{}{"x": "a"},
+	}).(*Clan)
+	err = db.Insert(clan)
+	if err != nil {
+		return "", err
+	}
+
+	createMembership := func(createdAt int64, application bool, denied bool, deleted bool) (*Player, *Membership, error) {
+		player := PlayerFactory.MustCreateWithOption(map[string]interface{}{
+			"GameID": gameID,
+		}).(*Player)
+		err = db.Insert(player)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		payload := map[string]interface{}{
+			"GameID":      owner.GameID,
+			"PlayerID":    player.ID,
+			"ClanID":      clan.ID,
+			"RequestorID": player.ID,
+			"Metadata":    map[string]interface{}{"x": "a"},
+			"Approved":    false,
+			"Denied":      false,
+			"Banned":      false,
+			"CreatedAt":   createdAt,
+			"UpdatedAt":   createdAt,
+		}
+
+		if !application {
+			payload["RequestorID"] = owner.ID
+		}
+
+		if denied {
+			payload["Denied"] = true
+		}
+
+		if deleted {
+			payload["DeletedAt"] = util.NowMilli()
+		}
+
+		membership := MembershipFactory.MustCreateWithOption(payload).(*Membership)
+		err = db.Insert(membership)
+		if err != nil {
+			return nil, nil, err
+		}
+		_, err := db.Exec(`UPDATE memberships SET updated_at=$1, created_at=$1 WHERE id=$2`, createdAt, membership.ID)
+		if err != nil {
+			return nil, nil, err
+		}
+		return player, membership, nil
+	}
+
+	for i := 0; i < staleApplications*2; i++ {
+		createMembership(util.NowMilli(), true, false, false)
+	}
+
+	for i := 0; i < staleInvites*2; i++ {
+		createMembership(util.NowMilli(), false, false, false)
+	}
+
+	for i := 0; i < staleDenies*2; i++ {
+		createMembership(util.NowMilli(), false, true, false)
+	}
+
+	for i := 0; i < staleDeletes*2; i++ {
+		createMembership(util.NowMilli(), false, false, true)
+	}
+
+	expiration := int64((time.Duration(600) * time.Hour).Seconds() * 1000)
+	for i := 0; i < staleApplications; i++ {
+		createMembership(util.NowMilli()-expiration, true, false, false)
+	}
+
+	for i := 0; i < staleInvites; i++ {
+		createMembership(util.NowMilli()-expiration, false, false, false)
+	}
+
+	for i := 0; i < staleDenies; i++ {
+		createMembership(util.NowMilli()-expiration, false, true, false)
+	}
+
+	for i := 0; i < staleDeletes; i++ {
+		createMembership(util.NowMilli()-expiration, false, false, true)
+	}
+
+	return gameID, nil
 }
