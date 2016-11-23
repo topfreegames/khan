@@ -8,7 +8,6 @@
 package cmd
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -163,10 +162,8 @@ It is VERY advisable to run this command frequently as it is idempotent.
 	Run: func(cmd *cobra.Command, args []string) {
 		_, err := PruneStaleData(pruneDebug, pruneQuiet)
 		if err != nil {
-			fmt.Printf("Stale data pruning failed with: %s\n", err.Error())
 			os.Exit(1)
 		}
-		//fmt.Printf("Stale data pruned successfully:\n%s\n", stats.GetStats())
 	},
 }
 

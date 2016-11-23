@@ -1,0 +1,25 @@
+FROM golang:1.6.2-alpine
+
+MAINTAINER TFG Co <backend@tfgco.com>
+
+RUN apk update
+RUN apk add git make g++ apache2-utils
+RUN apk add --update bash
+
+RUN go get -u github.com/Masterminds/glide/...
+
+ADD . /go/src/github.com/topfreegames/khan
+
+WORKDIR /go/src/github.com/topfreegames/khan
+RUN glide install
+RUN go install github.com/topfreegames/khan
+
+ENV KHAN_POSTGRES_HOST 0.0.0.0
+ENV KHAN_POSTGRES_PORT 5432
+ENV KHAN_POSTGRES_USER khan
+ENV KHAN_POSTGRES_PASSWORD ""
+ENV KHAN_POSTGRES_DBNAME khan
+ENV KHAN_SENTRY_URL ""
+ENV KHAN_PRUNING_SLEEP 3600
+
+CMD /bin/bash -lc 'while true; do /go/bin/khan prune --config /go/src/github.com/topfreegames/khan/config/default.yaml; sleep $KHAN_PRUNING_SLEEP; done'
