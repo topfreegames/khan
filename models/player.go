@@ -231,6 +231,12 @@ func GetPlayerOwnershipDetails(db DB, gameID, publicID string) (map[string]inter
 
 // GetPlayerMembershipDetails returns detailed information about a player and their memberships
 func GetPlayerMembershipDetails(db DB, gameID, publicID string) (map[string]interface{}, error) {
+	player, err := GetPlayerByPublicID(db, gameID, publicID)
+	if err != nil {
+		return nil, err
+	}
+	//TODO: Include this again once membership level is in the membership table
+	//w.membership_level RequestorMembershipLevel,
 	query := `
 	SELECT
 		p.id PlayerID, p.name PlayerName, p.metadata PlayerMetadata, p.public_id PlayerPublicID,
@@ -239,8 +245,8 @@ func GetPlayerMembershipDetails(db DB, gameID, publicID string) (map[string]inte
 		m.approved MembershipApproved, m.denied MembershipDenied, m.banned MembershipBanned,
 		c.public_id ClanPublicID, c.name ClanName, c.metadata DBClanMetadata, c.owner_id ClanOwnerID,
 		c.membership_count ClanMembershipCount,
+		NULL RequestorMembershipLevel,
 		r.name RequestorName, r.public_id RequestorPublicID, r.metadata DBRequestorMetadata,
-		w.membership_level RequestorMembershipLevel,
 		a.name ApproverName, a.public_id ApproverPublicID, a.metadata DBApproverMetadata,
 		y.name DenierName, y.public_id DenierPublicID, y.metadata DBDenierMetadata,
 		m.created_at MembershipCreatedAt,
@@ -250,18 +256,21 @@ func GetPlayerMembershipDetails(db DB, gameID, publicID string) (map[string]inte
 		m.message MembershipMessage,
 		d.name DeletedByName, d.public_id DeletedByPublicID
 	FROM players p
-		LEFT OUTER JOIN memberships m on m.player_id = p.id
+		LEFT OUTER JOIN (
+			SELECT * FROM memberships im WHERE im.player_id=$2 AND (im.approved=true OR im.denied=true OR im.banned=true)
+			UNION
+			(SELECT * FROM memberships im WHERE im.player_id=$2 AND im.deleted_at=0 AND im.approved=false AND im.denied=false AND im.banned=false ORDER BY updated_at DESC LIMIT $3)
+		) m ON p.id = m.player_id
 		LEFT OUTER JOIN clans c on c.id=m.clan_id
 		LEFT OUTER JOIN players d on d.id=m.deleted_by
 		LEFT OUTER JOIN players r on r.id=m.requestor_id
 		LEFT OUTER JOIN players a on a.id=m.approver_id
 		LEFT OUTER JOIN players y on y.id=m.denier_id
-		LEFT OUTER JOIN memberships w on w.player_id = r.id
 	WHERE
-		p.game_id=$1 and p.public_id=$2`
+		p.game_id=$1 and p.id=$2`
 
 	var details []playerDetailsDAO
-	_, err := db.Select(&details, query, gameID, publicID)
+	_, err = db.Select(&details, query, gameID, player.ID, 5)
 	if err != nil {
 		return nil, err
 	}

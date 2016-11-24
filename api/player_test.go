@@ -198,7 +198,8 @@ var _ = Describe("Player API Handler", func() {
 			Expect(playerDetails["metadata"]).NotTo(BeEquivalentTo(nil))
 
 			//Memberships
-			Expect(len(playerDetails["memberships"].([]interface{}))).To(Equal(18))
+			//Should return 15 since max memberships pending returned are now 5
+			Expect(len(playerDetails["memberships"].([]interface{}))).To(Equal(15))
 
 			clans := playerDetails["clans"].(map[string]interface{}) // can't be map[string]interface{}
 			approved := clans["approved"].([]interface{})
@@ -211,7 +212,9 @@ var _ = Describe("Player API Handler", func() {
 			Expect(len(denied)).To(Equal(2))
 			Expect(len(banned)).To(Equal(3))
 			Expect(len(pendingApplications)).To(Equal(0))
-			Expect(len(pendingInvites)).To(Equal(8))
+
+			//Should return 5 since max memberships pending returned are now 5
+			Expect(len(pendingInvites)).To(Equal(5))
 		})
 		It("Should return 404 for invalid player", func() {
 			a := GetDefaultTestApp()

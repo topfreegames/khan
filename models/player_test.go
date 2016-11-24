@@ -200,7 +200,8 @@ var _ = Describe("Player Model", func() {
 				Expect(playerDetails["updatedAt"]).To(Equal(player.UpdatedAt))
 
 				//Memberships
-				Expect(len(playerDetails["memberships"].([]map[string]interface{}))).To(Equal(18))
+				//Hard limited at 5 pending memberships
+				Expect(len(playerDetails["memberships"].([]map[string]interface{}))).To(Equal(15))
 
 				clans := playerDetails["clans"].(map[string]interface{})
 				approved := clans["approved"].([]map[string]interface{})
@@ -213,7 +214,7 @@ var _ = Describe("Player Model", func() {
 				Expect(len(denied)).To(Equal(2))
 				Expect(len(banned)).To(Equal(3))
 				Expect(len(pendingApplications)).To(Equal(0))
-				Expect(len(pendingInvites)).To(Equal(8))
+				Expect(len(pendingInvites)).To(Equal(5))
 
 				approvedMembership := playerDetails["memberships"].([]map[string]interface{})[0]
 
@@ -238,7 +239,7 @@ var _ = Describe("Player Model", func() {
 				Expect(deniedMembership["deniedAt"].(int64)).To(BeNumerically(">", 0))
 				Expect(deniedMembership["message"]).To(Equal(""))
 
-				pendingInvite := playerDetails["memberships"].([]map[string]interface{})[17]
+				pendingInvite := playerDetails["memberships"].([]map[string]interface{})[14]
 				Expect(pendingInvite["requestor"]).NotTo(BeEquivalentTo(nil))
 				requestor := pendingInvite["requestor"].(map[string]interface{})
 				Expect(requestor["name"]).NotTo(BeNil())
