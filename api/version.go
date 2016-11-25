@@ -8,4 +8,4 @@
 package api
 
 // VERSION identifies Khan's current version
-var VERSION = "0.12.0"
+var VERSION = "1.0.0"
