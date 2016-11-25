@@ -542,17 +542,9 @@ func GetClanDetails(db DB, gameID string, clan *Clan, maxClansPerPlayer int) (ma
 	FROM clans c
 		INNER JOIN players o ON c.owner_id=o.id
 		LEFT OUTER JOIN (
-			(
-				SELECT *
-				FROM memberships im
-				WHERE im.clan_id=$2 AND im.deleted_at=0 AND im.approved=false AND im.denied=false AND im.banned=false
-				ORDER BY im.updated_at DESC
-				LIMIT $3
-		    )
-			UNION ALL
-				SELECT *
-				FROM memberships im
-				WHERE im.clan_id=$2 AND im.deleted_at=0 AND (im.approved=true OR im.denied=true OR im.banned=true)
+			SELECT *
+			FROM memberships im
+			WHERE im.clan_id=$2 AND im.deleted_at=0 AND (im.approved=true OR im.denied=true OR im.banned=true)
 		) m ON m.clan_id=c.id
 		LEFT OUTER JOIN players r ON m.requestor_id=r.id
 		LEFT OUTER JOIN players a ON m.approver_id=a.id
@@ -562,7 +554,7 @@ func GetClanDetails(db DB, gameID string, clan *Clan, maxClansPerPlayer int) (ma
 		c.game_id=$1 AND c.id=$2
 	`
 	var details []clanDetailsDAO
-	_, err := db.Select(&details, query, gameID, clan.ID, 100)
+	_, err := db.Select(&details, query, gameID, clan.ID)
 	if err != nil {
 		return nil, err
 	}

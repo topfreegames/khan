@@ -898,8 +898,9 @@ var _ = Describe("Clan Model", func() {
 				pendingApplications := clanData["memberships"].(map[string]interface{})["pendingApplications"].([]map[string]interface{})
 				Expect(len(pendingApplications)).To(Equal(0))
 
+				//We do not return pending invites or applications anymore
 				pendingInvites := clanData["memberships"].(map[string]interface{})["pendingInvites"].([]map[string]interface{})
-				Expect(len(pendingInvites)).To(Equal(5))
+				Expect(len(pendingInvites)).To(Equal(0))
 
 				banned := clanData["memberships"].(map[string]interface{})["banned"].([]map[string]interface{})
 				Expect(len(banned)).To(Equal(4))
