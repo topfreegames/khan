@@ -677,8 +677,7 @@ func SearchClan(db DB, gameID, term string) ([]Clan, error) {
 	if term == "" {
 		return nil, &EmptySearchTermError{}
 	}
-
-	query := `SELECT * FROM clans WHERE game_id=$1 AND (lower(name) like $2)`
+	query := `SELECT * FROM clans WHERE game_id=$1 AND (lower(name) like $2) LIMIT 50`
 
 	termStmt := fmt.Sprintf("%%%s%%", strings.ToLower(term))
 
