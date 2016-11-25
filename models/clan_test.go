@@ -14,10 +14,13 @@ import (
 	"strings"
 	"time"
 
+	elastic "gopkg.in/olivere/elastic.v3"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/satori/go.uuid"
 	. "github.com/topfreegames/khan/models"
+	"github.com/topfreegames/khan/testing"
 	"github.com/topfreegames/khan/util"
 
 	"github.com/Pallinder/go-randomdata"
@@ -320,7 +323,13 @@ var _ = Describe("Clan Model", func() {
 				Expect(err).NotTo(HaveOccurred())
 
 				indexName := "khan-test"
-				result, err := es.Client.Get().Index(indexName).Type("clan").Id(clan.PublicID).Do()
+
+				var result *elastic.GetResult
+				err = testing.WaitForFunc(10, func() error {
+					var err error
+					result, err = es.Client.Get().Index(indexName).Type("clan").Id(clan.PublicID).Do()
+					return err
+				})
 				Expect(err).NotTo(HaveOccurred())
 				Expect(result).NotTo(BeNil())
 				Expect(result.Index).To(Equal(indexName))
@@ -469,7 +478,12 @@ var _ = Describe("Clan Model", func() {
 				Expect(dbClan.AllowApplication).To(Equal(allowApplication))
 				Expect(dbClan.AutoJoin).To(Equal(autoJoin))
 
-				result, err := es.Client.Get().Index("khan-test").Type("clan").Id(clan.PublicID).Do()
+				var result *elastic.GetResult
+				err = testing.WaitForFunc(10, func() error {
+					var err error
+					result, err = es.Client.Get().Index("khan-test").Type("clan").Id(clan.PublicID).Do()
+					return err
+				})
 				Expect(err).NotTo(HaveOccurred())
 				Expect(result).NotTo(BeNil())
 				Expect(result.Index).To(Equal("khan-test"))
@@ -494,7 +508,13 @@ var _ = Describe("Clan Model", func() {
 				)
 				Expect(err).NotTo(HaveOccurred())
 
-				result, err = es.Client.Get().Index("khan-test").Type("clan").Id(clan.PublicID).Do()
+				time.Sleep(time.Duration(100) * time.Millisecond)
+
+				err = testing.WaitForFunc(10, func() error {
+					var err error
+					result, err = es.Client.Get().Index("khan-test").Type("clan").Id(clan.PublicID).Do()
+					return err
+				})
 				Expect(err).NotTo(HaveOccurred())
 
 				updESClan, err = GetClanFromJSON(*result.Source)

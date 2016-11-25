@@ -113,7 +113,7 @@ run-prune-docker:
 		khan-prune
 
 test: schema-update start-deps assets drop-test db-test
-	@ginkgo -r --cover .
+	@SKIP_ELASTIC_LOG=true ginkgo -r --cover .
 
 test-coverage coverage: test
 	@echo "mode: count" > coverage-all.out

@@ -11,6 +11,7 @@ package models
 
 import (
 	"fmt"
+	"os"
 	"strings"
 	"time"
 
@@ -93,14 +94,24 @@ func (c *Clan) PostDelete(s gorp.SqlExecutor) error {
 	return err
 }
 
+func getNewLogger() zap.Logger {
+	ll := zap.InfoLevel
+	if os.Getenv("SKIP_ELASTIC_LOG") == "true" {
+		ll = zap.FatalLevel
+	}
+
+	return zap.New(
+		zap.NewJSONEncoder(), // drop timestamps in tests
+		ll,
+	)
+}
+
 //IndexClanIntoElasticSearch after operation in PG
 func (c *Clan) IndexClanIntoElasticSearch() error {
 	go func() {
 		start := time.Now()
-		l := zap.New(
-			zap.NewJSONEncoder(), // drop timestamps in tests
-			zap.InfoLevel,
-		).With(
+		logger := getNewLogger()
+		l := logger.With(
 			zap.String("source", "clanModel"),
 			zap.String("operation", "IndexClanIntoElasticSearch"),
 			zap.String("gameID", c.GameID),
@@ -130,10 +141,8 @@ func (c *Clan) IndexClanIntoElasticSearch() error {
 func (c *Clan) DeleteClanFromElasticSearch() error {
 	go func() {
 		start := time.Now()
-		l := zap.New(
-			zap.NewJSONEncoder(), // drop timestamps in tests
-			zap.InfoLevel,
-		).With(
+		logger := getNewLogger()
+		l := logger.With(
 			zap.String("source", "clanModel"),
 			zap.String("operation", "IndexClanIntoElasticSearch"),
 			zap.String("gameID", c.GameID),
