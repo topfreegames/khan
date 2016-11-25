@@ -77,6 +77,7 @@ run-verbose:
 	@go run main.go start -d -c ./config/local.yaml
 
 run:
+	@echo "Khan running at http://localhost:8888/"
 	@go run main.go start -q -c ./config/local.yaml
 
 run-fast:

@@ -11,6 +11,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/Pallinder/go-randomdata"
 	. "github.com/onsi/ginkgo"
@@ -1050,6 +1051,7 @@ var _ = Describe("Membership API Handler", func() {
 			Expect(result["success"]).To(BeTrue())
 
 			a.Dispatcher.Wait()
+			time.Sleep(time.Duration(50) * time.Millisecond)
 
 			Expect(len(*responses)).To(Equal(1))
 

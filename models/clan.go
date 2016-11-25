@@ -12,11 +12,13 @@ package models
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/mailru/easyjson/jlexer"
 	"github.com/mailru/easyjson/jwriter"
 	"github.com/topfreegames/khan/es"
 	"github.com/topfreegames/khan/util"
+	"github.com/uber-go/zap"
 
 	"gopkg.in/gorp.v1"
 )
@@ -93,32 +95,63 @@ func (c *Clan) PostDelete(s gorp.SqlExecutor) error {
 
 //IndexClanIntoElasticSearch after operation in PG
 func (c *Clan) IndexClanIntoElasticSearch() error {
-	//go func() {
-	es := es.GetConfiguredClient()
-	if es != nil {
-		indexName := es.GetIndexName(c.GameID)
-		body, err := c.ToJSON()
-		if err != nil {
-			return err
+	go func() {
+		start := time.Now()
+		l := zap.New(
+			zap.NewJSONEncoder(), // drop timestamps in tests
+			zap.InfoLevel,
+		).With(
+			zap.String("source", "clanModel"),
+			zap.String("operation", "IndexClanIntoElasticSearch"),
+			zap.String("gameID", c.GameID),
+			zap.String("clanPublicID", c.PublicID),
+		)
+
+		es := es.GetConfiguredClient()
+		if es != nil {
+			indexName := es.GetIndexName(c.GameID)
+			body, err := c.ToJSON()
+			if err != nil {
+				l.Error("Failed to get clan JSON.", zap.Error(err))
+				return
+			}
+			_, err = es.Client.Index().Index(indexName).Type("clan").Id(c.PublicID).BodyString(string(body)).Do()
+			if err != nil {
+				l.Error("Failed to index clan into Elastic Search")
+				return
+			}
+			l.Info("Successfully indexed clan into Elastic Search.", zap.Duration("latency", time.Now().Sub(start)))
 		}
-		_, err = es.Client.Index().Index(indexName).Type("clan").Id(c.PublicID).BodyString(string(body)).Do()
-		if err != nil {
-			return err
-		}
-	}
-	//}()
+	}()
 	return nil
 }
 
 //DeleteClanFromElasticSearch after deletion in PG
 func (c *Clan) DeleteClanFromElasticSearch() error {
-	es := es.GetConfiguredClient()
-	var err error
-	if es != nil {
-		indexName := es.GetIndexName(c.GameID)
-		_, err = es.Client.Delete().Index(indexName).Type("clan").Id(c.PublicID).Do()
-	}
-	return err
+	go func() {
+		start := time.Now()
+		l := zap.New(
+			zap.NewJSONEncoder(), // drop timestamps in tests
+			zap.InfoLevel,
+		).With(
+			zap.String("source", "clanModel"),
+			zap.String("operation", "IndexClanIntoElasticSearch"),
+			zap.String("gameID", c.GameID),
+			zap.String("clanPublicID", c.PublicID),
+		)
+
+		es := es.GetConfiguredClient()
+		if es != nil {
+			indexName := es.GetIndexName(c.GameID)
+			_, err := es.Client.Delete().Index(indexName).Type("clan").Id(c.PublicID).Do()
+			if err != nil {
+				l.Error("Failed to delete clan from Elastic Search.", zap.Error(err))
+			}
+
+			l.Info("Successfully deleted clan from Elastic Search.", zap.Duration("latency", time.Now().Sub(start)))
+		}
+	}()
+	return nil
 }
 
 func updateClanIntoES(db DB, id int) error {
@@ -319,6 +352,7 @@ func CreateClan(db DB, gameID, publicID, name, ownerPublicID string, metadata ma
 	if err != nil {
 		return nil, err
 	}
+
 	return clan, nil
 }
 
@@ -677,6 +711,7 @@ func SearchClan(db DB, gameID, term string) ([]Clan, error) {
 	if term == "" {
 		return nil, &EmptySearchTermError{}
 	}
+
 	query := `SELECT * FROM clans WHERE game_id=$1 AND (lower(name) like $2) LIMIT 50`
 
 	termStmt := fmt.Sprintf("%%%s%%", strings.ToLower(term))

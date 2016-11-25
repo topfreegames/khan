@@ -461,6 +461,8 @@ var _ = Describe("Clan Model", func() {
 				Expect(err).NotTo(HaveOccurred())
 				Expect(updClan.ID).To(Equal(clan.ID))
 
+				time.Sleep(time.Duration(100) * time.Millisecond)
+
 				dbClan, err := GetClanByPublicID(testDb, clan.GameID, clan.PublicID)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(dbClan.Metadata["x"]).To(BeEquivalentTo(metadata["x"]))
@@ -652,6 +654,8 @@ var _ = Describe("Clan Model", func() {
 				It("Should delete from ES if clan has no memberships", func() {
 					es := GetTestES()
 					_, clan, owner, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
+
+					time.Sleep(time.Duration(50) * time.Millisecond)
 
 					_, err = es.Client.Get().Index("khan-test").Type("clan").Id(clan.PublicID).Do()
 					Expect(err).NotTo(HaveOccurred())
