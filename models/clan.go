@@ -279,19 +279,13 @@ func sliceDiff(slice1 []string, slice2 []string) []string {
 func GetClansByPublicIDs(db DB, gameID string, publicIDs []string) ([]Clan, error) {
 	var clans []Clan
 
-	query := `
-  SELECT *
-  FROM clans
-  WHERE game_id=$1
-    AND public_id IN (%s)`
-
-	// Build query with correct interpolation params to avoid sql injection
-	startInterpolationAt := 2
-	queryParams := []string{}
-	for i := range publicIDs {
-		queryParams = append(queryParams, fmt.Sprintf("$%d", i+startInterpolationAt))
+	queryPart := "SELECT * from clans WHERE game_id=$1 AND public_id=%s"
+	queryParts := []string{}
+	for i := 0; i < len(publicIDs); i++ {
+		paramIndex := fmt.Sprintf("$%d", (i + 2))
+		queryParts = append(queryParts, fmt.Sprintf(queryPart, paramIndex))
 	}
-	query = fmt.Sprintf(query, strings.Join(queryParams, ","))
+	query := strings.Join(queryParts, " UNION ALL ")
 
 	params := []interface{}{gameID}
 	for _, publicID := range publicIDs {
