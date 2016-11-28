@@ -12,8 +12,6 @@ import (
 	"net/http"
 	"time"
 
-	gorp "gopkg.in/gorp.v1"
-
 	"github.com/labstack/echo"
 	"github.com/topfreegames/khan/log"
 	"github.com/topfreegames/khan/models"
@@ -44,21 +42,11 @@ func CreatePlayerHandler(app *App) func(c echo.Context) error {
 			return FailWith(http.StatusBadRequest, err.Error(), c)
 		}
 
-		var tx *gorp.Transaction
 		var player *models.Player
 		err = WithSegment("player-create", c, func() error {
-			err = WithSegment("tx-begin", c, func() error {
-				tx, err = app.BeginTrans(l)
-				return err
-			})
-			if err != nil {
-				return err
-			}
-			log.D(l, "DB Tx begun successful.")
-
 			log.D(l, "Creating player...")
 			player, err = models.CreatePlayer(
-				tx,
+				app.Db,
 				gameID,
 				payload.PublicID,
 				payload.Name,
@@ -67,11 +55,6 @@ func CreatePlayerHandler(app *App) func(c echo.Context) error {
 			)
 
 			if err != nil {
-				txErr := app.Rollback(tx, "Player creation failed", c, l, err)
-				if txErr != nil {
-					return txErr
-				}
-
 				log.E(l, "Player creation failed.", func(cm log.CM) {
 					cm.Write(zap.Error(err))
 				})
@@ -94,11 +77,6 @@ func CreatePlayerHandler(app *App) func(c echo.Context) error {
 		err = WithSegment("hook-dispatch", c, func() error {
 			err = app.DispatchHooks(gameID, models.PlayerCreatedHook, player.Serialize())
 			if err != nil {
-				txErr := app.Rollback(tx, "Player creation hook dispatch failed", c, l, err)
-				if txErr != nil {
-					return txErr
-				}
-
 				log.E(l, "Player creation hook dispatch failed.", func(cm log.CM) {
 					cm.Write(zap.Error(err))
 				})
@@ -106,11 +84,6 @@ func CreatePlayerHandler(app *App) func(c echo.Context) error {
 			}
 			return nil
 		})
-		if err != nil {
-			return FailWith(http.StatusInternalServerError, err.Error(), c)
-		}
-
-		err = app.Commit(tx, "Create player", c, l)
 		if err != nil {
 			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
@@ -146,7 +119,6 @@ func UpdatePlayerHandler(app *App) func(c echo.Context) error {
 			return FailWith(http.StatusBadRequest, err.Error(), c)
 		}
 
-		var tx *gorp.Transaction
 		var player, beforeUpdatePlayer *models.Player
 		var game *models.Game
 
@@ -177,30 +149,11 @@ func UpdatePlayerHandler(app *App) func(c echo.Context) error {
 			return FailWith(http.StatusBadRequest, err.Error(), c)
 		}
 
-		//rollback function
-		rb := func(err error) error {
-			txErr := app.Rollback(tx, "Updating player failed", c, l, err)
-			if txErr != nil {
-				return txErr
-			}
-
-			return nil
-		}
-
 		err = WithSegment("player-update", c, func() error {
-			err = WithSegment("tx-begin", c, func() error {
-				tx, err = app.BeginTrans(l)
-				return err
-			})
-			if err != nil {
-				return err
-			}
-			log.D(l, "DB Tx begun successful.")
-
 			err = WithSegment("player-update-query", c, func() error {
 				log.D(l, "Updating player...")
 				player, err = models.UpdatePlayer(
-					tx,
+					app.Db,
 					gameID,
 					playerPublicID,
 					payload.Name,
@@ -210,21 +163,13 @@ func UpdatePlayerHandler(app *App) func(c echo.Context) error {
 			})
 
 			if err != nil {
-				txErr := rb(err)
-				if txErr == nil {
-					log.E(l, "Updating player failed.", func(cm log.CM) {
-						cm.Write(zap.Error(err))
-					})
-				}
+				log.E(l, "Updating player failed.", func(cm log.CM) {
+					cm.Write(zap.Error(err))
+				})
 				return err
 			}
 			return nil
 		})
-		if err != nil {
-			return FailWith(http.StatusInternalServerError, err.Error(), c)
-		}
-
-		err = app.Commit(tx, "Update player", c, l)
 		if err != nil {
 			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
@@ -235,12 +180,9 @@ func UpdatePlayerHandler(app *App) func(c echo.Context) error {
 				log.D(l, "Dispatching player update hooks...")
 				err = app.DispatchHooks(gameID, models.PlayerUpdatedHook, player.Serialize())
 				if err != nil {
-					txErr := rb(err)
-					if txErr == nil {
-						log.E(l, "Update player hook dispatch failed.", func(cm log.CM) {
-							cm.Write(zap.Error(err))
-						})
-					}
+					log.E(l, "Update player hook dispatch failed.", func(cm log.CM) {
+						cm.Write(zap.Error(err))
+					})
 					return err
 				}
 			}

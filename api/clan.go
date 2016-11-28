@@ -193,57 +193,31 @@ func UpdateClanHandler(app *App) func(c echo.Context) error {
 			return FailWith(400, err.Error(), c)
 		}
 
-		var tx *gorp.Transaction
 		var clan, beforeUpdateClan *models.Clan
 		var game *models.Game
 
-		//rollback function
-		rb := func(err error) error {
-			txErr := app.Rollback(tx, "Updating clan failed", c, l, err)
-			if txErr != nil {
-				return txErr
-			}
-
-			return nil
-		}
-
 		err = WithSegment("clan-update", c, func() error {
-			err = WithSegment("tx-begin", c, func() error {
-				tx, err = app.BeginTrans(l)
-				return err
-			})
-			if err != nil {
-				return err
-			}
-			log.D(l, "DB Tx begun successful.")
-
 			err = WithSegment("game-retrieve", c, func() error {
 				log.D(l, "Retrieving game...")
-				game, err = models.GetGameByPublicID(tx, gameID)
+				game, err = models.GetGameByPublicID(app.Db, gameID)
 				return err
 			})
 
 			if err != nil {
-				txErr := rb(err)
-				if txErr == nil {
-					log.E(l, "Updating clan failed.", func(cm log.CM) {
-						cm.Write(zap.Error(err))
-					})
-				}
+				log.E(l, "Updating clan failed.", func(cm log.CM) {
+					cm.Write(zap.Error(err))
+				})
 				return err
 			}
 			log.D(l, "Game retrieved successfully")
 
 			err = WithSegment("clan-retrieve", c, func() error {
 				log.D(l, "Retrieving clan...")
-				beforeUpdateClan, err = models.GetClanByPublicID(tx, gameID, publicID)
+				beforeUpdateClan, err = models.GetClanByPublicID(app.Db, gameID, publicID)
 				if err != nil {
-					txErr := rb(err)
-					if txErr == nil {
-						log.E(l, "Updating clan failed.", func(cm log.CM) {
-							cm.Write(zap.Error(err))
-						})
-					}
+					log.E(l, "Updating clan failed.", func(cm log.CM) {
+						cm.Write(zap.Error(err))
+					})
 					return err
 				}
 				log.D(l, "Clan retrieved successfully")
@@ -256,7 +230,7 @@ func UpdateClanHandler(app *App) func(c echo.Context) error {
 			err = WithSegment("clan-update-query", c, func() error {
 				log.D(l, "Updating clan...")
 				clan, err = models.UpdateClan(
-					tx,
+					app.Db,
 					gameID,
 					publicID,
 					payload.Name,
@@ -268,12 +242,9 @@ func UpdateClanHandler(app *App) func(c echo.Context) error {
 				return err
 			})
 			if err != nil {
-				txErr := rb(err)
-				if txErr == nil {
-					log.E(l, "Updating clan failed.", func(cm log.CM) {
-						cm.Write(zap.Error(err))
-					})
-				}
+				log.E(l, "Updating clan failed.", func(cm log.CM) {
+					cm.Write(zap.Error(err))
+				})
 				return err
 			}
 			return nil
@@ -303,22 +274,14 @@ func UpdateClanHandler(app *App) func(c echo.Context) error {
 				log.D(l, "Dispatching clan update hooks...")
 				err = app.DispatchHooks(gameID, models.ClanUpdatedHook, result)
 				if err != nil {
-					txErr := rb(err)
-					if txErr == nil {
-						log.E(l, "Clan updated hook dispatch failed.", func(cm log.CM) {
-							cm.Write(zap.Error(err))
-						})
-					}
+					log.E(l, "Clan updated hook dispatch failed.", func(cm log.CM) {
+						cm.Write(zap.Error(err))
+					})
 					return err
 				}
 			}
 			return nil
 		})
-		if err != nil {
-			return FailWith(500, err.Error(), c)
-		}
-
-		err = app.Commit(tx, "Clan updated", c, l)
 		if err != nil {
 			return FailWith(500, err.Error(), c)
 		}
