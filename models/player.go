@@ -173,10 +173,10 @@ func UpdatePlayer(db DB, gameID, publicID, name string, metadata map[string]inte
 func GetPlayerOwnershipDetails(db DB, gameID, publicID string) (map[string]interface{}, error) {
 	query := `
 	SELECT c.*
-	FROM clans c
-		INNER JOIN players p on p.id=c.owner_id
-	WHERE
-		c.game_id=$1 and p.public_id=$2`
+	FROM players p
+	INNER JOIN clans c ON c.owner_id=p.id
+	WHERE p.game_id=$1 AND p.public_id=$2 
+	`
 
 	var clans []Clan
 	_, err := db.Select(&clans, query, gameID, publicID)
