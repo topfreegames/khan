@@ -12,8 +12,6 @@ import (
 	"strings"
 	"time"
 
-	gorp "gopkg.in/gorp.v1"
-
 	"github.com/labstack/echo"
 	"github.com/topfreegames/khan/log"
 	"github.com/topfreegames/khan/models"
@@ -53,62 +51,35 @@ func CreateGameHandler(app *App) func(c echo.Context) error {
 			)
 		})
 
-		var game *models.Game
-		var tx *gorp.Transaction
-		err = WithSegment("game-create", c, func() error {
-			err = WithSegment("tx-begin", c, func() error {
-				tx, err = app.BeginTrans(l)
-				return err
-			})
-			if err != nil {
-				return err
-			}
-			log.D(l, "DB Tx begun successful.")
+		log.D(l, "Creating game...")
+		game, err := models.CreateGame(
+			app.Db,
+			payload.PublicID,
+			payload.Name,
+			payload.MembershipLevels,
+			payload.Metadata,
+			payload.MinLevelToAcceptApplication,
+			payload.MinLevelToCreateInvitation,
+			payload.MinLevelToRemoveMember,
+			payload.MinLevelOffsetToRemoveMember,
+			payload.MinLevelOffsetToPromoteMember,
+			payload.MinLevelOffsetToDemoteMember,
+			payload.MaxMembers,
+			payload.MaxClansPerPlayer,
+			payload.CooldownAfterDeny,
+			payload.CooldownAfterDelete,
+			optional.cooldownBeforeApply,
+			optional.cooldownBeforeInvite,
+			optional.maxPendingInvites,
+			false,
+			optional.clanUpdateMetadataFieldsHookTriggerWhitelist,
+			optional.playerUpdateMetadataFieldsHookTriggerWhitelist,
+		)
 
-			log.D(l, "Creating game...")
-			game, err = models.CreateGame(
-				tx,
-				payload.PublicID,
-				payload.Name,
-				payload.MembershipLevels,
-				payload.Metadata,
-				payload.MinLevelToAcceptApplication,
-				payload.MinLevelToCreateInvitation,
-				payload.MinLevelToRemoveMember,
-				payload.MinLevelOffsetToRemoveMember,
-				payload.MinLevelOffsetToPromoteMember,
-				payload.MinLevelOffsetToDemoteMember,
-				payload.MaxMembers,
-				payload.MaxClansPerPlayer,
-				payload.CooldownAfterDeny,
-				payload.CooldownAfterDelete,
-				optional.cooldownBeforeApply,
-				optional.cooldownBeforeInvite,
-				optional.maxPendingInvites,
-				false,
-				optional.clanUpdateMetadataFieldsHookTriggerWhitelist,
-				optional.playerUpdateMetadataFieldsHookTriggerWhitelist,
-			)
-
-			if err != nil {
-				txErr := app.Rollback(tx, "Create game failed", c, l, err)
-				if txErr != nil {
-					return txErr
-				}
-				log.E(l, "Create game failed.", func(cm log.CM) {
-					cm.Write(zap.Error(err))
-				})
-				return err
-			}
-
-			err = app.Commit(tx, "Create game", c, l)
-			if err != nil {
-				return err
-			}
-
-			return nil
-		})
 		if err != nil {
+			log.E(l, "Create game failed.", func(cm log.CM) {
+				cm.Write(zap.Error(err))
+			})
 			return FailWith(500, err.Error(), c)
 		}
 
@@ -179,19 +150,10 @@ func UpdateGameHandler(app *App) func(c echo.Context) error {
 			return FailWith(status, err.Error(), c)
 		}
 
-		var tx *gorp.Transaction
 		err = WithSegment("game-update", c, func() error {
-			err = WithSegment("tx-begin", c, func() error {
-				tx, err = app.BeginTrans(l)
-				return err
-			})
-			if err != nil {
-				return err
-			}
-
 			log.D(l, "Updating game...")
 			_, err = models.UpdateGame(
-				tx,
+				app.Db,
 				gameID,
 				payload.Name,
 				payload.MembershipLevels,
@@ -216,11 +178,6 @@ func UpdateGameHandler(app *App) func(c echo.Context) error {
 		})
 
 		if err != nil {
-			txErr := app.Rollback(tx, "Game update failed", c, l, err)
-			if txErr != nil {
-				return FailWith(500, txErr.Error(), c)
-			}
-
 			log.E(l, "Game update failed.", func(cm log.CM) {
 				cm.Write(zap.Error(err))
 			})
@@ -250,11 +207,6 @@ func UpdateGameHandler(app *App) func(c echo.Context) error {
 		err = WithSegment("hook-dispatch", c, func() error {
 			dErr := app.DispatchHooks(gameID, models.GameUpdatedHook, successPayload)
 			if dErr != nil {
-				txErr := app.Rollback(tx, "Game update hook dispatch failed", c, l, dErr)
-				if txErr != nil {
-					return txErr
-				}
-
 				log.E(l, "Game update hook dispatch failed.", func(cm log.CM) {
 					cm.Write(zap.Error(dErr))
 				})
@@ -262,11 +214,6 @@ func UpdateGameHandler(app *App) func(c echo.Context) error {
 			}
 			return nil
 		})
-		if err != nil {
-			return FailWith(500, err.Error(), c)
-		}
-
-		err = app.Commit(tx, "Update game", c, l)
 		if err != nil {
 			return FailWith(500, err.Error(), c)
 		}

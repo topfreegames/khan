@@ -698,7 +698,6 @@ func PromoteOrDemoteMembershipHandler(app *App, action string) func(c echo.Conte
 		var requestor *models.Player
 		var status int
 		var err error
-		var tx *gorp.Transaction
 
 		c.Set("route", "PromoteOrDemoteMember")
 		start := time.Now()
@@ -728,29 +727,11 @@ func PromoteOrDemoteMembershipHandler(app *App, action string) func(c echo.Conte
 			zap.String("requestorPublicID", payload.RequestorPublicID),
 		)
 
-		rb := func(err error) error {
-			txErr := app.Rollback(tx, "Promoting/Demoting member failed", c, l, err)
-			if txErr != nil {
-				return txErr
-			}
-
-			return nil
-		}
-
 		err = WithSegment("membership-promote-demote", c, func() error {
-			err = WithSegment("tx-begin", c, func() error {
-				tx, err = app.BeginTrans(l)
-				return err
-			})
-			if err != nil {
-				return err
-			}
-			log.D(l, "DB Tx begun successful.")
-
 			err = WithSegment("membership-promote-demote-query", c, func() error {
 				log.D(l, "Promoting/Demoting member...")
 				membership, err = models.PromoteOrDemoteMember(
-					tx,
+					app.Db,
 					game,
 					game.PublicID,
 					payload.PlayerPublicID,
@@ -760,31 +741,26 @@ func PromoteOrDemoteMembershipHandler(app *App, action string) func(c echo.Conte
 				)
 
 				if err != nil {
-					txErr := rb(err)
-					if txErr == nil {
-						log.E(l, "Member promotion/demotion failed.", func(cm log.CM) {
-							cm.Write(zap.Error(err))
-						})
-					}
+					log.E(l, "Member promotion/demotion failed.", func(cm log.CM) {
+						cm.Write(zap.Error(err))
+					})
 					return err
 				}
 				log.I(l, "Member promoted/demoted successful.")
 				return nil
 			})
+
 			if err != nil {
 				return err
 			}
 
 			err = WithSegment("player-retrieve", c, func() error {
 				log.D(l, "Retrieving promoter/demoter member...")
-				requestor, err = models.GetPlayerByPublicID(tx, membership.GameID, payload.RequestorPublicID)
+				requestor, err = models.GetPlayerByPublicID(app.Db, membership.GameID, payload.RequestorPublicID)
 				if err != nil {
-					txErr := rb(err)
-					if txErr == nil {
-						log.E(l, "Promoter/Demoter member retrieval failed.", func(cm log.CM) {
-							cm.Write(zap.Error(err))
-						})
-					}
+					log.E(l, "Promoter/Demoter member retrieval failed.", func(cm log.CM) {
+						cm.Write(zap.Error(err))
+					})
 					return err
 				}
 				return nil
@@ -803,26 +779,19 @@ func PromoteOrDemoteMembershipHandler(app *App, action string) func(c echo.Conte
 			}
 
 			err = dispatchMembershipHookByID(
-				app, tx, hookType,
+				app, app.Db, hookType,
 				membership.GameID, membership.ClanID, membership.PlayerID,
 				requestor.ID, membership.Message, membership.Level,
 			)
 			if err != nil {
-				txErr := rb(err)
-				if txErr == nil {
-					log.E(l, "Promote/Demote member hook dispatch failed.", func(cm log.CM) {
-						cm.Write(zap.Error(err))
-					})
-				}
+				log.E(l, "Promote/Demote member hook dispatch failed.", func(cm log.CM) {
+					cm.Write(zap.Error(err))
+				})
 				return err
 			}
 			return nil
 		})
-		if err != nil {
-			return FailWith(http.StatusInternalServerError, err.Error(), c)
-		}
 
-		err = app.Commit(tx, "Membership invitation approval/deny", c, l)
 		if err != nil {
 			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
