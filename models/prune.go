@@ -101,11 +101,13 @@ func pruneDeletedMemberships(options *PruneOptions, db DB, logger zap.Logger) (i
 // PruneStaleData off of Khan's database
 func PruneStaleData(options *PruneOptions, db DB, logger zap.Logger) (*PruneStats, error) {
 	log.I(logger, "Pruning stale data...", func(cm log.CM) {
-		cm.Write(zap.String("GameID", options.GameID))
-		cm.Write(zap.Int("PendingApplicationsExpiration", options.PendingApplicationsExpiration))
-		cm.Write(zap.Int("PendingInvitesExpiration", options.PendingInvitesExpiration))
-		cm.Write(zap.Int("DeniedMembershipsExpiration", options.DeniedMembershipsExpiration))
-		cm.Write(zap.Int("DeletedMembershipsExpiration", options.DeletedMembershipsExpiration))
+		cm.Write(
+			zap.String("GameID", options.GameID),
+			zap.Int("PendingApplicationsExpiration", options.PendingApplicationsExpiration),
+			zap.Int("PendingInvitesExpiration", options.PendingInvitesExpiration),
+			zap.Int("DeniedMembershipsExpiration", options.DeniedMembershipsExpiration),
+			zap.Int("DeletedMembershipsExpiration", options.DeletedMembershipsExpiration),
+		)
 	})
 
 	pendingApplicationsPruned, err := prunePendingApplications(options, db, logger)
@@ -148,11 +150,13 @@ func PruneStaleData(options *PruneOptions, db DB, logger zap.Logger) (*PruneStat
 	}
 
 	log.I(logger, "Pruned stale data succesfully.", func(cm log.CM) {
-		cm.Write(zap.String("GameID", options.GameID))
-		cm.Write(zap.Int("PendingApplicationsPruned", stats.PendingApplicationsPruned))
-		cm.Write(zap.Int("PendingInvitesPruned", stats.PendingInvitesPruned))
-		cm.Write(zap.Int("DeniedMembershipsPruned", stats.DeniedMembershipsPruned))
-		cm.Write(zap.Int("DeletedMembershipsPruned", stats.DeletedMembershipsPruned))
+		cm.Write(
+			zap.String("GameID", options.GameID),
+			zap.Int("PendingApplicationsPruned", stats.PendingApplicationsPruned),
+			zap.Int("PendingInvitesPruned", stats.PendingInvitesPruned),
+			zap.Int("DeniedMembershipsPruned", stats.DeniedMembershipsPruned),
+			zap.Int("DeletedMembershipsPruned", stats.DeletedMembershipsPruned),
+		)
 	})
 	return stats, nil
 }
