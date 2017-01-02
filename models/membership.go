@@ -109,18 +109,19 @@ func GetMembershipByClanAndPlayerPublicID(db DB, gameID, clanPublicID, playerPub
 	return memberships[0], nil
 }
 
-// GetDeletedMembershipByPlayerID returns a deleted membership for the player with the given ID
-func GetDeletedMembershipByPlayerID(db DB, gameID string, playerID int) (*Membership, error) {
+// GetDeletedMembershipByClanAndPlayerID returns a deleted membership for the player with the given ID and the clan ID
+func GetDeletedMembershipByClanAndPlayerID(db DB, gameID string, clanID, playerID int) (*Membership, error) {
 	var memberships []*Membership
 	query := `
 	SELECT
 		m.*
 	FROM memberships m
-		INNER JOIN players p ON p.id=$1 AND p.id=m.player_id
+		INNER JOIN clans c ON c.id=$1 AND c.id=m.clan_id
+		INNER JOIN players p ON p.id=$2 AND p.id=m.player_id
 	WHERE
-		m.deleted_at!=0 AND m.game_id=$2`
+		m.deleted_at!=0 AND m.game_id=$3`
 
-	_, err := db.Select(&memberships, query, playerID, gameID)
+	_, err := db.Select(&memberships, query, clanID, playerID, gameID)
 	if err != nil {
 		return nil, err
 	}

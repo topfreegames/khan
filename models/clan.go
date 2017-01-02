@@ -453,7 +453,7 @@ func TransferClanOwnership(db DB, gameID, clanPublicID, playerPublicID string, l
 	if level == "" {
 		return nil, nil, nil, &InvalidLevelForGameError{gameID, level}
 	}
-	oldOwnerMembership, err := GetDeletedMembershipByPlayerID(db, gameID, oldOwnerID)
+	oldOwnerMembership, err := GetDeletedMembershipByClanAndPlayerID(db, gameID, clan.ID, oldOwnerID)
 	if err != nil {
 		err = db.Insert(&Membership{
 			GameID:      gameID,

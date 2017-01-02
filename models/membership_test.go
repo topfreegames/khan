@@ -551,7 +551,7 @@ var _ = Describe("Membership Model", func() {
 			})
 		})
 
-		It("Should get a deleted Membership by the player private ID using GetDeletedMembershipByPlayerID", func() {
+		It("Should get a deleted Membership by the clan ID and player private ID using GetDeletedMembershipByClanAndPlayerID", func() {
 			_, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 			Expect(err).NotTo(HaveOccurred())
 
@@ -560,14 +560,14 @@ var _ = Describe("Membership Model", func() {
 			_, err = testDb.Update(memberships[0])
 			Expect(err).NotTo(HaveOccurred())
 
-			dbMembership, err := GetDeletedMembershipByPlayerID(testDb, clan.GameID, players[0].ID)
+			dbMembership, err := GetDeletedMembershipByClanAndPlayerID(testDb, clan.GameID, clan.ID, players[0].ID)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(dbMembership.ID).To(Equal(memberships[0].ID))
 			Expect(dbMembership.PlayerID).To(Equal(players[0].ID))
 			Expect(dbMembership.DeletedBy).To(Equal(players[0].ID))
 		})
 
-		It("Should get a deleted Membership by the player public ID using GetMembershipByClanAndPlayerPublicID", func() {
+		It("Should get a deleted Membership by the clan and player public ID using GetMembershipByClanAndPlayerPublicID", func() {
 			_, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 			Expect(err).NotTo(HaveOccurred())
 
