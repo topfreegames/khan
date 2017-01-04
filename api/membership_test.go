@@ -111,6 +111,83 @@ var _ = Describe("Membership API Handler", func() {
 			Expect(dbMembership.Message).To(Equal(payload["message"]))
 		})
 
+		It("Should create membership application sending a message after player left clan", func() {
+			_, clan, _, players, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
+			Expect(err).NotTo(HaveOccurred())
+
+			clan.AllowApplication = true
+			_, err = testDb.Update(clan)
+			Expect(err).NotTo(HaveOccurred())
+
+			a := GetDefaultTestApp()
+
+			gameID := clan.GameID
+			clanPublicID := clan.PublicID
+			player := players[0]
+			var result map[string]interface{}
+
+			// Leave clan
+			payload := map[string]interface{}{
+				"playerPublicID":    player.PublicID,
+				"requestorPublicID": player.PublicID,
+			}
+			status, body := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "delete"), payload)
+
+			Expect(status).To(Equal(http.StatusOK))
+			json.Unmarshal([]byte(body), &result)
+			Expect(result["success"]).To(BeTrue())
+
+			// Left clan, trying to apply again
+
+			// Apply to clan
+			level := "Member"
+			payload = map[string]interface{}{
+				"level":          level,
+				"playerPublicID": player.PublicID,
+				"message":        "Please accept me, I am nice",
+			}
+			status, body = PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "application"), payload)
+
+			Expect(status).To(Equal(http.StatusOK))
+			json.Unmarshal([]byte(body), &result)
+			Expect(result["success"]).To(BeTrue())
+
+			dbMembership, err := models.GetValidMembershipByClanAndPlayerPublicID(a.Db, gameID, clanPublicID, player.PublicID)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(dbMembership.GameID).To(Equal(gameID))
+			Expect(dbMembership.PlayerID).To(Equal(player.ID))
+			Expect(dbMembership.Level).To(Equal(level))
+			Expect(dbMembership.ClanID).To(Equal(clan.ID))
+			Expect(dbMembership.RequestorID).To(Equal(player.ID))
+			Expect(dbMembership.Denied).To(Equal(false))
+			Expect(dbMembership.Message).To(Equal(payload["message"]))
+		})
+
+		It("Should delete member", func() {
+			_, clan, owner, players, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
+			Expect(err).NotTo(HaveOccurred())
+
+			gameID := clan.GameID
+			clanPublicID := clan.PublicID
+
+			a := GetDefaultTestApp()
+
+			payload := map[string]interface{}{
+				"playerPublicID":    players[0].PublicID,
+				"requestorPublicID": owner.PublicID,
+			}
+			status, body := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "delete"), payload)
+
+			Expect(status).To(Equal(http.StatusOK))
+			var result map[string]interface{}
+			json.Unmarshal([]byte(body), &result)
+			Expect(result["success"]).To(BeTrue())
+
+			_, err = models.GetValidMembershipByClanAndPlayerPublicID(a.Db, gameID, clanPublicID, players[0].PublicID)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(Equal(fmt.Sprintf("Membership was not found with id: %s", players[0].PublicID)))
+		})
+
 		It("Should not create membership application if missing parameters", func() {
 			a := GetDefaultTestApp()
 

@@ -334,8 +334,11 @@ func validateMembership(db DB, game *Game, membership *Membership, clanPublicID,
 				return -1, false, &MustWaitMembershipCooldownError{timeToBeReady, playerPublicID, clanPublicID}
 			}
 		} else {
+			// TODO: When allowing 'memberLeft' players to apply we do not avoid flooding in this case =/
+			memberLeft := membership.DeletedAt > 0 && membership.DeletedBy == membership.PlayerID
+
 			cd := game.CooldownBeforeInvite
-			if requestorPublicID == playerPublicID {
+			if requestorPublicID == playerPublicID && !memberLeft {
 				cd = game.CooldownBeforeApply
 			}
 
