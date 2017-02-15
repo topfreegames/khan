@@ -10,7 +10,7 @@ PACKAGES = $(shell glide novendor)
 GODIRS = $(shell go list ./... | grep -v /vendor/ | sed s@github.com/topfreegames/khan@.@g | egrep -v "^[.]$$")
 PMD = "pmd-bin-5.3.3"
 OS = "$(shell uname | awk '{ print tolower($$0) }')"
-MYIP = $(shell ifconfig | egrep inet | egrep -v inet6 | egrep -v 127.0.0.1 | awk ' { print $$2 } ' | head -n 1)
+MYIP=`ifconfig | grep --color=none -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep --color=none -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1' | head -n 1`
 
 setup-hooks:
 	@cd .git/hooks && ln -sf ../../hooks/pre-commit.sh pre-commit
@@ -97,8 +97,10 @@ build-prune-docker:
 # the crypto
 run-docker:
 	@docker run -i -t --rm \
-		-e "KHAN_POSTGRES_HOST=`ifconfig | egrep inet | egrep -v inet6 | egrep -v 127.0.0.1 | awk ' { print $$2 } '`" \
+		-e "KHAN_POSTGRES_HOST=${MYIP}" \
 		-e "KHAN_POSTGRES_PORT=5433" \
+		-e "KHAN_ELASTICSEARCH_HOST=${MYIP}" \
+		-e "KHAN_ELASTICSEARCH_PORT=9200" \
 		-e "SERVER_NAME=localhost" \
 		-e "AUTH_USERNAME=auth-username" \
 		-e "AUTH_PASSWORD=auth-password" \
