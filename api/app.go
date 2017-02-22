@@ -374,13 +374,25 @@ func (app *App) GetGame(gameID string) (*models.Game, error) {
 }
 
 func (app *App) initDispatcher() {
+	workerCount := app.Config.GetInt("webhooks.workers")
+	if workerCount == 0 {
+		workerCount = 50
+	}
+	bufferSize := app.Config.GetInt("webhooks.bufferSize")
+	if bufferSize == 0 {
+		bufferSize = 10000
+	}
+
 	l := app.Logger.With(
 		zap.String("source", "app"),
 		zap.String("operation", "initDispatcher"),
+		zap.Int("workerCount", workerCount),
+		zap.Int("bufferSize", bufferSize),
 	)
 
 	log.D(l, "Initializing dispatcher...")
-	disp, err := NewDispatcher(app, 5, 1000)
+
+	disp, err := NewDispatcher(app, workerCount, bufferSize)
 	if err != nil {
 		log.P(l, "Dispatcher failed to initialize.", func(cm log.CM) {
 			cm.Write(zap.Error(err))

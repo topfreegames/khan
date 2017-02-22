@@ -12,6 +12,11 @@ elasticsearch:
   sniff: false
   index: "khan"
 
+webhooks:
+  timeout: 2
+  workers: 50
+  bufferSize: 50000
+
 healthcheck:
   workingText: "WORKING"
 
