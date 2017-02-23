@@ -25,3 +25,17 @@ webhooks:
 
 newrelic:
   key: ""
+
+redis:
+  host: 0.0.0.0
+  port: 50505
+  database: 0
+  pool: 30
+  password: ""
+
+webhooks:
+  timeout: 2
+  workers: 50
+  bufferSize: 50000
+  statsPort: 9999
+  runStats: false

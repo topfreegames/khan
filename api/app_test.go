@@ -132,8 +132,10 @@ var _ = Describe("API Application", func() {
 			}
 			err = app.DispatchHooks(hooks[0].GameID, models.GameUpdatedHook, resultingPayload)
 			Expect(err).NotTo(HaveOccurred())
-			app.Dispatcher.Wait()
-			Expect(len(*responses)).To(Equal(2))
+
+			Eventually(func() int {
+				return len(*responses)
+			}).Should(Equal(2))
 			app.Errors.Tick()
 			Expect(app.Errors.Rate()).To(Equal(0.0))
 		})
@@ -164,8 +166,9 @@ var _ = Describe("API Application", func() {
 				resultingPayload,
 			)
 			Expect(err).NotTo(HaveOccurred())
-			app.Dispatcher.Wait()
-			Expect(len(*responses)).To(Equal(1))
+			Eventually(func() int {
+				return len(*responses)
+			}).Should(Equal(1))
 
 			resp := (*responses)[0]
 			req := resp["request"].(*http.Request)
@@ -193,8 +196,10 @@ var _ = Describe("API Application", func() {
 			}
 			err = app.DispatchHooks(hooks[0].GameID, models.GameUpdatedHook, resultingPayload)
 			Expect(err).NotTo(HaveOccurred())
-			app.Dispatcher.Wait()
-			Expect(len(*responses)).To(Equal(1))
+			Eventually(func() int {
+				return len(*responses)
+			}).Should(Equal(1))
+
 			app.Errors.Tick()
 			Expect(app.Errors.Rate()).To(Equal(0.0))
 		})
@@ -218,18 +223,20 @@ var _ = Describe("API Application", func() {
 			}
 			err = app.DispatchHooks(hooks[0].GameID, models.GameUpdatedHook, resultingPayload)
 			Expect(err).NotTo(HaveOccurred())
-			app.Dispatcher.Wait()
-			Expect(len(*responses)).To(Equal(1))
+			Eventually(func() int {
+				return len(*responses)
+			}).Should(Equal(1))
+
 			app.Errors.Tick()
 			Expect(app.Errors.Rate()).To(Equal(0.0))
 		})
 
 		It("should fail dispatch hooks if invalid key", func() {
 			hooks, err := models.GetHooksForRoutes(testDb, []string{
-				"http://localhost:52525/invalid/{{player.publicID.invalid}}",
+				"http://localhost:52525/invalid-webhook-request/{{player.publicID.invalid}}",
 			}, models.GameUpdatedHook)
 			Expect(err).NotTo(HaveOccurred())
-			responses := startRouteHandler([]string{fmt.Sprintf("/invalid/%s", hooks[0].GameID)}, 52525)
+			responses := startRouteHandler([]string{fmt.Sprintf("/invalid-webhook-request/%s", hooks[0].GameID)}, 52525)
 
 			app := GetDefaultTestApp()
 			time.Sleep(time.Second)
@@ -242,10 +249,10 @@ var _ = Describe("API Application", func() {
 			}
 			err = app.DispatchHooks(hooks[0].GameID, models.GameUpdatedHook, resultingPayload)
 			Expect(err).NotTo(HaveOccurred())
-			app.Dispatcher.Wait(50)
-			Expect(len(*responses)).To(Equal(0))
-			app.Errors.Tick()
-			Expect(app.Errors.Rate()).To(BeNumerically(">", 0.0))
+
+			Consistently(func() int {
+				return len(*responses)
+			}, 50*time.Millisecond, 10*time.Millisecond).Should(Equal(0))
 		})
 	})
 })

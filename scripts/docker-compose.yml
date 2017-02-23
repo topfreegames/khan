@@ -10,3 +10,7 @@ services:
     command: "elasticsearch -Des.node.name=khan-master"
     ports:
       - "9200:9200"
+  redis:
+    image: redis
+    ports:
+      - "50505:6379"

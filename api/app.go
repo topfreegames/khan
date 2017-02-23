@@ -378,21 +378,15 @@ func (app *App) initDispatcher() {
 	if workerCount == 0 {
 		workerCount = 50
 	}
-	bufferSize := app.Config.GetInt("webhooks.bufferSize")
-	if bufferSize == 0 {
-		bufferSize = 10000
-	}
-
 	l := app.Logger.With(
 		zap.String("source", "app"),
 		zap.String("operation", "initDispatcher"),
 		zap.Int("workerCount", workerCount),
-		zap.Int("bufferSize", bufferSize),
 	)
 
 	log.D(l, "Initializing dispatcher...")
 
-	disp, err := NewDispatcher(app, workerCount, bufferSize)
+	disp, err := NewDispatcher(app, workerCount)
 	if err != nil {
 		log.P(l, "Dispatcher failed to initialize.", func(cm log.CM) {
 			cm.Write(zap.Error(err))

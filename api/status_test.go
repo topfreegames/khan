@@ -29,10 +29,6 @@ var _ = Describe("Status API Handler", func() {
 			Expect(result["app"]).NotTo(BeEquivalentTo(nil))
 			app := result["app"].(map[string]interface{})
 			Expect(app["errorRate"]).To(Equal(0.0))
-
-			Expect(result["dispatch"]).NotTo(BeEquivalentTo(nil))
-			dispatch := result["dispatch"].(map[string]interface{})
-			Expect(dispatch["pendingJobs"].(float64)).To(BeEquivalentTo(0))
 		})
 	})
 })

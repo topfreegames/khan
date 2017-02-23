@@ -22,9 +22,6 @@ func StatusHandler(app *App) func(c echo.Context) error {
 			"app": map[string]interface{}{
 				"errorRate": app.Errors.Rate(),
 			},
-			"dispatch": map[string]interface{}{
-				"pendingJobs": app.Dispatcher.Jobs,
-			},
 		}
 
 		var payloadJSON []byte

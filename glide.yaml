@@ -32,3 +32,6 @@ import:
 - package: github.com/newrelic/go-agent
   version: ^1.1.0
 - package: github.com/dgrijalva/jwt-go
+- package: github.com/jrallison/go-workers
+- package: github.com/bitly/go-simplejson
+  version: ^0.5.0

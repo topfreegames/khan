@@ -15,6 +15,7 @@ import (
 	"strings"
 	"time"
 
+	workers "github.com/jrallison/go-workers"
 	"github.com/satori/go.uuid"
 	"github.com/topfreegames/khan/log"
 	"github.com/uber-go/zap"
@@ -22,119 +23,70 @@ import (
 	"github.com/valyala/fasttemplate"
 )
 
-//Dispatch represents an event hook to be sent to all available dispatchers
-type Dispatch struct {
-	gameID      string
-	eventType   int
-	payload     map[string]interface{}
-	payloadJSON []byte
-}
+const khanQueue = "khan_webhooks"
 
 //Dispatcher is responsible for sending web hooks to workers
 type Dispatcher struct {
 	app         *App
-	bufferSize  int
 	workerCount int
-	Jobs        int
-	workQueue   chan Dispatch
-	workerQueue chan chan Dispatch
-}
-
-//Worker is an unit of work that keeps processing dispatches
-type Worker struct {
-	ID          int
-	App         *App
-	Dispatcher  *Dispatcher
-	Work        chan Dispatch
-	WorkerQueue chan chan Dispatch
 }
 
 //NewDispatcher creates a new dispatcher available to our app
-func NewDispatcher(app *App, workerCount, bufferSize int) (*Dispatcher, error) {
-	return &Dispatcher{app: app, workerCount: workerCount, bufferSize: bufferSize}, nil
+func NewDispatcher(app *App, workerCount int) (*Dispatcher, error) {
+	return &Dispatcher{app: app, workerCount: workerCount}, nil
 }
 
 //Start "starts" the dispatcher
 func (d *Dispatcher) Start() {
+	redisHost := d.app.Config.GetString("redis.host")
+	redisPort := d.app.Config.GetInt("redis.port")
+	redisDatabase := d.app.Config.GetInt("redis.database")
+	redisPool := d.app.Config.GetInt("redis.pool")
+	if redisPool == 0 {
+		redisPool = 30
+	}
+
 	l := d.app.Logger.With(
 		zap.String("source", "dispatcher"),
 		zap.String("operation", "Start"),
 		zap.Int("workerCount", d.workerCount),
+		zap.String("redisHost", redisHost),
+		zap.Int("redisPort", redisPort),
+		zap.Int("redisDatabase", redisDatabase),
+		zap.Int("redisPool", redisPool),
 	)
 
-	log.D(l, "Starting dispatcher...")
-	d.workerQueue = make(chan chan Dispatch, d.workerCount)
-	d.workQueue = make(chan Dispatch, d.bufferSize)
+	opts := map[string]string{
+		// location of redis instance
+		"server": fmt.Sprintf("%s:%d", redisHost, redisPort),
+		// instance of the database
+		"database": string(redisDatabase),
+		// number of connections to keep open with redis
+		"pool": string(redisPool),
+		// unique process id
+		"process": uuid.NewV4().String(),
+	}
+	redisPass := d.app.Config.GetString("redis.password")
+	if redisPass != "" {
+		opts["password"] = redisPass
+	}
+	workers.Configure(opts)
 
-	// Now, create all of our workers.
-	for i := 0; i < d.workerCount; i++ {
-		log.D(l, "Starting worker...", func(cm log.CM) {
-			cm.Write(zap.Int("workerId", i+1))
-		})
-		worker := d.newWorker(i+1, d.workerQueue)
-		worker.Start()
-		log.D(l, "Worker started successfully.", func(cm log.CM) {
-			cm.Write(zap.Int("workerId", i+1))
-		})
+	workers.Process(khanQueue, d.PerformDispatchHook, d.workerCount)
+
+	log.D(l, "Starting dispatcher...")
+	if d.app.Config.GetBool("webhooks.runStats") {
+		jobsStatsPort := d.app.Config.GetInt("webhooks.statsPort")
+		go workers.StatsServer(jobsStatsPort)
 	}
 
 	go func() {
-		for {
-			select {
-			case work := <-d.workQueue:
-				log.I(l, "Received work request.", func(cm log.CM) {
-					cm.Write(
-						zap.String("gameID", work.gameID),
-						zap.Int("eventType", work.eventType),
-					)
-				})
-				go func() {
-					log.D(l, "Waiting for available worker...")
-					worker := <-d.workerQueue
-					log.D(l, "Worker found! Dispatching work request...")
-					worker <- work
-				}()
-			}
-		}
+		workers.Run()
 	}()
 }
 
 //Wait blocks until all jobs are done
 func (d *Dispatcher) Wait(timeout ...int) {
-	actualTimeout := 0
-	if timeout != nil && len(timeout) == 1 {
-		actualTimeout = timeout[0]
-	}
-
-	l := d.app.Logger.With(
-		zap.String("source", "dispatcher"),
-		zap.String("operation", "Wait"),
-		zap.Int("timeout", actualTimeout),
-	)
-
-	start := time.Now()
-	timeoutDuration := time.Duration(actualTimeout) * time.Millisecond
-	for d.Jobs > 0 {
-		log.D(l, "Waiting for jobs to finish...", func(cm log.CM) {
-			cm.Write(zap.Int("jobCount", d.Jobs))
-		})
-		curr := time.Now().Sub(start)
-		if actualTimeout > 0 && curr > timeoutDuration {
-			log.W(l, "Timeout waiting for jobs to finish.", func(cm log.CM) {
-				cm.Write(zap.Duration("timeoutEllapsed", curr))
-			})
-			break
-		}
-		time.Sleep(time.Millisecond)
-	}
-}
-
-func (d *Dispatcher) startJob() {
-	d.Jobs++
-}
-
-func (d *Dispatcher) finishJob() {
-	d.Jobs--
 }
 
 //DispatchHook dispatches an event hook for eventType to gameID with the specified payload
@@ -143,9 +95,6 @@ func (d *Dispatcher) DispatchHook(gameID string, eventType int, payload map[stri
 	payload["id"] = uuid.NewV4()
 	payload["timestamp"] = time.Now().Format(time.RFC3339)
 
-	payloadJSON, _ := json.Marshal(payload)
-	defer d.startJob()
-	work := Dispatch{gameID: gameID, eventType: eventType, payload: payload, payloadJSON: payloadJSON}
 	// Push the work onto the queue.
 	log.D(d.app.Logger, "Pushing work into dispatch queue.", func(cm log.CM) {
 		cm.Write(
@@ -153,57 +102,15 @@ func (d *Dispatcher) DispatchHook(gameID string, eventType int, payload map[stri
 			zap.String("operation", "DispatchHook"),
 		)
 	})
-	d.workQueue <- work
+
+	workers.Enqueue(khanQueue, "Add", map[string]interface{}{
+		"gameID":    gameID,
+		"eventType": eventType,
+		"payload":   payload,
+	})
 }
 
-func (d *Dispatcher) newWorker(id int, workerQueue chan chan Dispatch) Worker {
-	worker := Worker{
-		App:         d.app,
-		Dispatcher:  d,
-		ID:          id,
-		Work:        make(chan Dispatch),
-		WorkerQueue: workerQueue,
-	}
-
-	return worker
-}
-
-func (w *Worker) handleJob(work Dispatch) {
-	defer w.Dispatcher.finishJob()
-	w.DispatchHook(work)
-}
-
-// Start "starts" the worker by starting a goroutine, that is
-// an infinite "for-select" loop.
-func (w *Worker) Start() {
-	l := w.Dispatcher.app.Logger.With(
-		zap.String("source", "dispatcher"),
-		zap.String("operation", "Start"),
-	)
-
-	go func() {
-		for {
-			// Add ourselves into the worker queue.
-			w.WorkerQueue <- w.Work
-
-			select {
-			case work := <-w.Work:
-				// Receive a work request.
-				log.I(l, "Received work request for game.", func(cm log.CM) {
-					cm.Write(
-						zap.Int("workerID", w.ID),
-						zap.String("gameID", work.gameID),
-						zap.Int("eventType", work.eventType),
-						zap.String("payload", string(work.payloadJSON)),
-					)
-				})
-				w.handleJob(work)
-			}
-		}
-	}()
-}
-
-func (w *Worker) interpolateURL(sourceURL string, payload map[string]interface{}) (string, error) {
+func (d *Dispatcher) interpolateURL(sourceURL string, payload map[string]interface{}) (string, error) {
 	t, err := fasttemplate.NewTemplate(sourceURL, "{{", "}}")
 	if err != nil {
 		return sourceURL, err
@@ -241,30 +148,35 @@ func (w *Worker) interpolateURL(sourceURL string, payload map[string]interface{}
 	return s, nil
 }
 
-// DispatchHook dispatches web hooks for a specific game and event type
-func (w *Worker) DispatchHook(d Dispatch) error {
-	l := w.Dispatcher.app.Logger.With(
+// PerformDispatchHook dispatches web hooks for a specific game and event type
+func (d *Dispatcher) PerformDispatchHook(m *workers.Msg) {
+	l := d.app.Logger.With(
 		zap.String("source", "dispatcher"),
-		zap.String("operation", "DispatchHook"),
-		zap.String("gameID", d.gameID),
-		zap.Int("eventType", d.eventType),
+		zap.String("operation", "PerformDispatchHook"),
 	)
+	app := d.app
 
-	app := w.App
+	item := m.Args()
+	data := item.MustMap()
+
+	gameID := data["gameID"].(string)
+	eventType, _ := data["eventType"].(json.Number).Int64()
+	payload := data["payload"].(map[string]interface{})
+
 	hooks := app.GetHooks()
-	if _, ok := hooks[d.gameID]; !ok {
+	if _, ok := hooks[gameID]; !ok {
 		log.D(l, "No hooks found for game.")
-		return nil
+		return
 	}
-	if _, ok := hooks[d.gameID][d.eventType]; !ok {
+	if _, ok := hooks[gameID][int(eventType)]; !ok {
 		log.D(l, "No hooks found for event in specified game.")
-		return nil
+		return
 	}
 
 	timeout := time.Duration(app.Config.GetInt("webhooks.timeout")) * time.Second
 
-	for _, hook := range hooks[d.gameID][d.eventType] {
-		log.I(w.Dispatcher.app.Logger, "Sending webhook...", func(cm log.CM) {
+	for _, hook := range hooks[gameID][int(eventType)] {
+		log.I(app.Logger, "Sending webhook...", func(cm log.CM) {
 			cm.Write(zap.String("url", hook.URL))
 		})
 
@@ -272,9 +184,9 @@ func (w *Worker) DispatchHook(d Dispatch) error {
 			Name: fmt.Sprintf("khan-%s", VERSION),
 		}
 
-		url, err := w.interpolateURL(hook.URL, d.payload)
+		url, err := d.interpolateURL(hook.URL, payload)
 		if err != nil {
-			w.App.addError()
+			app.addError()
 			log.E(l, "Could not interpolate webhook.", func(cm log.CM) {
 				cm.Write(
 					zap.String("url", hook.URL),
@@ -284,18 +196,20 @@ func (w *Worker) DispatchHook(d Dispatch) error {
 			continue
 		}
 
+		payloadJSON, _ := json.Marshal(payload)
+
 		log.D(l, "Requesting Hook URL...", func(cm log.CM) {
 			cm.Write(zap.String("url", url))
 		})
 		req := fasthttp.AcquireRequest()
 		req.Header.SetMethod("POST")
 		req.SetRequestURI(url)
-		req.AppendBody(d.payloadJSON)
+		req.AppendBody(payloadJSON)
 		resp := fasthttp.AcquireResponse()
 
 		err = client.DoTimeout(req, resp, timeout)
 		if err != nil {
-			w.App.addError()
+			app.addError()
 			log.E(l, "Could not request webhook.", func(cm log.CM) {
 				cm.Write(zap.String("url", hook.URL), zap.Error(err))
 			})
@@ -303,7 +217,7 @@ func (w *Worker) DispatchHook(d Dispatch) error {
 		}
 
 		if resp.StatusCode() > 399 {
-			w.App.addError()
+			app.addError()
 			log.E(l, "Could not request webhook.", func(cm log.CM) {
 				cm.Write(
 					zap.String("url", hook.URL),
@@ -323,5 +237,5 @@ func (w *Worker) DispatchHook(d Dispatch) error {
 		})
 	}
 
-	return nil
+	return
 }
