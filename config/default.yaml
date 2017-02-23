@@ -23,7 +23,6 @@ healthcheck:
 webhooks:
   timeout: 2
   workers: 50
-  bufferSize: 50000
   statsPort: 9999
   runStats: true
 

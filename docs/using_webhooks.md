@@ -5,6 +5,20 @@ You can use khan's web hooks to send detailed event information to other servers
 
 One possible use case would be to notify the chat channel for your game with information about people joining/leaving the clan or for new applications.
 
+## Webhook Specific Configuration
+
+Khan has some configuration entries specific to webhooks:
+
+* `redis.host` - Redis server host used for [GoWorkers](https://github.com/jrallison/go-workers);
+* `redis.port` - Redis server port used for [GoWorkers](https://github.com/jrallison/go-workers);
+* `redis.database` - Redis server database used for [GoWorkers](https://github.com/jrallison/go-workers);
+* `redis.pool` - Redis connection pool size used for [GoWorkers](https://github.com/jrallison/go-workers);
+* `redis.password` - Redis password used for [GoWorkers](https://github.com/jrallison/go-workers);
+* `webhooks.timeout` - Timeout for webhook HTTP connections;
+* `webhooks.workers` - Number of [GoWorkers](https://github.com/jrallison/go-workers) to start with each instance of Khan;
+* `webhooks.runStats` - Will the [GoWorkers](https://github.com/jrallison/go-workers) stats server run in each Khan instance?;
+* `webhooks.statsPort` - Port that the stats server of [GoWorkers](https://github.com/jrallison/go-workers) will run in.
+
 ## Registering a Web Hook
 
 Registering a web hook is done using the [Create Web Hook Route](API.html#create-hook). A hook can also be removed using the [Remove Web Hook Route](API.html#remove-hook). Just make sure you keep the PublicID that was returned by the Create Hook route as it is required to remove a hook.
@@ -146,7 +160,7 @@ Payload:
     {
         "gameID":  [string],                        // Game ID
         "type": 3,                                  // Event Type
-        "clan": {          
+        "clan": {
           "publicID": [string],                     // Created Clan PublicID This id should
                                                     // be used when referring to the clan in
                                                     // future operations.
