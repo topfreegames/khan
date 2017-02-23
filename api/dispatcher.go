@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"io"
 	"net/url"
+	"strconv"
 	"strings"
 	"time"
 
@@ -60,9 +61,9 @@ func (d *Dispatcher) Start() {
 		// location of redis instance
 		"server": fmt.Sprintf("%s:%d", redisHost, redisPort),
 		// instance of the database
-		"database": string(redisDatabase),
+		"database": strconv.Itoa(redisDatabase),
 		// number of connections to keep open with redis
-		"pool": string(redisPool),
+		"pool": strconv.Itoa(redisPool),
 		// unique process id
 		"process": uuid.NewV4().String(),
 	}
