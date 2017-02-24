@@ -508,7 +508,7 @@ var _ = Describe("Clan Model", func() {
 				)
 				Expect(err).NotTo(HaveOccurred())
 
-				time.Sleep(time.Duration(100) * time.Millisecond)
+				time.Sleep(time.Duration(300) * time.Millisecond)
 
 				err = testing.WaitForFunc(10, func() error {
 					var err error
@@ -519,6 +519,7 @@ var _ = Describe("Clan Model", func() {
 
 				updESClan, err = GetClanFromJSON(*result.Source)
 				Expect(err).NotTo(HaveOccurred())
+
 				Expect(updESClan.Metadata["x"]).To(BeEquivalentTo(metadata["x"]))
 				Expect(updESClan.Metadata["totalScore"]).To(Equal(float64(11000)))
 				Expect(updESClan.Metadata["foo"]).To(BeEquivalentTo(metadata["foo"]))

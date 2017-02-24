@@ -34,11 +34,13 @@ type Dispatcher struct {
 
 //NewDispatcher creates a new dispatcher available to our app
 func NewDispatcher(app *App, workerCount int) (*Dispatcher, error) {
-	return &Dispatcher{app: app, workerCount: workerCount}, nil
+	d := &Dispatcher{app: app, workerCount: workerCount}
+	d.Configure()
+	return d, nil
 }
 
-//Start "starts" the dispatcher
-func (d *Dispatcher) Start() {
+//Configure dispatcher
+func (d *Dispatcher) Configure() {
 	redisHost := d.app.Config.GetString("redis.host")
 	redisPort := d.app.Config.GetInt("redis.port")
 	redisDatabase := d.app.Config.GetInt("redis.database")
@@ -49,7 +51,7 @@ func (d *Dispatcher) Start() {
 
 	l := d.app.Logger.With(
 		zap.String("source", "dispatcher"),
-		zap.String("operation", "Start"),
+		zap.String("operation", "Configure"),
 		zap.Int("workerCount", d.workerCount),
 		zap.String("redisHost", redisHost),
 		zap.Int("redisPort", redisPort),
@@ -71,9 +73,19 @@ func (d *Dispatcher) Start() {
 	if redisPass != "" {
 		opts["password"] = redisPass
 	}
+	l.Debug("Configuring worker...")
 	workers.Configure(opts)
 
 	workers.Process(khanQueue, d.PerformDispatchHook, d.workerCount)
+	l.Info("Worker configured.")
+}
+
+//Start "starts" the dispatcher
+func (d *Dispatcher) Start() {
+	l := d.app.Logger.With(
+		zap.String("source", "dispatcher"),
+		zap.String("operation", "Start"),
+	)
 
 	log.D(l, "Starting dispatcher...")
 	if d.app.Config.GetBool("webhooks.runStats") {
@@ -81,13 +93,12 @@ func (d *Dispatcher) Start() {
 		go workers.StatsServer(jobsStatsPort)
 	}
 
-	go func() {
-		workers.Run()
-	}()
+	workers.Run()
 }
 
-//Wait blocks until all jobs are done
-func (d *Dispatcher) Wait(timeout ...int) {
+//StartWorking non-blocking
+func (d *Dispatcher) StartWorking() {
+	workers.Start()
 }
 
 //DispatchHook dispatches an event hook for eventType to gameID with the specified payload

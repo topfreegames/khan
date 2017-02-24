@@ -22,7 +22,7 @@ healthcheck:
 
 webhooks:
   timeout: 2
-  workers: 50
+  workers: 5
   statsPort: 9999
   runStats: true
 

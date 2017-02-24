@@ -376,7 +376,7 @@ func (app *App) GetGame(gameID string) (*models.Game, error) {
 func (app *App) initDispatcher() {
 	workerCount := app.Config.GetInt("webhooks.workers")
 	if workerCount == 0 {
-		workerCount = 50
+		workerCount = 5
 	}
 	l := app.Logger.With(
 		zap.String("source", "app"),
@@ -395,8 +395,17 @@ func (app *App) initDispatcher() {
 	}
 	log.I(l, "Dispatcher initialized successfully")
 
-	log.D(l, "Starting dispatcher...")
 	app.Dispatcher = disp
+}
+
+//StartDispatcher worker
+func (app *App) StartDispatcher() {
+	l := app.Logger.With(
+		zap.String("source", "app"),
+		zap.String("operation", "StartDispatcher"),
+	)
+
+	log.D(l, "Starting dispatcher...")
 	app.Dispatcher.Start()
 	log.I(l, "Dispatcher started successfully.")
 }

@@ -79,6 +79,7 @@ var _ = Describe("API Application", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			app := GetDefaultTestApp()
+			app.Dispatcher.StartWorking()
 
 			appGame, err := app.GetGame(game.PublicID)
 			Expect(err).NotTo(HaveOccurred())
@@ -91,6 +92,7 @@ var _ = Describe("API Application", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			app := GetDefaultTestApp()
+			app.Dispatcher.StartWorking()
 
 			appGame, err := app.GetGame(game.PublicID)
 			Expect(err).NotTo(HaveOccurred())
@@ -106,6 +108,7 @@ var _ = Describe("API Application", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			app := GetDefaultTestApp()
+			app.Dispatcher.StartWorking()
 
 			hooks := app.GetHooks()
 			Expect(len(hooks[gameID])).To(Equal(2))
@@ -124,7 +127,7 @@ var _ = Describe("API Application", func() {
 			responses := startRouteHandler([]string{"/created", "/created2"}, 52525)
 
 			app := GetDefaultTestApp()
-			time.Sleep(time.Second)
+			app.Dispatcher.StartWorking()
 
 			resultingPayload := map[string]interface{}{
 				"success":  true,
@@ -136,8 +139,6 @@ var _ = Describe("API Application", func() {
 			Eventually(func() int {
 				return len(*responses)
 			}).Should(Equal(2))
-			app.Errors.Tick()
-			Expect(app.Errors.Rate()).To(Equal(0.0))
 		})
 
 		It("should encode hook parameters", func() {
@@ -153,7 +154,7 @@ var _ = Describe("API Application", func() {
 			)
 
 			app := GetDefaultTestApp()
-			time.Sleep(time.Second)
+			app.Dispatcher.StartWorking()
 
 			resultingPayload := map[string]interface{}{
 				"url":      "http://some-url.com",
@@ -188,7 +189,7 @@ var _ = Describe("API Application", func() {
 			responses := startRouteHandler([]string{fmt.Sprintf("/created/%s", hooks[0].GameID)}, 52525)
 
 			app := GetDefaultTestApp()
-			time.Sleep(time.Second)
+			app.Dispatcher.StartWorking()
 
 			resultingPayload := map[string]interface{}{
 				"success":  true,
@@ -212,7 +213,7 @@ var _ = Describe("API Application", func() {
 			responses := startRouteHandler([]string{fmt.Sprintf("/1/créated/%s", hooks[0].GameID)}, 52525)
 
 			app := GetDefaultTestApp()
-			time.Sleep(time.Second)
+			app.Dispatcher.StartWorking()
 
 			resultingPayload := map[string]interface{}{
 				"success":        true,
@@ -239,7 +240,7 @@ var _ = Describe("API Application", func() {
 			responses := startRouteHandler([]string{fmt.Sprintf("/invalid-webhook-request/%s", hooks[0].GameID)}, 52525)
 
 			app := GetDefaultTestApp()
-			time.Sleep(time.Second)
+			app.Dispatcher.StartWorking()
 
 			resultingPayload := map[string]interface{}{
 				"success": true,

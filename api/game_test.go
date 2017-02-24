@@ -12,12 +12,12 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
-	"time"
 
 	"github.com/Pallinder/go-randomdata"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/satori/go.uuid"
+	"github.com/topfreegames/khan/api"
 	"github.com/topfreegames/khan/models"
 )
 
@@ -48,17 +48,19 @@ func getGamePayload(publicID, name string) map[string]interface{} {
 
 var _ = Describe("Game API Handler", func() {
 	var testDb models.DB
+	var a *api.App
 
 	BeforeEach(func() {
 		var err error
 		testDb, err = GetTestDB()
 		Expect(err).NotTo(HaveOccurred())
+
+		a = GetDefaultTestApp()
+		a.Dispatcher.StartWorking()
 	})
 
 	Describe("Create Game Handler", func() {
 		It("Should create game", func() {
-			a := GetDefaultTestApp()
-
 			payload := getGamePayload("", "")
 			status, body := PostJSON(a, "/games", payload)
 
@@ -95,8 +97,6 @@ var _ = Describe("Game API Handler", func() {
 		})
 
 		It("Should create game with custom optional params", func() {
-			a := GetDefaultTestApp()
-
 			payload := getGamePayload("", "")
 			payload["maxPendingInvites"] = 27
 			payload["cooldownBeforeApply"] = 2874
@@ -121,7 +121,6 @@ var _ = Describe("Game API Handler", func() {
 		})
 
 		It("Should not create game if missing parameters", func() {
-			a := GetDefaultTestApp()
 			payload := getGamePayload("", "")
 			delete(payload, "maxMembers")
 			status, body := PostJSON(a, "/games", payload)
@@ -134,7 +133,6 @@ var _ = Describe("Game API Handler", func() {
 		})
 
 		It("Should not create game if bad payload", func() {
-			a := GetDefaultTestApp()
 			payload := getGamePayload("", "")
 			payload["minLevelToCreateInvitation"] = 0
 			status, body := PostJSON(a, "/games", payload)
@@ -147,7 +145,6 @@ var _ = Describe("Game API Handler", func() {
 		})
 
 		It("Should not create game if invalid payload", func() {
-			a := GetDefaultTestApp()
 			status, body := Post(a, "/games", "invalid")
 
 			Expect(status).To(Equal(http.StatusBadRequest))
@@ -158,7 +155,6 @@ var _ = Describe("Game API Handler", func() {
 		})
 
 		It("Should not create game if invalid data", func() {
-			a := GetDefaultTestApp()
 			payload := getGamePayload("game-id-is-too-large-for-this-field-should-be-less-than-36-chars", "")
 			status, body := PostJSON(a, "/games", payload)
 
@@ -172,7 +168,6 @@ var _ = Describe("Game API Handler", func() {
 
 	Describe("Update Game Handler", func() {
 		It("Should update game", func() {
-			a := GetDefaultTestApp()
 			game := models.GameFactory.MustCreate().(*models.Game)
 			err := a.Db.Insert(game)
 			Expect(err).NotTo(HaveOccurred())
@@ -212,8 +207,6 @@ var _ = Describe("Game API Handler", func() {
 		})
 
 		It("Should insert if game does not exist", func() {
-			a := GetDefaultTestApp()
-
 			gameID := uuid.NewV4().String()
 			payload := getGamePayload(gameID, gameID)
 
@@ -233,7 +226,6 @@ var _ = Describe("Game API Handler", func() {
 		})
 
 		It("Should not update game if missing parameters", func() {
-			a := GetDefaultTestApp()
 			game := models.GameFactory.MustCreate().(*models.Game)
 			err := a.Db.Insert(game)
 			Expect(err).NotTo(HaveOccurred())
@@ -255,7 +247,6 @@ var _ = Describe("Game API Handler", func() {
 		})
 
 		It("Should not update game if bad payload", func() {
-			a := GetDefaultTestApp()
 			game := models.GameFactory.MustCreate().(*models.Game)
 			err := a.Db.Insert(game)
 			Expect(err).NotTo(HaveOccurred())
@@ -274,7 +265,6 @@ var _ = Describe("Game API Handler", func() {
 		})
 
 		It("Should not update game if invalid payload", func() {
-			a := GetDefaultTestApp()
 			status, body := Put(a, "/games/game-id", "invalid")
 
 			Expect(status).To(Equal(http.StatusBadRequest))
@@ -285,8 +275,6 @@ var _ = Describe("Game API Handler", func() {
 		})
 
 		It("Should not update game if invalid data", func() {
-			a := GetDefaultTestApp()
-
 			game := models.GameFactory.MustCreate().(*models.Game)
 			err := a.Db.Insert(game)
 			Expect(err).NotTo(HaveOccurred())
@@ -313,23 +301,20 @@ var _ = Describe("Game API Handler", func() {
 				Expect(err).NotTo(HaveOccurred())
 				responses := startRouteHandler([]string{"/update"}, 52525)
 
-				app := GetDefaultTestApp()
-				time.Sleep(time.Second)
-
 				gameID := hooks[0].GameID
 
 				payload := getGamePayload(gameID, uuid.NewV4().String())
 
 				route := fmt.Sprintf("/games/%s", gameID)
-				status, body := PutJSON(app, route, payload)
+				status, body := PutJSON(a, route, payload)
 				Expect(status).To(Equal(http.StatusOK))
 				var result map[string]interface{}
 				json.Unmarshal([]byte(body), &result)
 				Expect(result["success"]).To(BeTrue())
 
-				app.Dispatcher.Wait()
-
-				Expect(len(*responses)).To(Equal(1))
+				Eventually(func() int {
+					return len(*responses)
+				}).Should(Equal(1))
 			})
 		})
 	})

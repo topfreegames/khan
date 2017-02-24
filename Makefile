@@ -80,6 +80,10 @@ run:
 	@echo "Khan running at http://localhost:8888/"
 	@go run main.go start -q -c ./config/local.yaml
 
+worker:
+	@echo "Khan Worker running at http://localhost:9999/"
+	@go run main.go worker -d -c ./config/local.yaml
+
 run-fast:
 	@go run main.go start -q --fast -c ./config/local.yaml
 
@@ -105,6 +109,19 @@ run-docker:
 		-e "AUTH_USERNAME=auth-username" \
 		-e "AUTH_PASSWORD=auth-password" \
 		-p 8080:80 \
+		khan
+
+run-worker-docker:
+	@docker run -i -t --rm \
+		-e "KHAN_POSTGRES_HOST=${MYIP}" \
+		-e "KHAN_POSTGRES_PORT=5433" \
+		-e "KHAN_ELASTICSEARCH_HOST=${MYIP}" \
+		-e "KHAN_ELASTICSEARCH_PORT=9200" \
+		-e "KHAN_RUN_WORKER=true" \
+		-e "SERVER_NAME=localhost" \
+		-e "AUTH_USERNAME=auth-username" \
+		-e "AUTH_PASSWORD=auth-password" \
+		-p 9999:80 \
 		khan
 
 run-prune-docker:

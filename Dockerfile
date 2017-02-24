@@ -26,9 +26,11 @@ ENV KHAN_ELASTICSEARCH_HOST 0.0.0.0
 ENV KHAN_ELASTICSEARCH_PORT 9200
 ENV KHAN_ELASTICSEARCH_INDEX khan
 ENV KHAN_ELASTICSEARCH_SNIFF false
-ENV KHAN_WEBHOOKS_WORKERS 50
-ENV KHAN_WEBHOOKS_RUNSTATS false
-ENV KHAN_WEBHOOKS_STATSPORT 9999
+
+ENV KHAN_WEBHOOKS_WORKERS 5
+ENV KHAN_WEBHOOKS_RUNSTATS true
+ENV KHAN_WEBHOOKS_STATSPORT 80
+
 ENV KHAN_REDIS_HOST 0.0.0.0
 ENV KHAN_REDIS_PORT 6379
 ENV KHAN_REDIS_DATABASE 0
@@ -39,4 +41,6 @@ ENV KHAN_SENTRY_URL ""
 ENV KHAN_BASICAUTH_USERNAME ""
 ENV KHAN_BASICAUTH_PASSWORD ""
 
-CMD /go/bin/khan start --bind 0.0.0.0 --port 80 --fast --config /go/src/github.com/topfreegames/khan/config/default.yaml
+ENV KHAN_RUN_WORKER ""
+
+CMD /bin/bash -c 'echo "KHAN_RUN_WORKER=$KHAN_RUN_WORKER"; if [ "$KHAN_RUN_WORKER" != "true" ]; then /go/bin/khan start --bind 0.0.0.0 --port 80 --fast --config /go/src/github.com/topfreegames/khan/config/default.yaml; else /go/bin/khan worker --config /go/src/github.com/topfreegames/khan/config/default.yaml; fi'

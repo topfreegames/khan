@@ -18,21 +18,25 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/satori/go.uuid"
+	"github.com/topfreegames/khan/api"
 	"github.com/topfreegames/khan/models"
 )
 
 var _ = Describe("Player API Handler", func() {
 	var testDb models.DB
+	var a *api.App
 
 	BeforeEach(func() {
 		var err error
 		testDb, err = GetTestDB()
 		Expect(err).NotTo(HaveOccurred())
+
+		a = GetDefaultTestApp()
+		a.Dispatcher.StartWorking()
 	})
 
 	Describe("Create Player Handler", func() {
 		It("Should create player", func() {
-			a := GetDefaultTestApp()
 			game := models.GameFactory.MustCreate().(*models.Game)
 			err := a.Db.Insert(game)
 			Expect(err).NotTo(HaveOccurred())
@@ -61,7 +65,6 @@ var _ = Describe("Player API Handler", func() {
 		})
 
 		It("Should not create player if missing parameters", func() {
-			a := GetDefaultTestApp()
 			route := GetGameRoute("game-id", "/players")
 			status, body := PostJSON(a, route, map[string]interface{}{})
 
@@ -73,7 +76,6 @@ var _ = Describe("Player API Handler", func() {
 		})
 
 		It("Should not create player if invalid payload", func() {
-			a := GetDefaultTestApp()
 			route := GetGameRoute("game-id", "/players")
 			status, body := Post(a, route, "invalid")
 
@@ -85,7 +87,6 @@ var _ = Describe("Player API Handler", func() {
 		})
 
 		It("Should not create player if invalid data", func() {
-			a := GetDefaultTestApp()
 			game := models.GameFactory.MustCreate().(*models.Game)
 			err := a.Db.Insert(game)
 			Expect(err).NotTo(HaveOccurred())
@@ -107,7 +108,6 @@ var _ = Describe("Player API Handler", func() {
 
 	Describe("Update Player Handler", func() {
 		It("Should update player", func() {
-			a := GetDefaultTestApp()
 			_, player, err := models.CreatePlayerFactory(a.Db, "")
 			Expect(err).NotTo(HaveOccurred())
 
@@ -133,7 +133,6 @@ var _ = Describe("Player API Handler", func() {
 		})
 
 		It("Should not update player if missing parameters", func() {
-			a := GetDefaultTestApp()
 			route := GetGameRoute("game-id", "/players/player-id")
 			status, body := PutJSON(a, route, map[string]interface{}{})
 
@@ -145,7 +144,6 @@ var _ = Describe("Player API Handler", func() {
 		})
 
 		It("Should not update player if invalid payload", func() {
-			a := GetDefaultTestApp()
 			route := GetGameRoute("game-id", "/players/fake")
 			status, body := Put(a, route, "invalid")
 
@@ -157,7 +155,6 @@ var _ = Describe("Player API Handler", func() {
 		})
 
 		It("Should not update player if invalid data", func() {
-			a := GetDefaultTestApp()
 			_, player, err := models.CreatePlayerFactory(a.Db, "")
 			Expect(err).NotTo(HaveOccurred())
 
@@ -179,7 +176,6 @@ var _ = Describe("Player API Handler", func() {
 
 	Describe("Retrieve Player", func() {
 		It("Should retrieve player", func() {
-			a := GetDefaultTestApp()
 			gameID := uuid.NewV4().String()
 			player, err := models.GetTestPlayerWithMemberships(testDb, gameID, 5, 2, 3, 8)
 			Expect(err).NotTo(HaveOccurred())
@@ -217,7 +213,6 @@ var _ = Describe("Player API Handler", func() {
 			Expect(len(pendingInvites)).To(Equal(5))
 		})
 		It("Should return 404 for invalid player", func() {
-			a := GetDefaultTestApp()
 			route := GetGameRoute("some-game", "/players/invalid-player")
 			status, body := Get(a, route)
 
@@ -239,16 +234,13 @@ var _ = Describe("Player API Handler", func() {
 			Expect(err).NotTo(HaveOccurred())
 			responses := startRouteHandler([]string{"/playercreated"}, 52525)
 
-			app := GetDefaultTestApp()
-			time.Sleep(time.Second)
-
 			gameID := hooks[0].GameID
 			payload := map[string]interface{}{
 				"publicID": randomdata.FullName(randomdata.RandomGender),
 				"name":     randomdata.FullName(randomdata.RandomGender),
 				"metadata": map[string]interface{}{"x": "a"},
 			}
-			status, body := PostJSON(app, GetGameRoute(gameID, "/players"), payload)
+			status, body := PostJSON(a, GetGameRoute(gameID, "/players"), payload)
 
 			Expect(status).To(Equal(http.StatusOK))
 			var result map[string]interface{}
@@ -256,9 +248,9 @@ var _ = Describe("Player API Handler", func() {
 			Expect(result["success"]).To(BeTrue())
 			Expect(result["publicID"]).To(Equal(payload["publicID"].(string)))
 
-			app.Dispatcher.Wait()
-
-			Expect(len(*responses)).To(Equal(1))
+			Eventually(func() int {
+				return len(*responses)
+			}).Should(Equal(1))
 
 			player := (*responses)[0]["payload"].(map[string]interface{})
 			Expect(player["gameID"]).To(Equal(gameID))
@@ -286,24 +278,22 @@ var _ = Describe("Player API Handler", func() {
 					err = testDb.Insert(player)
 					Expect(err).NotTo(HaveOccurred())
 
-					app := GetDefaultTestApp()
-					time.Sleep(time.Second)
-
 					gameID := hooks[0].GameID
 					payload := map[string]interface{}{
 						"publicID": player.PublicID,
 						"name":     player.Name,
 						"metadata": map[string]interface{}{"x": "1"},
 					}
-					status, body := PutJSON(app, GetGameRoute(gameID, fmt.Sprintf("/players/%s", player.PublicID)), payload)
+					status, body := PutJSON(a, GetGameRoute(gameID, fmt.Sprintf("/players/%s", player.PublicID)), payload)
 
 					Expect(status).To(Equal(http.StatusOK))
 					var result map[string]interface{}
 					json.Unmarshal([]byte(body), &result)
 					Expect(result["success"]).To(BeTrue())
 
-					app.Dispatcher.Wait()
-					Expect(len(*responses)).To(Equal(1))
+					Eventually(func() int {
+						return len(*responses)
+					}).Should(Equal(1))
 
 					playerPayload := (*responses)[0]["payload"].(map[string]interface{})
 					Expect(playerPayload["gameID"]).To(Equal(gameID))
@@ -344,9 +334,6 @@ var _ = Describe("Player API Handler", func() {
 					err = testDb.Insert(player)
 					Expect(err).NotTo(HaveOccurred())
 
-					app := GetDefaultTestApp()
-					time.Sleep(time.Second)
-
 					gameID := hooks[0].GameID
 					payload := map[string]interface{}{
 						"publicID": player.PublicID,
@@ -355,15 +342,16 @@ var _ = Describe("Player API Handler", func() {
 							"new": "metadata",
 						},
 					}
-					status, body := PutJSON(app, GetGameRoute(gameID, fmt.Sprintf("/players/%s", player.PublicID)), payload)
+					status, body := PutJSON(a, GetGameRoute(gameID, fmt.Sprintf("/players/%s", player.PublicID)), payload)
 
 					Expect(status).To(Equal(http.StatusOK))
 					var result map[string]interface{}
 					json.Unmarshal([]byte(body), &result)
 					Expect(result["success"]).To(BeTrue())
 
-					app.Dispatcher.Wait()
-					Expect(len(*responses)).To(Equal(1))
+					Eventually(func() int {
+						return len(*responses)
+					}).Should(Equal(1))
 
 					playerPayload := (*responses)[0]["payload"].(map[string]interface{})
 					Expect(playerPayload["gameID"]).To(Equal(gameID))
@@ -401,9 +389,6 @@ var _ = Describe("Player API Handler", func() {
 					err = testDb.Insert(player)
 					Expect(err).NotTo(HaveOccurred())
 
-					app := GetDefaultTestApp()
-					time.Sleep(time.Second)
-
 					gameID := hooks[0].GameID
 					payload := map[string]interface{}{
 						"publicID": player.PublicID,
@@ -412,15 +397,16 @@ var _ = Describe("Player API Handler", func() {
 							"new": "metadata",
 						},
 					}
-					status, body := PutJSON(app, GetGameRoute(gameID, fmt.Sprintf("/players/%s", player.PublicID)), payload)
+					status, body := PutJSON(a, GetGameRoute(gameID, fmt.Sprintf("/players/%s", player.PublicID)), payload)
 
 					Expect(status).To(Equal(http.StatusOK))
 					var result map[string]interface{}
 					json.Unmarshal([]byte(body), &result)
 					Expect(result["success"]).To(BeTrue())
 
-					app.Dispatcher.Wait()
-					Expect(len(*responses)).To(Equal(1))
+					Eventually(func() int {
+						return len(*responses)
+					}).Should(Equal(1))
 
 					playerPayload := (*responses)[0]["payload"].(map[string]interface{})
 					Expect(playerPayload["gameID"]).To(Equal(gameID))
@@ -460,9 +446,6 @@ var _ = Describe("Player API Handler", func() {
 					err = testDb.Insert(player)
 					Expect(err).NotTo(HaveOccurred())
 
-					app := GetDefaultTestApp()
-					time.Sleep(time.Second)
-
 					gameID := hooks[0].GameID
 					payload := map[string]interface{}{
 						"publicID": player.PublicID,
@@ -471,15 +454,16 @@ var _ = Describe("Player API Handler", func() {
 							"else": "metadata",
 						},
 					}
-					status, body := PutJSON(app, GetGameRoute(gameID, fmt.Sprintf("/players/%s", player.PublicID)), payload)
+					status, body := PutJSON(a, GetGameRoute(gameID, fmt.Sprintf("/players/%s", player.PublicID)), payload)
 
 					Expect(status).To(Equal(http.StatusOK))
 					var result map[string]interface{}
 					json.Unmarshal([]byte(body), &result)
 					Expect(result["success"]).To(BeTrue())
 
-					app.Dispatcher.Wait()
-					Expect(len(*responses)).To(Equal(0))
+					Consistently(func() int {
+						return len(*responses)
+					}, 50*time.Millisecond, time.Millisecond).Should(Equal(0))
 				})
 
 				It("Should call update player hook if whitelisted and player does not exist", func() {
@@ -498,9 +482,6 @@ var _ = Describe("Player API Handler", func() {
 					Expect(err).NotTo(HaveOccurred())
 					Expect(count).To(BeEquivalentTo(1))
 
-					app := GetDefaultTestApp()
-					time.Sleep(time.Second)
-
 					gameID := hooks[0].GameID
 					payload := map[string]interface{}{
 						"publicID": uuid.NewV4().String(),
@@ -509,15 +490,16 @@ var _ = Describe("Player API Handler", func() {
 							"new": "metadata",
 						},
 					}
-					status, body := PutJSON(app, GetGameRoute(gameID, fmt.Sprintf("/players/%s", payload["publicID"])), payload)
+					status, body := PutJSON(a, GetGameRoute(gameID, fmt.Sprintf("/players/%s", payload["publicID"])), payload)
 
 					Expect(status).To(Equal(http.StatusOK))
 					var result map[string]interface{}
 					json.Unmarshal([]byte(body), &result)
 					Expect(result["success"]).To(BeTrue())
 
-					app.Dispatcher.Wait()
-					Expect(len(*responses)).To(Equal(1))
+					Eventually(func() int {
+						return len(*responses)
+					}).Should(Equal(1))
 				})
 			})
 		})

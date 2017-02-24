@@ -11,21 +11,25 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"time"
 
 	"github.com/Pallinder/go-randomdata"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/topfreegames/khan/api"
 	"github.com/topfreegames/khan/models"
 )
 
 var _ = Describe("Membership API Handler", func() {
 	var testDb models.DB
+	var a *api.App
 
 	BeforeEach(func() {
 		var err error
 		testDb, err = GetTestDB()
 		Expect(err).NotTo(HaveOccurred())
+
+		a = GetDefaultTestApp()
+		a.Dispatcher.StartWorking()
 	})
 
 	Describe("Apply For Membership Handler", func() {
@@ -51,7 +55,6 @@ var _ = Describe("Membership API Handler", func() {
 				"level":          level,
 				"playerPublicID": player.PublicID,
 			}
-			a := GetDefaultTestApp()
 			status, body := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "application"), payload)
 
 			Expect(status).To(Equal(http.StatusOK))
@@ -92,7 +95,6 @@ var _ = Describe("Membership API Handler", func() {
 				"playerPublicID": player.PublicID,
 				"message":        "Please accept me, I am nice",
 			}
-			a := GetDefaultTestApp()
 			status, body := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "application"), payload)
 
 			Expect(status).To(Equal(http.StatusOK))
@@ -118,8 +120,6 @@ var _ = Describe("Membership API Handler", func() {
 			clan.AllowApplication = true
 			_, err = testDb.Update(clan)
 			Expect(err).NotTo(HaveOccurred())
-
-			a := GetDefaultTestApp()
 
 			gameID := clan.GameID
 			clanPublicID := clan.PublicID
@@ -170,8 +170,6 @@ var _ = Describe("Membership API Handler", func() {
 			gameID := clan.GameID
 			clanPublicID := clan.PublicID
 
-			a := GetDefaultTestApp()
-
 			payload := map[string]interface{}{
 				"playerPublicID":    players[0].PublicID,
 				"requestorPublicID": owner.PublicID,
@@ -189,8 +187,6 @@ var _ = Describe("Membership API Handler", func() {
 		})
 
 		It("Should not create membership application if missing parameters", func() {
-			a := GetDefaultTestApp()
-
 			status, body := PostJSON(a, CreateMembershipRoute("gameID", "clanPublicID", "application"), map[string]interface{}{})
 
 			Expect(status).To(Equal(http.StatusBadRequest))
@@ -203,8 +199,6 @@ var _ = Describe("Membership API Handler", func() {
 		It("Should not create membership application if invalid payload", func() {
 			gameID := "gameID"
 			clanPublicID := randomdata.FullName(randomdata.RandomGender)
-
-			a := GetDefaultTestApp()
 
 			status, body := Post(a, CreateMembershipRoute(gameID, clanPublicID, "application"), "invalid")
 
@@ -228,8 +222,6 @@ var _ = Describe("Membership API Handler", func() {
 				"level":          level,
 				"playerPublicID": playerPublicID,
 			}
-
-			a := GetDefaultTestApp()
 
 			status, body := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "application"), payload)
 
@@ -257,8 +249,6 @@ var _ = Describe("Membership API Handler", func() {
 				"level":          1,
 				"playerPublicID": player.PublicID,
 			}
-
-			a := GetDefaultTestApp()
 
 			status, body := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "application"), payload)
 
@@ -290,7 +280,6 @@ var _ = Describe("Membership API Handler", func() {
 				"playerPublicID":    player.PublicID,
 				"requestorPublicID": owner.PublicID,
 			}
-			a := GetDefaultTestApp()
 			status, body := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "invitation"), payload)
 
 			Expect(status).To(Equal(http.StatusOK))
@@ -328,7 +317,6 @@ var _ = Describe("Membership API Handler", func() {
 				"requestorPublicID": owner.PublicID,
 				"message":           "Please accept me, I am nice",
 			}
-			a := GetDefaultTestApp()
 			status, body := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "invitation"), payload)
 
 			Expect(status).To(Equal(http.StatusOK))
@@ -371,8 +359,6 @@ var _ = Describe("Membership API Handler", func() {
 				"playerPublicID":    player.PublicID,
 				"requestorPublicID": players[0].PublicID,
 			}
-			a := GetDefaultTestApp()
-
 			status, body := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "invitation"), payload)
 
 			Expect(status).To(Equal(http.StatusOK))
@@ -392,8 +378,6 @@ var _ = Describe("Membership API Handler", func() {
 		})
 
 		It("Should not create membership invitation if missing parameters", func() {
-			a := GetDefaultTestApp()
-
 			status, body := PostJSON(a, CreateMembershipRoute("gameID", "clanPublicID", "invitation"), map[string]interface{}{})
 
 			Expect(status).To(Equal(http.StatusBadRequest))
@@ -406,8 +390,6 @@ var _ = Describe("Membership API Handler", func() {
 		It("Should not create membership invitation if invalid payload", func() {
 			gameID := "gameID"
 			clanPublicID := randomdata.FullName(randomdata.RandomGender)
-
-			a := GetDefaultTestApp()
 
 			status, body := Post(a, CreateMembershipRoute(gameID, clanPublicID, "invitation"), "invalid")
 
@@ -432,8 +414,6 @@ var _ = Describe("Membership API Handler", func() {
 				"playerPublicID":    playerPublicID,
 				"requestorPublicID": owner.PublicID,
 			}
-
-			a := GetDefaultTestApp()
 
 			status, body := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "invitation"), payload)
 
@@ -463,8 +443,6 @@ var _ = Describe("Membership API Handler", func() {
 				"requestorPublicID": owner.PublicID,
 			}
 
-			a := GetDefaultTestApp()
-
 			status, body := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "invitation"), payload)
 
 			Expect(status).To(Equal(http.StatusBadRequest))
@@ -486,8 +464,6 @@ var _ = Describe("Membership API Handler", func() {
 			payload := map[string]interface{}{
 				"playerPublicID": players[0].PublicID,
 			}
-			a := GetDefaultTestApp()
-
 			status, body := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "invitation/approve"), payload)
 
 			Expect(status).To(Equal(http.StatusOK))
@@ -513,8 +489,6 @@ var _ = Describe("Membership API Handler", func() {
 			payload := map[string]interface{}{
 				"playerPublicID": players[0].PublicID,
 			}
-			a := GetDefaultTestApp()
-
 			status, body := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "invitation/deny"), payload)
 
 			Expect(status).To(Equal(http.StatusOK))
@@ -531,8 +505,6 @@ var _ = Describe("Membership API Handler", func() {
 		})
 
 		It("Should not approve membership invitation if missing parameters", func() {
-			a := GetDefaultTestApp()
-
 			status, body := PostJSON(a, CreateMembershipRoute("gameID", "clanPublicID", "invitation/approve"), map[string]interface{}{})
 
 			Expect(status).To(Equal(http.StatusBadRequest))
@@ -545,8 +517,6 @@ var _ = Describe("Membership API Handler", func() {
 		It("Should not approve membership invitation if invalid payload", func() {
 			gameID := "gameID"
 			clanPublicID := randomdata.FullName(randomdata.RandomGender)
-
-			a := GetDefaultTestApp()
 
 			status, body := Post(a, CreateMembershipRoute(gameID, clanPublicID, "invitation/approve"), "invalid")
 
@@ -568,8 +538,6 @@ var _ = Describe("Membership API Handler", func() {
 			payload := map[string]interface{}{
 				"playerPublicID": playerPublicID,
 			}
-
-			a := GetDefaultTestApp()
 
 			status, body := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "invitation/approve"), payload)
 
@@ -596,8 +564,6 @@ var _ = Describe("Membership API Handler", func() {
 				"playerPublicID":    players[0].PublicID,
 				"requestorPublicID": owner.PublicID,
 			}
-			a := GetDefaultTestApp()
-
 			status, body := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "application/approve"), payload)
 
 			Expect(status).To(Equal(http.StatusOK))
@@ -625,8 +591,6 @@ var _ = Describe("Membership API Handler", func() {
 				"playerPublicID":    players[0].PublicID,
 				"requestorPublicID": owner.PublicID,
 			}
-			a := GetDefaultTestApp()
-
 			status, body := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "application/deny"), payload)
 
 			Expect(status).To(Equal(http.StatusOK))
@@ -641,8 +605,6 @@ var _ = Describe("Membership API Handler", func() {
 		})
 
 		It("Should not approve membership application if missing parameters", func() {
-			a := GetDefaultTestApp()
-
 			status, body := PostJSON(a, CreateMembershipRoute("gameID", "clanPublicID", "application/approve"), map[string]interface{}{})
 
 			Expect(status).To(Equal(http.StatusBadRequest))
@@ -655,8 +617,6 @@ var _ = Describe("Membership API Handler", func() {
 		It("Should not approve membership application if invalid payload", func() {
 			gameID := "gameID"
 			clanPublicID := randomdata.FullName(randomdata.RandomGender)
-
-			a := GetDefaultTestApp()
 
 			status, body := Post(a, CreateMembershipRoute(gameID, clanPublicID, "application/approve"), "invalid")
 
@@ -680,8 +640,6 @@ var _ = Describe("Membership API Handler", func() {
 				"requestorPublicID": owner.PublicID,
 			}
 
-			a := GetDefaultTestApp()
-
 			status, body := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "application/approve"), payload)
 
 			Expect(status).To(Equal(http.StatusInternalServerError))
@@ -702,8 +660,6 @@ var _ = Describe("Membership API Handler", func() {
 
 			gameID := players[0].GameID
 			clanPublicID := clan.PublicID
-
-			a := GetDefaultTestApp()
 
 			payload := map[string]interface{}{
 				"playerPublicID":    players[0].PublicID,
@@ -733,8 +689,6 @@ var _ = Describe("Membership API Handler", func() {
 			gameID := players[0].GameID
 			clanPublicID := clan.PublicID
 
-			a := GetDefaultTestApp()
-
 			payload := map[string]interface{}{
 				"playerPublicID":    players[0].PublicID,
 				"requestorPublicID": owner.PublicID,
@@ -753,8 +707,6 @@ var _ = Describe("Membership API Handler", func() {
 		})
 
 		It("Should not promote member if missing parameters", func() {
-			a := GetDefaultTestApp()
-
 			status, body := PostJSON(a, CreateMembershipRoute("gameID", "clanPublicID", "promote"), map[string]interface{}{})
 
 			Expect(status).To(Equal(http.StatusBadRequest))
@@ -765,8 +717,6 @@ var _ = Describe("Membership API Handler", func() {
 		})
 
 		It("Should not promote member if invalid payload", func() {
-			a := GetDefaultTestApp()
-
 			gameID := "gameID"
 			clanPublicID := randomdata.FullName(randomdata.RandomGender)
 
@@ -786,8 +736,6 @@ var _ = Describe("Membership API Handler", func() {
 
 			gameID := owner.GameID
 			clanPublicID := clan.PublicID
-
-			a := GetDefaultTestApp()
 
 			payload := map[string]interface{}{
 				"playerPublicID":    playerPublicID,
@@ -812,8 +760,6 @@ var _ = Describe("Membership API Handler", func() {
 			gameID := clan.GameID
 			clanPublicID := clan.PublicID
 
-			a := GetDefaultTestApp()
-
 			payload := map[string]interface{}{
 				"playerPublicID":    players[0].PublicID,
 				"requestorPublicID": owner.PublicID,
@@ -831,8 +777,6 @@ var _ = Describe("Membership API Handler", func() {
 		})
 
 		It("Should not delete member if missing parameters", func() {
-			a := GetDefaultTestApp()
-
 			status, body := PostJSON(a, CreateMembershipRoute("gameID", "clanPublicID", "delete"), map[string]interface{}{})
 
 			Expect(status).To(Equal(http.StatusBadRequest))
@@ -843,8 +787,6 @@ var _ = Describe("Membership API Handler", func() {
 		})
 
 		It("Should not delete member if invalid payload", func() {
-			a := GetDefaultTestApp()
-
 			gameID := "gameID"
 			clanPublicID := randomdata.FullName(randomdata.RandomGender)
 
@@ -864,8 +806,6 @@ var _ = Describe("Membership API Handler", func() {
 
 			gameID := owner.GameID
 			clanPublicID := clan.PublicID
-
-			a := GetDefaultTestApp()
 
 			payload := map[string]interface{}{
 				"playerPublicID":    playerPublicID,
@@ -912,7 +852,6 @@ var _ = Describe("Membership API Handler", func() {
 				"playerPublicID": player.PublicID,
 				"message":        "Please accept me, I am nice",
 			}
-			a := GetDefaultTestApp()
 			status, body := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "application"), payload)
 
 			Expect(status).To(Equal(http.StatusOK))
@@ -920,9 +859,9 @@ var _ = Describe("Membership API Handler", func() {
 			json.Unmarshal([]byte(body), &result)
 			Expect(result["success"]).To(BeTrue())
 
-			a.Dispatcher.Wait()
-
-			Expect(len(*responses)).To(Equal(1))
+			Eventually(func() int {
+				return len(*responses)
+			}).Should(Equal(1))
 
 			response := (*responses)[0]["payload"].(map[string]interface{})
 			validateMembershipHookResponse(response, gameID, clan, player, player)
@@ -959,7 +898,6 @@ var _ = Describe("Membership API Handler", func() {
 				"requestorPublicID": owner.PublicID,
 				"message":           "Join my clan",
 			}
-			a := GetDefaultTestApp()
 			status, body := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "invitation"), payload)
 
 			Expect(status).To(Equal(http.StatusOK))
@@ -967,9 +905,9 @@ var _ = Describe("Membership API Handler", func() {
 			json.Unmarshal([]byte(body), &result)
 			Expect(result["success"]).To(BeTrue())
 
-			a.Dispatcher.Wait()
-
-			Expect(len(*responses)).To(Equal(1))
+			Eventually(func() int {
+				return len(*responses)
+			}).Should(Equal(1))
 
 			response := (*responses)[0]["payload"].(map[string]interface{})
 			validateMembershipHookResponse(response, gameID, clan, player, owner)
@@ -999,7 +937,6 @@ var _ = Describe("Membership API Handler", func() {
 				"playerPublicID":    players[0].PublicID,
 				"requestorPublicID": owner.PublicID,
 			}
-			a := GetDefaultTestApp()
 			status, body := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "application/approve"), payload)
 
 			Expect(status).To(Equal(http.StatusOK))
@@ -1007,9 +944,9 @@ var _ = Describe("Membership API Handler", func() {
 			json.Unmarshal([]byte(body), &result)
 			Expect(result["success"]).To(BeTrue())
 
-			a.Dispatcher.Wait()
-
-			Expect(len(*responses)).To(Equal(1))
+			Eventually(func() int {
+				return len(*responses)
+			}).Should(Equal(1))
 
 			response := (*responses)[0]["payload"].(map[string]interface{})
 			validateMembershipHookResponse(response, gameID, clan, players[0], owner)
@@ -1039,7 +976,6 @@ var _ = Describe("Membership API Handler", func() {
 				"playerPublicID":    players[0].PublicID,
 				"requestorPublicID": players[0].PublicID,
 			}
-			a := GetDefaultTestApp()
 			status, body := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "invitation/approve"), payload)
 
 			Expect(status).To(Equal(http.StatusOK))
@@ -1047,9 +983,9 @@ var _ = Describe("Membership API Handler", func() {
 			json.Unmarshal([]byte(body), &result)
 			Expect(result["success"]).To(BeTrue())
 
-			a.Dispatcher.Wait()
-
-			Expect(len(*responses)).To(Equal(1))
+			Eventually(func() int {
+				return len(*responses)
+			}).Should(Equal(1))
 
 			response := (*responses)[0]["payload"].(map[string]interface{})
 			validateMembershipHookResponse(response, gameID, clan, players[0], players[0])
@@ -1079,7 +1015,6 @@ var _ = Describe("Membership API Handler", func() {
 				"playerPublicID":    players[0].PublicID,
 				"requestorPublicID": owner.PublicID,
 			}
-			a := GetDefaultTestApp()
 			status, body := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "application/deny"), payload)
 
 			Expect(status).To(Equal(http.StatusOK))
@@ -1087,9 +1022,9 @@ var _ = Describe("Membership API Handler", func() {
 			json.Unmarshal([]byte(body), &result)
 			Expect(result["success"]).To(BeTrue())
 
-			a.Dispatcher.Wait()
-
-			Expect(len(*responses)).To(Equal(1))
+			Eventually(func() int {
+				return len(*responses)
+			}).Should(Equal(1))
 
 			response := (*responses)[0]["payload"].(map[string]interface{})
 			validateMembershipHookResponse(response, gameID, clan, players[0], owner)
@@ -1119,7 +1054,6 @@ var _ = Describe("Membership API Handler", func() {
 				"playerPublicID":    players[0].PublicID,
 				"requestorPublicID": players[0].PublicID,
 			}
-			a := GetDefaultTestApp()
 			status, body := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "invitation/deny"), payload)
 
 			Expect(status).To(Equal(http.StatusOK))
@@ -1127,10 +1061,9 @@ var _ = Describe("Membership API Handler", func() {
 			json.Unmarshal([]byte(body), &result)
 			Expect(result["success"]).To(BeTrue())
 
-			a.Dispatcher.Wait()
-			time.Sleep(time.Duration(50) * time.Millisecond)
-
-			Expect(len(*responses)).To(Equal(1))
+			Eventually(func() int {
+				return len(*responses)
+			}).Should(Equal(1))
 
 			response := (*responses)[0]["payload"].(map[string]interface{})
 			validateMembershipHookResponse(response, gameID, clan, players[0], players[0])
@@ -1158,7 +1091,6 @@ var _ = Describe("Membership API Handler", func() {
 				"playerPublicID":    players[0].PublicID,
 				"requestorPublicID": owner.PublicID,
 			}
-			a := GetDefaultTestApp()
 			status, body := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "promote"), payload)
 
 			Expect(status).To(Equal(http.StatusOK))
@@ -1166,9 +1098,9 @@ var _ = Describe("Membership API Handler", func() {
 			json.Unmarshal([]byte(body), &result)
 			Expect(result["success"]).To(BeTrue())
 
-			a.Dispatcher.Wait()
-
-			Expect(len(*responses)).To(Equal(1))
+			Eventually(func() int {
+				return len(*responses)
+			}).Should(Equal(1))
 
 			response := (*responses)[0]["payload"].(map[string]interface{})
 			validateMembershipHookResponse(response, gameID, clan, players[0], owner)
@@ -1199,7 +1131,6 @@ var _ = Describe("Membership API Handler", func() {
 				"playerPublicID":    players[0].PublicID,
 				"requestorPublicID": owner.PublicID,
 			}
-			a := GetDefaultTestApp()
 			status, body := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "demote"), payload)
 
 			Expect(status).To(Equal(http.StatusOK))
@@ -1207,9 +1138,9 @@ var _ = Describe("Membership API Handler", func() {
 			json.Unmarshal([]byte(body), &result)
 			Expect(result["success"]).To(BeTrue())
 
-			a.Dispatcher.Wait()
-
-			Expect(len(*responses)).To(Equal(1))
+			Eventually(func() int {
+				return len(*responses)
+			}).Should(Equal(1))
 
 			response := (*responses)[0]["payload"].(map[string]interface{})
 			validateMembershipHookResponse(response, gameID, clan, players[0], owner)
@@ -1236,7 +1167,6 @@ var _ = Describe("Membership API Handler", func() {
 				"playerPublicID":    players[0].PublicID,
 				"requestorPublicID": owner.PublicID,
 			}
-			a := GetDefaultTestApp()
 			status, body := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "delete"), payload)
 
 			Expect(status).To(Equal(http.StatusOK))
@@ -1244,9 +1174,9 @@ var _ = Describe("Membership API Handler", func() {
 			json.Unmarshal([]byte(body), &result)
 			Expect(result["success"]).To(BeTrue())
 
-			a.Dispatcher.Wait()
-
-			Expect(len(*responses)).To(Equal(1))
+			Eventually(func() int {
+				return len(*responses)
+			}).Should(Equal(1))
 
 			response := (*responses)[0]["payload"].(map[string]interface{})
 			validateMembershipHookResponse(response, gameID, clan, players[0], owner)
