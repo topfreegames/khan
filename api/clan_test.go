@@ -33,7 +33,7 @@ var _ = Describe("Clan API Handler", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		a = GetDefaultTestApp()
-		a.Dispatcher.StartWorking()
+		a.Dispatcher.NonblockingStart()
 	})
 
 	Describe("Create Clan Handler", func() {

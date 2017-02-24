@@ -79,7 +79,7 @@ var _ = Describe("API Application", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			app := GetDefaultTestApp()
-			app.Dispatcher.StartWorking()
+			app.Dispatcher.NonblockingStart()
 
 			appGame, err := app.GetGame(game.PublicID)
 			Expect(err).NotTo(HaveOccurred())
@@ -92,7 +92,7 @@ var _ = Describe("API Application", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			app := GetDefaultTestApp()
-			app.Dispatcher.StartWorking()
+			app.Dispatcher.NonblockingStart()
 
 			appGame, err := app.GetGame(game.PublicID)
 			Expect(err).NotTo(HaveOccurred())
@@ -108,7 +108,7 @@ var _ = Describe("API Application", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			app := GetDefaultTestApp()
-			app.Dispatcher.StartWorking()
+			app.Dispatcher.NonblockingStart()
 
 			hooks := app.GetHooks()
 			Expect(len(hooks[gameID])).To(Equal(2))
@@ -127,7 +127,7 @@ var _ = Describe("API Application", func() {
 			responses := startRouteHandler([]string{"/created", "/created2"}, 52525)
 
 			app := GetDefaultTestApp()
-			app.Dispatcher.StartWorking()
+			app.Dispatcher.NonblockingStart()
 
 			resultingPayload := map[string]interface{}{
 				"success":  true,
@@ -154,7 +154,7 @@ var _ = Describe("API Application", func() {
 			)
 
 			app := GetDefaultTestApp()
-			app.Dispatcher.StartWorking()
+			app.Dispatcher.NonblockingStart()
 
 			resultingPayload := map[string]interface{}{
 				"url":      "http://some-url.com",
@@ -189,7 +189,7 @@ var _ = Describe("API Application", func() {
 			responses := startRouteHandler([]string{fmt.Sprintf("/created/%s", hooks[0].GameID)}, 52525)
 
 			app := GetDefaultTestApp()
-			app.Dispatcher.StartWorking()
+			app.Dispatcher.NonblockingStart()
 
 			resultingPayload := map[string]interface{}{
 				"success":  true,
@@ -213,7 +213,7 @@ var _ = Describe("API Application", func() {
 			responses := startRouteHandler([]string{fmt.Sprintf("/1/créated/%s", hooks[0].GameID)}, 52525)
 
 			app := GetDefaultTestApp()
-			app.Dispatcher.StartWorking()
+			app.Dispatcher.NonblockingStart()
 
 			resultingPayload := map[string]interface{}{
 				"success":        true,
@@ -240,7 +240,7 @@ var _ = Describe("API Application", func() {
 			responses := startRouteHandler([]string{fmt.Sprintf("/invalid-webhook-request/%s", hooks[0].GameID)}, 52525)
 
 			app := GetDefaultTestApp()
-			app.Dispatcher.StartWorking()
+			app.Dispatcher.NonblockingStart()
 
 			resultingPayload := map[string]interface{}{
 				"success": true,

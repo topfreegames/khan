@@ -96,8 +96,8 @@ func (d *Dispatcher) Start() {
 	workers.Run()
 }
 
-//StartWorking non-blocking
-func (d *Dispatcher) StartWorking() {
+//NonblockingStart non-blocking
+func (d *Dispatcher) NonblockingStart() {
 	workers.Start()
 }
 

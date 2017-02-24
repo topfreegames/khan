@@ -32,7 +32,7 @@ var _ = Describe("Player API Handler", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		a = GetDefaultTestApp()
-		a.Dispatcher.StartWorking()
+		a.Dispatcher.NonblockingStart()
 	})
 
 	Describe("Create Player Handler", func() {
