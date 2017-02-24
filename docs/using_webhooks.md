@@ -5,6 +5,10 @@ You can use khan's web hooks to send detailed event information to other servers
 
 One possible use case would be to notify the chat channel for your game with information about people joining/leaving the clan or for new applications.
 
+## Webhook Workers
+
+Khan uses [GoWorkers](https://github.com/jrallison/go-workers) workers to send webhooks. This means that you need to run the `khan worker` command to start as many workers as you want.
+
 ## Webhook Specific Configuration
 
 Khan has some configuration entries specific to webhooks:
@@ -15,8 +19,8 @@ Khan has some configuration entries specific to webhooks:
 * `redis.pool` - Redis connection pool size used for [GoWorkers](https://github.com/jrallison/go-workers);
 * `redis.password` - Redis password used for [GoWorkers](https://github.com/jrallison/go-workers);
 * `webhooks.timeout` - Timeout for webhook HTTP connections;
-* `webhooks.workers` - Number of [GoWorkers](https://github.com/jrallison/go-workers) to start with each instance of Khan;
-* `webhooks.runStats` - Will the [GoWorkers](https://github.com/jrallison/go-workers) stats server run in each Khan instance?;
+* `webhooks.workers` - Number of [GoWorkers](https://github.com/jrallison/go-workers) to start with each instance of Khan worker;
+* `webhooks.runStats` - Will the [GoWorkers](https://github.com/jrallison/go-workers) stats server run in each Khan worker instance?;
 * `webhooks.statsPort` - Port that the stats server of [GoWorkers](https://github.com/jrallison/go-workers) will run in.
 
 ## Registering a Web Hook

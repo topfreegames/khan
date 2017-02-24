@@ -29,14 +29,26 @@ If you want to expose Khan outside your internal network it's advised to use Bas
 
 ```
     $ docker pull tfgco/khan
-    $ docker run -t --rm -e "KHAN_POSTGRES_HOST=<postgres host>" -e "KHAN_POSTGRES_PORT=<postgres port>" -p 8080:8080 tfgco/khan
+    $ docker run -t --rm -e "KHAN_POSTGRES_HOST=<postgres host>" -e "KHAN_POSTGRES_PORT=<postgres port>" -p 8080:80 tfgco/khan
 ```
+
+In order to run Khan's workers using docker you just need to send the `KHAN_RUN_WORKER` environment variable as `true`.
+
+### Example command for running workers with Docker
+
+```
+    $ docker pull tfgco/khan
+    $ docker run -t --rm -e "KHAN_POSTGRES_HOST=<postgres host>" -e "KHAN_POSTGRES_PORT=<postgres port>" -e "KHAN_RUN_WORKERS=true" -p 9999:80 tfgco/khan
+```
+
 
 ## Binaries
 
 Whenever we publish a new version of Khan, we'll always supply binaries for both Linux and Darwin, on i386 and x86_64 architectures. If you'd rather run your own servers instead of containers, just use the binaries that match your platform and architecture.
 
 The API server is the `khan` binary. It takes a configuration yaml file that specifies the connection to PostgreSQL and some additional parameters. You can learn more about it at [default.yaml](https://github.com/topfreegames/khan/blob/master/config/default.yaml).
+
+The workers can be started using the same `khan` binary. It takes a configuration yaml file that specifies the connection to PostgreSQL and some additional parameters. You can learn more about it at [default.yaml](https://github.com/topfreegames/khan/blob/master/config/default.yaml).
 
 ## Source
 

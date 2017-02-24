@@ -43,4 +43,4 @@ ENV KHAN_BASICAUTH_PASSWORD ""
 
 ENV KHAN_RUN_WORKER ""
 
-CMD /bin/bash -c 'echo "KHAN_RUN_WORKER=$KHAN_RUN_WORKER"; if [ "$KHAN_RUN_WORKER" != "true" ]; then /go/bin/khan start --bind 0.0.0.0 --port 80 --fast --config /go/src/github.com/topfreegames/khan/config/default.yaml; else /go/bin/khan worker --config /go/src/github.com/topfreegames/khan/config/default.yaml; fi'
+CMD /bin/bash -c 'if [ "$KHAN_RUN_WORKER" != "true" ]; then /go/bin/khan start --bind 0.0.0.0 --port 80 --fast --config /go/src/github.com/topfreegames/khan/config/default.yaml; else /go/bin/khan worker --config /go/src/github.com/topfreegames/khan/config/default.yaml; fi'
