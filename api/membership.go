@@ -746,7 +746,7 @@ func PromoteOrDemoteMembershipHandler(app *App, action string) func(c echo.Conte
 					})
 					return err
 				}
-				log.I(l, "Member promoted/demoted successful.")
+				log.D(l, "Member promoted/demoted successful.")
 				return nil
 			})
 
