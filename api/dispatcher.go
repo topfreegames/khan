@@ -162,10 +162,6 @@ func (d *Dispatcher) interpolateURL(sourceURL string, payload map[string]interfa
 
 // PerformDispatchHook dispatches web hooks for a specific game and event type
 func (d *Dispatcher) PerformDispatchHook(m *workers.Msg) {
-	l := d.app.Logger.With(
-		zap.String("source", "dispatcher"),
-		zap.String("operation", "PerformDispatchHook"),
-	)
 	app := d.app
 
 	item := m.Args()
@@ -174,6 +170,13 @@ func (d *Dispatcher) PerformDispatchHook(m *workers.Msg) {
 	gameID := data["gameID"].(string)
 	eventType, _ := data["eventType"].(json.Number).Int64()
 	payload := data["payload"].(map[string]interface{})
+
+	l := d.app.Logger.With(
+		zap.String("source", "dispatcher"),
+		zap.String("operation", "PerformDispatchHook"),
+		zap.String("gameID", gameID),
+		zap.Int64("eventType", eventType),
+	)
 
 	hooks := app.GetHooks()
 	if _, ok := hooks[gameID]; !ok {
