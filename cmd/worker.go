@@ -56,7 +56,7 @@ environment variables to override configuration keys.`,
 		log.D(cmdL, "Application created successfully.")
 
 		log.D(cmdL, "Starting dispatcher...")
-		app.StartDispatcher()
+		app.StartWorkers()
 	},
 }
 

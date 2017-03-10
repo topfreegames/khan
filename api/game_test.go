@@ -56,7 +56,7 @@ var _ = Describe("Game API Handler", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		a = GetDefaultTestApp()
-		a.Dispatcher.NonblockingStart()
+		a.NonblockingStartWorkers()
 	})
 
 	Describe("Create Game Handler", func() {

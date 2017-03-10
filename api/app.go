@@ -49,6 +49,7 @@ type App struct {
 	Db             models.DB
 	Config         *viper.Viper
 	Dispatcher     *Dispatcher
+	ESWorker       *models.ESWorker
 	Logger         zap.Logger
 	ESClient       *es.Client
 	ReadBufferSize int
@@ -84,6 +85,8 @@ func (app *App) Configure() {
 	app.configureApplication()
 	app.configureElasticsearch()
 	app.initDispatcher()
+	app.initESWorker()
+	app.configureGoWorkers()
 }
 
 func (app *App) configureSentry() {
@@ -420,7 +423,7 @@ func (app *App) configureGoWorkers() {
 	workers.Configure(opts)
 
 	workers.Process(queues.KhanQueue, app.Dispatcher.PerformDispatchHook, workerCount)
-	workers.Process(queues.KhanESQueue, models.PerformUpdateES, workerCount)
+	workers.Process(queues.KhanESQueue, app.ESWorker.PerformUpdateES, workerCount)
 	l.Info("Worker configured.")
 }
 
@@ -443,6 +446,18 @@ func (app *App) StartWorkers() {
 //NonblockingStartWorkers non-blocking
 func (app *App) NonblockingStartWorkers() {
 	workers.Start()
+}
+
+func (app *App) initESWorker() {
+	l := app.Logger.With(
+		zap.String("source", "app"),
+		zap.String("operation", "initESWorker"),
+	)
+
+	log.D(l, "Initializing es worker...")
+	esWorker := models.NewESWorker(app.Logger)
+	log.I(l, "ES Worker initialized successfully")
+	app.ESWorker = esWorker
 }
 
 func (app *App) initDispatcher() {

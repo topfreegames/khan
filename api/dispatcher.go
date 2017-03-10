@@ -17,7 +17,6 @@ import (
 
 	workers "github.com/jrallison/go-workers"
 	"github.com/satori/go.uuid"
-	"github.com/topfreegames/khan/es"
 	"github.com/topfreegames/khan/log"
 	"github.com/topfreegames/khan/queues"
 	"github.com/topfreegames/khan/util"
@@ -186,46 +185,6 @@ func (d *Dispatcher) PerformDispatchHook(m *workers.Msg) {
 				zap.String("body", string(resp.Body())),
 			)
 		})
-	}
-
-	return
-}
-
-// PerformUpdateES updates the clan into elasticsearc
-func (d *Dispatcher) PerformUpdateES(m *workers.Msg) {
-	item := m.Args()
-	data := item.MustMap()
-
-	index := data["index"].(string)
-	op := data["op"].(string)
-	clan := data["clan"].(string)
-	clanID := data["clanID"].(string)
-
-	l := d.app.Logger.With(
-		zap.String("index", index),
-		zap.String("operation", op),
-		zap.String("clan", clan),
-		zap.String("source", "PerformUpdateES"),
-	)
-
-	es := es.GetConfiguredClient()
-
-	if es != nil {
-		start := time.Now()
-		if op == "index" {
-			_, err := es.Client.Index().Index(index).Type("clan").Id(clanID).BodyString(clan).Do()
-			if err != nil {
-				l.Error("Failed to index clan into Elastic Search")
-				return
-			}
-			l.Info("Successfully indexed clan into Elastic Search.", zap.Duration("latency", time.Now().Sub(start)))
-		} else if op == "delete" {
-			_, err := es.Client.Delete().Index(index).Type("clan").Id(clanID).Do()
-			if err != nil {
-				l.Error("Failed to delete clan from Elastic Search.", zap.Error(err))
-			}
-			l.Info("Successfully deleted clan from Elastic Search.", zap.Duration("latency", time.Now().Sub(start)))
-		}
 	}
 
 	return

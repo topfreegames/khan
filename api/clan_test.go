@@ -36,7 +36,7 @@ var _ = Describe("Clan API Handler", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		a = GetDefaultTestApp()
-		a.Dispatcher.NonblockingStart()
+		a.NonblockingStartWorkers()
 	})
 
 	AfterEach(func() {

@@ -29,7 +29,7 @@ var _ = Describe("Membership API Handler", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		a = GetDefaultTestApp()
-		a.Dispatcher.NonblockingStart()
+		a.NonblockingStartWorkers()
 	})
 
 	Describe("Apply For Membership Handler", func() {
