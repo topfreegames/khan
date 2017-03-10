@@ -8,19 +8,8 @@
 package models_test
 
 import (
-	"github.com/topfreegames/khan/es"
 	"github.com/topfreegames/khan/models"
-
-	"github.com/uber-go/zap"
 )
-
-func GetTestES() *es.Client {
-	return es.GetTestClient("localhost", 9200, "", false, zap.New(zap.NewJSONEncoder(), zap.ErrorLevel), false)
-}
-
-func DestroyTestES() {
-	es.DestroyClient()
-}
 
 // GetTestDB returns a connection to the test database
 func GetTestDB() (models.DB, error) {

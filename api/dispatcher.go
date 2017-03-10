@@ -12,93 +12,29 @@ import (
 	"fmt"
 	"io"
 	"net/url"
-	"strconv"
 	"strings"
 	"time"
 
 	workers "github.com/jrallison/go-workers"
 	"github.com/satori/go.uuid"
+	"github.com/topfreegames/khan/es"
 	"github.com/topfreegames/khan/log"
+	"github.com/topfreegames/khan/queues"
+	"github.com/topfreegames/khan/util"
 	"github.com/uber-go/zap"
 	"github.com/valyala/fasthttp"
 	"github.com/valyala/fasttemplate"
 )
 
-const khanQueue = "khan_webhooks"
-
 //Dispatcher is responsible for sending web hooks to workers
 type Dispatcher struct {
-	app         *App
-	workerCount int
+	app *App
 }
 
 //NewDispatcher creates a new dispatcher available to our app
-func NewDispatcher(app *App, workerCount int) (*Dispatcher, error) {
-	d := &Dispatcher{app: app, workerCount: workerCount}
-	d.Configure()
+func NewDispatcher(app *App) (*Dispatcher, error) {
+	d := &Dispatcher{app: app}
 	return d, nil
-}
-
-//Configure dispatcher
-func (d *Dispatcher) Configure() {
-	redisHost := d.app.Config.GetString("redis.host")
-	redisPort := d.app.Config.GetInt("redis.port")
-	redisDatabase := d.app.Config.GetInt("redis.database")
-	redisPool := d.app.Config.GetInt("redis.pool")
-	if redisPool == 0 {
-		redisPool = 30
-	}
-
-	l := d.app.Logger.With(
-		zap.String("source", "dispatcher"),
-		zap.String("operation", "Configure"),
-		zap.Int("workerCount", d.workerCount),
-		zap.String("redisHost", redisHost),
-		zap.Int("redisPort", redisPort),
-		zap.Int("redisDatabase", redisDatabase),
-		zap.Int("redisPool", redisPool),
-	)
-
-	opts := map[string]string{
-		// location of redis instance
-		"server": fmt.Sprintf("%s:%d", redisHost, redisPort),
-		// instance of the database
-		"database": strconv.Itoa(redisDatabase),
-		// number of connections to keep open with redis
-		"pool": strconv.Itoa(redisPool),
-		// unique process id
-		"process": uuid.NewV4().String(),
-	}
-	redisPass := d.app.Config.GetString("redis.password")
-	if redisPass != "" {
-		opts["password"] = redisPass
-	}
-	l.Debug("Configuring worker...")
-	workers.Configure(opts)
-
-	workers.Process(khanQueue, d.PerformDispatchHook, d.workerCount)
-	l.Info("Worker configured.")
-}
-
-//Start "starts" the dispatcher
-func (d *Dispatcher) Start() {
-	l := d.app.Logger.With(
-		zap.String("source", "dispatcher"),
-		zap.String("operation", "Start"),
-	)
-
-	log.D(l, "Starting dispatcher...")
-	if d.app.Config.GetBool("webhooks.runStats") {
-		jobsStatsPort := d.app.Config.GetInt("webhooks.statsPort")
-		go workers.StatsServer(jobsStatsPort)
-	}
-
-	workers.Run()
-}
-
-//NonblockingStart non-blocking
-func (d *Dispatcher) NonblockingStart() {
-	workers.Start()
 }
 
 //DispatchHook dispatches an event hook for eventType to gameID with the specified payload
@@ -115,7 +51,7 @@ func (d *Dispatcher) DispatchHook(gameID string, eventType int, payload map[stri
 		)
 	})
 
-	workers.Enqueue(khanQueue, "Add", map[string]interface{}{
+	workers.Enqueue(queues.KhanQueue, "Add", map[string]interface{}{
 		"gameID":    gameID,
 		"eventType": eventType,
 		"payload":   payload,
@@ -196,7 +132,7 @@ func (d *Dispatcher) PerformDispatchHook(m *workers.Msg) {
 		})
 
 		client := fasthttp.Client{
-			Name: fmt.Sprintf("khan-%s", VERSION),
+			Name: fmt.Sprintf("khan-%s", util.VERSION),
 		}
 
 		url, err := d.interpolateURL(hook.URL, payload)
@@ -250,6 +186,46 @@ func (d *Dispatcher) PerformDispatchHook(m *workers.Msg) {
 				zap.String("body", string(resp.Body())),
 			)
 		})
+	}
+
+	return
+}
+
+// PerformUpdateES updates the clan into elasticsearc
+func (d *Dispatcher) PerformUpdateES(m *workers.Msg) {
+	item := m.Args()
+	data := item.MustMap()
+
+	index := data["index"].(string)
+	op := data["op"].(string)
+	clan := data["clan"].(string)
+	clanID := data["clanID"].(string)
+
+	l := d.app.Logger.With(
+		zap.String("index", index),
+		zap.String("operation", op),
+		zap.String("clan", clan),
+		zap.String("source", "PerformUpdateES"),
+	)
+
+	es := es.GetConfiguredClient()
+
+	if es != nil {
+		start := time.Now()
+		if op == "index" {
+			_, err := es.Client.Index().Index(index).Type("clan").Id(clanID).BodyString(clan).Do()
+			if err != nil {
+				l.Error("Failed to index clan into Elastic Search")
+				return
+			}
+			l.Info("Successfully indexed clan into Elastic Search.", zap.Duration("latency", time.Now().Sub(start)))
+		} else if op == "delete" {
+			_, err := es.Client.Delete().Index(index).Type("clan").Id(clanID).Do()
+			if err != nil {
+				l.Error("Failed to delete clan from Elastic Search.", zap.Error(err))
+			}
+			l.Info("Successfully deleted clan from Elastic Search.", zap.Duration("latency", time.Now().Sub(start)))
+		}
 	}
 
 	return

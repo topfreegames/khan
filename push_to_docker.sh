@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VERSION=$(cat ./api/version.go | grep "var VERSION" | awk ' { print $4 } ' | sed s/\"//g)
+VERSION=$(cat ./util/version.go | grep "var VERSION" | awk ' { print $4 } ' | sed s/\"//g)
 
 cp ./config/default.yaml ./dev
 

@@ -18,6 +18,7 @@ import (
 	"github.com/getsentry/raven-go"
 	"github.com/labstack/echo"
 	"github.com/topfreegames/khan/log"
+	"github.com/topfreegames/khan/util"
 	"github.com/uber-go/zap"
 )
 
@@ -53,7 +54,7 @@ func (v *BodyExtractionMiddleware) Serve(next echo.HandlerFunc) echo.HandlerFunc
 //NewVersionMiddleware with API version
 func NewVersionMiddleware() *VersionMiddleware {
 	return &VersionMiddleware{
-		Version: VERSION,
+		Version: util.VERSION,
 	}
 }
 

@@ -14,9 +14,9 @@ import (
 	raven "github.com/getsentry/raven-go"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/topfreegames/khan/api"
 	"github.com/topfreegames/khan/log"
 	"github.com/topfreegames/khan/models"
+	"github.com/topfreegames/khan/util"
 	"github.com/uber-go/zap"
 )
 
@@ -70,7 +70,7 @@ func executePruning(debug, quiet bool) (*models.PruneStats, error) {
 	sentryURL := viper.GetString("sentry.url")
 	log.I(cmdL, fmt.Sprintf("Configuring sentry with URL %s", sentryURL))
 	raven.SetDSN(sentryURL)
-	raven.SetRelease(api.VERSION)
+	raven.SetRelease(util.VERSION)
 
 	host := viper.GetString("postgres.host")
 	user := viper.GetString("postgres.user")

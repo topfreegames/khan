@@ -10,12 +10,14 @@ package api
 import (
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
 	"gopkg.in/gorp.v1"
 
 	"github.com/getsentry/raven-go"
+	"github.com/jrallison/go-workers"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/engine"
 	"github.com/labstack/echo/engine/fasthttp"
@@ -23,10 +25,13 @@ import (
 	"github.com/labstack/echo/middleware"
 	newrelic "github.com/newrelic/go-agent"
 	"github.com/rcrowley/go-metrics"
+	"github.com/satori/go.uuid"
 	"github.com/spf13/viper"
 	"github.com/topfreegames/khan/es"
 	"github.com/topfreegames/khan/log"
 	"github.com/topfreegames/khan/models"
+	"github.com/topfreegames/khan/queues"
+	"github.com/topfreegames/khan/util"
 	"github.com/uber-go/zap"
 )
 
@@ -89,7 +94,7 @@ func (app *App) configureSentry() {
 	sentryURL := app.Config.GetString("sentry.url")
 	log.I(l, fmt.Sprintf("Configuring sentry with URL %s", sentryURL))
 	raven.SetDSN(sentryURL)
-	raven.SetRelease(VERSION)
+	raven.SetRelease(util.VERSION)
 }
 
 func (app *App) configureNewRelic() error {
@@ -373,20 +378,82 @@ func (app *App) GetGame(gameID string) (*models.Game, error) {
 	return game, nil
 }
 
-func (app *App) initDispatcher() {
+func (app *App) configureGoWorkers() {
+	redisHost := app.Config.GetString("redis.host")
+	redisPort := app.Config.GetInt("redis.port")
+	redisDatabase := app.Config.GetInt("redis.database")
+	redisPool := app.Config.GetInt("redis.pool")
 	workerCount := app.Config.GetInt("webhooks.workers")
+	if redisPool == 0 {
+		redisPool = 30
+	}
+
 	if workerCount == 0 {
 		workerCount = 5
 	}
+
+	l := app.Logger.With(
+		zap.String("source", "dispatcher"),
+		zap.String("operation", "Configure"),
+		zap.Int("workerCount", workerCount),
+		zap.String("redisHost", redisHost),
+		zap.Int("redisPort", redisPort),
+		zap.Int("redisDatabase", redisDatabase),
+		zap.Int("redisPool", redisPool),
+	)
+
+	opts := map[string]string{
+		// location of redis instance
+		"server": fmt.Sprintf("%s:%d", redisHost, redisPort),
+		// instance of the database
+		"database": strconv.Itoa(redisDatabase),
+		// number of connections to keep open with redis
+		"pool": strconv.Itoa(redisPool),
+		// unique process id
+		"process": uuid.NewV4().String(),
+	}
+	redisPass := app.Config.GetString("redis.password")
+	if redisPass != "" {
+		opts["password"] = redisPass
+	}
+	l.Debug("Configuring workers...")
+	workers.Configure(opts)
+
+	workers.Process(queues.KhanQueue, app.Dispatcher.PerformDispatchHook, workerCount)
+	workers.Process(queues.KhanESQueue, models.PerformUpdateES, workerCount)
+	l.Info("Worker configured.")
+}
+
+//StartWorkers "starts" the dispatcher
+func (app *App) StartWorkers() {
+	l := app.Logger.With(
+		zap.String("source", "app"),
+		zap.String("operation", "StartWorkers"),
+	)
+
+	log.D(l, "Starting workers...")
+	if app.Config.GetBool("webhooks.runStats") {
+		jobsStatsPort := app.Config.GetInt("webhooks.statsPort")
+		go workers.StatsServer(jobsStatsPort)
+	}
+
+	workers.Run()
+}
+
+//NonblockingStartWorkers non-blocking
+func (app *App) NonblockingStartWorkers() {
+	workers.Start()
+}
+
+func (app *App) initDispatcher() {
 	l := app.Logger.With(
 		zap.String("source", "app"),
 		zap.String("operation", "initDispatcher"),
-		zap.Int("workerCount", workerCount),
 	)
 
 	log.D(l, "Initializing dispatcher...")
 
-	disp, err := NewDispatcher(app, workerCount)
+	disp, err := NewDispatcher(app)
 	if err != nil {
 		log.P(l, "Dispatcher failed to initialize.", func(cm log.CM) {
 			cm.Write(zap.Error(err))
@@ -396,18 +463,6 @@ func (app *App) initDispatcher() {
 	log.I(l, "Dispatcher initialized successfully")
 
 	app.Dispatcher = disp
-}
-
-//StartDispatcher worker
-func (app *App) StartDispatcher() {
-	l := app.Logger.With(
-		zap.String("source", "app"),
-		zap.String("operation", "StartDispatcher"),
-	)
-
-	log.D(l, "Starting dispatcher...")
-	app.Dispatcher.Start()
-	log.I(l, "Dispatcher started successfully.")
 }
 
 // DispatchHooks dispatches web hooks for a specific game and event type

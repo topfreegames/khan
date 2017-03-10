@@ -13,14 +13,14 @@ import (
 	"fmt"
 	"os"
 	"strings"
-	"time"
 
+	workers "github.com/jrallison/go-workers"
 	"github.com/mailru/easyjson/jlexer"
 	"github.com/mailru/easyjson/jwriter"
 	"github.com/topfreegames/khan/es"
+	"github.com/topfreegames/khan/queues"
 	"github.com/topfreegames/khan/util"
 	"github.com/uber-go/zap"
-
 	"gopkg.in/gorp.v1"
 )
 
@@ -108,58 +108,53 @@ func getNewLogger() zap.Logger {
 
 //IndexClanIntoElasticSearch after operation in PG
 func (c *Clan) IndexClanIntoElasticSearch() error {
-	go func() {
-		start := time.Now()
-		logger := getNewLogger()
-		l := logger.With(
-			zap.String("source", "clanModel"),
-			zap.String("operation", "IndexClanIntoElasticSearch"),
-			zap.String("gameID", c.GameID),
-			zap.String("clanPublicID", c.PublicID),
-		)
-
-		es := es.GetConfiguredClient()
-		if es != nil {
-			indexName := es.GetIndexName(c.GameID)
-			body, err := c.ToJSON()
-			if err != nil {
-				l.Error("Failed to get clan JSON.", zap.Error(err))
-				return
-			}
-			_, err = es.Client.Index().Index(indexName).Type("clan").Id(c.PublicID).BodyString(string(body)).Do()
-			if err != nil {
-				l.Error("Failed to index clan into Elastic Search")
-				return
-			}
-			l.Info("Successfully indexed clan into Elastic Search.", zap.Duration("latency", time.Now().Sub(start)))
-		}
-	}()
+	logger := getNewLogger()
+	l := logger.With(
+		zap.String("source", "clanModel"),
+		zap.String("operation", "IndexClanIntoElasticSearch"),
+		zap.String("gameID", c.GameID),
+		zap.String("clanPublicID", c.PublicID),
+	)
+	body, err := c.ToJSON()
+	if err != nil {
+		l.Error("Failed to get clan JSON.", zap.Error(err))
+		return err
+	}
+	es := es.GetConfiguredClient()
+	if es != nil {
+		workers.Enqueue(queues.KhanESQueue, "Add", map[string]interface{}{
+			"index":  es.GetIndexName(c.GameID),
+			"op":     "index",
+			"clan":   string(body),
+			"clanID": c.PublicID,
+		})
+	}
 	return nil
 }
 
 //DeleteClanFromElasticSearch after deletion in PG
 func (c *Clan) DeleteClanFromElasticSearch() error {
-	go func() {
-		start := time.Now()
-		logger := getNewLogger()
-		l := logger.With(
-			zap.String("source", "clanModel"),
-			zap.String("operation", "IndexClanIntoElasticSearch"),
-			zap.String("gameID", c.GameID),
-			zap.String("clanPublicID", c.PublicID),
-		)
-
-		es := es.GetConfiguredClient()
-		if es != nil {
-			indexName := es.GetIndexName(c.GameID)
-			_, err := es.Client.Delete().Index(indexName).Type("clan").Id(c.PublicID).Do()
-			if err != nil {
-				l.Error("Failed to delete clan from Elastic Search.", zap.Error(err))
-			}
-
-			l.Info("Successfully deleted clan from Elastic Search.", zap.Duration("latency", time.Now().Sub(start)))
-		}
-	}()
+	logger := getNewLogger()
+	l := logger.With(
+		zap.String("source", "clanModel"),
+		zap.String("operation", "IndexClanIntoElasticSearch"),
+		zap.String("gameID", c.GameID),
+		zap.String("clanPublicID", c.PublicID),
+	)
+	body, err := c.ToJSON()
+	if err != nil {
+		l.Error("Failed to get clan JSON.", zap.Error(err))
+		return err
+	}
+	es := es.GetConfiguredClient()
+	if es != nil {
+		workers.Enqueue(queues.KhanESQueue, "Add", map[string]interface{}{
+			"index":  es.GetIndexName(c.GameID),
+			"op":     "delete",
+			"clan":   string(body),
+			"clanID": c.PublicID,
+		})
+	}
 	return nil
 }
 

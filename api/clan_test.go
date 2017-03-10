@@ -15,12 +15,15 @@ import (
 	"strings"
 	"time"
 
+	"gopkg.in/olivere/elastic.v3"
+
 	"github.com/Pallinder/go-randomdata"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/satori/go.uuid"
 	"github.com/topfreegames/khan/api"
 	"github.com/topfreegames/khan/models"
+	"github.com/topfreegames/khan/testing"
 )
 
 var _ = Describe("Clan API Handler", func() {
@@ -34,6 +37,10 @@ var _ = Describe("Clan API Handler", func() {
 
 		a = GetDefaultTestApp()
 		a.Dispatcher.NonblockingStart()
+	})
+
+	AfterEach(func() {
+		DestroyTestES()
 	})
 
 	Describe("Create Clan Handler", func() {
@@ -69,6 +76,44 @@ var _ = Describe("Clan API Handler", func() {
 			)
 			Expect(dbClan.AllowApplication).To(Equal(payload["allowApplication"]))
 			Expect(dbClan.AutoJoin).To(Equal(payload["autoJoin"]))
+		})
+
+		It("Should index clan into ES when created", func() {
+			es := GetTestES()
+			_, player, err := models.CreatePlayerFactory(testDb, "")
+			Expect(err).NotTo(HaveOccurred())
+
+			clanPublicID := randomdata.FullName(randomdata.RandomGender)
+			payload := map[string]interface{}{
+				"publicID":         clanPublicID,
+				"name":             randomdata.FullName(randomdata.RandomGender),
+				"ownerPublicID":    player.PublicID,
+				"metadata":         map[string]interface{}{"x": 1},
+				"allowApplication": true,
+				"autoJoin":         true,
+			}
+			status, body := PostJSON(a, GetGameRoute(player.GameID, "/clans"), payload)
+
+			Expect(status).To(Equal(http.StatusOK))
+			var result map[string]interface{}
+			json.Unmarshal([]byte(body), &result)
+			Expect(result["success"]).To(BeTrue())
+			Expect(result["publicID"]).To(Equal(clanPublicID))
+
+			indexName := "khan-test"
+
+			var res *elastic.GetResult
+			err = testing.WaitForFunc(10, func() error {
+				var err error
+				res, err = es.Client.Get().Index(indexName).Type("clan").Id(clanPublicID).Do()
+				return err
+			})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(res).NotTo(BeNil())
+			Expect(res.Index).To(Equal(indexName))
+			Expect(res.Type).To(Equal("clan"))
+			Expect(res.Id).To(Equal(clanPublicID))
+
 		})
 
 		It("Should not create clan if missing parameters", func() {
@@ -265,6 +310,52 @@ var _ = Describe("Clan API Handler", func() {
 			Expect(dbClan.Metadata).To(Equal(metadata))
 			Expect(dbClan.AllowApplication).To(Equal(!clan.AllowApplication))
 			Expect(dbClan.AutoJoin).To(Equal(!clan.AutoJoin))
+		})
+
+		It("Should update ES if update clan", func() {
+			es := GetTestES()
+
+			_, clan, owner, _, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
+			Expect(err).NotTo(HaveOccurred())
+
+			gameID := clan.GameID
+			publicID := clan.PublicID
+			clanName := randomdata.FullName(randomdata.RandomGender)
+			ownerPublicID := owner.PublicID
+			metadata := map[string]interface{}{"new": "metadata"}
+
+			payload := map[string]interface{}{
+				"name":             clanName,
+				"ownerPublicID":    ownerPublicID,
+				"metadata":         metadata,
+				"allowApplication": !clan.AllowApplication,
+				"autoJoin":         !clan.AutoJoin,
+			}
+			route := GetGameRoute(gameID, fmt.Sprintf("/clans/%s", publicID))
+			status, body := PutJSON(a, route, payload)
+
+			Expect(status).To(Equal(http.StatusOK))
+			var result map[string]interface{}
+			json.Unmarshal([]byte(body), &result)
+			Expect(result["success"]).To(BeTrue())
+
+			indexName := "khan-test"
+
+			var res *elastic.GetResult
+			err = testing.WaitForFunc(10, func() error {
+				var err error
+				res, err = es.Client.Get().Index(indexName).Type("clan").Id(publicID).Do()
+				return err
+			})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(res).NotTo(BeNil())
+			Expect(res.Index).To(Equal(indexName))
+			Expect(res.Type).To(Equal("clan"))
+			Expect(res.Id).To(Equal(publicID))
+
+			updClan, err := models.GetClanFromJSON(*res.Source)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(updClan.Metadata["new"]).To(BeEquivalentTo(metadata["new"]))
 		})
 
 		It("Should not update clan if missing parameters", func() {

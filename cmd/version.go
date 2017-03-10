@@ -11,7 +11,7 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
-	"github.com/topfreegames/khan/api"
+	"github.com/topfreegames/khan/util"
 )
 
 // versionCmd represents the version command
@@ -20,7 +20,7 @@ var versionCmd = &cobra.Command{
 	Short: "returns Khan version",
 	Long:  `returns Khan version`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Printf("Khan v%s\n", api.VERSION)
+		fmt.Printf("Khan v%s\n", util.VERSION)
 	},
 }
 

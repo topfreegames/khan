@@ -18,12 +18,23 @@ import (
 	"strings"
 	"time"
 
+	"github.com/uber-go/zap"
+
 	"github.com/labstack/echo/engine/standard"
 	. "github.com/onsi/gomega"
 	"github.com/topfreegames/khan/api"
+	"github.com/topfreegames/khan/es"
 	"github.com/topfreegames/khan/models"
 	kt "github.com/topfreegames/khan/testing"
 )
+
+func GetTestES() *es.Client {
+	return es.GetTestClient("localhost", 9200, "", false, zap.New(zap.NewJSONEncoder(), zap.ErrorLevel), false)
+}
+
+func DestroyTestES() {
+	es.DestroyClient()
+}
 
 //InvalidJSONError returned by the API
 var InvalidJSONError = "syntax error near offset"

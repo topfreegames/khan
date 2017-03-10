@@ -5,7 +5,7 @@
 // http://www.opensource.org/licenses/mit-license
 // Copyright © 2016 Top Free Games <backend@tfgco.com>
 
-package api
+package util
 
 // VERSION identifies Khan's current version
 var VERSION = "2.0.3"

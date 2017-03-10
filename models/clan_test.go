@@ -8,19 +8,15 @@
 package models_test
 
 import (
-	"encoding/json"
 	"fmt"
 	"sort"
 	"strings"
 	"time"
 
-	elastic "gopkg.in/olivere/elastic.v3"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/satori/go.uuid"
 	. "github.com/topfreegames/khan/models"
-	"github.com/topfreegames/khan/testing"
 	"github.com/topfreegames/khan/util"
 
 	"github.com/Pallinder/go-randomdata"
@@ -36,10 +32,6 @@ var _ = Describe("Clan Model", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		faultyDb = GetFaultyTestDB()
-	})
-
-	AfterEach(func() {
-		DestroyTestES()
 	})
 
 	Describe("Clan Model", func() {
@@ -303,40 +295,6 @@ var _ = Describe("Clan Model", func() {
 				Expect(dbPlayer.OwnershipCount).To(Equal(1))
 			})
 
-			It("Should index new clan into elasticsearch if elasticsearch is configured", func() {
-				es := GetTestES()
-
-				game, player, err := CreatePlayerFactory(testDb, "")
-				Expect(err).NotTo(HaveOccurred())
-
-				clan, err := CreateClan(
-					testDb,
-					player.GameID,
-					"create-1",
-					randomdata.FullName(randomdata.RandomGender),
-					player.PublicID,
-					map[string]interface{}{},
-					true,
-					false,
-					game.MaxClansPerPlayer,
-				)
-				Expect(err).NotTo(HaveOccurred())
-
-				indexName := "khan-test"
-
-				var result *elastic.GetResult
-				err = testing.WaitForFunc(10, func() error {
-					var err error
-					result, err = es.Client.Get().Index(indexName).Type("clan").Id(clan.PublicID).Do()
-					return err
-				})
-				Expect(err).NotTo(HaveOccurred())
-				Expect(result).NotTo(BeNil())
-				Expect(result.Index).To(Equal(indexName))
-				Expect(result.Type).To(Equal("clan"))
-				Expect(result.Id).To(Equal(clan.PublicID))
-			})
-
 			It("Should not create a new Clan with CreateClan if invalid data", func() {
 				game, player, err := CreatePlayerFactory(testDb, "")
 				Expect(err).NotTo(HaveOccurred())
@@ -447,84 +405,6 @@ var _ = Describe("Clan Model", func() {
 				Expect(dbClan.AutoJoin).To(Equal(autoJoin))
 			})
 
-			It("Should update a indexed clan into ES when update Clan with UpdateClan", func() {
-				es := GetTestES()
-				player, clans, err := GetTestClans(testDb, "", "", 1)
-				Expect(err).NotTo(HaveOccurred())
-				clan := clans[0]
-
-				metadata := map[string]interface{}{"x": "1", "totalScore": 9200}
-				allowApplication := !clan.AllowApplication
-				autoJoin := !clan.AutoJoin
-				updClan, err := UpdateClan(
-					testDb,
-					clan.GameID,
-					clan.PublicID,
-					clan.Name,
-					player.PublicID,
-					metadata,
-					allowApplication,
-					autoJoin,
-				)
-
-				Expect(err).NotTo(HaveOccurred())
-				Expect(updClan.ID).To(Equal(clan.ID))
-
-				time.Sleep(time.Duration(100) * time.Millisecond)
-
-				dbClan, err := GetClanByPublicID(testDb, clan.GameID, clan.PublicID)
-				Expect(err).NotTo(HaveOccurred())
-				Expect(dbClan.Metadata["x"]).To(BeEquivalentTo(metadata["x"]))
-				Expect(dbClan.AllowApplication).To(Equal(allowApplication))
-				Expect(dbClan.AutoJoin).To(Equal(autoJoin))
-
-				var result *elastic.GetResult
-				err = testing.WaitForFunc(10, func() error {
-					var err error
-					result, err = es.Client.Get().Index("khan-test").Type("clan").Id(clan.PublicID).Do()
-					return err
-				})
-				Expect(err).NotTo(HaveOccurred())
-				Expect(result).NotTo(BeNil())
-				Expect(result.Index).To(Equal("khan-test"))
-				Expect(result.Type).To(Equal("clan"))
-				Expect(result.Id).To(Equal(clan.PublicID))
-
-				updESClan, err := GetClanFromJSON(*result.Source)
-				Expect(err).NotTo(HaveOccurred())
-				Expect(updESClan.Metadata["x"]).To(BeEquivalentTo(metadata["x"]))
-				Expect(updESClan.Metadata["totalScore"]).To(Equal(float64(9200)))
-
-				metadata = map[string]interface{}{"x": "10", "totalScore": 11000, "foo": "bar"}
-				updClan, err = UpdateClan(
-					testDb,
-					clan.GameID,
-					clan.PublicID,
-					clan.Name,
-					player.PublicID,
-					metadata,
-					allowApplication,
-					autoJoin,
-				)
-				Expect(err).NotTo(HaveOccurred())
-
-				time.Sleep(time.Duration(300) * time.Millisecond)
-
-				err = testing.WaitForFunc(10, func() error {
-					var err error
-					result, err = es.Client.Get().Index("khan-test").Type("clan").Id(clan.PublicID).Do()
-					return err
-				})
-				Expect(err).NotTo(HaveOccurred())
-
-				updESClan, err = GetClanFromJSON(*result.Source)
-				Expect(err).NotTo(HaveOccurred())
-
-				Expect(updESClan.Metadata["x"]).To(BeEquivalentTo(metadata["x"]))
-				Expect(updESClan.Metadata["totalScore"]).To(Equal(float64(11000)))
-				Expect(updESClan.Metadata["foo"]).To(BeEquivalentTo(metadata["foo"]))
-			})
-
 			It("Should not update a Clan if player is not the clan owner with UpdateClan", func() {
 				_, clans, err := GetTestClans(testDb, "", "", 1)
 				Expect(err).NotTo(HaveOccurred())
@@ -630,30 +510,6 @@ var _ = Describe("Clan Model", func() {
 					Expect(dbClan.MembershipCount).To(Equal(1))
 				})
 
-				It("If leave and clan has memberships, should also update in ES", func() {
-					es := GetTestES()
-
-					_, clan, owner, players, memberships, err := GetClanWithMemberships(testDb, 1, 0, 0, 0, "", "")
-					Expect(err).NotTo(HaveOccurred())
-
-					clan, previousOwner, newOwner, err := LeaveClan(testDb, clan.GameID, clan.PublicID)
-					Expect(err).NotTo(HaveOccurred())
-
-					Expect(previousOwner.ID).To(Equal(owner.ID))
-					Expect(newOwner.ID).To(Equal(players[0].ID))
-
-					dbClan, err := GetClanByPublicID(testDb, clan.GameID, clan.PublicID)
-					Expect(err).NotTo(HaveOccurred())
-					Expect(dbClan.OwnerID).To(Equal(memberships[0].PlayerID))
-
-					result, err := es.Client.Get().Index("khan-test").Type("clan").Id(dbClan.PublicID).Do()
-					Expect(err).NotTo(HaveOccurred())
-					var updESClan Clan
-					json.Unmarshal(*result.Source, &updESClan)
-					Expect(updESClan.OwnerID).To(Equal(memberships[0].PlayerID))
-					Expect(updESClan.MembershipCount).To(Equal(1))
-				})
-
 				It("And clan has no memberships", func() {
 					_, clan, owner, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
 					Expect(err).NotTo(HaveOccurred())
@@ -672,27 +528,6 @@ var _ = Describe("Clan Model", func() {
 					Expect(dbPlayer.OwnershipCount).To(Equal(0))
 				})
 
-				It("Should delete from ES if clan has no memberships", func() {
-					es := GetTestES()
-					_, clan, owner, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
-
-					time.Sleep(time.Duration(50) * time.Millisecond)
-
-					_, err = es.Client.Get().Index("khan-test").Type("clan").Id(clan.PublicID).Do()
-					Expect(err).NotTo(HaveOccurred())
-
-					clan, previousOwner, newOwner, err := LeaveClan(testDb, clan.GameID, clan.PublicID)
-					Expect(err).NotTo(HaveOccurred())
-					Expect(previousOwner.ID).To(Equal(owner.ID))
-					Expect(newOwner).To(BeNil())
-
-					_, err = GetClanByPublicID(testDb, clan.GameID, clan.PublicID)
-					Expect(err).To(HaveOccurred())
-					Expect(err.Error()).To(Equal(fmt.Sprintf("Clan was not found with id: %s", clan.PublicID)))
-
-					_, err = es.Client.Get().Index("khan-test").Type("clan").Id(clan.PublicID).Do()
-					Expect(err).To(HaveOccurred())
-				})
 			})
 
 			Describe("Should not leave a Clan with LeaveClan if", func() {
@@ -749,32 +584,6 @@ var _ = Describe("Clan Model", func() {
 					Expect(err).NotTo(HaveOccurred())
 					Expect(dbPlayer.OwnershipCount).To(Equal(1))
 					Expect(dbPlayer.MembershipCount).To(Equal(0))
-				})
-
-				It("Should update in ES if transfered clan ownership", func() {
-					es := GetTestES()
-					game, clan, _, players, _, err := GetClanWithMemberships(testDb, 1, 0, 0, 0, "", "")
-					Expect(err).NotTo(HaveOccurred())
-					clan, _, _, err = TransferClanOwnership(
-						testDb,
-						clan.GameID,
-						clan.PublicID,
-						players[0].PublicID,
-						game.MembershipLevels,
-						game.MaxMembershipLevel,
-					)
-
-					Expect(err).NotTo(HaveOccurred())
-					dbClan, err := GetClanByPublicID(testDb, clan.GameID, clan.PublicID)
-					Expect(dbClan.OwnerID).To(Equal(players[0].ID))
-
-					result, err := es.Client.Get().Index("khan-test").Type("clan").Id(dbClan.PublicID).Do()
-					Expect(err).NotTo(HaveOccurred())
-
-					var updESClan Clan
-					err = json.Unmarshal(*result.Source, &updESClan)
-					Expect(err).NotTo(HaveOccurred())
-					Expect(updESClan.OwnerID).To(Equal(players[0].ID))
 				})
 
 				It("And not first clan owner and next owner membership exists", func() {
