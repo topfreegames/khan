@@ -214,7 +214,6 @@ func (l *LoggerMiddleware) Serve(next echo.HandlerFunc) echo.HandlerFunc {
 		startTime = time.Now()
 
 		err := next(c)
-		body := c.Get("body").(string)
 
 		//no time.Since in order to format it well after
 		endTime = time.Now()
@@ -237,7 +236,6 @@ func (l *LoggerMiddleware) Serve(next echo.HandlerFunc) echo.HandlerFunc {
 			zap.String("ip", ip),
 			zap.String("method", method),
 			zap.String("path", path),
-			zap.String("body", body),
 		)
 
 		//request failed
