@@ -966,6 +966,48 @@ var _ = Describe("Membership Model", func() {
 				Expect(dbClan.MembershipCount).To(Equal(1))
 			})
 
+			It("If deleted previous membership and deleter is not the membership player and requestor is not membership player before waiting cooldown seconds", func() {
+				game, clan, owner, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
+				Expect(err).NotTo(HaveOccurred())
+
+				game.CooldownAfterDelete = 10
+				_, err = testDb.Update(game)
+				Expect(err).NotTo(HaveOccurred())
+
+				memberships[0].DeletedAt = util.NowMilli()
+				memberships[0].DeletedBy = owner.ID
+				memberships[0].Approved = false
+				memberships[0].Denied = false
+				_, err = testDb.Update(memberships[0])
+				Expect(err).NotTo(HaveOccurred())
+
+				membership, err := CreateMembership(
+					testDb,
+					game,
+					players[0].GameID,
+					"Member",
+					players[0].PublicID,
+					clan.PublicID,
+					owner.PublicID,
+					"Please accept me",
+				)
+
+				Expect(err).NotTo(HaveOccurred())
+				Expect(membership.ID).NotTo(BeEquivalentTo(0))
+
+				dbMembership, err := GetMembershipByID(testDb, membership.ID)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(dbMembership.GameID).To(Equal(membership.GameID))
+				Expect(dbMembership.PlayerID).To(Equal(players[0].ID))
+				Expect(dbMembership.RequestorID).To(Equal(owner.ID))
+				Expect(dbMembership.ClanID).To(Equal(clan.ID))
+				Expect(dbMembership.Approved).To(Equal(false))
+				Expect(dbMembership.Denied).To(Equal(false))
+				Expect(dbMembership.Message).To(Equal("Please accept me"))
+				Expect(dbMembership.DeletedAt).To(Equal(int64(0)))
+			})
+
 			It("If denied previous membership and denier is the membership player, before waiting cooldown seconds", func() {
 				game, clan, owner, players, _, err := GetClanWithMemberships(testDb, 0, 1, 0, 0, "", "")
 				Expect(err).NotTo(HaveOccurred())
@@ -1081,7 +1123,7 @@ var _ = Describe("Membership Model", func() {
 		})
 
 		Describe("Should not create a new Membership with CreateMembership if", func() {
-			It("If deleted previous membership and deleter is not the membership player before waiting cooldown seconds", func() {
+			It("If deleted previous membership and deleter is not the membership player and requestor is the membership player before waiting cooldown seconds", func() {
 				game, clan, owner, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				Expect(err).NotTo(HaveOccurred())
 
@@ -1103,7 +1145,7 @@ var _ = Describe("Membership Model", func() {
 					"Member",
 					players[0].PublicID,
 					clan.PublicID,
-					owner.PublicID,
+					players[0].PublicID,
 					"Please accept me",
 				)
 
