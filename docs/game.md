@@ -20,6 +20,7 @@ To Create/Update your game, just do a `PUT` request to `http://my-khan-server/ga
       "minLevelToCreateInvitation":    [int],
       "minLevelToRemoveMember":        [int],
       "minLevelOffsetToPromoteMember": [int],
+      "minLevelOffsetToRemoveMember":  [int],
       "minLevelOffsetToDemoteMember":  [int],
       "maxMembers":                    [int],
       "maxClansPerPlayer":             [int],
