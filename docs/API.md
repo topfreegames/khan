@@ -650,8 +650,8 @@ Khan API
       "name":                          [string],  // 2000 characters max
       "metadata":                      [JSON],
       "ownerPublicID":                 [string],  // must match the clan owner's public id
-      "AllowApplication":              [boolean],
-      "AutoJoin":                      [boolean]
+      "allowApplication":              [boolean],
+      "autoJoin":                      [boolean]
     }
     ```
 
