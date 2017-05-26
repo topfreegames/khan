@@ -148,7 +148,9 @@ func ApplyForMembershipHandler(app *App) func(c echo.Context) error {
 			cm.Write(zap.Duration("duration", time.Now().Sub(start)))
 		})
 
-		return SucceedWith(map[string]interface{}{}, c)
+		return SucceedWith(map[string]interface{}{
+			"approved": membership.Approved,
+		}, c)
 	}
 }
 

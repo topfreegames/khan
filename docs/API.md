@@ -1068,7 +1068,8 @@ Khan API
     * Content:
       ```
       {
-        "success": true
+        "success": true,
+        "approved": [bool]  // it will be true if the membership does not require additional approval (i.e. clan autoJoin is true)
       }
       ```
 

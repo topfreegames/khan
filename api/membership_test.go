@@ -37,6 +37,7 @@ var _ = Describe("Membership API Handler", func() {
 			_, clan, _, _, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
 			Expect(err).NotTo(HaveOccurred())
 
+			clan.AutoJoin = true
 			clan.AllowApplication = true
 			_, err = testDb.Update(clan)
 			Expect(err).NotTo(HaveOccurred())
@@ -61,6 +62,7 @@ var _ = Describe("Membership API Handler", func() {
 			var result map[string]interface{}
 			json.Unmarshal([]byte(body), &result)
 			Expect(result["success"]).To(BeTrue())
+			Expect(result["approved"]).To(BeTrue())
 
 			dbMembership, err := models.GetValidMembershipByClanAndPlayerPublicID(a.Db, gameID, clanPublicID, player.PublicID)
 			Expect(err).NotTo(HaveOccurred())
@@ -76,6 +78,7 @@ var _ = Describe("Membership API Handler", func() {
 			_, clan, _, _, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
 			Expect(err).NotTo(HaveOccurred())
 
+			clan.AutoJoin = false
 			clan.AllowApplication = true
 			_, err = testDb.Update(clan)
 			Expect(err).NotTo(HaveOccurred())
@@ -101,6 +104,7 @@ var _ = Describe("Membership API Handler", func() {
 			var result map[string]interface{}
 			json.Unmarshal([]byte(body), &result)
 			Expect(result["success"]).To(BeTrue())
+			Expect(result["approved"]).To(BeFalse())
 
 			dbMembership, err := models.GetValidMembershipByClanAndPlayerPublicID(a.Db, gameID, clanPublicID, player.PublicID)
 			Expect(err).NotTo(HaveOccurred())
