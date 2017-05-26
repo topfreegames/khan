@@ -8,4 +8,4 @@
 package util
 
 // VERSION identifies Khan's current version
-var VERSION = "2.1.0"
+var VERSION = "2.1.1"
