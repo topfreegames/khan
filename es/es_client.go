@@ -5,7 +5,7 @@ import (
 	"os"
 	"sync"
 
-	"gopkg.in/olivere/elastic.v3"
+	"gopkg.in/olivere/elastic.v5"
 
 	newrelic "github.com/newrelic/go-agent"
 	"github.com/topfreegames/khan/log"

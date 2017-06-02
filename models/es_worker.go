@@ -1,6 +1,7 @@
 package models
 
 import (
+	"context"
 	"time"
 
 	"github.com/jrallison/go-workers"
@@ -47,14 +48,25 @@ func (w *ESWorker) PerformUpdateES(m *workers.Msg) {
 	if w.ES != nil {
 		start := time.Now()
 		if op == "index" {
-			_, err := w.ES.Client.Index().Index(index).Type("clan").Id(clanID).BodyString(clan).Do()
+			_, err := w.ES.Client.
+				Index().
+				Index(index).
+				Type("clan").
+				Id(clanID).
+				BodyString(clan).
+				Do(context.TODO())
 			if err != nil {
 				l.Error("Failed to index clan into Elastic Search")
 				return
 			}
 			l.Info("Successfully indexed clan into Elastic Search.", zap.Duration("latency", time.Now().Sub(start)))
 		} else if op == "delete" {
-			_, err := w.ES.Client.Delete().Index(index).Type("clan").Id(clanID).Do()
+			_, err := w.ES.Client.
+				Delete().
+				Index(index).
+				Type("clan").
+				Id(clanID).
+				Do(context.TODO())
 			if err != nil {
 				l.Error("Failed to delete clan from Elastic Search.", zap.Error(err))
 			}

@@ -1,5 +1,5 @@
-hash: 473f773514d0aa748f99dee0e4d1cb708af6b91f6a0abf9fbc63d82b4b02a6b6
-updated: 2017-02-23T10:18:43.52011805-03:00
+hash: 5d2a921cca2dde40ff4ac2e7e5aa79748762090c822e54337d554252a2250bb7
+updated: 2017-06-02T15:29:13.76236018-03:00
 imports:
 - name: github.com/bitly/go-simplejson
   version: aabad6e819789e569bd6aabf444c935aa9ba1e44
@@ -94,7 +94,7 @@ imports:
 - name: github.com/mitchellh/mapstructure
   version: ca63d7c062ee3c9f34db231e352b60012b4fd0c1
 - name: github.com/newrelic/go-agent
-  version: 7c6c920d222b18632f03b12c3b594df816eab6d0
+  version: 29ec3cd1bb2f21d21d36da37dae52695cb2c3a17
   subpackages:
   - internal
   - internal/jsonx
@@ -209,10 +209,12 @@ imports:
 - name: gopkg.in/gorp.v1
   version: c87af80f3cc5036b55b83d77171e156791085e2e
 - name: gopkg.in/olivere/elastic.v3
-  version: 9da4058517104766446811c87c0890f26c03d945
+  version: eb47340e05b08cae24208569de7240fecde96bd2
   subpackages:
   - backoff
   - uritemplates
+- name: gopkg.in/olivere/elastic.v5
+  version: f1fd7305d0b6270192b27010fe1193568b18e4b6
 - name: gopkg.in/square/go-jose.v1
   version: aa2e30fdd1fe9dd3394119af66451ae790d50e0d
 - name: gopkg.in/yaml.v2

@@ -8,6 +8,7 @@
 package api_test
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -15,7 +16,7 @@ import (
 	"strings"
 	"time"
 
-	"gopkg.in/olivere/elastic.v3"
+	"gopkg.in/olivere/elastic.v5"
 
 	"github.com/Pallinder/go-randomdata"
 	. "github.com/onsi/ginkgo"
@@ -105,7 +106,7 @@ var _ = Describe("Clan API Handler", func() {
 			var res *elastic.GetResult
 			err = testing.WaitForFunc(10, func() error {
 				var err error
-				res, err = es.Client.Get().Index(indexName).Type("clan").Id(clanPublicID).Do()
+				res, err = es.Client.Get().Index(indexName).Type("clan").Id(clanPublicID).Do(context.TODO())
 				return err
 			})
 			Expect(err).NotTo(HaveOccurred())
@@ -344,7 +345,7 @@ var _ = Describe("Clan API Handler", func() {
 			var res *elastic.GetResult
 			err = testing.WaitForFunc(10, func() error {
 				var err error
-				res, err = es.Client.Get().Index(indexName).Type("clan").Id(publicID).Do()
+				res, err = es.Client.Get().Index(indexName).Type("clan").Id(publicID).Do(context.TODO())
 				return err
 			})
 			Expect(err).NotTo(HaveOccurred())
