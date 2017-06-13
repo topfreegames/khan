@@ -1120,6 +1120,62 @@ var _ = Describe("Membership Model", func() {
 				Expect(err).NotTo(HaveOccurred())
 				Expect(dbClan.MembershipCount).To(Equal(1))
 			})
+
+			It("If denied previous membership request and clan autoJoin is changed to true, before waiting cooldown seconds", func() {
+				// create a pending membership application
+				game, clan, owner, players, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "", false, false)
+				Expect(err).NotTo(HaveOccurred())
+
+				// deny application
+				_, err = ApproveOrDenyMembershipApplication(
+					testDb,
+					game,
+					players[0].GameID,
+					players[0].PublicID,
+					clan.PublicID,
+					owner.PublicID,
+					"deny",
+				)
+				Expect(err).NotTo(HaveOccurred())
+
+				game.CooldownBeforeApply = 0
+				game.CooldownAfterDeny = 100000
+				_, err = testDb.Update(game)
+				Expect(err).NotTo(HaveOccurred())
+
+				// change clan autoJoin to true
+				clan.AutoJoin = true
+				_, err = testDb.Update(clan)
+				Expect(err).NotTo(HaveOccurred())
+
+				// apply for membership again
+				membership, err := CreateMembership(
+					testDb,
+					game,
+					players[0].GameID,
+					"Member",
+					players[0].PublicID,
+					clan.PublicID,
+					players[0].PublicID,
+					"Please accept me",
+				)
+
+				Expect(err).NotTo(HaveOccurred())
+				Expect(membership.Approved).To(BeTrue())
+
+				dbMembership, err := GetMembershipByID(testDb, membership.ID)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(dbMembership.Approved).To(BeTrue())
+				Expect(dbMembership.Denied).To(Equal(false))
+
+				dbPlayer, err := GetPlayerByID(testDb, dbMembership.PlayerID)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(dbPlayer.MembershipCount).To(Equal(1))
+
+				dbClan, err := GetClanByID(testDb, clan.ID)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(dbClan.MembershipCount).To(Equal(2))
+			})
 		})
 
 		Describe("Should not create a new Membership with CreateMembership if", func() {

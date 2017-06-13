@@ -294,16 +294,17 @@ func CreateMembership(db DB, game *Game, gameID, level, playerPublicID, clanPubl
 		return nil, &InvalidLevelForGameError{gameID, level}
 	}
 
-	membership, _ := GetMembershipByClanAndPlayerPublicID(db, gameID, clanPublicID, playerPublicID)
-	playerID, previousMembership, err := validateMembership(db, game, membership, clanPublicID, playerPublicID, requestorPublicID)
-	if err != nil {
-		return nil, err
-	}
-
 	clan, clanErr := GetClanByPublicID(db, game.PublicID, clanPublicID)
 	if clanErr != nil {
 		return nil, clanErr
 	}
+
+	membership, _ := GetMembershipByClanAndPlayerPublicID(db, gameID, clan.PublicID, playerPublicID)
+	playerID, previousMembership, err := validateMembership(db, game, membership, clan, playerPublicID, requestorPublicID)
+	if err != nil {
+		return nil, err
+	}
+
 	if clan.OwnerID == playerID {
 		return nil, &AlreadyHasValidMembershipError{playerPublicID, clanPublicID}
 	}
@@ -315,24 +316,25 @@ func CreateMembership(db DB, game *Game, gameID, level, playerPublicID, clanPubl
 	return inviteMember(db, game, membership, level, clan, playerID, requestorPublicID, message, previousMembership)
 }
 
-func validateMembership(db DB, game *Game, membership *Membership, clanPublicID, playerPublicID, requestorPublicID string) (int, bool, error) {
+func validateMembership(db DB, game *Game, membership *Membership, clan *Clan, playerPublicID, requestorPublicID string) (int, bool, error) {
 	playerID := -1
 	previousMembership := false
 	if membership != nil {
 		previousMembership = true
 		nowInMilliseconds := util.NowMilli()
+		applicationInOpenClan := requestorPublicID == playerPublicID && clan.AllowApplication && clan.AutoJoin
 		if membership.Approved {
-			return -1, false, &AlreadyHasValidMembershipError{playerPublicID, clanPublicID}
-		} else if membership.Denied && int(membership.DenierID.Int64) != membership.PlayerID {
+			return -1, false, &AlreadyHasValidMembershipError{playerPublicID, clan.PublicID}
+		} else if !applicationInOpenClan && membership.Denied && int(membership.DenierID.Int64) != membership.PlayerID {
 			timeToBeReady := game.CooldownAfterDeny - int(nowInMilliseconds-membership.DeniedAt)/1000
 			if timeToBeReady > 0 {
-				return -1, false, &MustWaitMembershipCooldownError{timeToBeReady, playerPublicID, clanPublicID}
+				return -1, false, &MustWaitMembershipCooldownError{timeToBeReady, playerPublicID, clan.PublicID}
 			}
 		} else if membership.DeletedAt > 0 && membership.DeletedBy != membership.PlayerID && playerPublicID == requestorPublicID {
 			// Allow immediate memebership creation if player is being invited
 			timeToBeReady := game.CooldownAfterDelete - int(nowInMilliseconds-membership.DeletedAt)/1000
 			if timeToBeReady > 0 {
-				return -1, false, &MustWaitMembershipCooldownError{timeToBeReady, playerPublicID, clanPublicID}
+				return -1, false, &MustWaitMembershipCooldownError{timeToBeReady, playerPublicID, clan.PublicID}
 			}
 		} else {
 			// TODO: When allowing 'memberLeft' players to apply we do not avoid flooding in this case =/
@@ -346,7 +348,7 @@ func validateMembership(db DB, game *Game, membership *Membership, clanPublicID,
 			if cd != 0 {
 				timeToBeReady := cd - int(nowInMilliseconds-membership.UpdatedAt)/1000
 				if timeToBeReady > 0 {
-					return -1, false, &MustWaitMembershipCooldownError{timeToBeReady, playerPublicID, clanPublicID}
+					return -1, false, &MustWaitMembershipCooldownError{timeToBeReady, playerPublicID, clan.PublicID}
 				}
 			}
 		}
