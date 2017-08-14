@@ -711,6 +711,42 @@ var _ = Describe("Clan Model", func() {
 			})
 		})
 
+		Describe("Get Clan Members", func() {
+			It("Should get clan player ids", func() {
+				gameID := uuid.NewV4().String()
+				_, clan, _, _, _, err := GetClanWithMemberships(
+					testDb, 10, 3, 4, 5, gameID, uuid.NewV4().String(),
+				)
+				clanData, err := GetClanDetails(testDb, clan.GameID, clan, 1)
+				Expect(err).NotTo(HaveOccurred())
+
+				clanPlayers, err := GetClanMembers(testDb, clan.GameID, clan.PublicID)
+				Expect(err).NotTo(HaveOccurred())
+				roster := clanData["roster"].([]map[string]interface{})
+				// roster + owner
+				Expect(len(clanPlayers["members"].([]string))).To(Equal(len(roster) + 1))
+				for _, p := range roster {
+					player := p["player"].(map[string]interface{})
+					Expect(clanPlayers["members"]).To(ContainElement(player["publicID"]))
+				}
+			})
+
+			It("Should return empty list if no memberships", func() {
+				gameID := uuid.NewV4().String()
+				_, clan, _, _, _, err := GetClanWithMemberships(
+					testDb, 0, 3, 4, 5, gameID, uuid.NewV4().String(),
+				)
+				clanData, err := GetClanDetails(testDb, clan.GameID, clan, 1)
+				Expect(err).NotTo(HaveOccurred())
+
+				clanPlayers, err := GetClanMembers(testDb, clan.GameID, clan.PublicID)
+				Expect(err).NotTo(HaveOccurred())
+				roster := clanData["roster"].([]map[string]interface{})
+				Expect(len(roster)).To(Equal(0))
+				Expect(len(clanPlayers["members"].([]string))).To(Equal(len(roster) + 1))
+			})
+		})
+
 		Describe("Get Clan Details", func() {
 			It("Should get clan members", func() {
 				gameID := uuid.NewV4().String()

@@ -552,6 +552,41 @@ func GetAllClans(db DB, gameID string) ([]Clan, error) {
 	return clans, nil
 }
 
+// GetClanMembers gets only the ids of then clan members
+func GetClanMembers(db DB, gameID, publicID string) (map[string]interface{}, error) {
+	clan, err := GetClanByPublicID(db, gameID, publicID)
+	if err != nil {
+		return nil, err
+	}
+
+	query := `
+	SELECT public_id
+	FROM players
+	WHERE id IN (
+		SELECT player_id
+		FROM memberships im
+		WHERE im.clan_id=$1
+		AND im.deleted_at=0
+		AND (im.approved=true)
+		UNION
+			SELECT owner_id
+			FROM clans c
+			WHERE c.id=$1
+	)
+	`
+	var res []string
+	_, err = db.Select(&res, query, clan.ID)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return map[string]interface{}{
+		"members": res,
+	}, nil
+
+}
+
 // GetClanDetails returns all details for a given clan by its game id and public id
 func GetClanDetails(db DB, gameID string, clan *Clan, maxClansPerPlayer int) (map[string]interface{}, error) {
 	query := `

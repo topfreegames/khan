@@ -774,6 +774,60 @@ func RetrieveClanHandler(app *App) func(c echo.Context) error {
 	}
 }
 
+// RetrieveClanMembersHandler retrieves only the clan users
+func RetrieveClanMembersHandler(app *App) func(c echo.Context) error {
+	return func(c echo.Context) error {
+		c.Set("route", "RetrieveClanUsers")
+		start := time.Now()
+		gameID := c.Param("gameID")
+		publicID := c.Param("clanPublicID")
+
+		l := app.Logger.With(
+			zap.String("source", "clanHandler"),
+			zap.String("operation", "RetrieveClanUsers"),
+			zap.String("gameID", gameID),
+			zap.String("clanPublicID", publicID),
+		)
+
+		log.D(l, "Getting DB connection...")
+		db, err := app.GetCtxDB(c)
+		if err != nil {
+			log.E(l, "Failed to connect to DB.", func(cm log.CM) {
+				cm.Write(zap.Error(err))
+			})
+			return FailWith(500, err.Error(), c)
+		}
+		log.D(l, "DB Connection successful.")
+
+		var result map[string]interface{}
+		err = WithSegment("clan-get-playerids", c, func() error {
+			log.D(l, "Retrieving clan players...")
+			result, err = models.GetClanMembers(
+				db,
+				gameID,
+				publicID,
+			)
+			if err != nil {
+				log.E(l, "Clan playerids retrieval failed.", func(cm log.CM) {
+					cm.Write(zap.Error(err))
+				})
+				return err
+			}
+			return nil
+		})
+		if err != nil {
+			return FailWith(500, err.Error(), c)
+		}
+
+		log.I(l, "Clan playerids retrieved successfully.", func(cm log.CM) {
+			cm.Write(zap.Duration("duration", time.Now().Sub(start)))
+		})
+
+		return SucceedWith(result, c)
+
+	}
+}
+
 // RetrieveClanSummaryHandler is the handler responsible for returning details summary for a given clan
 func RetrieveClanSummaryHandler(app *App) func(c echo.Context) error {
 	return func(c echo.Context) error {

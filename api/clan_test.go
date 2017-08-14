@@ -513,6 +513,28 @@ var _ = Describe("Clan API Handler", func() {
 		})
 	})
 
+	Describe("Retrieve Clan Members Handler", func() {
+		It("Should get clans player ids", func() {
+			gameID := uuid.NewV4().String()
+			_, clan, owner, players, _, err := models.GetClanWithMemberships(testDb, 10, 0, 0, 0, gameID, "clan1")
+			Expect(err).NotTo(HaveOccurred())
+			status, body := Get(a, GetGameRoute(clan.GameID, fmt.Sprintf("/clans/%s/members", clan.PublicID)))
+
+			Expect(status).To(Equal(http.StatusOK))
+			var result map[string]interface{}
+			json.Unmarshal([]byte(body), &result)
+
+			Expect(result["success"]).To(BeTrue())
+
+			Expect(len(result["members"].([]interface{}))).To(Equal(clan.MembershipCount))
+			Expect(result["members"].([]interface{})).To(ContainElement(owner.PublicID))
+
+			for _, p := range players {
+				Expect(result["members"].([]interface{})).To(ContainElement(p.PublicID))
+			}
+		})
+	})
+
 	Describe("Retrieve Clans Handler", func() {
 		It("Should get details for clans", func() {
 			gameID := uuid.NewV4().String()
