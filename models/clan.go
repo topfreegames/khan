@@ -84,7 +84,7 @@ func (c *Clan) PreUpdate(s gorp.SqlExecutor) error {
 
 //PostUpdate indexes clan in ES after update in PG
 func (c *Clan) PostUpdate(s gorp.SqlExecutor) error {
-	err := c.IndexClanIntoElasticSearch()
+	err := c.UpdateClanIntoElasticSearch()
 	return err
 }
 
@@ -108,24 +108,26 @@ func getNewLogger() zap.Logger {
 
 //IndexClanIntoElasticSearch after operation in PG
 func (c *Clan) IndexClanIntoElasticSearch() error {
-	logger := getNewLogger()
-	l := logger.With(
-		zap.String("source", "clanModel"),
-		zap.String("operation", "IndexClanIntoElasticSearch"),
-		zap.String("gameID", c.GameID),
-		zap.String("clanPublicID", c.PublicID),
-	)
-	body, err := c.ToJSON()
-	if err != nil {
-		l.Error("Failed to get clan JSON.", zap.Error(err))
-		return err
-	}
 	es := es.GetConfiguredClient()
 	if es != nil {
 		workers.Enqueue(queues.KhanESQueue, "Add", map[string]interface{}{
 			"index":  es.GetIndexName(c.GameID),
 			"op":     "index",
-			"clan":   string(body),
+			"clan":   c,
+			"clanID": c.PublicID,
+		})
+	}
+	return nil
+}
+
+//UpdateClanIntoElasticSearch after operation in PG
+func (c *Clan) UpdateClanIntoElasticSearch() error {
+	es := es.GetConfiguredClient()
+	if es != nil {
+		workers.Enqueue(queues.KhanESQueue, "Add", map[string]interface{}{
+			"index":  es.GetIndexName(c.GameID),
+			"op":     "update",
+			"clan":   c,
 			"clanID": c.PublicID,
 		})
 	}
@@ -134,24 +136,12 @@ func (c *Clan) IndexClanIntoElasticSearch() error {
 
 //DeleteClanFromElasticSearch after deletion in PG
 func (c *Clan) DeleteClanFromElasticSearch() error {
-	logger := getNewLogger()
-	l := logger.With(
-		zap.String("source", "clanModel"),
-		zap.String("operation", "IndexClanIntoElasticSearch"),
-		zap.String("gameID", c.GameID),
-		zap.String("clanPublicID", c.PublicID),
-	)
-	body, err := c.ToJSON()
-	if err != nil {
-		l.Error("Failed to get clan JSON.", zap.Error(err))
-		return err
-	}
 	es := es.GetConfiguredClient()
 	if es != nil {
 		workers.Enqueue(queues.KhanESQueue, "Add", map[string]interface{}{
 			"index":  es.GetIndexName(c.GameID),
 			"op":     "delete",
-			"clan":   string(body),
+			"clan":   c,
 			"clanID": c.PublicID,
 		})
 	}
@@ -166,7 +156,7 @@ func updateClanIntoES(db DB, id int) error {
 	if clan == nil {
 		return &ModelNotFoundError{"Clan", id}
 	}
-	return clan.IndexClanIntoElasticSearch()
+	return clan.UpdateClanIntoElasticSearch()
 }
 
 // Serialize returns a JSON with clan details

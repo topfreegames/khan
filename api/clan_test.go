@@ -325,6 +325,12 @@ var _ = Describe("Clan API Handler", func() {
 			ownerPublicID := owner.PublicID
 			metadata := map[string]interface{}{"new": "metadata"}
 
+			indexName := "khan-test"
+			Eventually(func() *elastic.GetResult {
+				res,_ := es.Client.Get().Index(indexName).Type("clan").Id(publicID).Do(context.TODO())
+				return res
+			}).Should(Not(BeNil()))
+
 			payload := map[string]interface{}{
 				"name":             clanName,
 				"ownerPublicID":    ownerPublicID,
@@ -340,23 +346,38 @@ var _ = Describe("Clan API Handler", func() {
 			json.Unmarshal([]byte(body), &result)
 			Expect(result["success"]).To(BeTrue())
 
-			indexName := "khan-test"
-
-			var res *elastic.GetResult
-			err = testing.WaitForFunc(10, func() error {
-				var err error
-				res, err = es.Client.Get().Index(indexName).Type("clan").Id(publicID).Do(context.TODO())
-				return err
-			})
-			Expect(err).NotTo(HaveOccurred())
-			Expect(res).NotTo(BeNil())
-			Expect(res.Index).To(Equal(indexName))
-			Expect(res.Type).To(Equal("clan"))
-			Expect(res.Id).To(Equal(publicID))
-
-			updClan, err := models.GetClanFromJSON(*res.Source)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(updClan.Metadata["new"]).To(BeEquivalentTo(metadata["new"]))
+			Eventually(func() *elastic.GetResult {
+				res,_ := es.Client.Get().Index(indexName).Type("clan").Id(publicID).Do(context.TODO())
+				return res
+			}).Should(SatisfyAll(
+				Not(BeNil()),
+				WithTransform(func(res *elastic.GetResult) string {
+					return res.Index
+				}, Equal(indexName)),
+				WithTransform(func(res *elastic.GetResult) string {
+					return res.Type
+				}, Equal("clan")),
+				WithTransform(func(res *elastic.GetResult) string {
+					return res.Id
+				}, Equal(publicID)),
+				WithTransform(func(res *elastic.GetResult) *models.Clan {
+					updClan,_ := models.GetClanFromJSON(*res.Source)
+					return updClan
+				}, SatisfyAll(
+					WithTransform(func(updClan *models.Clan) interface {} {
+						return updClan.Metadata["new"]
+					}, BeEquivalentTo(metadata["new"])),
+					WithTransform(func(updClan *models.Clan) interface {} {
+						return updClan.Metadata
+					}, HaveKeyWithValue("x", "a")),
+					WithTransform(func(updClan *models.Clan) bool {
+						return updClan.AllowApplication
+					}, BeEquivalentTo(!clan.AllowApplication)),
+					WithTransform(func(updClan *models.Clan) bool {
+						return updClan.AutoJoin
+					}, BeEquivalentTo(!clan.AutoJoin)),
+				)),
+			))
 		})
 
 		It("Should not update clan if missing parameters", func() {

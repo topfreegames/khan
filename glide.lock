@@ -1,5 +1,5 @@
-hash: 5d2a921cca2dde40ff4ac2e7e5aa79748762090c822e54337d554252a2250bb7
-updated: 2017-06-02T15:29:13.76236018-03:00
+hash: 981062184805818e48f7f102382ef8a29ed04aaa21e20a4615d80e5b18437791
+updated: 2017-09-02T21:42:20.803116097-03:00
 imports:
 - name: github.com/bitly/go-simplejson
   version: aabad6e819789e569bd6aabf444c935aa9ba1e44
@@ -119,11 +119,12 @@ imports:
   - reporters/stenographer
   - types
 - name: github.com/onsi/gomega
-  version: a78ae492d53aad5a7a232d0d0462c14c400e3ee7
+  version: c893efa28eb45626cdaa76c9f653b62488858837
   subpackages:
   - format
   - internal/assertion
   - internal/asyncassertion
+  - internal/oraclematcher
   - internal/testingtsupport
   - matchers
   - matchers/support/goraph/bipartitegraph
@@ -194,7 +195,9 @@ imports:
   version: 7394c112eae4dba7e96bfcfe738e6373d61772b4
   subpackages:
   - context
-  - context/ctxhttp
+  - html
+  - html/atom
+  - html/charset
 - name: golang.org/x/sys
   version: a646d33e2ee3172a661fc09bca23bb4889a41bc8
   subpackages:
@@ -202,6 +205,20 @@ imports:
 - name: golang.org/x/text
   version: d69c40b4be55797923cec7457fac7a244d91a9b6
   subpackages:
+  - encoding
+  - encoding/charmap
+  - encoding/htmlindex
+  - encoding/internal
+  - encoding/internal/identifier
+  - encoding/japanese
+  - encoding/korean
+  - encoding/simplifiedchinese
+  - encoding/traditionalchinese
+  - encoding/unicode
+  - internal/tag
+  - internal/utf8internal
+  - language
+  - runes
   - transform
   - unicode/norm
 - name: gopkg.in/gavv/httpexpect.v1
@@ -209,12 +226,12 @@ imports:
 - name: gopkg.in/gorp.v1
   version: c87af80f3cc5036b55b83d77171e156791085e2e
 - name: gopkg.in/olivere/elastic.v3
-  version: eb47340e05b08cae24208569de7240fecde96bd2
-  subpackages:
-  - backoff
-  - uritemplates
+  version: 5a75b7d18bca7420e68338600e8c9f611435f911
 - name: gopkg.in/olivere/elastic.v5
-  version: f1fd7305d0b6270192b27010fe1193568b18e4b6
+  version: edbef41beaacc2ee95e61af8faff04e67c01e268
+  subpackages:
+  - config
+  - uritemplates
 - name: gopkg.in/square/go-jose.v1
   version: aa2e30fdd1fe9dd3394119af66451ae790d50e0d
 - name: gopkg.in/yaml.v2
