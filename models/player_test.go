@@ -48,7 +48,7 @@ var _ = Describe("Player Model", func() {
 
 				time.Sleep(time.Millisecond)
 
-				player.Metadata = map[string]interface{}{"x": 1}
+				player.Metadata = map[string]interface{}{"x": "a"}
 				count, err := testDb.Update(player)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(int(count)).To(Equal(1))
@@ -121,7 +121,7 @@ var _ = Describe("Player Model", func() {
 				_, player, err := CreatePlayerFactory(testDb, "")
 				Expect(err).NotTo(HaveOccurred())
 
-				metadata := map[string]interface{}{"x": 1}
+				metadata := map[string]interface{}{"x": "a"}
 				updPlayer, err := UpdatePlayer(
 					testDb,
 					player.GameID,

@@ -217,7 +217,7 @@ var _ = Describe("Game Model", func() {
 				game.PublicID,
 				"game-new-name",
 				map[string]interface{}{"Member": 1, "Elder": 2, "CoLeader": 3},
-				map[string]interface{}{"x": 1},
+				map[string]interface{}{"x": "a"},
 				5, 4, 7, 1, 1, 1, 100, 1, 5, 15, 8, 25, 20,
 				"x", "y,z",
 			)
@@ -259,7 +259,7 @@ var _ = Describe("Game Model", func() {
 				gameID,
 				gameID,
 				map[string]interface{}{"Member": 1, "Elder": 2, "CoLeader": 3},
-				map[string]interface{}{"x": 1},
+				map[string]interface{}{"x": "a"},
 				5, 4, 7, 1, 1, 1, 100, 1, 10, 30, 8, 25, 20,
 				"x", "y,z",
 			)
@@ -302,7 +302,7 @@ var _ = Describe("Game Model", func() {
 				game.PublicID,
 				strings.Repeat("a", 256),
 				map[string]interface{}{"Member": 1, "Elder": 2, "CoLeader": 3},
-				map[string]interface{}{"x": 1},
+				map[string]interface{}{"x": "a"},
 				5, 4, 7, 1, 1, 0, 100, 1, 0, 0, 8, 25, 20,
 				"x", "y,z",
 			)

@@ -54,7 +54,7 @@ var _ = Describe("Clan API Handler", func() {
 				"publicID":         clanPublicID,
 				"name":             randomdata.FullName(randomdata.RandomGender),
 				"ownerPublicID":    player.PublicID,
-				"metadata":         map[string]interface{}{"x": 1},
+				"metadata":         map[string]interface{}{"x": "a"},
 				"allowApplication": true,
 				"autoJoin":         true,
 			}
@@ -89,7 +89,7 @@ var _ = Describe("Clan API Handler", func() {
 				"publicID":         clanPublicID,
 				"name":             randomdata.FullName(randomdata.RandomGender),
 				"ownerPublicID":    player.PublicID,
-				"metadata":         map[string]interface{}{"x": 1},
+				"metadata":         map[string]interface{}{"x": "a"},
 				"allowApplication": true,
 				"autoJoin":         true,
 			}
@@ -155,7 +155,7 @@ var _ = Describe("Clan API Handler", func() {
 				"publicID":         randomdata.FullName(randomdata.RandomGender),
 				"name":             randomdata.FullName(randomdata.RandomGender),
 				"ownerPublicID":    randomdata.FullName(randomdata.RandomGender),
-				"metadata":         map[string]interface{}{"x": 1},
+				"metadata":         map[string]interface{}{"x": "a"},
 				"allowApplication": true,
 				"autoJoin":         true,
 			}
@@ -176,7 +176,7 @@ var _ = Describe("Clan API Handler", func() {
 				"publicID":         randomdata.FullName(randomdata.RandomGender),
 				"name":             strings.Repeat("a", 256),
 				"ownerPublicID":    player.PublicID,
-				"metadata":         map[string]interface{}{"x": 1},
+				"metadata":         map[string]interface{}{"x": "a"},
 				"allowApplication": true,
 				"autoJoin":         true,
 			}
@@ -388,7 +388,7 @@ var _ = Describe("Clan API Handler", func() {
 
 			gameID := clan.GameID
 			publicID := clan.PublicID
-			metadata := map[string]interface{}{"x": 1}
+			metadata := map[string]interface{}{"x": "a"}
 
 			payload := map[string]interface{}{
 				"name":             clan.Name,
@@ -418,7 +418,7 @@ var _ = Describe("Clan API Handler", func() {
 			payload := map[string]interface{}{
 				"name":             strings.Repeat("s", 256),
 				"ownerPublicID":    owner.PublicID,
-				"metadata":         map[string]interface{}{"x": 1},
+				"metadata":         map[string]interface{}{"x": "a"},
 				"allowApplication": clan.AllowApplication,
 				"autoJoin":         clan.AutoJoin,
 			}
@@ -739,7 +739,7 @@ var _ = Describe("Clan API Handler", func() {
 				"publicID":         clanPublicID,
 				"name":             randomdata.FullName(randomdata.RandomGender),
 				"ownerPublicID":    player.PublicID,
-				"metadata":         map[string]interface{}{"x": 1},
+				"metadata":         map[string]interface{}{"x": "a"},
 				"allowApplication": true,
 				"autoJoin":         true,
 			}
