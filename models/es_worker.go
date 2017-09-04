@@ -3,6 +3,7 @@ package models
 import (
 	"context"
 	"time"
+	"encoding/json"
 
 	"github.com/jrallison/go-workers"
 	"github.com/topfreegames/khan/es"
@@ -35,31 +36,48 @@ func (w *ESWorker) PerformUpdateES(m *workers.Msg) {
 
 	index := data["index"].(string)
 	op := data["op"].(string)
-	clan := data["clan"].(string)
+	clan := data["clan"].(map[string]interface {})
 	clanID := data["clanID"].(string)
 
 	l := w.Logger.With(
 		zap.String("index", index),
 		zap.String("operation", op),
-		zap.String("clan", clan),
+		zap.String("clanId", clanID),
 		zap.String("source", "PerformUpdateES"),
 	)
 
 	if w.ES != nil {
 		start := time.Now()
 		if op == "index" {
+			body, er := json.Marshal(clan)
+			if er != nil {
+				l.Error("Failed to get clan JSON and index into Elastic Search", zap.Error(er))
+				return
+			}
 			_, err := w.ES.Client.
 				Index().
 				Index(index).
 				Type("clan").
 				Id(clanID).
-				BodyString(clan).
+				BodyString(string(body)).
 				Do(context.TODO())
 			if err != nil {
 				l.Error("Failed to index clan into Elastic Search")
 				return
 			}
 			l.Info("Successfully indexed clan into Elastic Search.", zap.Duration("latency", time.Now().Sub(start)))
+		} else if op == "update" {
+			_, err := w.ES.Client.
+				Update().
+				Index(index).
+				Type("clan").
+				Id(clanID).
+				Doc(clan).
+				Do(context.TODO())
+			if err != nil {
+				l.Error("Failed to update clan from Elastic Search.", zap.Error(err))
+			}
+			l.Info("Successfully updated clan from Elastic Search.", zap.Duration("latency", time.Now().Sub(start)))
 		} else if op == "delete" {
 			_, err := w.ES.Client.
 				Delete().

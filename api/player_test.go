@@ -44,7 +44,7 @@ var _ = Describe("Player API Handler", func() {
 			payload := map[string]interface{}{
 				"publicID": randomdata.FullName(randomdata.RandomGender),
 				"name":     randomdata.FullName(randomdata.RandomGender),
-				"metadata": map[string]interface{}{"x": 1},
+				"metadata": map[string]interface{}{"x": "a"},
 			}
 			status, body := PostJSON(a, GetGameRoute(game.PublicID, "/players"), payload)
 
@@ -94,7 +94,7 @@ var _ = Describe("Player API Handler", func() {
 			payload := map[string]interface{}{
 				"publicID": strings.Repeat("s", 256),
 				"name":     randomdata.FullName(randomdata.RandomGender),
-				"metadata": map[string]interface{}{"x": 1},
+				"metadata": map[string]interface{}{"x": "a"},
 			}
 			status, body := PostJSON(a, GetGameRoute(game.PublicID, "/players"), payload)
 

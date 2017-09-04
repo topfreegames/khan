@@ -70,7 +70,7 @@ func getClanPayload(ownerID, clanPublicID string) map[string]interface{} {
 		"publicID":         clanPublicID,
 		"name":             clanPublicID,
 		"ownerPublicID":    ownerID,
-		"metadata":         map[string]interface{}{"x": 1},
+		"metadata":         map[string]interface{}{"x": "a"},
 		"allowApplication": true,
 		"autoJoin":         true,
 	}
@@ -80,7 +80,7 @@ func getPlayerPayload(playerPublicID string) map[string]interface{} {
 	return map[string]interface{}{
 		"publicID": playerPublicID,
 		"name":     playerPublicID,
-		"metadata": map[string]interface{}{"x": 1},
+		"metadata": map[string]interface{}{"x": "a"},
 	}
 }
 
