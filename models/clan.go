@@ -18,6 +18,7 @@ import (
 	"github.com/mailru/easyjson/jlexer"
 	"github.com/mailru/easyjson/jwriter"
 	"github.com/topfreegames/khan/es"
+	"github.com/topfreegames/khan/mongo"
 	"github.com/topfreegames/khan/queues"
 	"github.com/topfreegames/khan/util"
 	"github.com/uber-go/zap"
@@ -34,18 +35,18 @@ func (a ClanByName) Less(i, j int) bool { return a[i].Name < a[j].Name }
 // Clan identifies uniquely one clan in a given game
 //easyjson:json
 type Clan struct {
-	ID               int                    `db:"id" json:"id"`
-	GameID           string                 `db:"game_id" json:"gameId"`
-	PublicID         string                 `db:"public_id" json:"publicId"`
-	Name             string                 `db:"name" json:"name"`
-	OwnerID          int                    `db:"owner_id" json:"ownerId"`
-	MembershipCount  int                    `db:"membership_count" json:"membershipCount"`
-	Metadata         map[string]interface{} `db:"metadata" json:"metadata"`
-	AllowApplication bool                   `db:"allow_application" json:"allowApplication"`
-	AutoJoin         bool                   `db:"auto_join" json:"autoJoin"`
-	CreatedAt        int64                  `db:"created_at" json:"createdAt"`
-	UpdatedAt        int64                  `db:"updated_at" json:"updatedAt"`
-	DeletedAt        int64                  `db:"deleted_at" json:"deletedAt"`
+	ID               int                    `db:"id" json:"id" bson:"id"`
+	GameID           string                 `db:"game_id" json:"gameId" bson:"gameId"`
+	PublicID         string                 `db:"public_id" json:"publicId" bson:"publicId"`
+	Name             string                 `db:"name" json:"name" bson:"name"`
+	OwnerID          int                    `db:"owner_id" json:"ownerId" bson:"ownerId"`
+	MembershipCount  int                    `db:"membership_count" json:"membershipCount" bson:"membershipCount"`
+	Metadata         map[string]interface{} `db:"metadata" json:"metadata" bson:"metadata"`
+	AllowApplication bool                   `db:"allow_application" json:"allowApplication" bson:"allowApplication"`
+	AutoJoin         bool                   `db:"auto_join"  json:"autoJoin" bson:"autoJoin"`
+	CreatedAt        int64                  `db:"created_at" json:"createdAt" bson:"createdAt"`
+	UpdatedAt        int64                  `db:"updated_at" json:"updatedAt" bson:"updatedAt"`
+	DeletedAt        int64                  `db:"deleted_at" json:"deletedAt" bson:"deletedAt"`
 }
 
 //ToJSON returns the clan as JSON
@@ -73,6 +74,10 @@ func (c *Clan) PreInsert(s gorp.SqlExecutor) error {
 //PostInsert indexes clan in ES after creation in PG
 func (c *Clan) PostInsert(s gorp.SqlExecutor) error {
 	err := c.IndexClanIntoElasticSearch()
+	if err != nil {
+		return err
+	}
+	err = c.UpdateClanIntoMongoDB()
 	return err
 }
 
@@ -85,12 +90,20 @@ func (c *Clan) PreUpdate(s gorp.SqlExecutor) error {
 //PostUpdate indexes clan in ES after update in PG
 func (c *Clan) PostUpdate(s gorp.SqlExecutor) error {
 	err := c.UpdateClanIntoElasticSearch()
+	if err != nil {
+		return err
+	}
+	err = c.UpdateClanIntoMongoDB()
 	return err
 }
 
 //PostDelete deletes clan from elasticsearch after deleting from PG
 func (c *Clan) PostDelete(s gorp.SqlExecutor) error {
 	err := c.DeleteClanFromElasticSearch()
+	if err != nil {
+		return err
+	}
+	err = c.DeleteClanFromMongoDB()
 	return err
 }
 
@@ -113,6 +126,34 @@ func (c *Clan) IndexClanIntoElasticSearch() error {
 		workers.Enqueue(queues.KhanESQueue, "Add", map[string]interface{}{
 			"index":  es.GetIndexName(c.GameID),
 			"op":     "index",
+			"clan":   c,
+			"clanID": c.PublicID,
+		})
+	}
+	return nil
+}
+
+// UpdateClanIntoMongoDB after operation in PG
+func (c *Clan) UpdateClanIntoMongoDB() error {
+	mongo := mongo.GetConfiguredMongoClient()
+	if mongo != nil {
+		workers.Enqueue(queues.KhanMongoQueue, "Add", map[string]interface{}{
+			"game":   c.GameID,
+			"op":     "update",
+			"clan":   c,
+			"clanID": c.PublicID,
+		})
+	}
+	return nil
+}
+
+//DeleteClanFromMongoDB after deletion in PG
+func (c *Clan) DeleteClanFromMongoDB() error {
+	mongo := mongo.GetConfiguredMongoClient()
+	if mongo != nil {
+		workers.Enqueue(queues.KhanMongoQueue, "Add", map[string]interface{}{
+			"game":   c.GameID,
+			"op":     "delete",
 			"clan":   c,
 			"clanID": c.PublicID,
 		})
@@ -159,6 +200,17 @@ func updateClanIntoES(db DB, id int) error {
 	return clan.UpdateClanIntoElasticSearch()
 }
 
+func updateClanIntoMongo(db DB, id int) error {
+	clan, err := GetClanByID(db, id)
+	if err != nil {
+		return err
+	}
+	if clan == nil {
+		return &ModelNotFoundError{"Clan", id}
+	}
+	return clan.UpdateClanIntoMongoDB()
+}
+
 // Serialize returns a JSON with clan details
 func (c *Clan) Serialize() map[string]interface{} {
 	return map[string]interface{}{
@@ -199,6 +251,12 @@ func UpdateClanMembershipCount(db DB, id int) error {
 	}
 
 	err = updateClanIntoES(db, id)
+
+	if err != nil {
+		return err
+	}
+
+	err = updateClanIntoMongo(db, id)
 
 	if err != nil {
 		return err

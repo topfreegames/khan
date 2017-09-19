@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"gopkg.in/gorp.v1"
+	mgo "gopkg.in/mgo.v2"
 
 	"github.com/getsentry/raven-go"
 	"github.com/jrallison/go-workers"
@@ -30,6 +31,7 @@ import (
 	"github.com/topfreegames/khan/es"
 	"github.com/topfreegames/khan/log"
 	"github.com/topfreegames/khan/models"
+	"github.com/topfreegames/khan/mongo"
 	"github.com/topfreegames/khan/queues"
 	"github.com/topfreegames/khan/util"
 	"github.com/uber-go/zap"
@@ -50,8 +52,10 @@ type App struct {
 	Config         *viper.Viper
 	Dispatcher     *Dispatcher
 	ESWorker       *models.ESWorker
+	MongoWorker    *models.MongoWorker
 	Logger         zap.Logger
 	ESClient       *es.Client
+	MongoDB        *mgo.Database
 	ReadBufferSize int
 	Fast           bool
 	NewRelic       newrelic.Application
@@ -84,8 +88,10 @@ func (app *App) Configure() {
 	app.connectDatabase()
 	app.configureApplication()
 	app.configureElasticsearch()
+	app.configureMongoDB()
 	app.initDispatcher()
 	app.initESWorker()
+	app.initMongoWorker()
 	app.configureGoWorkers()
 }
 
@@ -141,6 +147,19 @@ func (app *App) configureElasticsearch() {
 			app.Debug,
 			app.NewRelic,
 		)
+	}
+}
+
+func (app *App) configureMongoDB() {
+	var err error
+	if app.Config.GetBool("mongodb.enabled") == true {
+		app.MongoDB, err = mongo.GetMongo(
+			app.Logger,
+			app.Config,
+		)
+		if err != nil {
+			app.Logger.Error(err.Error())
+		}
 	}
 }
 
@@ -425,6 +444,7 @@ func (app *App) configureGoWorkers() {
 
 	workers.Process(queues.KhanQueue, app.Dispatcher.PerformDispatchHook, workerCount)
 	workers.Process(queues.KhanESQueue, app.ESWorker.PerformUpdateES, workerCount)
+	workers.Process(queues.KhanMongoQueue, app.MongoWorker.PerformUpdateMongo, workerCount)
 	l.Info("Worker configured.")
 }
 
@@ -459,6 +479,18 @@ func (app *App) initESWorker() {
 	esWorker := models.NewESWorker(app.Logger)
 	log.I(l, "ES Worker initialized successfully")
 	app.ESWorker = esWorker
+}
+
+func (app *App) initMongoWorker() {
+	l := app.Logger.With(
+		zap.String("source", "app"),
+		zap.String("operation", "initMongoWorker"),
+	)
+
+	log.D(l, "Initializing mongo worker...")
+	mongoWorker := models.NewMongoWorker(app.Logger, app.Config)
+	log.I(l, "Mongo Worker initialized successfully")
+	app.MongoWorker = mongoWorker
 }
 
 func (app *App) initDispatcher() {

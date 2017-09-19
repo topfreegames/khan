@@ -18,6 +18,9 @@ import (
 	"strings"
 	"time"
 
+	mgo "gopkg.in/mgo.v2"
+
+	"github.com/spf13/viper"
 	"github.com/uber-go/zap"
 
 	"github.com/labstack/echo/engine/standard"
@@ -25,11 +28,24 @@ import (
 	"github.com/topfreegames/khan/api"
 	"github.com/topfreegames/khan/es"
 	"github.com/topfreegames/khan/models"
+	"github.com/topfreegames/khan/mongo"
 	kt "github.com/topfreegames/khan/testing"
 )
 
 func GetTestES() *es.Client {
 	return es.GetTestClient("localhost", 9200, "", false, zap.New(zap.NewJSONEncoder(), zap.ErrorLevel), false)
+}
+
+func GetTestMongo() (*mgo.Database, error) {
+	config := viper.New()
+	config.SetConfigType("yaml")
+	config.SetConfigFile("../config/test.yaml")
+	err := config.ReadInConfig()
+	if err != nil {
+		return nil, err
+	}
+	l := kt.NewMockLogger()
+	return mongo.GetMongo(l, config)
 }
 
 func DestroyTestES() {

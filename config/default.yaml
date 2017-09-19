@@ -12,6 +12,12 @@ elasticsearch:
   sniff: false
   index: "khan"
 
+mongodb:
+  enabled: false
+  url: mongodb://localhost:27017
+  databaseName: "khan"
+  collectionTemplate: "clans_%s"
+
 khan:
   maxPendingInvites: -1
   defaultCooldownBeforeInvite: 0

@@ -17,4 +17,7 @@ services:
     image: redis
     ports:
       - "50505:6379"
-#
+  mongo:
+    image: mongo
+    ports:
+      - "27017:27017"

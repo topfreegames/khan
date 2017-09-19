@@ -38,3 +38,4 @@ import:
   version: ^0.5.0
 - package: gopkg.in/olivere/elastic.v5
   version: ^5.0.39
+- package: gopkg.in/mgo.v2

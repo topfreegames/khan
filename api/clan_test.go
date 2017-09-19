@@ -79,6 +79,46 @@ var _ = Describe("Clan API Handler", func() {
 			Expect(dbClan.AutoJoin).To(Equal(payload["autoJoin"]))
 		})
 
+		It("Should create clan into mongodb if its configured", func() {
+			mongo, err := GetTestMongo()
+			Expect(err).NotTo(HaveOccurred())
+			_, player, err := models.CreatePlayerFactory(testDb, "")
+			Expect(err).NotTo(HaveOccurred())
+
+			metadata := map[string]interface{}{"x": "a"}
+
+			clanPublicID := randomdata.FullName(randomdata.RandomGender)
+			payload := map[string]interface{}{
+				"publicID":         clanPublicID,
+				"name":             randomdata.FullName(randomdata.RandomGender),
+				"ownerPublicID":    player.PublicID,
+				"metadata":         metadata,
+				"allowApplication": true,
+				"autoJoin":         true,
+			}
+			status, body := PostJSON(a, GetGameRoute(player.GameID, "/clans"), payload)
+
+			Expect(status).To(Equal(http.StatusOK))
+			var result map[string]interface{}
+			json.Unmarshal([]byte(body), &result)
+			Expect(result["success"]).To(BeTrue())
+			Expect(result["publicID"]).To(Equal(clanPublicID))
+
+			colName := fmt.Sprintf("clans_%s", player.GameID)
+
+			var res *models.Clan
+			Eventually(func() *models.Clan {
+				err = mongo.C(colName).FindId(clanPublicID).One(&res)
+				return res
+			}).Should(Not(BeNil()))
+
+			Expect(err).NotTo(HaveOccurred())
+			Expect(res).NotTo(BeNil())
+			Expect(res.PublicID).To(Equal(clanPublicID))
+			Expect(res.GameID).To(Equal(player.GameID))
+			Expect(res.Metadata).To(BeEquivalentTo(metadata))
+		})
+
 		It("Should index clan into ES when created", func() {
 			es := GetTestES()
 			_, player, err := models.CreatePlayerFactory(testDb, "")
@@ -313,6 +353,61 @@ var _ = Describe("Clan API Handler", func() {
 			Expect(dbClan.AutoJoin).To(Equal(!clan.AutoJoin))
 		})
 
+		It("Should update Mongo if update clan", func() {
+			mongo, err := GetTestMongo()
+			Expect(err).NotTo(HaveOccurred())
+			_, clan, owner, _, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
+			Expect(err).NotTo(HaveOccurred())
+
+			gameID := clan.GameID
+			publicID := clan.PublicID
+			colName := fmt.Sprintf("clans_%s", gameID)
+
+			var res *models.Clan
+			Eventually(func() *models.Clan {
+				err = mongo.C(colName).FindId(publicID).One(&res)
+				return res
+			}).Should(Not(BeNil()))
+
+			Expect(err).NotTo(HaveOccurred())
+			Expect(res).NotTo(BeNil())
+			Expect(res.Name).To(Equal(clan.Name))
+			Expect(res.OwnerID).To(Equal(owner.ID))
+			Expect(res.PublicID).To(Equal(publicID))
+			Expect(res.AutoJoin).To(Equal(clan.AutoJoin))
+
+			clanName := randomdata.FullName(randomdata.RandomGender)
+			ownerPublicID := owner.PublicID
+			metadata := map[string]interface{}{"new": "metadata"}
+
+			payload := map[string]interface{}{
+				"name":             clanName,
+				"ownerPublicID":    ownerPublicID,
+				"metadata":         metadata,
+				"allowApplication": !clan.AllowApplication,
+				"autoJoin":         !clan.AutoJoin,
+			}
+			route := GetGameRoute(gameID, fmt.Sprintf("/clans/%s", clan.PublicID))
+			status, body := PutJSON(a, route, payload)
+
+			Expect(status).To(Equal(http.StatusOK))
+			var result map[string]interface{}
+			json.Unmarshal([]byte(body), &result)
+			Expect(result["success"]).To(BeTrue())
+			Eventually(func() *models.Clan {
+				err = mongo.C(colName).FindId(publicID).One(&res)
+				return res
+			}).Should(SatisfyAll(
+				Not(BeNil()),
+				WithTransform(func(res *models.Clan) string {
+					return res.Name
+				}, Equal(clanName)),
+				WithTransform(func(res *models.Clan) map[string]interface{} {
+					return res.Metadata
+				}, BeEquivalentTo(metadata)),
+			))
+		})
+
 		It("Should update ES if update clan", func() {
 			es := GetTestES()
 
@@ -327,7 +422,7 @@ var _ = Describe("Clan API Handler", func() {
 
 			indexName := "khan-test"
 			Eventually(func() *elastic.GetResult {
-				res,_ := es.Client.Get().Index(indexName).Type("clan").Id(publicID).Do(context.TODO())
+				res, _ := es.Client.Get().Index(indexName).Type("clan").Id(publicID).Do(context.TODO())
 				return res
 			}).Should(Not(BeNil()))
 
@@ -347,7 +442,7 @@ var _ = Describe("Clan API Handler", func() {
 			Expect(result["success"]).To(BeTrue())
 
 			Eventually(func() *elastic.GetResult {
-				res,_ := es.Client.Get().Index(indexName).Type("clan").Id(publicID).Do(context.TODO())
+				res, _ := es.Client.Get().Index(indexName).Type("clan").Id(publicID).Do(context.TODO())
 				return res
 			}).Should(SatisfyAll(
 				Not(BeNil()),
@@ -361,13 +456,13 @@ var _ = Describe("Clan API Handler", func() {
 					return res.Id
 				}, Equal(publicID)),
 				WithTransform(func(res *elastic.GetResult) *models.Clan {
-					updClan,_ := models.GetClanFromJSON(*res.Source)
+					updClan, _ := models.GetClanFromJSON(*res.Source)
 					return updClan
 				}, SatisfyAll(
-					WithTransform(func(updClan *models.Clan) interface {} {
+					WithTransform(func(updClan *models.Clan) interface{} {
 						return updClan.Metadata["new"]
 					}, BeEquivalentTo(metadata["new"])),
-					WithTransform(func(updClan *models.Clan) interface {} {
+					WithTransform(func(updClan *models.Clan) interface{} {
 						return updClan.Metadata
 					}, HaveKeyWithValue("x", "a")),
 					WithTransform(func(updClan *models.Clan) bool {

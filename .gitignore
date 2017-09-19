@@ -22,6 +22,7 @@ _testmain.go
 *.exe
 *.test
 *.prof
+.DS_Store
 coverage*.out
 vendor/
 /khan
