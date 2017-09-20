@@ -14,6 +14,7 @@ import (
 type MongoWorker struct {
 	Logger                  zap.Logger
 	MongoDB                 *mgo.Database
+	MongoSession            *mgo.Session
 	MongoCollectionTemplate string
 }
 
@@ -28,13 +29,15 @@ func NewMongoWorker(logger zap.Logger, config *viper.Viper) *MongoWorker {
 
 func (w *MongoWorker) configureMongoWorker(config *viper.Viper) {
 	w.MongoCollectionTemplate = config.GetString("mongodb.collectionTemplate")
-	w.MongoDB = mongo.GetConfiguredMongoClient()
+	w.MongoDB, w.MongoSession = mongo.GetConfiguredMongoClient()
 }
 
 // PerformUpdateMongo updates the clan into elasticsearc
 func (w *MongoWorker) PerformUpdateMongo(m *workers.Msg) {
 	item := m.Args()
 	data := item.MustMap()
+	mongoSess := w.MongoSession.Clone()
+	defer mongoSess.Close()
 
 	game := data["game"].(string)
 	op := data["op"].(string)
@@ -49,7 +52,7 @@ func (w *MongoWorker) PerformUpdateMongo(m *workers.Msg) {
 	)
 
 	if w.MongoDB != nil {
-		mongoCol := w.MongoDB.C(fmt.Sprintf(w.MongoCollectionTemplate, game))
+		mongoCol := w.MongoDB.With(mongoSess).C(fmt.Sprintf(w.MongoCollectionTemplate, game))
 		if op == "update" {
 			l.Debug(fmt.Sprintf("updating clan %s into mongodb", clanID))
 			info, err := mongoCol.UpsertId(clanID, clan)
@@ -60,7 +63,7 @@ func (w *MongoWorker) PerformUpdateMongo(m *workers.Msg) {
 			}
 		} else if op == "delete" {
 			l.Debug(fmt.Sprintf("deleting clan %s from mongodb", clanID))
-			err := mongoCol.RemoveId(clanID)
+			err := mongoCol.With(mongoSess).RemoveId(clanID)
 			if err != nil {
 				panic(err)
 			}

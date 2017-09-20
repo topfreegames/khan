@@ -10,13 +10,15 @@ import (
 
 var once sync.Once
 var mongo *mgo.Database
+var mongoSession *mgo.Session
 
 // GetMongo gets a mongo database model
 func GetMongo(logger zap.Logger, config *viper.Viper) (*mgo.Database, error) {
 	once.Do(func() {
+		var err error
 		mongoURL := config.GetString("mongodb.url")
 		mongoDB := config.GetString("mongodb.databaseName")
-		mongoSession, err := mgo.Dial(mongoURL)
+		mongoSession, err = mgo.Dial(mongoURL)
 		if err != nil {
 			logger.Error(err.Error())
 		}
@@ -27,6 +29,6 @@ func GetMongo(logger zap.Logger, config *viper.Viper) (*mgo.Database, error) {
 }
 
 // GetConfiguredMongoClient gets a configured mongo client
-func GetConfiguredMongoClient() *mgo.Database {
-	return mongo
+func GetConfiguredMongoClient() (*mgo.Database, *mgo.Session) {
+	return mongo, mongoSession
 }

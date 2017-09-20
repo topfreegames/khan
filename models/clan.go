@@ -135,7 +135,7 @@ func (c *Clan) IndexClanIntoElasticSearch() error {
 
 // UpdateClanIntoMongoDB after operation in PG
 func (c *Clan) UpdateClanIntoMongoDB() error {
-	mongo := mongo.GetConfiguredMongoClient()
+	mongo, _ := mongo.GetConfiguredMongoClient()
 	if mongo != nil {
 		workers.Enqueue(queues.KhanMongoQueue, "Add", map[string]interface{}{
 			"game":   c.GameID,
@@ -149,7 +149,7 @@ func (c *Clan) UpdateClanIntoMongoDB() error {
 
 //DeleteClanFromMongoDB after deletion in PG
 func (c *Clan) DeleteClanFromMongoDB() error {
-	mongo := mongo.GetConfiguredMongoClient()
+	mongo, _ := mongo.GetConfiguredMongoClient()
 	if mongo != nil {
 		workers.Enqueue(queues.KhanMongoQueue, "Add", map[string]interface{}{
 			"game":   c.GameID,

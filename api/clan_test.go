@@ -110,7 +110,7 @@ var _ = Describe("Clan API Handler", func() {
 			Eventually(func() *models.Clan {
 				err = mongo.C(colName).FindId(clanPublicID).One(&res)
 				return res
-			}).Should(Not(BeNil()))
+			}, 5).Should(Not(BeNil()))
 
 			Expect(err).NotTo(HaveOccurred())
 			Expect(res).NotTo(BeNil())
@@ -367,7 +367,7 @@ var _ = Describe("Clan API Handler", func() {
 			Eventually(func() *models.Clan {
 				err = mongo.C(colName).FindId(publicID).One(&res)
 				return res
-			}).Should(Not(BeNil()))
+			}, 5).Should(Not(BeNil()))
 
 			Expect(err).NotTo(HaveOccurred())
 			Expect(res).NotTo(BeNil())
