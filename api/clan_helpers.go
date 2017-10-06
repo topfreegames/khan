@@ -99,7 +99,7 @@ func validateUpdateClanDispatch(game *models.Game, sourceClan *models.Clan, clan
 
 	if game.ClanUpdateMetadataFieldsHookTriggerWhitelist == "" {
 		log.D(cl, "Clan has no metadata whitelist for update hook")
-		return true
+		return false
 	}
 
 	log.D(cl, "Verifying fields for clan update hook dispatch...")
