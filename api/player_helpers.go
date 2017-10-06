@@ -33,7 +33,7 @@ func validateUpdatePlayerDispatch(game *models.Game, sourcePlayer *models.Player
 
 	if game.PlayerUpdateMetadataFieldsHookTriggerWhitelist == "" {
 		log.D(cl, "Player has no metadata whitelist for update hook")
-		return true
+		return false
 	}
 
 	log.D(cl, "Verifying fields for player update hook dispatch...")

@@ -267,7 +267,7 @@ var _ = Describe("Player API Handler", func() {
 
 		Describe("Update Player Hook", func() {
 			Describe("Without Whitelist", func() {
-				It("Should call update player hook", func() {
+				It("Should not call update player hook", func() {
 					hooks, err := models.GetHooksForRoutes(testDb, []string{
 						"http://localhost:52525/updated",
 					}, models.PlayerUpdatedHook)
@@ -291,21 +291,9 @@ var _ = Describe("Player API Handler", func() {
 					json.Unmarshal([]byte(body), &result)
 					Expect(result["success"]).To(BeTrue())
 
-					Eventually(func() int {
+					Consistently(func() int {
 						return len(*responses)
-					}).Should(Equal(1))
-
-					playerPayload := (*responses)[0]["payload"].(map[string]interface{})
-					Expect(playerPayload["gameID"]).To(Equal(gameID))
-					Expect(playerPayload["publicID"]).To(Equal(payload["publicID"]))
-					Expect(playerPayload["name"]).To(Equal(payload["name"]))
-					Expect(str(playerPayload["membershipCount"])).To(Equal("0"))
-					Expect(str(playerPayload["ownershipCount"])).To(Equal("0"))
-					playerMetadata := playerPayload["metadata"].(map[string]interface{})
-					metadata := payload["metadata"].(map[string]interface{})
-					for k, v := range playerMetadata {
-						Expect(v).To(Equal(metadata[k]))
-					}
+					}, 100*time.Millisecond, time.Millisecond).Should(Equal(0))
 				})
 			})
 			Describe("With Whitelist", func() {

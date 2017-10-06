@@ -888,7 +888,7 @@ var _ = Describe("Clan API Handler", func() {
 
 		Describe("Update Clan Hook", func() {
 			Describe("Without whitelist", func() {
-				It("Should call update clan hook", func() {
+				It("Should not call update clan hook", func() {
 					hooks, err := models.GetHooksForRoutes(testDb, []string{
 						"http://localhost:52525/clanupdated",
 					}, models.ClanUpdatedHook)
@@ -900,7 +900,7 @@ var _ = Describe("Clan API Handler", func() {
 
 					gameID := clan.GameID
 					publicID := clan.PublicID
-					clanName := randomdata.FullName(randomdata.RandomGender)
+					clanName := clan.Name
 					ownerPublicID := owner.PublicID
 					metadata := map[string]interface{}{"new": "metadata"}
 
@@ -919,23 +919,9 @@ var _ = Describe("Clan API Handler", func() {
 					json.Unmarshal([]byte(body), &result)
 					Expect(result["success"]).To(BeTrue())
 
-					Eventually(func() int {
+					Consistently(func() int {
 						return len(*responses)
-					}).Should(Equal(1))
-
-					hookRes := (*responses)[0]["payload"].(map[string]interface{})
-					Expect(hookRes["gameID"]).To(Equal(hooks[0].GameID))
-					rClan := hookRes["clan"].(map[string]interface{})
-					Expect(rClan["publicID"]).To(Equal(publicID))
-					Expect(rClan["name"]).To(Equal(payload["name"]))
-					Expect(str(rClan["membershipCount"])).To(Equal("1"))
-					Expect(rClan["allowApplication"]).To(Equal(payload["allowApplication"]))
-					Expect(rClan["autoJoin"]).To(Equal(payload["autoJoin"]))
-					clanMetadata := rClan["metadata"].(map[string]interface{})
-					metadata = payload["metadata"].(map[string]interface{})
-					for k, v := range clanMetadata {
-						Expect(str(v)).To(Equal(str(metadata[k])))
-					}
+					}, 100*time.Millisecond, time.Millisecond).Should(Equal(0))
 				})
 			})
 
