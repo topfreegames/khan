@@ -8,6 +8,7 @@
 package api
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -95,6 +96,11 @@ func (d *Dispatcher) interpolateURL(sourceURL string, payload map[string]interfa
 	return s, nil
 }
 
+func basicAuth(username, password string) string {
+	auth := username + ":" + password
+	return base64.StdEncoding.EncodeToString([]byte(auth))
+}
+
 // PerformDispatchHook dispatches web hooks for a specific game and event type
 func (d *Dispatcher) PerformDispatchHook(m *workers.Msg) {
 	app := d.app
@@ -134,12 +140,12 @@ func (d *Dispatcher) PerformDispatchHook(m *workers.Msg) {
 			Name: fmt.Sprintf("khan-%s", util.VERSION),
 		}
 
-		url, err := d.interpolateURL(hook.URL, payload)
+		requestURL, err := d.interpolateURL(hook.URL, payload)
 		if err != nil {
 			app.addError()
 			log.E(l, "Could not interpolate webhook.", func(cm log.CM) {
 				cm.Write(
-					zap.String("url", hook.URL),
+					zap.String("requestURL", hook.URL),
 					zap.Error(err),
 				)
 			})
@@ -149,19 +155,40 @@ func (d *Dispatcher) PerformDispatchHook(m *workers.Msg) {
 		payloadJSON, _ := json.Marshal(payload)
 
 		log.D(l, "Requesting Hook URL...", func(cm log.CM) {
-			cm.Write(zap.String("url", url))
+			cm.Write(zap.String("requestURL", requestURL))
 		})
 		req := fasthttp.AcquireRequest()
 		req.Header.SetMethod("POST")
-		req.SetRequestURI(url)
 		req.AppendBody(payloadJSON)
+
+		parsedURL, err := url.Parse(requestURL)
+		if err != nil {
+			app.addError()
+			log.E(l, "Could not parse request requestURL.", func(cm log.CM) {
+				cm.Write(
+					zap.String(requestURL, hook.URL),
+					zap.Error(err),
+				)
+			})
+		}
+		if parsedURL.User != nil {
+			username := parsedURL.User.Username()
+			password, setten := parsedURL.User.Password()
+			if setten == false {
+				password = ""
+			}
+			requestURL = fmt.Sprintf("%s://%s%s", parsedURL.Scheme, parsedURL.Host, parsedURL.RequestURI())
+			req.Header.Add("Authorization", "Basic "+basicAuth(username, password))
+		}
+
+		req.SetRequestURI(requestURL)
 		resp := fasthttp.AcquireResponse()
 
 		err = client.DoTimeout(req, resp, timeout)
 		if err != nil {
 			app.addError()
 			log.E(l, "Could not request webhook.", func(cm log.CM) {
-				cm.Write(zap.String("url", hook.URL), zap.Error(err))
+				cm.Write(zap.String("requestURL", hook.URL), zap.Error(err))
 			})
 			continue
 		}
@@ -170,7 +197,7 @@ func (d *Dispatcher) PerformDispatchHook(m *workers.Msg) {
 			app.addError()
 			log.E(l, "Could not request webhook.", func(cm log.CM) {
 				cm.Write(
-					zap.String("url", hook.URL),
+					zap.String("requestURL", hook.URL),
 					zap.Int("statusCode", resp.StatusCode()),
 					zap.String("body", string(resp.Body())),
 				)
@@ -181,7 +208,7 @@ func (d *Dispatcher) PerformDispatchHook(m *workers.Msg) {
 		log.I(l, "Webhook requested successfully.", func(cm log.CM) {
 			cm.Write(
 				zap.Int("statusCode", resp.StatusCode()),
-				zap.String("url", url),
+				zap.String("requestURL", requestURL),
 				zap.String("body", string(resp.Body())),
 			)
 		})
