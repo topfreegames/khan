@@ -9,6 +9,8 @@ package api
 
 import (
 	"fmt"
+	"net/http"
+	"net/http/pprof"
 	"os"
 	"strconv"
 	"strings"
@@ -35,6 +37,7 @@ import (
 	"github.com/topfreegames/khan/queues"
 	"github.com/topfreegames/khan/util"
 	"github.com/uber-go/zap"
+	"github.com/valyala/fasthttp/fasthttpadaptor"
 )
 
 // App is a struct that represents a Khan API Application
@@ -329,6 +332,11 @@ func (app *App) configureApplication() {
 	a.Post("/games/:gameID/clans/:clanPublicID/memberships/delete", DeleteMembershipHandler(app))
 	a.Post("/games/:gameID/clans/:clanPublicID/memberships/promote", PromoteOrDemoteMembershipHandler(app, "promote"))
 	a.Post("/games/:gameID/clans/:clanPublicID/memberships/demote", PromoteOrDemoteMembershipHandler(app, "demote"))
+
+	// Go Trace
+	a.Get("/debug/pprof/trace", fasthttp.WrapHandler(
+		fasthttpadaptor.NewFastHTTPHandler(http.HandlerFunc(pprof.Trace)),
+	))
 
 	app.Errors = metrics.NewEWMA15()
 
