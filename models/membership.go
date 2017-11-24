@@ -81,6 +81,7 @@ func GetValidMembershipByClanAndPlayerPublicID(db DB, gameID, clanPublicID, play
 
 	_, err := db.Select(&memberships, query, clanPublicID, playerPublicID, gameID)
 	if err != nil {
+		return nil, err
 	}
 	if memberships == nil || len(memberships) < 1 {
 		return nil, &ModelNotFoundError{"Membership", playerPublicID}
@@ -187,6 +188,24 @@ func playerReachedMaxInvites(db DB, game *Game, playerID int) error {
 	return nil
 }
 
+func playerReachedMaxClans(db DB, game *Game, player *Player) error {
+	playerID := player.ID
+	if player.MembershipCount+player.OwnershipCount >= game.MaxClansPerPlayer {
+		err := UpdatePlayerMembershipCount(db, playerID)
+		if err != nil {
+			return err
+		}
+		player, err = GetPlayerByID(db, playerID)
+		if err != nil {
+			return err
+		}
+		if player.MembershipCount+player.OwnershipCount >= game.MaxClansPerPlayer {
+			return &PlayerReachedMaxClansError{player.PublicID}
+		}
+	}
+	return nil
+}
+
 // GetNumberOfPendingInvites gets total number of pending invites for player
 func GetNumberOfPendingInvites(db DB, player *Player) (int, error) {
 	membershipCount, err := db.SelectInt(`
@@ -223,8 +242,9 @@ func ApproveOrDenyMembershipInvitation(db DB, game *Game, gameID, playerPublicID
 		return nil, err
 	}
 	if action == approveString {
-		if player.MembershipCount+player.OwnershipCount >= game.MaxClansPerPlayer {
-			return nil, &PlayerReachedMaxClansError{playerPublicID}
+		err = playerReachedMaxClans(db, game, player)
+		if err != nil {
+			return nil, err
 		}
 		reachedMaxMembersError := clanReachedMaxMemberships(db, game, nil, membership.ClanID)
 		if reachedMaxMembersError != nil {
@@ -263,8 +283,9 @@ func ApproveOrDenyMembershipApplication(db DB, game *Game, gameID, playerPublicI
 		if err != nil {
 			return nil, err
 		}
-		if player.MembershipCount+player.OwnershipCount >= game.MaxClansPerPlayer {
-			return nil, &PlayerReachedMaxClansError{playerPublicID}
+		err = playerReachedMaxClans(db, game, player)
+		if err != nil {
+			return nil, err
 		}
 		reachedMaxMembersError := clanReachedMaxMemberships(db, game, nil, membership.ClanID)
 		if reachedMaxMembersError != nil {
@@ -358,18 +379,20 @@ func validateMembership(db DB, game *Game, membership *Membership, clan *Clan, p
 		if err != nil {
 			return -1, false, err
 		}
-		if player.MembershipCount+player.OwnershipCount >= game.MaxClansPerPlayer {
-			return -1, false, &PlayerReachedMaxClansError{playerPublicID}
+		err = playerReachedMaxClans(db, game, player)
+		if err != nil {
+			return -1, false, err
 		}
 	} else {
 		player, err := GetPlayerByPublicID(db, game.PublicID, playerPublicID)
 		if err != nil {
 			return -1, false, err
 		}
-		if player.MembershipCount+player.OwnershipCount >= game.MaxClansPerPlayer {
-			return -1, false, &PlayerReachedMaxClansError{playerPublicID}
-		}
 		playerID = player.ID
+		err = playerReachedMaxClans(db, game, player)
+		if err != nil {
+			return -1, false, err
+		}
 	}
 
 	return playerID, previousMembership, nil
