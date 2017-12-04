@@ -919,6 +919,7 @@ func RetrieveClansSummariesHandler(app *App) func(c echo.Context) error {
 
 		status := 500
 		var clans []map[string]interface{}
+		var missingClans []string
 		err = WithSegment("clan-get-summaries", c, func() error {
 			log.D(l, "Retrieving clans summaries...")
 			clans, err = models.GetClansSummaries(
@@ -929,11 +930,12 @@ func RetrieveClansSummariesHandler(app *App) func(c echo.Context) error {
 
 			if err != nil {
 				if _, ok := err.(*models.CouldNotFindAllClansError); ok {
-					log.E(l, "Clans summaries retrieval failed, 404.", func(cm log.CM) {
+					e := err.(*models.CouldNotFindAllClansError)
+					log.W(l, "Could not find all clans summaries.", func(cm log.CM) {
 						cm.Write(zap.Error(err))
 					})
-					status = 404
-					return err
+					missingClans = e.ClanIDs
+					return nil
 				}
 
 				log.E(l, "Clans summaries retrieval failed, 500.", func(cm log.CM) {
@@ -946,13 +948,16 @@ func RetrieveClansSummariesHandler(app *App) func(c echo.Context) error {
 		if err != nil {
 			return FailWith(status, err.Error(), c)
 		}
-
 		log.I(l, "Clans summaries retrieved successfully.", func(cm log.CM) {
 			cm.Write(zap.Duration("duration", time.Now().Sub(start)))
 		})
 
 		clansResponse := map[string]interface{}{
 			"clans": clans,
+		}
+
+		if missingClans != nil && len(missingClans) > 0 {
+			clansResponse["missingClans"] = missingClans
 		}
 
 		return SucceedWith(clansResponse, c)

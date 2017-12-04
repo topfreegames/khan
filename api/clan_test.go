@@ -718,8 +718,11 @@ var _ = Describe("Clan API Handler", func() {
 			var result map[string]interface{}
 			json.Unmarshal([]byte(body), &result)
 
-			Expect(result["success"]).To(BeFalse())
-			Expect(status).To(Equal(http.StatusNotFound))
+			Expect(result["success"]).To(BeTrue())
+			Expect(result["missingClans"] == nil).To(BeFalse())
+			missingClans := result["missingClans"].([]interface{})
+			Expect(len(missingClans)).To(Equal(1))
+			Expect(status).To(Equal(http.StatusOK))
 		})
 
 		It("Should fail with 400 if empty query string", func() {
@@ -733,6 +736,58 @@ var _ = Describe("Clan API Handler", func() {
 			json.Unmarshal([]byte(body), &result)
 			Expect(result["success"]).To(BeFalse())
 			Expect(result["reason"]).To(Equal("No clanPublicIds provided"))
+		})
+
+		It("Should not fail if some clans do not exists", func() {
+			gameID := uuid.NewV4().String()
+			_, clan1, _, _, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 0, gameID, "clan1")
+			Expect(err).NotTo(HaveOccurred())
+			_, clan2, _, _, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 0, gameID, "clan2", true)
+			Expect(err).NotTo(HaveOccurred())
+			_, clan3, _, _, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 0, gameID, "clan3", true)
+			Expect(err).NotTo(HaveOccurred())
+
+			clanIDs := []string{clan1.PublicID, clan2.PublicID, clan3.PublicID, "unexistent_clan", "unexistent_clan2"}
+
+			url := fmt.Sprintf(
+				"%s?clanPublicIds=%s",
+				GetGameRoute(clan1.GameID, "clans-summary"),
+				strings.Join(clanIDs, ","),
+			)
+			status, body := Get(a, url)
+			Expect(status).To(Equal(http.StatusOK))
+
+			var result map[string]interface{}
+			json.Unmarshal([]byte(body), &result)
+			Expect(result["success"]).To(BeTrue())
+
+			resultClans := result["clans"].([]interface{})
+			Expect(len(resultClans)).To(Equal(3))
+
+			Expect(result["missingClans"] == nil).To(BeFalse())
+			missingClans := result["missingClans"].([]interface{})
+			Expect(len(missingClans)).To(Equal(2))
+
+			for _, resultClan := range resultClans {
+				resultClanMap := resultClan.(map[string]interface{})
+				Expect(resultClanMap["membershipCount"] == nil).To(BeFalse())
+				Expect(resultClanMap["publicID"] == nil).To(BeFalse())
+				Expect(resultClanMap["metadata"] == nil).To(BeFalse())
+				Expect(resultClanMap["name"] == nil).To(BeFalse())
+				Expect(resultClanMap["allowApplication"] == nil).To(BeFalse())
+				Expect(resultClanMap["autoJoin"] == nil).To(BeFalse())
+				Expect(len(resultClanMap)).To(Equal(6))
+
+				idExist := false
+				// check if publicID is in clanIDs
+				for _, clanID := range clanIDs {
+					if resultClanMap["publicID"] == clanID {
+						idExist = true
+					}
+				}
+				Expect(idExist).To(BeTrue())
+			}
+
 		})
 	})
 

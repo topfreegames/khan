@@ -167,11 +167,11 @@ func (e *MustWaitMembershipCooldownError) Error() string {
 // CouldNotFindAllClansError identifies that one or more of the requested clans do not exist
 type CouldNotFindAllClansError struct {
 	gameID  string
-	clanIDs []string
+	ClanIDs []string
 }
 
 func (e *CouldNotFindAllClansError) Error() string {
-	commaSeparatedClanIDs := strings.Join(e.clanIDs, ",")
+	commaSeparatedClanIDs := strings.Join(e.ClanIDs, ",")
 	return fmt.Sprintf(
 		"Could not find all requested clans or the given game. GameId: %s, Missing clans: %s",
 		e.gameID,
