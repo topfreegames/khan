@@ -352,7 +352,7 @@ func validateMembership(db DB, game *Game, membership *Membership, clan *Clan, p
 				return -1, false, &MustWaitMembershipCooldownError{timeToBeReady, playerPublicID, clan.PublicID}
 			}
 		} else if membership.DeletedAt > 0 && membership.DeletedBy != membership.PlayerID && playerPublicID == requestorPublicID {
-			// Allow immediate memebership creation if player is being invited
+			// Allow immediate membership creation if player is being invited
 			timeToBeReady := game.CooldownAfterDelete - int(nowInMilliseconds-membership.DeletedAt)/1000
 			if timeToBeReady > 0 {
 				return -1, false, &MustWaitMembershipCooldownError{timeToBeReady, playerPublicID, clan.PublicID}
@@ -361,8 +361,15 @@ func validateMembership(db DB, game *Game, membership *Membership, clan *Clan, p
 			// TODO: When allowing 'memberLeft' players to apply we do not avoid flooding in this case =/
 			memberLeft := membership.DeletedAt > 0 && membership.DeletedBy == membership.PlayerID
 
-			cd := game.CooldownBeforeInvite
-			if requestorPublicID == playerPublicID && !memberLeft {
+			cd := 0
+			previousInvite := membership.RequestorID != membership.PlayerID
+
+			// invite and previous invite
+			if previousInvite && requestorPublicID != playerPublicID {
+				cd = game.CooldownBeforeInvite
+			}
+			// application and previous application
+			if !previousInvite && requestorPublicID == playerPublicID && !memberLeft {
 				cd = game.CooldownBeforeApply
 			}
 
@@ -570,6 +577,9 @@ func createMembershipHelper(db DB, gameID, level string, playerID, clanID, reque
 		Message:     message,
 	}
 
+	if approved {
+		membership.ApproverID = sql.NullInt64{Int64: int64(requestorID), Valid: true}
+	}
 	err := db.Insert(membership)
 	if err != nil {
 		return nil, err
@@ -596,6 +606,9 @@ func updatePreviousMembershipHelper(db DB, membership *Membership, level string,
 	membership.DeletedAt = 0
 	membership.DeletedBy = 0
 	membership.Message = message
+	if approved {
+		membership.ApproverID = sql.NullInt64{Int64: int64(requestorID), Valid: true}
+	}
 
 	_, err := db.Update(membership)
 	if err != nil {
