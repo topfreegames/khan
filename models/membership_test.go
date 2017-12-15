@@ -407,13 +407,18 @@ var _ = Describe("Membership Model", func() {
 				Expect(dbMembership.ClanID).To(Equal(updMembership.ClanID))
 			})
 
-			It("Should fail if an application after an invitation has cooldown", func() {
+			It("Should not fail if an application after an invitation has cooldown", func() {
 				game, clan, owner, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
 				Expect(err).NotTo(HaveOccurred())
 
 				game.CooldownBeforeInvite = 2000
 				game.CooldownBeforeApply = 1000
 				_, err = testDb.Update(game)
+				Expect(err).NotTo(HaveOccurred())
+
+				clan.AutoJoin = true
+				clan.AllowApplication = true
+				_, err = testDb.Update(clan)
 				Expect(err).NotTo(HaveOccurred())
 
 				_, player, err := CreatePlayerFactory(testDb, game.PublicID, true)
@@ -430,7 +435,7 @@ var _ = Describe("Membership Model", func() {
 				)
 				Expect(err).NotTo(HaveOccurred())
 
-				_, err = CreateMembership(
+				updMembership, err := CreateMembership(
 					testDb,
 					game, game.PublicID,
 					"Member",
@@ -439,11 +444,19 @@ var _ = Describe("Membership Model", func() {
 					player.PublicID,
 					"",
 				)
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("must wait 1000 seconds before creating a membership in clan"))
+				Expect(err).NotTo(HaveOccurred())
+
+				dbMembership, err := GetMembershipByID(testDb, updMembership.ID)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(dbMembership.GameID).To(Equal(game.PublicID))
+				Expect(dbMembership.PlayerID).To(Equal(player.ID))
+				Expect(dbMembership.ClanID).To(Equal(clan.ID))
+				Expect(dbMembership.Approved).To(BeTrue())
+				Expect(dbMembership.ApproverID.Int64).To(BeEquivalentTo(player.ID))
 			})
 
-			It("Should fail if an invitation after an application has cooldown", func() {
+			It("Should not fail if an invitation after an application has cooldown", func() {
 				game, clan, owner, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
 				Expect(err).NotTo(HaveOccurred())
 
@@ -466,7 +479,7 @@ var _ = Describe("Membership Model", func() {
 				)
 				Expect(err).NotTo(HaveOccurred())
 
-				_, err = CreateMembership(
+				updMembership, err := CreateMembership(
 					testDb,
 					game, game.PublicID,
 					"Member",
@@ -475,8 +488,16 @@ var _ = Describe("Membership Model", func() {
 					owner.PublicID,
 					"",
 				)
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("must wait 2000 seconds before creating a membership in clan"))
+				Expect(err).NotTo(HaveOccurred())
+
+				dbMembership, err := GetMembershipByID(testDb, updMembership.ID)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(dbMembership.GameID).To(Equal(game.PublicID))
+				Expect(dbMembership.PlayerID).To(Equal(player.ID))
+				Expect(dbMembership.ClanID).To(Equal(clan.ID))
+				Expect(dbMembership.Approved).To(BeFalse())
+				Expect(dbMembership.ApproverID.Valid).To(BeFalse())
 			})
 		})
 
@@ -1494,57 +1515,6 @@ var _ = Describe("Membership Model", func() {
 		})
 
 		Describe("Should approve a Membership invitation with ApproveOrDenyMembershipInvitation if", func() {
-			It("Followed by an invite", func() {
-				game, clan, owner, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
-				Expect(err).NotTo(HaveOccurred())
-
-				game.CooldownBeforeApply = 3600
-				game.CooldownBeforeInvite = 3600
-				_, err = testDb.Update(game)
-				Expect(err).NotTo(HaveOccurred())
-
-				clan.AutoJoin = true
-				clan.AllowApplication = true
-				_, err = testDb.Update(clan)
-				Expect(err).NotTo(HaveOccurred())
-
-				_, player, err := CreatePlayerFactory(testDb, game.PublicID, true)
-				Expect(err).NotTo(HaveOccurred())
-
-				// invite
-				_, err = CreateMembership(
-					testDb,
-					game, game.PublicID,
-					"Member",
-					player.PublicID,
-					clan.PublicID,
-					owner.PublicID,
-					"",
-				)
-				Expect(err).NotTo(HaveOccurred())
-
-				// join
-				updMembership, err := CreateMembership(
-					testDb,
-					game, game.PublicID,
-					"Member",
-					player.PublicID,
-					clan.PublicID,
-					player.PublicID,
-					"",
-				)
-				Expect(err).NotTo(HaveOccurred())
-
-				dbMembership, err := GetMembershipByID(testDb, updMembership.ID)
-				Expect(err).NotTo(HaveOccurred())
-
-				Expect(dbMembership.GameID).To(Equal(game.PublicID))
-				Expect(dbMembership.PlayerID).To(Equal(player.ID))
-				Expect(dbMembership.ClanID).To(Equal(clan.ID))
-				Expect(dbMembership.Approved).To(BeTrue())
-				Expect(dbMembership.ApproverID.Int64).To(BeEquivalentTo(player.ID))
-			})
-
 			It("Player is not the membership requestor", func() {
 				action := "approve"
 				game, clan, _, players, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
