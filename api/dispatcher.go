@@ -158,6 +158,7 @@ func (d *Dispatcher) PerformDispatchHook(m *workers.Msg) {
 			cm.Write(zap.String("requestURL", requestURL))
 		})
 		req := fasthttp.AcquireRequest()
+		defer fasthttp.ReleaseRequest(req)
 		req.Header.SetMethod("POST")
 		req.AppendBody(payloadJSON)
 
@@ -174,7 +175,7 @@ func (d *Dispatcher) PerformDispatchHook(m *workers.Msg) {
 		if parsedURL.User != nil {
 			username := parsedURL.User.Username()
 			password, setten := parsedURL.User.Password()
-			if setten == false {
+			if !setten {
 				password = ""
 			}
 			requestURL = fmt.Sprintf("%s://%s%s", parsedURL.Scheme, parsedURL.Host, parsedURL.RequestURI())
@@ -183,6 +184,7 @@ func (d *Dispatcher) PerformDispatchHook(m *workers.Msg) {
 
 		req.SetRequestURI(requestURL)
 		resp := fasthttp.AcquireResponse()
+		defer fasthttp.ReleaseResponse(resp)
 
 		err = client.DoTimeout(req, resp, timeout)
 		if err != nil {
