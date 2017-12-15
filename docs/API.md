@@ -691,6 +691,8 @@ Khan API
   ### Retrieve Clan
   `GET /games/:gameID/clans/:clanPublicID`
 
+  Optional query string argument: shortID, if `true` then a prefix of the clanID is accepted.
+
   Retrieves the clan with the given publicID. It will list all the clan information and its members.
 
   The roster, as well as the memberships return a list of players, following this structure:

@@ -40,6 +40,7 @@ func NewBodyExtractionMiddleware() *BodyExtractionMiddleware {
 	return &BodyExtractionMiddleware{}
 }
 
+//BodyExtractionMiddleware extracts the body
 type BodyExtractionMiddleware struct{}
 
 // Serve serves the middleware

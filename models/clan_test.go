@@ -113,6 +113,24 @@ var _ = Describe("Clan Model", func() {
 			})
 		})
 
+		Describe("Get By Public Id", func() {
+			It("Should get an existing Clan by Game and PublicID prefix", func() {
+				_, clans, err := GetTestClans(testDb, "", "", 1)
+				Expect(err).NotTo(HaveOccurred())
+				clan := clans[0]
+
+				dbClan, err := GetClanByShortPublicID(testDb, clan.GameID, clan.PublicID[0:8])
+				Expect(err).NotTo(HaveOccurred())
+				Expect(dbClan.ID).To(Equal(clan.ID))
+			})
+
+			It("Should not get a non-existing Clan by Game and PublicID", func() {
+				_, err := GetClanByPublicID(testDb, "invalid-game", "invalid-clan")
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(Equal("Clan was not found with id: invalid-clan"))
+			})
+		})
+
 		Describe("Get By Public Ids", func() {
 			It("Should get existing Clans by Game and PublicIDs", func() {
 				gameID := uuid.NewV4().String()

@@ -700,6 +700,7 @@ func RetrieveClanHandler(app *App) func(c echo.Context) error {
 		start := time.Now()
 		gameID := c.Param("gameID")
 		publicID := c.Param("clanPublicID")
+		shortID := c.QueryParam("shortID")
 
 		l := app.Logger.With(
 			zap.String("source", "clanHandler"),
@@ -733,7 +734,11 @@ func RetrieveClanHandler(app *App) func(c echo.Context) error {
 
 		var clan *models.Clan
 		err = WithSegment("clan-retrieve", c, func() error {
-			clan, err = models.GetClanByPublicID(app.Db, gameID, publicID)
+			if shortID == "true" {
+				clan, err = models.GetClanByShortPublicID(app.Db, gameID, publicID)
+			} else {
+				clan, err = models.GetClanByPublicID(app.Db, gameID, publicID)
+			}
 			if err != nil {
 				log.W(l, "Could not find clan.")
 				return err

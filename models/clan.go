@@ -290,6 +290,21 @@ func GetClanByPublicID(db DB, gameID, publicID string) (*Clan, error) {
 	return clans[0], nil
 }
 
+// GetClanByShortPublicID returns a clan by the beginning of its public id
+func GetClanByShortPublicID(db DB, gameID, publicID string) (*Clan, error) {
+	var clans []*Clan
+	// String for between don't need to be be same length as UUID
+	startRange, endRange := publicID+"000000000000", publicID+"ffffffffffff"
+	_, err := db.Select(&clans, "SELECT * FROM clans WHERE game_id=$1 AND public_id BETWEEN $2 AND $3", gameID, startRange, endRange)
+	if err != nil {
+		return nil, err
+	}
+	if clans == nil || len(clans) < 1 {
+		return nil, &ModelNotFoundError{"Clan", publicID}
+	}
+	return clans[0], nil
+}
+
 func sliceDiff(slice1 []string, slice2 []string) []string {
 	var diff []string
 

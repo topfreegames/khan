@@ -610,6 +610,26 @@ var _ = Describe("Clan API Handler", func() {
 			Expect(result["publicID"]).To(BeNil())
 		})
 
+		It("Should get details for clan with short publicID", func() {
+			_, clan, _, _, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
+			Expect(err).NotTo(HaveOccurred())
+
+			status, body := Get(a, GetGameRoute(clan.GameID, fmt.Sprintf("/clans/%s?shortID=true", clan.PublicID[0:8])))
+
+			Expect(status).To(Equal(http.StatusOK))
+			var result map[string]interface{}
+			json.Unmarshal([]byte(body), &result)
+
+			Expect(result["success"]).To(BeTrue())
+
+			Expect(result["name"]).To(Equal(clan.Name))
+			resultMetadata := result["metadata"].(map[string]interface{})
+			for k, v := range resultMetadata {
+				Expect(v).To(Equal(clan.Metadata[k]))
+			}
+			Expect(result["publicID"]).To(BeNil())
+		})
+
 		It("Should get clan members", func() {
 			gameID := uuid.NewV4().String()
 			_, clan, _, _, _, err := models.GetClanWithMemberships(
