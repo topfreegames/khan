@@ -4,7 +4,7 @@ VERSION=$(cat ./util/version.go | grep "var VERSION" | awk ' { print $4 } ' | se
 
 cp ./config/default.yaml ./dev
 
-docker login -e="$DOCKER_EMAIL" -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
+docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
 
 docker build -t khan .
 docker tag khan:latest tfgco/khan:$VERSION.$TRAVIS_BUILD_NUMBER
