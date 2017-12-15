@@ -30,6 +30,7 @@ import (
 	"github.com/rcrowley/go-metrics"
 	"github.com/satori/go.uuid"
 	"github.com/spf13/viper"
+	"github.com/topfreegames/khan/es"
 	"github.com/topfreegames/khan/log"
 	"github.com/topfreegames/khan/models"
 	"github.com/topfreegames/khan/mongo"
@@ -56,6 +57,7 @@ type App struct {
 	ESWorker       *models.ESWorker
 	MongoWorker    *models.MongoWorker
 	Logger         zap.Logger
+	ESClient       *es.Client
 	MongoDB        *mgo.Database
 	ReadBufferSize int
 	Fast           bool
@@ -88,6 +90,7 @@ func (app *App) Configure() {
 	app.configureNewRelic()
 	app.connectDatabase()
 	app.configureApplication()
+	app.configureElasticsearch()
 	app.configureMongoDB()
 	app.initDispatcher()
 	app.initESWorker()
@@ -134,6 +137,20 @@ func (app *App) configureNewRelic() error {
 	l.Info("Initialized New Relic successfully.")
 
 	return nil
+}
+
+func (app *App) configureElasticsearch() {
+	if app.Config.GetBool("elasticsearch.enabled") == true {
+		app.ESClient = es.GetClient(
+			app.Config.GetString("elasticsearch.host"),
+			app.Config.GetInt("elasticsearch.port"),
+			app.Config.GetString("elasticsearch.index"),
+			app.Config.GetBool("elasticsearch.sniff"),
+			app.Logger,
+			app.Debug,
+			app.NewRelic,
+		)
+	}
 }
 
 func (app *App) configureMongoDB() {
