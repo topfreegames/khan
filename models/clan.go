@@ -294,7 +294,7 @@ func GetClanByPublicID(db DB, gameID, publicID string) (*Clan, error) {
 func GetClanByShortPublicID(db DB, gameID, publicID string) (*Clan, error) {
 	var clans []*Clan
 	// String for between don't need to be be same length as UUID
-	startRange, endRange := publicID+"000000000000", publicID+"ffffffffffff"
+	startRange, endRange := publicID+"-0000-0000-0000-000000000000", publicID+"-ffff-ffff-ffff-ffffffffffff"
 	_, err := db.Select(&clans, "SELECT * FROM clans WHERE game_id=$1 AND public_id BETWEEN $2 AND $3", gameID, startRange, endRange)
 	if err != nil {
 		return nil, err
@@ -694,6 +694,7 @@ func GetClanDetails(db DB, gameID string, clan *Clan, maxClansPerPlayer int) (ma
 	}
 
 	result := make(map[string]interface{})
+	result["publicID"] = details[0].ClanPublicID
 	result["name"] = details[0].ClanName
 	result["metadata"] = details[0].ClanMetadata
 	result["allowApplication"] = details[0].ClanAllowApplication

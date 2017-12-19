@@ -691,7 +691,7 @@ Khan API
   ### Retrieve Clan
   `GET /games/:gameID/clans/:clanPublicID`
 
-  Optional query string argument: shortID, if `true` then a prefix of the clanID is accepted.
+  Optional query string argument: shortID, if `true` then the first 8 characters of clanID are accepted.
 
   Retrieves the clan with the given publicID. It will list all the clan information and its members.
 
@@ -704,7 +704,7 @@ Khan API
         "player": {
           "publicID": [string],
           "name":     [string],
-          "metadata": [JSON]      
+          "metadata": [JSON],
           "approver": {  // player that approved this membership
             "publicID": [string],
             "name":     [string],
@@ -717,6 +717,7 @@ Khan API
     * Content:
       ```
       {
+        "publicID": [string],
         "success": true,
         "name": [string],
         "metadata": [JSON],

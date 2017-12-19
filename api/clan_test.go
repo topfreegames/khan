@@ -154,7 +154,6 @@ var _ = Describe("Clan API Handler", func() {
 			Expect(res.Index).To(Equal(indexName))
 			Expect(res.Type).To(Equal("clan"))
 			Expect(res.Id).To(Equal(clanPublicID))
-
 		})
 
 		It("Should not create clan if missing parameters", func() {
@@ -603,11 +602,11 @@ var _ = Describe("Clan API Handler", func() {
 			Expect(result["success"]).To(BeTrue())
 
 			Expect(result["name"]).To(Equal(clan.Name))
+			Expect(result["publicID"]).To(Equal(clan.PublicID))
 			resultMetadata := result["metadata"].(map[string]interface{})
 			for k, v := range resultMetadata {
 				Expect(v).To(Equal(clan.Metadata[k]))
 			}
-			Expect(result["publicID"]).To(BeNil())
 		})
 
 		It("Should get details for clan with short publicID", func() {
@@ -623,11 +622,11 @@ var _ = Describe("Clan API Handler", func() {
 			Expect(result["success"]).To(BeTrue())
 
 			Expect(result["name"]).To(Equal(clan.Name))
+			Expect(result["publicID"]).To(Equal(clan.PublicID))
 			resultMetadata := result["metadata"].(map[string]interface{})
 			for k, v := range resultMetadata {
 				Expect(v).To(Equal(clan.Metadata[k]))
 			}
-			Expect(result["publicID"]).To(BeNil())
 		})
 
 		It("Should get clan members", func() {

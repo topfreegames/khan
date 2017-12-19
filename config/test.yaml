@@ -44,3 +44,4 @@ webhooks:
   workers: 5
   statsPort: 9999
   runStats: false
+  logToBuf: true

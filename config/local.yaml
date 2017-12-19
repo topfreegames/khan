@@ -23,6 +23,7 @@ webhooks:
   workers: 5
   statsPort: 9999
   runStats: true
+  logToBuf: false
 
 healthcheck:
   workingText: "WORKING"

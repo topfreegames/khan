@@ -8,7 +8,9 @@
 package api
 
 import (
+	"bytes"
 	"fmt"
+	dlog "log"
 	"net/http"
 	"net/http/pprof"
 	"os"
@@ -449,6 +451,10 @@ func (app *App) configureGoWorkers() {
 	}
 	l.Debug("Configuring workers...")
 	workers.Configure(opts)
+	if app.Config.GetBool("webhooks.logToBuf") {
+		var buf bytes.Buffer
+		workers.Logger = dlog.New(&buf, "test: ", 0)
+	}
 
 	workers.Process(queues.KhanQueue, app.Dispatcher.PerformDispatchHook, workerCount)
 	workers.Process(queues.KhanESQueue, app.ESWorker.PerformUpdateES, workerCount)

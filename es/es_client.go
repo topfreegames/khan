@@ -35,7 +35,7 @@ func (es *Client) GetIndexName(gameID string) string {
 	return "khan-test"
 }
 
-// GetClient returns an elasticsearch client configures with the given the arguments
+// GetClient returns an elasticsearch client configured with the given the arguments
 func GetClient(host string, port int, index string, sniff bool, logger zap.Logger, debug bool, newRelic newrelic.Application) *Client {
 	once.Do(func() {
 		client = &Client{
@@ -52,7 +52,7 @@ func GetClient(host string, port int, index string, sniff bool, logger zap.Logge
 	return client
 }
 
-// GetTestClient returns a test elasticsearch client configures with the given the arguments
+// GetTestClient returns a test elasticsearch client configured with the given the arguments
 func GetTestClient(host string, port int, index string, sniff bool, logger zap.Logger, debug bool) *Client {
 	client = &Client{
 		Debug:    debug,

@@ -134,6 +134,9 @@ run-prune-docker:
 test: schema-update start-deps assets drop-test db-test
 	@SKIP_ELASTIC_LOG=true ginkgo -r --cover .
 
+run-test:
+	@SKIP_ELASTIC_LOG=true ginkgo -r --cover --v .
+
 test-coverage coverage: test
 	@echo "mode: count" > coverage-all.out
 	@bash -c 'for f in $$(find . -name "*.coverprofile"); do tail -n +2 $$f >> coverage-all.out; done'
