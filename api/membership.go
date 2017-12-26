@@ -113,7 +113,14 @@ func ApplyForMembershipHandler(app *App) func(c echo.Context) error {
 			return nil
 		})
 		if err != nil {
-			return FailWith(http.StatusInternalServerError, err.Error(), c)
+			switch err.(type) {
+			case *models.ModelNotFoundError:
+				return FailWith(http.StatusBadRequest, err.Error(), c)
+			case *models.AlreadyHasValidMembershipError:
+				return FailWith(http.StatusConflict, err.Error(), c)
+			default:
+				return FailWith(http.StatusInternalServerError, err.Error(), c)
+			}
 		}
 
 		err = WithSegment("hook-dispatch", c, func() error {
@@ -379,7 +386,14 @@ func ApproveOrDenyMembershipApplicationHandler(app *App) func(c echo.Context) er
 				return nil
 			})
 			if err != nil {
-				return err
+				switch err.(type) {
+				case *models.ModelNotFoundError:
+					return FailWith(http.StatusBadRequest, err.Error(), c)
+				case *models.CannotApproveOrDenyMembershipAlreadyProcessedError:
+					return FailWith(http.StatusConflict, err.Error(), c)
+				default:
+					return err
+				}
 			}
 
 			err = WithSegment("player-retrieve", c, func() error {

@@ -117,6 +117,42 @@ var _ = Describe("Membership API Handler", func() {
 			Expect(dbMembership.Message).To(Equal(payload["message"]))
 		})
 
+		It("Should conflict when player is already a member", func() {
+			_, clan, owner, players, memberships, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
+			Expect(err).NotTo(HaveOccurred())
+
+			memberships[0].RequestorID = memberships[0].PlayerID
+			_, err = testDb.Update(memberships[0])
+
+			gameID := clan.GameID
+			clanPublicID := clan.PublicID
+
+			payload := map[string]interface{}{
+				"playerPublicID":    players[0].PublicID,
+				"requestorPublicID": owner.PublicID,
+			}
+			status, body := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "application/approve"), payload)
+
+			Expect(status).To(Equal(http.StatusOK))
+			var result map[string]interface{}
+			json.Unmarshal([]byte(body), &result)
+			Expect(result["success"]).To(BeTrue())
+
+			dbMembership, err := models.GetValidMembershipByClanAndPlayerPublicID(a.Db, gameID, clanPublicID, players[0].PublicID)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(dbMembership.Approved).To(Equal(true))
+			Expect(dbMembership.Denied).To(Equal(false))
+
+			payload = map[string]interface{}{
+				"level":          "Member",
+				"playerPublicID": players[0].PublicID,
+				"message":        "Please accept me, I am nice",
+			}
+			status, body = PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "application"), payload)
+
+			Expect(status).To(Equal(http.StatusConflict))
+		})
+
 		It("Should create membership application sending a message after player left clan", func() {
 			_, clan, _, players, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 			Expect(err).NotTo(HaveOccurred())
@@ -229,7 +265,7 @@ var _ = Describe("Membership API Handler", func() {
 
 			status, body := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "application"), payload)
 
-			Expect(status).To(Equal(http.StatusInternalServerError))
+			Expect(status).To(Equal(http.StatusBadRequest))
 			var result map[string]interface{}
 			json.Unmarshal([]byte(body), &result)
 			Expect(result["success"]).To(BeFalse())
@@ -581,6 +617,36 @@ var _ = Describe("Membership API Handler", func() {
 			Expect(dbMembership.Denied).To(Equal(false))
 		})
 
+		It("Should conflict when player is already a member", func() {
+			_, clan, owner, players, memberships, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
+			Expect(err).NotTo(HaveOccurred())
+
+			memberships[0].RequestorID = memberships[0].PlayerID
+			_, err = testDb.Update(memberships[0])
+
+			gameID := clan.GameID
+			clanPublicID := clan.PublicID
+
+			payload := map[string]interface{}{
+				"playerPublicID":    players[0].PublicID,
+				"requestorPublicID": owner.PublicID,
+			}
+			status, body := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "application/approve"), payload)
+
+			Expect(status).To(Equal(http.StatusOK))
+			var result map[string]interface{}
+			json.Unmarshal([]byte(body), &result)
+			Expect(result["success"]).To(BeTrue())
+
+			dbMembership, err := models.GetValidMembershipByClanAndPlayerPublicID(a.Db, gameID, clanPublicID, players[0].PublicID)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(dbMembership.Approved).To(Equal(true))
+			Expect(dbMembership.Denied).To(Equal(false))
+
+			status, body = PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "application/approve"), payload)
+			Expect(status).To(Equal(http.StatusConflict))
+		})
+
 		It("Should deny membership application", func() {
 			_, clan, owner, players, memberships, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 			Expect(err).NotTo(HaveOccurred())
@@ -646,7 +712,7 @@ var _ = Describe("Membership API Handler", func() {
 
 			status, body := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "application/approve"), payload)
 
-			Expect(status).To(Equal(http.StatusInternalServerError))
+			Expect(status).To(Equal(http.StatusBadRequest))
 			var result map[string]interface{}
 			json.Unmarshal([]byte(body), &result)
 			Expect(result["success"]).To(BeFalse())
