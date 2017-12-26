@@ -200,7 +200,7 @@ var _ = Describe("Clan API Handler", func() {
 			}
 			status, body := PostJSON(a, GetGameRoute(game.PublicID, "/clans"), payload)
 
-			Expect(status).To(Equal(http.StatusInternalServerError))
+			Expect(status).To(Equal(http.StatusBadRequest))
 			var result map[string]interface{}
 			json.Unmarshal([]byte(body), &result)
 			Expect(result["success"]).To(BeFalse())
@@ -516,7 +516,7 @@ var _ = Describe("Clan API Handler", func() {
 
 			status, body := PutJSON(a, route, payload)
 
-			Expect(status).To(Equal(http.StatusInternalServerError))
+			Expect(status).To(Equal(http.StatusBadRequest))
 			var result map[string]interface{}
 			json.Unmarshal([]byte(body), &result)
 			Expect(result["success"]).To(BeFalse())
@@ -836,7 +836,7 @@ var _ = Describe("Clan API Handler", func() {
 
 		It("Should not get details for clan that does not exist", func() {
 			status, body := Get(a, GetGameRoute("game-id", "/clans/dont-exist/summary"))
-			Expect(status).To(Equal(http.StatusInternalServerError))
+			Expect(status).To(Equal(http.StatusBadRequest))
 			var result map[string]interface{}
 			json.Unmarshal([]byte(body), &result)
 			Expect(result["success"]).To(BeFalse())
