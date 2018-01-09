@@ -178,3 +178,19 @@ func (e *CouldNotFindAllClansError) Error() string {
 		commaSeparatedClanIDs,
 	)
 }
+
+// ForbiddenError identifies that an action over an actionable is forbidden given PlayerId
+type ForbiddenError struct {
+	GameID       string
+	PlayerID     interface{}
+	ActionableID interface{}
+}
+
+func (e *ForbiddenError) Error() string {
+	return fmt.Sprintf(
+		"Forbidden action. GameId: %s, PlayerId: %s, ActionableId: %s",
+		e.GameID,
+		e.PlayerID,
+		e.ActionableID,
+	)
+}

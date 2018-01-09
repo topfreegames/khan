@@ -47,9 +47,13 @@ func FailWith(status int, message string, c echo.Context) error {
 func FailWithError(err error, c echo.Context) error {
 	t := reflect.TypeOf(err)
 	status, ok := map[string]int{
-		"*models.ModelNotFoundError":                                 http.StatusBadRequest,
+		"*models.ModelNotFoundError":                                 http.StatusNotFound,
+		"*models.PlayerReachedMaxInvitesError":                       http.StatusBadRequest,
+		"*models.ForbiddenError":                                     http.StatusForbidden,
+		"*models.PlayerCannotPerformMembershipActionError":           http.StatusForbidden,
 		"*models.AlreadyHasValidMembershipError":                     http.StatusConflict,
 		"*models.CannotApproveOrDenyMembershipAlreadyProcessedError": http.StatusConflict,
+		"*models.CannotPromoteOrDemoteMemberLevelError":              http.StatusConflict,
 	}[t.String()]
 
 	if !ok {
