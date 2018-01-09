@@ -181,16 +181,16 @@ func (e *CouldNotFindAllClansError) Error() string {
 
 // ForbiddenError identifies that an action over an actionable is forbidden given PlayerId
 type ForbiddenError struct {
-	GameID       string
-	PlayerID     interface{}
-	ActionableID interface{}
+	GameID   string
+	PlayerID interface{}
+	ClanID   interface{}
 }
 
 func (e *ForbiddenError) Error() string {
 	return fmt.Sprintf(
-		"Forbidden action. GameId: %s, PlayerId: %s, ActionableId: %s",
-		e.GameID,
+		"Player %s doesn't own clan %s. GameId: %s",
 		e.PlayerID,
-		e.ActionableID,
+		e.ClanID,
+		e.GameID,
 	)
 }

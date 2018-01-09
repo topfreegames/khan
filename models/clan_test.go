@@ -444,7 +444,12 @@ var _ = Describe("Clan Model", func() {
 				)
 
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(Equal(fmt.Sprintf("Forbidden action. GameId: %s, PlayerId: %s, ActionableId: %s", clan.GameID, player.PublicID, clan.PublicID)))
+				Expect(err.Error()).To(Equal(fmt.Sprintf(
+					"Player %s doesn't own clan %s. GameId: %s",
+					player.PublicID,
+					clan.PublicID,
+					clan.GameID,
+				)))
 			})
 
 			It("Should not update a Clan with Invalid Data with UpdateClan", func() {
