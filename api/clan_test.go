@@ -200,7 +200,7 @@ var _ = Describe("Clan API Handler", func() {
 			}
 			status, body := PostJSON(a, GetGameRoute(game.PublicID, "/clans"), payload)
 
-			Expect(status).To(Equal(http.StatusInternalServerError))
+			Expect(status).To(Equal(http.StatusNotFound))
 			var result map[string]interface{}
 			json.Unmarshal([]byte(body), &result)
 			Expect(result["success"]).To(BeFalse())
@@ -259,7 +259,7 @@ var _ = Describe("Clan API Handler", func() {
 			route := GetGameRoute("game-id", fmt.Sprintf("clans/%s/leave", "random-id"))
 			status, body := Post(a, route, "")
 
-			Expect(status).To(Equal(http.StatusBadRequest))
+			Expect(status).To(Equal(http.StatusNotFound))
 			var result map[string]interface{}
 			json.Unmarshal([]byte(body), &result)
 			Expect(result["success"]).To(BeFalse())
@@ -516,11 +516,11 @@ var _ = Describe("Clan API Handler", func() {
 
 			status, body := PutJSON(a, route, payload)
 
-			Expect(status).To(Equal(http.StatusInternalServerError))
+			Expect(status).To(Equal(http.StatusNotFound))
 			var result map[string]interface{}
 			json.Unmarshal([]byte(body), &result)
 			Expect(result["success"]).To(BeFalse())
-			Expect(result["reason"]).To(Equal(fmt.Sprintf("Clan was not found with id: %s", clan.PublicID)))
+			Expect(result["reason"]).To(Equal(fmt.Sprintf("Player was not found with id: %s", payload["ownerPublicID"])))
 		})
 
 		It("Should not update clan if invalid data", func() {
@@ -836,7 +836,7 @@ var _ = Describe("Clan API Handler", func() {
 
 		It("Should not get details for clan that does not exist", func() {
 			status, body := Get(a, GetGameRoute("game-id", "/clans/dont-exist/summary"))
-			Expect(status).To(Equal(http.StatusInternalServerError))
+			Expect(status).To(Equal(http.StatusNotFound))
 			var result map[string]interface{}
 			json.Unmarshal([]byte(body), &result)
 			Expect(result["success"]).To(BeFalse())

@@ -228,7 +228,7 @@ var _ = Describe("Clan Model", func() {
 
 				_, err = GetClanByPublicIDAndOwnerPublicID(testDb, clan.GameID, clan.PublicID, "invalid-owner-public-id")
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(Equal(fmt.Sprintf("Clan was not found with id: %s", clan.PublicID)))
+				Expect(err.Error()).To(Equal("Player was not found with id: invalid-owner-public-id"))
 			})
 
 			Describe("Update Clan Membership Count", func() {
@@ -444,7 +444,12 @@ var _ = Describe("Clan Model", func() {
 				)
 
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(Equal(fmt.Sprintf("Clan was not found with id: %s", clan.PublicID)))
+				Expect(err.Error()).To(Equal(fmt.Sprintf(
+					"Player %s doesn't own clan %s. GameId: %s",
+					player.PublicID,
+					clan.PublicID,
+					clan.GameID,
+				)))
 			})
 
 			It("Should not update a Clan with Invalid Data with UpdateClan", func() {

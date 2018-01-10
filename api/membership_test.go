@@ -265,7 +265,7 @@ var _ = Describe("Membership API Handler", func() {
 
 			status, body := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "application"), payload)
 
-			Expect(status).To(Equal(http.StatusBadRequest))
+			Expect(status).To(Equal(http.StatusNotFound))
 			var result map[string]interface{}
 			json.Unmarshal([]byte(body), &result)
 			Expect(result["success"]).To(BeFalse())
@@ -457,7 +457,7 @@ var _ = Describe("Membership API Handler", func() {
 
 			status, body := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "invitation"), payload)
 
-			Expect(status).To(Equal(http.StatusInternalServerError))
+			Expect(status).To(Equal(http.StatusNotFound))
 			var result map[string]interface{}
 			json.Unmarshal([]byte(body), &result)
 			Expect(result["success"]).To(BeFalse())
@@ -581,7 +581,7 @@ var _ = Describe("Membership API Handler", func() {
 
 			status, body := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "invitation/approve"), payload)
 
-			Expect(status).To(Equal(http.StatusInternalServerError))
+			Expect(status).To(Equal(http.StatusNotFound))
 			var result map[string]interface{}
 			json.Unmarshal([]byte(body), &result)
 			Expect(result["success"]).To(BeFalse())
@@ -712,7 +712,7 @@ var _ = Describe("Membership API Handler", func() {
 
 			status, body := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "application/approve"), payload)
 
-			Expect(status).To(Equal(http.StatusBadRequest))
+			Expect(status).To(Equal(http.StatusNotFound))
 			var result map[string]interface{}
 			json.Unmarshal([]byte(body), &result)
 			Expect(result["success"]).To(BeFalse())
@@ -814,7 +814,7 @@ var _ = Describe("Membership API Handler", func() {
 
 			status, body := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "promote"), payload)
 
-			Expect(status).To(Equal(http.StatusInternalServerError))
+			Expect(status).To(Equal(http.StatusNotFound))
 			var result map[string]interface{}
 			json.Unmarshal([]byte(body), &result)
 			Expect(result["success"]).To(BeFalse())
@@ -884,7 +884,7 @@ var _ = Describe("Membership API Handler", func() {
 
 			status, body := PostJSON(a, CreateMembershipRoute(gameID, clanPublicID, "delete"), payload)
 
-			Expect(status).To(Equal(http.StatusInternalServerError))
+			Expect(status).To(Equal(http.StatusNotFound))
 			var result map[string]interface{}
 			json.Unmarshal([]byte(body), &result)
 			Expect(result["success"]).To(BeFalse())

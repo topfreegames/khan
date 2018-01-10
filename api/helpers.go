@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"reflect"
 	"strings"
 
 	"github.com/labstack/echo"
@@ -40,6 +41,26 @@ func FailWith(status int, message string, c echo.Context) error {
 		"reason":  message,
 	}
 	return c.JSON(status, payload)
+}
+
+// FailWithError fails with the specified error
+func FailWithError(err error, c echo.Context) error {
+	t := reflect.TypeOf(err)
+	status, ok := map[string]int{
+		"*models.ModelNotFoundError":                                 http.StatusNotFound,
+		"*models.PlayerReachedMaxInvitesError":                       http.StatusBadRequest,
+		"*models.ForbiddenError":                                     http.StatusForbidden,
+		"*models.PlayerCannotPerformMembershipActionError":           http.StatusForbidden,
+		"*models.AlreadyHasValidMembershipError":                     http.StatusConflict,
+		"*models.CannotApproveOrDenyMembershipAlreadyProcessedError": http.StatusConflict,
+		"*models.CannotPromoteOrDemoteMemberLevelError":              http.StatusConflict,
+	}[t.String()]
+
+	if !ok {
+		status = http.StatusInternalServerError
+	}
+
+	return FailWith(status, err.Error(), c)
 }
 
 // SucceedWith sends payload to user with status 200

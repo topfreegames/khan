@@ -113,14 +113,7 @@ func ApplyForMembershipHandler(app *App) func(c echo.Context) error {
 			return nil
 		})
 		if err != nil {
-			switch err.(type) {
-			case *models.ModelNotFoundError:
-				return FailWith(http.StatusBadRequest, err.Error(), c)
-			case *models.AlreadyHasValidMembershipError:
-				return FailWith(http.StatusConflict, err.Error(), c)
-			default:
-				return FailWith(http.StatusInternalServerError, err.Error(), c)
-			}
+			return FailWithError(err, c)
 		}
 
 		err = WithSegment("hook-dispatch", c, func() error {
@@ -253,7 +246,7 @@ func InviteForMembershipHandler(app *App) func(c echo.Context) error {
 			return nil
 		})
 		if err != nil {
-			return FailWith(http.StatusInternalServerError, err.Error(), c)
+			return FailWithError(err, c)
 		}
 
 		err = WithSegment("hook-dispatch", c, func() error {
@@ -386,14 +379,7 @@ func ApproveOrDenyMembershipApplicationHandler(app *App) func(c echo.Context) er
 				return nil
 			})
 			if err != nil {
-				switch err.(type) {
-				case *models.ModelNotFoundError:
-					return FailWith(http.StatusBadRequest, err.Error(), c)
-				case *models.CannotApproveOrDenyMembershipAlreadyProcessedError:
-					return FailWith(http.StatusConflict, err.Error(), c)
-				default:
-					return err
-				}
+				return FailWithError(err, c)
 			}
 
 			err = WithSegment("player-retrieve", c, func() error {
@@ -548,7 +534,7 @@ func ApproveOrDenyMembershipInvitationHandler(app *App) func(c echo.Context) err
 			})
 		})
 		if err != nil {
-			return FailWith(http.StatusInternalServerError, err.Error(), c)
+			return FailWithError(err, c)
 		}
 
 		err = WithSegment("hook-dispatch", c, func() error {
@@ -668,7 +654,7 @@ func DeleteMembershipHandler(app *App) func(c echo.Context) error {
 			return nil
 		})
 		if err != nil {
-			return FailWith(http.StatusInternalServerError, err.Error(), c)
+			return FailWithError(err, c)
 		}
 
 		err = WithSegment("hook-dispatch", c, func() error {
@@ -767,7 +753,7 @@ func PromoteOrDemoteMembershipHandler(app *App, action string) func(c echo.Conte
 			})
 
 			if err != nil {
-				return err
+				return FailWithError(err, c)
 			}
 
 			err = WithSegment("player-retrieve", c, func() error {
@@ -785,7 +771,7 @@ func PromoteOrDemoteMembershipHandler(app *App, action string) func(c echo.Conte
 			return err
 		})
 		if err != nil {
-			return FailWith(http.StatusInternalServerError, err.Error(), c)
+			return FailWithError(err, c)
 		}
 
 		err = WithSegment("hook-dispatch", c, func() error {

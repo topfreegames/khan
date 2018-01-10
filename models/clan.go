@@ -372,12 +372,23 @@ func GetClansByPublicIDs(db DB, gameID string, publicIDs []string) ([]Clan, erro
 // GetClanByPublicIDAndOwnerPublicID returns a clan by its public id and the owner public id
 func GetClanByPublicIDAndOwnerPublicID(db DB, gameID, publicID, ownerPublicID string) (*Clan, error) {
 	var clans []*Clan
-	_, err := db.Select(&clans, "SELECT clans.* FROM clans, players WHERE clans.game_id=$1 AND clans.public_id=$2 AND clans.owner_id=players.id AND players.public_id=$3", gameID, publicID, ownerPublicID)
+	var players []*Player
+	_, err := db.Select(&clans, "SELECT * FROM clans WHERE game_id=$1 AND public_id=$2", gameID, publicID)
+	if err != nil {
+		return nil, err
+	}
+	_, err = db.Select(&players, "SELECT * FROM players WHERE public_id=$1", ownerPublicID)
 	if err != nil {
 		return nil, err
 	}
 	if clans == nil || len(clans) < 1 {
 		return nil, &ModelNotFoundError{"Clan", publicID}
+	}
+	if players == nil || len(players) < 1 {
+		return nil, &ModelNotFoundError{"Player", ownerPublicID}
+	}
+	if clans[0].OwnerID != players[0].ID {
+		return nil, &ForbiddenError{gameID, ownerPublicID, publicID}
 	}
 	return clans[0], nil
 }

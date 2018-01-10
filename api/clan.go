@@ -109,7 +109,7 @@ func CreateClanHandler(app *App) func(c echo.Context) error {
 			return nil
 		})
 		if err != nil {
-			return FailWith(500, err.Error(), c)
+			return FailWithError(err, c)
 		}
 
 		clanJSON := map[string]interface{}{
@@ -250,7 +250,7 @@ func UpdateClanHandler(app *App) func(c echo.Context) error {
 			return nil
 		})
 		if err != nil {
-			return FailWith(500, err.Error(), c)
+			return FailWithError(err, c)
 		}
 
 		clanJSON := map[string]interface{}{
@@ -363,7 +363,7 @@ func LeaveClanHandler(app *App) func(c echo.Context) error {
 			return nil
 		})
 		if err != nil {
-			return FailWith(status, err.Error(), c)
+			return FailWithError(err, c)
 		}
 
 		err = WithSegment("hook-dispatch", c, func() error {
@@ -876,7 +876,7 @@ func RetrieveClanSummaryHandler(app *App) func(c echo.Context) error {
 			return nil
 		})
 		if err != nil {
-			return FailWith(500, err.Error(), c)
+			return FailWithError(err, c)
 		}
 
 		log.I(l, "Clan summary retrieved successfully.", func(cm log.CM) {
