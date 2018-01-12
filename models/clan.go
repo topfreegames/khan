@@ -377,7 +377,7 @@ func GetClanByPublicIDAndOwnerPublicID(db DB, gameID, publicID, ownerPublicID st
 	if err != nil {
 		return nil, err
 	}
-	_, err = db.Select(&players, "SELECT * FROM players WHERE public_id=$1", ownerPublicID)
+	_, err = db.Select(&players, "SELECT * FROM players WHERE game_id=$1 AND public_id=$2", gameID, ownerPublicID)
 	if err != nil {
 		return nil, err
 	}
