@@ -428,7 +428,7 @@ var _ = Describe("Clan Model", func() {
 				Expect(err).NotTo(HaveOccurred())
 				clan := clans[0]
 
-				_, player, err := CreatePlayerFactory(testDb, "")
+				_, player, err := CreatePlayerFactory(testDb, clan.GameID, true)
 				Expect(err).NotTo(HaveOccurred())
 
 				metadata := map[string]interface{}{"x": "1"}
