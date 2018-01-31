@@ -335,10 +335,18 @@ func (app *App) configureApplication() {
 	a.Post("/games/:gameID/clans/:clanPublicID/memberships/promote", PromoteOrDemoteMembershipHandler(app, "promote"))
 	a.Post("/games/:gameID/clans/:clanPublicID/memberships/demote", PromoteOrDemoteMembershipHandler(app, "demote"))
 
-	// Go Trace
-	a.Get("/debug/pprof/trace", fasthttp.WrapHandler(
-		fasthttpadaptor.NewFastHTTPHandler(http.HandlerFunc(pprof.Trace)),
-	))
+	// pprof
+	pprofHandlers := map[string]func(http.ResponseWriter, *http.Request){
+		"/debug/pprof":         pprof.Index,
+		"/debug/pprof/profile": pprof.Profile,
+		"/debug/pprof/trace":   pprof.Trace,
+	}
+
+	for k, v := range pprofHandlers {
+		a.Get(k, fasthttp.WrapHandler(
+			fasthttpadaptor.NewFastHTTPHandler(http.HandlerFunc(v)),
+		))
+	}
 
 	app.Errors = metrics.NewEWMA15()
 
