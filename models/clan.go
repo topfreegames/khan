@@ -122,7 +122,8 @@ func getNewLogger() zap.Logger {
 //IndexClanIntoElasticSearch after operation in PG
 func (c *Clan) IndexClanIntoElasticSearch() error {
 	es := es.GetConfiguredClient()
-	if es != nil {
+	// TODO: fix it, boomforce is hardcoded for now
+	if es != nil && c.GameID == "boomforce" {
 		workers.Enqueue(queues.KhanESQueue, "Add", map[string]interface{}{
 			"index":  es.GetIndexName(c.GameID),
 			"op":     "index",
@@ -164,7 +165,8 @@ func (c *Clan) DeleteClanFromMongoDB() error {
 //UpdateClanIntoElasticSearch after operation in PG
 func (c *Clan) UpdateClanIntoElasticSearch() error {
 	es := es.GetConfiguredClient()
-	if es != nil {
+	// TODO: fix it, boomforce is hardcoded for now
+	if es != nil && c.GameID == "boomforce" {
 		workers.Enqueue(queues.KhanESQueue, "Add", map[string]interface{}{
 			"index":  es.GetIndexName(c.GameID),
 			"op":     "update",
@@ -178,7 +180,8 @@ func (c *Clan) UpdateClanIntoElasticSearch() error {
 //DeleteClanFromElasticSearch after deletion in PG
 func (c *Clan) DeleteClanFromElasticSearch() error {
 	es := es.GetConfiguredClient()
-	if es != nil {
+	// TODO: fix it, boomforce is hardcoded for now
+	if es != nil && c.GameID == "boomforce" {
 		workers.Enqueue(queues.KhanESQueue, "Add", map[string]interface{}{
 			"index":  es.GetIndexName(c.GameID),
 			"op":     "delete",
