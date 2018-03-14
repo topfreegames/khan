@@ -11,9 +11,11 @@ import (
 	"database/sql"
 	"fmt"
 
+	"github.com/go-gorp/gorp"
 	_ "github.com/lib/pq" //This is required to use postgres with database/sql
+	egorp "github.com/topfreegames/extensions/gorp"
+	"github.com/topfreegames/extensions/gorp/interfaces"
 	"github.com/topfreegames/khan/util"
-	"gopkg.in/gorp.v1"
 )
 
 // DB is the contract for all the operations we use from either a connection or transaction
@@ -29,20 +31,20 @@ type DB interface {
 	Exec(string, ...interface{}) (sql.Result, error)
 }
 
-var _db DB
+var _db interfaces.Database
 
 // GetDefaultDB returns a connection to the default database
-func GetDefaultDB() (DB, error) {
+func GetDefaultDB() (interfaces.Database, error) {
 	return GetDB("localhost", "khan", 5433, "disable", "khan", "")
 }
 
 // GetPerfDB returns a connection to the perf database
-func GetPerfDB() (DB, error) {
+func GetPerfDB() (interfaces.Database, error) {
 	return GetDB("localhost", "khan_perf", 5433, "disable", "khan_perf", "")
 }
 
 // GetDB returns a DbMap connection to the database specified in the arguments
-func GetDB(host string, user string, port int, sslmode string, dbName string, password string) (DB, error) {
+func GetDB(host string, user string, port int, sslmode string, dbName string, password string) (interfaces.Database, error) {
 	if _db == nil {
 		var err error
 		_db, err = InitDb(host, user, port, sslmode, dbName, password)
@@ -56,7 +58,7 @@ func GetDB(host string, user string, port int, sslmode string, dbName string, pa
 }
 
 // InitDb initializes a connection to the database
-func InitDb(host string, user string, port int, sslmode string, dbName string, password string) (DB, error) {
+func InitDb(host string, user string, port int, sslmode string, dbName string, password string) (interfaces.Database, error) {
 	connStr := fmt.Sprintf(
 		"host=%s user=%s port=%d sslmode=%s dbname=%s",
 		host, user, port, sslmode, dbName,
@@ -72,8 +74,11 @@ func InitDb(host string, user string, port int, sslmode string, dbName string, p
 	db.SetMaxIdleConns(5)
 	db.SetMaxOpenConns(10)
 
-	dbmap := &gorp.DbMap{Db: db, Dialect: gorp.PostgresDialect{}}
-	dbmap.TypeConverter = util.TypeConverter{}
+	dbmap := &gorp.DbMap{
+		Db:            db,
+		Dialect:       gorp.PostgresDialect{},
+		TypeConverter: util.TypeConverter{},
+	}
 
 	dbmap.AddTableWithName(Game{}, "games").SetKeys(true, "ID")
 	dbmap.AddTableWithName(Player{}, "players").SetKeys(true, "ID")
@@ -82,7 +87,7 @@ func InitDb(host string, user string, port int, sslmode string, dbName string, p
 	dbmap.AddTableWithName(Hook{}, "hooks").SetKeys(true, "ID")
 
 	// dbmap.TraceOn("[gorp]", log.New(os.Stdout, "KHAN:", log.Lmicroseconds))
-	return dbmap, nil
+	return egorp.New(dbmap, dbName), nil
 }
 
 // Returns value or 0

@@ -20,7 +20,7 @@ import (
 )
 
 var _ = Describe("Membership API Handler", func() {
-	var testDb models.DB
+	var testDb, db models.DB
 	var a *api.App
 
 	BeforeEach(func() {
@@ -29,6 +29,7 @@ var _ = Describe("Membership API Handler", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		a = GetDefaultTestApp()
+		db = a.Db(nil)
 		a.NonblockingStartWorkers()
 	})
 
@@ -64,7 +65,7 @@ var _ = Describe("Membership API Handler", func() {
 			Expect(result["success"]).To(BeTrue())
 			Expect(result["approved"]).To(BeTrue())
 
-			dbMembership, err := models.GetValidMembershipByClanAndPlayerPublicID(a.Db, gameID, clanPublicID, player.PublicID)
+			dbMembership, err := models.GetValidMembershipByClanAndPlayerPublicID(db, gameID, clanPublicID, player.PublicID)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(dbMembership.GameID).To(Equal(gameID))
 			Expect(dbMembership.PlayerID).To(Equal(player.ID))
@@ -106,7 +107,7 @@ var _ = Describe("Membership API Handler", func() {
 			Expect(result["success"]).To(BeTrue())
 			Expect(result["approved"]).To(BeFalse())
 
-			dbMembership, err := models.GetValidMembershipByClanAndPlayerPublicID(a.Db, gameID, clanPublicID, player.PublicID)
+			dbMembership, err := models.GetValidMembershipByClanAndPlayerPublicID(db, gameID, clanPublicID, player.PublicID)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(dbMembership.GameID).To(Equal(gameID))
 			Expect(dbMembership.PlayerID).To(Equal(player.ID))
@@ -138,7 +139,7 @@ var _ = Describe("Membership API Handler", func() {
 			json.Unmarshal([]byte(body), &result)
 			Expect(result["success"]).To(BeTrue())
 
-			dbMembership, err := models.GetValidMembershipByClanAndPlayerPublicID(a.Db, gameID, clanPublicID, players[0].PublicID)
+			dbMembership, err := models.GetValidMembershipByClanAndPlayerPublicID(db, gameID, clanPublicID, players[0].PublicID)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(dbMembership.Approved).To(Equal(true))
 			Expect(dbMembership.Denied).To(Equal(false))
@@ -192,7 +193,7 @@ var _ = Describe("Membership API Handler", func() {
 			json.Unmarshal([]byte(body), &result)
 			Expect(result["success"]).To(BeTrue())
 
-			dbMembership, err := models.GetValidMembershipByClanAndPlayerPublicID(a.Db, gameID, clanPublicID, player.PublicID)
+			dbMembership, err := models.GetValidMembershipByClanAndPlayerPublicID(db, gameID, clanPublicID, player.PublicID)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(dbMembership.GameID).To(Equal(gameID))
 			Expect(dbMembership.PlayerID).To(Equal(player.ID))
@@ -221,7 +222,7 @@ var _ = Describe("Membership API Handler", func() {
 			json.Unmarshal([]byte(body), &result)
 			Expect(result["success"]).To(BeTrue())
 
-			_, err = models.GetValidMembershipByClanAndPlayerPublicID(a.Db, gameID, clanPublicID, players[0].PublicID)
+			_, err = models.GetValidMembershipByClanAndPlayerPublicID(db, gameID, clanPublicID, players[0].PublicID)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal(fmt.Sprintf("Membership was not found with id: %s", players[0].PublicID)))
 		})
@@ -327,7 +328,7 @@ var _ = Describe("Membership API Handler", func() {
 			json.Unmarshal([]byte(body), &result)
 			Expect(result["success"]).To(BeTrue())
 
-			dbMembership, err := models.GetValidMembershipByClanAndPlayerPublicID(a.Db, gameID, clanPublicID, player.PublicID)
+			dbMembership, err := models.GetValidMembershipByClanAndPlayerPublicID(db, gameID, clanPublicID, player.PublicID)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(dbMembership.GameID).To(Equal(gameID))
 			Expect(dbMembership.PlayerID).To(Equal(player.ID))
@@ -364,7 +365,7 @@ var _ = Describe("Membership API Handler", func() {
 			json.Unmarshal([]byte(body), &result)
 			Expect(result["success"]).To(BeTrue())
 
-			dbMembership, err := models.GetValidMembershipByClanAndPlayerPublicID(a.Db, gameID, clanPublicID, player.PublicID)
+			dbMembership, err := models.GetValidMembershipByClanAndPlayerPublicID(db, gameID, clanPublicID, player.PublicID)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(dbMembership.GameID).To(Equal(gameID))
 			Expect(dbMembership.PlayerID).To(Equal(player.ID))
@@ -406,7 +407,7 @@ var _ = Describe("Membership API Handler", func() {
 			json.Unmarshal([]byte(body), &result)
 			Expect(result["success"]).To(BeTrue())
 
-			dbMembership, err := models.GetValidMembershipByClanAndPlayerPublicID(a.Db, gameID, clanPublicID, player.PublicID)
+			dbMembership, err := models.GetValidMembershipByClanAndPlayerPublicID(db, gameID, clanPublicID, player.PublicID)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(dbMembership.GameID).To(Equal(gameID))
 			Expect(dbMembership.PlayerID).To(Equal(player.ID))
@@ -511,7 +512,7 @@ var _ = Describe("Membership API Handler", func() {
 			json.Unmarshal([]byte(body), &result)
 			Expect(result["success"]).To(BeTrue())
 
-			dbMembership, err := models.GetValidMembershipByClanAndPlayerPublicID(a.Db, gameID, clanPublicID, players[0].PublicID)
+			dbMembership, err := models.GetValidMembershipByClanAndPlayerPublicID(db, gameID, clanPublicID, players[0].PublicID)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(dbMembership.GameID).To(Equal(gameID))
 			Expect(dbMembership.PlayerID).To(Equal(players[0].ID))
@@ -536,7 +537,7 @@ var _ = Describe("Membership API Handler", func() {
 			json.Unmarshal([]byte(body), &result)
 			Expect(result["success"]).To(BeTrue())
 
-			dbMembership, err := models.GetValidMembershipByClanAndPlayerPublicID(a.Db, gameID, clanPublicID, players[0].PublicID)
+			dbMembership, err := models.GetValidMembershipByClanAndPlayerPublicID(db, gameID, clanPublicID, players[0].PublicID)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(dbMembership.GameID).To(Equal(gameID))
 			Expect(dbMembership.PlayerID).To(Equal(players[0].ID))
@@ -611,7 +612,7 @@ var _ = Describe("Membership API Handler", func() {
 			json.Unmarshal([]byte(body), &result)
 			Expect(result["success"]).To(BeTrue())
 
-			dbMembership, err := models.GetValidMembershipByClanAndPlayerPublicID(a.Db, gameID, clanPublicID, players[0].PublicID)
+			dbMembership, err := models.GetValidMembershipByClanAndPlayerPublicID(db, gameID, clanPublicID, players[0].PublicID)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(dbMembership.Approved).To(Equal(true))
 			Expect(dbMembership.Denied).To(Equal(false))
@@ -638,7 +639,7 @@ var _ = Describe("Membership API Handler", func() {
 			json.Unmarshal([]byte(body), &result)
 			Expect(result["success"]).To(BeTrue())
 
-			dbMembership, err := models.GetValidMembershipByClanAndPlayerPublicID(a.Db, gameID, clanPublicID, players[0].PublicID)
+			dbMembership, err := models.GetValidMembershipByClanAndPlayerPublicID(db, gameID, clanPublicID, players[0].PublicID)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(dbMembership.Approved).To(Equal(true))
 			Expect(dbMembership.Denied).To(Equal(false))
@@ -668,7 +669,7 @@ var _ = Describe("Membership API Handler", func() {
 			json.Unmarshal([]byte(body), &result)
 			Expect(result["success"]).To(BeTrue())
 
-			dbMembership, err := models.GetValidMembershipByClanAndPlayerPublicID(a.Db, gameID, clanPublicID, players[0].PublicID)
+			dbMembership, err := models.GetValidMembershipByClanAndPlayerPublicID(db, gameID, clanPublicID, players[0].PublicID)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(dbMembership.Approved).To(Equal(false))
 			Expect(dbMembership.Denied).To(Equal(true))
@@ -743,7 +744,7 @@ var _ = Describe("Membership API Handler", func() {
 			Expect(result["success"]).To(BeTrue())
 			Expect(result["level"]).To(Equal("Elder"))
 
-			dbMembership, err := models.GetValidMembershipByClanAndPlayerPublicID(a.Db, gameID, clanPublicID, players[0].PublicID)
+			dbMembership, err := models.GetValidMembershipByClanAndPlayerPublicID(db, gameID, clanPublicID, players[0].PublicID)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(dbMembership.Level).To(Equal("Elder"))
 		})
@@ -771,7 +772,7 @@ var _ = Describe("Membership API Handler", func() {
 			Expect(result["success"]).To(BeTrue())
 			Expect(result["level"]).To(Equal("Elder"))
 
-			dbMembership, err := models.GetValidMembershipByClanAndPlayerPublicID(a.Db, gameID, clanPublicID, players[0].PublicID)
+			dbMembership, err := models.GetValidMembershipByClanAndPlayerPublicID(db, gameID, clanPublicID, players[0].PublicID)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(dbMembership.Level).To(Equal("Elder"))
 		})
@@ -841,7 +842,7 @@ var _ = Describe("Membership API Handler", func() {
 			json.Unmarshal([]byte(body), &result)
 			Expect(result["success"]).To(BeTrue())
 
-			_, err = models.GetValidMembershipByClanAndPlayerPublicID(a.Db, gameID, clanPublicID, players[0].PublicID)
+			_, err = models.GetValidMembershipByClanAndPlayerPublicID(db, gameID, clanPublicID, players[0].PublicID)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal(fmt.Sprintf("Membership was not found with id: %s", players[0].PublicID)))
 		})

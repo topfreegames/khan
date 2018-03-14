@@ -31,6 +31,10 @@ healthcheck:
 newrelic:
   key: ""
 
+jaeger:
+  disabled: true
+  samplingProbability: 0.001
+
 redis:
   host: 0.0.0.0
   port: 50505

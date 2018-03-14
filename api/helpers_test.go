@@ -18,13 +18,12 @@ import (
 	"strings"
 	"time"
 
-	mgo "gopkg.in/mgo.v2"
-
 	"github.com/spf13/viper"
 	"github.com/uber-go/zap"
 
 	"github.com/labstack/echo/engine/standard"
 	. "github.com/onsi/gomega"
+	"github.com/topfreegames/extensions/mongo/interfaces"
 	"github.com/topfreegames/khan/api"
 	"github.com/topfreegames/khan/es"
 	"github.com/topfreegames/khan/models"
@@ -36,7 +35,7 @@ func GetTestES() *es.Client {
 	return es.GetTestClient("localhost", 9200, "", false, zap.New(zap.NewJSONEncoder(), zap.ErrorLevel), false)
 }
 
-func GetTestMongo() (*mgo.Database, error) {
+func GetTestMongo() (interfaces.MongoDB, error) {
 	config := viper.New()
 	config.SetConfigType("yaml")
 	config.SetConfigFile("../config/test.yaml")
@@ -176,7 +175,7 @@ func CreateMembershipRoute(gameID, clanPublicID, route string) string {
 // LoadGames load the games
 func LoadGames(a *api.App) map[string]*models.Game {
 	g := make(map[string]*models.Game)
-	games, _ := models.GetAllGames(a.Db)
+	games, _ := models.GetAllGames(a.Db(nil))
 	for _, game := range games {
 		g[game.PublicID] = game
 	}

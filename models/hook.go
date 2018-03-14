@@ -11,7 +11,7 @@ import (
 	"github.com/satori/go.uuid"
 	"github.com/topfreegames/khan/util"
 
-	"gopkg.in/gorp.v1"
+	"github.com/go-gorp/gorp"
 )
 
 const (

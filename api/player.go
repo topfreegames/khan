@@ -25,6 +25,8 @@ func CreatePlayerHandler(app *App) func(c echo.Context) error {
 		start := time.Now()
 		gameID := c.Param("gameID")
 
+		db := app.Db(c.StdContext())
+
 		l := app.Logger.With(
 			zap.String("source", "playerHandler"),
 			zap.String("operation", "createPlayer"),
@@ -46,7 +48,7 @@ func CreatePlayerHandler(app *App) func(c echo.Context) error {
 		err = WithSegment("player-create", c, func() error {
 			log.D(l, "Creating player...")
 			player, err = models.CreatePlayer(
-				app.Db,
+				db,
 				gameID,
 				payload.PublicID,
 				payload.Name,
@@ -104,6 +106,8 @@ func UpdatePlayerHandler(app *App) func(c echo.Context) error {
 		gameID := c.Param("gameID")
 		playerPublicID := c.Param("playerPublicID")
 
+		db := app.Db(c.StdContext())
+
 		l := app.Logger.With(
 			zap.String("source", "playerHandler"),
 			zap.String("operation", "updatePlayer"),
@@ -124,7 +128,7 @@ func UpdatePlayerHandler(app *App) func(c echo.Context) error {
 
 		err = WithSegment("game-retrieve", c, func() error {
 			log.D(l, "Retrieving game...")
-			game, err = models.GetGameByPublicID(app.Db, gameID)
+			game, err = models.GetGameByPublicID(db, gameID)
 
 			if err != nil {
 				return err
@@ -138,7 +142,7 @@ func UpdatePlayerHandler(app *App) func(c echo.Context) error {
 
 		err = WithSegment("player-retrieve", c, func() error {
 			log.D(l, "Retrieving player...")
-			beforeUpdatePlayer, err = models.GetPlayerByPublicID(app.Db, gameID, playerPublicID)
+			beforeUpdatePlayer, err = models.GetPlayerByPublicID(db, gameID, playerPublicID)
 			if err != nil && err.Error() != (&models.ModelNotFoundError{Type: "Player", ID: playerPublicID}).Error() {
 				return err
 			}
@@ -153,7 +157,7 @@ func UpdatePlayerHandler(app *App) func(c echo.Context) error {
 			err = WithSegment("player-update-query", c, func() error {
 				log.D(l, "Updating player...")
 				player, err = models.UpdatePlayer(
-					app.Db,
+					db,
 					gameID,
 					playerPublicID,
 					payload.Name,

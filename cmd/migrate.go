@@ -14,10 +14,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"gopkg.in/gorp.v1"
-
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"github.com/topfreegames/extensions/gorp"
 	"github.com/topfreegames/goose/lib/goose"
 	"github.com/topfreegames/khan/db"
 	"github.com/topfreegames/khan/models"
@@ -49,7 +48,7 @@ func createTempDbDir() (string, error) {
 	return dir, nil
 }
 
-func getDatabase() (*gorp.DbMap, error) {
+func getDatabase() (*gorp.Database, error) {
 	viper.SetEnvPrefix("khan")
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	viper.AutomaticEnv()
@@ -65,7 +64,7 @@ func getDatabase() (*gorp.DbMap, error) {
 		host, port, user, sslMode, dbName,
 	)
 	db, err := models.GetDB(host, user, port, sslMode, dbName, password)
-	return db.(*gorp.DbMap), err
+	return db.(*gorp.Database), err
 }
 
 func getGooseConf() *goose.DBConf {
@@ -115,7 +114,7 @@ func RunMigrations(migrationVersion int64) error {
 	}
 
 	// Migrate up to the latest version
-	err = goose.RunMigrationsOnDb(conf, conf.MigrationsDir, targetVersion, db.Db)
+	err = goose.RunMigrationsOnDb(conf, conf.MigrationsDir, targetVersion, db.Inner().Db)
 	if err != nil {
 		return &MigrationError{fmt.Sprintf("could not run migrations to %d: %s", targetVersion, err.Error())}
 	}

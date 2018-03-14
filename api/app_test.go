@@ -81,7 +81,7 @@ var _ = Describe("API Application", func() {
 			app := GetDefaultTestApp()
 			app.NonblockingStartWorkers()
 
-			appGame, err := app.GetGame(game.PublicID)
+			appGame, err := app.GetGame(nil, game.PublicID)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(appGame.ID).To(Equal(game.ID))
 		})
@@ -94,7 +94,7 @@ var _ = Describe("API Application", func() {
 			app := GetDefaultTestApp()
 			app.NonblockingStartWorkers()
 
-			appGame, err := app.GetGame(game.PublicID)
+			appGame, err := app.GetGame(nil, game.PublicID)
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(appGame.ID).To(Equal(game.ID))

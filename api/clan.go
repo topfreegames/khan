@@ -11,9 +11,8 @@ import (
 	"strings"
 	"time"
 
-	gorp "gopkg.in/gorp.v1"
-
 	"github.com/labstack/echo"
+	"github.com/topfreegames/extensions/gorp/interfaces"
 	"github.com/topfreegames/khan/log"
 	"github.com/topfreegames/khan/models"
 	"github.com/uber-go/zap"
@@ -48,7 +47,7 @@ func CreateClanHandler(app *App) func(c echo.Context) error {
 
 		var game *models.Game
 		err = WithSegment("game-retrieve", c, func() error {
-			game, err = app.GetGame(gameID)
+			game, err = app.GetGame(c.StdContext(), gameID)
 			if err != nil {
 				log.W(l, "Could not find game.", func(cm log.CM) {
 					cm.Write(zap.Error(err))
@@ -62,7 +61,7 @@ func CreateClanHandler(app *App) func(c echo.Context) error {
 		}
 
 		var clan *models.Clan
-		var tx *gorp.Transaction
+		var tx interfaces.Transaction
 
 		//rollback function
 		rb := func(err error) error {
@@ -76,7 +75,7 @@ func CreateClanHandler(app *App) func(c echo.Context) error {
 
 		err = WithSegment("clan-create", c, func() error {
 			err = WithSegment("tx-begin", c, func() error {
-				tx, err = app.BeginTrans(l)
+				tx, err = app.BeginTrans(c.StdContext(), l)
 				return err
 			})
 			if err != nil {
@@ -172,6 +171,8 @@ func UpdateClanHandler(app *App) func(c echo.Context) error {
 		gameID := c.Param("gameID")
 		publicID := c.Param("clanPublicID")
 
+		db := app.Db(c.StdContext())
+
 		l := app.Logger.With(
 			zap.String("source", "clanHandler"),
 			zap.String("operation", "updateClan"),
@@ -199,7 +200,7 @@ func UpdateClanHandler(app *App) func(c echo.Context) error {
 		err = WithSegment("clan-update", c, func() error {
 			err = WithSegment("game-retrieve", c, func() error {
 				log.D(l, "Retrieving game...")
-				game, err = models.GetGameByPublicID(app.Db, gameID)
+				game, err = models.GetGameByPublicID(db, gameID)
 				return err
 			})
 
@@ -213,7 +214,7 @@ func UpdateClanHandler(app *App) func(c echo.Context) error {
 
 			err = WithSegment("clan-retrieve", c, func() error {
 				log.D(l, "Retrieving clan...")
-				beforeUpdateClan, err = models.GetClanByPublicID(app.Db, gameID, publicID)
+				beforeUpdateClan, err = models.GetClanByPublicID(db, gameID, publicID)
 				if err != nil {
 					log.E(l, "Updating clan failed.", func(cm log.CM) {
 						cm.Write(zap.Error(err))
@@ -230,7 +231,7 @@ func UpdateClanHandler(app *App) func(c echo.Context) error {
 			err = WithSegment("clan-update-query", c, func() error {
 				log.D(l, "Updating clan...")
 				clan, err = models.UpdateClan(
-					app.Db,
+					db,
 					gameID,
 					publicID,
 					payload.Name,
@@ -308,7 +309,7 @@ func LeaveClanHandler(app *App) func(c echo.Context) error {
 			zap.String("clanPublicID", publicID),
 		)
 
-		var tx *gorp.Transaction
+		var tx interfaces.Transaction
 		var clan *models.Clan
 		var previousOwner, newOwner *models.Player
 		var err error
@@ -326,7 +327,7 @@ func LeaveClanHandler(app *App) func(c echo.Context) error {
 
 		err = WithSegment("clan-leave", c, func() error {
 			err = WithSegment("tx-begin", c, func() error {
-				tx, err = app.BeginTrans(l)
+				tx, err = app.BeginTrans(c.StdContext(), l)
 				return err
 			})
 			if err != nil {
@@ -456,7 +457,7 @@ func TransferOwnershipHandler(app *App) func(c echo.Context) error {
 		var game *models.Game
 
 		err = WithSegment("game-retrieve", c, func() error {
-			game, err = app.GetGame(gameID)
+			game, err = app.GetGame(c.StdContext(), gameID)
 			if err != nil {
 				log.W(l, "Could not find game.")
 				return err
@@ -467,7 +468,7 @@ func TransferOwnershipHandler(app *App) func(c echo.Context) error {
 			return FailWith(404, err.Error(), c)
 		}
 
-		var tx *gorp.Transaction
+		var tx interfaces.Transaction
 		var clan *models.Clan
 		var previousOwner, newOwner *models.Player
 
@@ -482,7 +483,7 @@ func TransferOwnershipHandler(app *App) func(c echo.Context) error {
 
 		err = WithSegment("clan-transfer", c, func() error {
 			err = WithSegment("tx-begin", c, func() error {
-				tx, err = app.BeginTrans(l)
+				tx, err = app.BeginTrans(c.StdContext(), l)
 				return err
 			})
 			if err != nil {
@@ -702,6 +703,8 @@ func RetrieveClanHandler(app *App) func(c echo.Context) error {
 		publicID := c.Param("clanPublicID")
 		shortID := c.QueryParam("shortID")
 
+		db := app.Db(c.StdContext())
+
 		l := app.Logger.With(
 			zap.String("source", "clanHandler"),
 			zap.String("operation", "RetrieveClan"),
@@ -721,7 +724,7 @@ func RetrieveClanHandler(app *App) func(c echo.Context) error {
 
 		var game *models.Game
 		err = WithSegment("game-retrieve", c, func() error {
-			game, err = app.GetGame(gameID)
+			game, err = app.GetGame(c.StdContext(), gameID)
 			if err != nil {
 				log.W(l, "Could not find game.")
 				return err
@@ -735,9 +738,9 @@ func RetrieveClanHandler(app *App) func(c echo.Context) error {
 		var clan *models.Clan
 		err = WithSegment("clan-retrieve", c, func() error {
 			if shortID == "true" {
-				clan, err = models.GetClanByShortPublicID(app.Db, gameID, publicID)
+				clan, err = models.GetClanByShortPublicID(db, gameID, publicID)
 			} else {
-				clan, err = models.GetClanByPublicID(app.Db, gameID, publicID)
+				clan, err = models.GetClanByPublicID(db, gameID, publicID)
 			}
 			if err != nil {
 				log.W(l, "Could not find clan.")

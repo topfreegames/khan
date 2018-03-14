@@ -29,8 +29,9 @@ var _ = Describe("Hook API Handler", func() {
 	Describe("Create Hook Handler", func() {
 		It("Should create hook", func() {
 			a := GetDefaultTestApp()
+			db := a.Db(nil)
 			game := models.GameFactory.MustCreate().(*models.Game)
-			err := a.Db.Insert(game)
+			err := db.Insert(game)
 			Expect(err).NotTo(HaveOccurred())
 
 			payload := map[string]interface{}{
@@ -46,7 +47,7 @@ var _ = Describe("Hook API Handler", func() {
 			Expect(result["publicID"]).NotTo(BeEquivalentTo(""))
 
 			dbHook, err := models.GetHookByPublicID(
-				a.Db, game.PublicID, result["publicID"].(string),
+				db, game.PublicID, result["publicID"].(string),
 			)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(dbHook.GameID).To(Equal(game.PublicID))

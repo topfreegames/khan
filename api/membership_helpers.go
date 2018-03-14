@@ -185,7 +185,7 @@ func getPayloadAndGame(app *App, c echo.Context, l zap.Logger) (*BasePayloadWith
 		return nil, nil, 400, err
 	}
 
-	game, err := app.GetGame(gameID)
+	game, err := app.GetGame(c.StdContext(), gameID)
 	if err != nil {
 		log.W(l, "Could not find game.")
 		return nil, nil, 404, err

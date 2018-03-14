@@ -23,6 +23,9 @@ func CreateHookHandler(app *App) func(c echo.Context) error {
 		c.Set("route", "CreateHook")
 		start := time.Now()
 		gameID := c.Param("gameID")
+
+		db := app.Db(c.StdContext())
+
 		l := app.Logger.With(
 			zap.String("source", "CreateHookHandler"),
 			zap.String("operation", "createHook"),
@@ -49,7 +52,7 @@ func CreateHookHandler(app *App) func(c echo.Context) error {
 		err = WithSegment("hook-create", c, func() error {
 			log.D(l, "Creating hook...")
 			hook, err = models.CreateHook(
-				app.Db,
+				db,
 				gameID,
 				payload.Type,
 				payload.HookURL,
@@ -88,6 +91,8 @@ func RemoveHookHandler(app *App) func(c echo.Context) error {
 		gameID := c.Param("gameID")
 		publicID := c.Param("publicID")
 
+		db := app.Db(c.StdContext())
+
 		l := app.Logger.With(
 			zap.String("source", "RemoveHookHandler"),
 			zap.String("operation", "removeHook"),
@@ -99,7 +104,7 @@ func RemoveHookHandler(app *App) func(c echo.Context) error {
 		err = WithSegment("hook-remove", c, func() error {
 			log.D(l, "Removing hook...")
 			err = models.RemoveHook(
-				app.Db,
+				db,
 				gameID,
 				publicID,
 			)

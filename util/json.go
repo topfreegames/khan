@@ -11,7 +11,7 @@ import (
 	"encoding/json"
 	"errors"
 
-	"gopkg.in/gorp.v1"
+	"github.com/go-gorp/gorp"
 )
 
 //map[string]interface{} type

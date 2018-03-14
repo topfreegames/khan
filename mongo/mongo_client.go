@@ -4,31 +4,36 @@ import (
 	"sync"
 
 	"github.com/spf13/viper"
+	"github.com/topfreegames/extensions/mongo"
+	"github.com/topfreegames/extensions/mongo/interfaces"
 	"github.com/uber-go/zap"
-	mgo "gopkg.in/mgo.v2"
 )
 
 var once sync.Once
-var mongo *mgo.Database
-var mongoSession *mgo.Session
+var client *mongo.Client
 
 // GetMongo gets a mongo database model
-func GetMongo(logger zap.Logger, config *viper.Viper) (*mgo.Database, error) {
+func GetMongo(logger zap.Logger, config *viper.Viper) (interfaces.MongoDB, error) {
+	var err error
+
 	once.Do(func() {
-		var err error
-		mongoURL := config.GetString("mongodb.url")
-		mongoDB := config.GetString("mongodb.databaseName")
-		mongoSession, err = mgo.Dial(mongoURL)
+		client, err = mongo.NewClient("mongodb", config)
 		if err != nil {
-			logger.Error(err.Error())
+			message := err.Error()
+			logger.Error(message)
+			return
 		}
-		mongo = mongoSession.DB(mongoDB)
+
 		logger.Info("mongo client configured successfully")
 	})
-	return mongo, nil
+
+	return client.MongoDB, err
 }
 
 // GetConfiguredMongoClient gets a configured mongo client
-func GetConfiguredMongoClient() (*mgo.Database, *mgo.Session) {
-	return mongo, mongoSession
+func GetConfiguredMongoClient() interfaces.MongoDB {
+	if client != nil {
+		return client.MongoDB
+	}
+	return nil
 }

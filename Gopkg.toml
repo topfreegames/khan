@@ -1,0 +1,40 @@
+[[constraint]]
+  name = "github.com/labstack/echo"
+  version = "2.0.2"
+
+[[constraint]]
+  name = "github.com/newrelic/go-agent"
+  version = "1.1.0"
+
+[[constraint]]
+  name = "github.com/onsi/ginkgo"
+  version = "1.2.0"
+
+[[constraint]]
+  name = "github.com/onsi/gomega"
+  version = "1.2.0"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/topfreegames/goose"
+
+[[constraint]]
+  name = "github.com/topfreegames/extensions"
+  branch = "tracing"
+
+[[constraint]]
+  name = "github.com/go-gorp/gorp"
+  version = "2.1"
+
+[[constraint]]
+  name = "gopkg.in/olivere/elastic.v5"
+  version = "5.0.39"
+
+
+[[constraint]]
+  name = "github.com/mailru/easyjson"
+  branch = "master"
+
+[prune]
+  go-tests = true
+  unused-packages = true

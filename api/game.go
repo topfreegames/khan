@@ -23,6 +23,9 @@ func CreateGameHandler(app *App) func(c echo.Context) error {
 	return func(c echo.Context) error {
 		c.Set("route", "CreateGame")
 		start := time.Now()
+
+		db := app.Db(c.StdContext())
+
 		l := app.Logger.With(
 			zap.String("source", "gameHandler"),
 			zap.String("operation", "createGame"),
@@ -53,7 +56,7 @@ func CreateGameHandler(app *App) func(c echo.Context) error {
 
 		log.D(l, "Creating game...")
 		game, err := models.CreateGame(
-			app.Db,
+			db,
 			payload.PublicID,
 			payload.Name,
 			payload.MembershipLevels,
@@ -99,6 +102,8 @@ func UpdateGameHandler(app *App) func(c echo.Context) error {
 		c.Set("route", "UpdateGame")
 		start := time.Now()
 		gameID := c.Param("gameID")
+
+		db := app.Db(c.StdContext())
 
 		l := app.Logger.With(
 			zap.String("source", "gameHandler"),
@@ -153,7 +158,7 @@ func UpdateGameHandler(app *App) func(c echo.Context) error {
 		err = WithSegment("game-update", c, func() error {
 			log.D(l, "Updating game...")
 			_, err = models.UpdateGame(
-				app.Db,
+				db,
 				gameID,
 				payload.Name,
 				payload.MembershipLevels,

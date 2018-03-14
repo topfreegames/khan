@@ -32,6 +32,10 @@ webhooks:
 newrelic:
   key: ""
 
+jaeger:
+  disabled: false
+  samplingProbability: 1.0
+
 redis:
   host: 0.0.0.0
   port: 50505

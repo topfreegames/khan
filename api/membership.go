@@ -11,9 +11,8 @@ import (
 	"net/http"
 	"time"
 
-	gorp "gopkg.in/gorp.v1"
-
 	"github.com/labstack/echo"
+	"github.com/topfreegames/extensions/gorp/interfaces"
 	"github.com/topfreegames/khan/log"
 	"github.com/topfreegames/khan/models"
 	"github.com/uber-go/zap"
@@ -62,7 +61,7 @@ func ApplyForMembershipHandler(app *App) func(c echo.Context) error {
 		var game *models.Game
 		var membership *models.Membership
 		err = WithSegment("game-retrieve", c, func() error {
-			game, err = app.GetGame(gameID)
+			game, err = app.GetGame(c.StdContext(), gameID)
 			if err != nil {
 				log.W(l, "Could not find game.")
 				return err
@@ -73,10 +72,10 @@ func ApplyForMembershipHandler(app *App) func(c echo.Context) error {
 			return FailWith(404, err.Error(), c)
 		}
 
-		var tx *gorp.Transaction
+		var tx interfaces.Transaction
 		err = WithSegment("membership-apply", c, func() error {
 			err = WithSegment("tx-begin", c, func() error {
-				tx, err = app.BeginTrans(l)
+				tx, err = app.BeginTrans(c.StdContext(), l)
 				return err
 			})
 			if err != nil {
@@ -162,7 +161,7 @@ func InviteForMembershipHandler(app *App) func(c echo.Context) error {
 		var err error
 		var game *models.Game
 		var membership *models.Membership
-		var tx *gorp.Transaction
+		var tx interfaces.Transaction
 
 		c.Set("route", "InviteForMembership")
 		start := time.Now()
@@ -197,7 +196,7 @@ func InviteForMembershipHandler(app *App) func(c echo.Context) error {
 		)
 
 		err = WithSegment("game-retrieve", c, func() error {
-			game, err = app.GetGame(gameID)
+			game, err = app.GetGame(c.StdContext(), gameID)
 			if err != nil {
 				log.W(l, "Could not find game.")
 				return err
@@ -210,7 +209,7 @@ func InviteForMembershipHandler(app *App) func(c echo.Context) error {
 
 		err = WithSegment("membership-invite", c, func() error {
 			err = WithSegment("tx-begin", c, func() error {
-				tx, err = app.BeginTrans(l)
+				tx, err = app.BeginTrans(c.StdContext(), l)
 				return err
 			})
 			if err != nil {
@@ -292,7 +291,7 @@ func ApproveOrDenyMembershipApplicationHandler(app *App) func(c echo.Context) er
 		var membership *models.Membership
 		var requestor *models.Player
 		var err error
-		var tx *gorp.Transaction
+		var tx interfaces.Transaction
 
 		c.Set("route", "ApproverOrDenyApplication")
 		start := time.Now()
@@ -325,7 +324,7 @@ func ApproveOrDenyMembershipApplicationHandler(app *App) func(c echo.Context) er
 		)
 
 		err = WithSegment("game-retrieve", c, func() error {
-			game, err = app.GetGame(gameID)
+			game, err = app.GetGame(c.StdContext(), gameID)
 			if err != nil {
 				log.W(l, "Could not find game.")
 				return err
@@ -347,7 +346,7 @@ func ApproveOrDenyMembershipApplicationHandler(app *App) func(c echo.Context) er
 
 		err = WithSegment("membership-approve-deny", c, func() error {
 			err = WithSegment("tx-begin", c, func() error {
-				tx, err = app.BeginTrans(l)
+				tx, err = app.BeginTrans(c.StdContext(), l)
 				return err
 			})
 			if err != nil {
@@ -452,7 +451,7 @@ func ApproveOrDenyMembershipInvitationHandler(app *App) func(c echo.Context) err
 		var game *models.Game
 		var membership *models.Membership
 		var err error
-		var tx *gorp.Transaction
+		var tx interfaces.Transaction
 
 		c.Set("route", "ApproveOrDenyInvitation")
 		start := time.Now()
@@ -481,7 +480,7 @@ func ApproveOrDenyMembershipInvitationHandler(app *App) func(c echo.Context) err
 		)
 
 		err = WithSegment("game-retrieve", c, func() error {
-			game, err = app.GetGame(gameID)
+			game, err = app.GetGame(c.StdContext(), gameID)
 			if err != nil {
 				log.W(l, "Could not find game.")
 				return err
@@ -503,7 +502,7 @@ func ApproveOrDenyMembershipInvitationHandler(app *App) func(c echo.Context) err
 
 		err = WithSegment("membership-approve-deny", c, func() error {
 			err = WithSegment("tx-begin", c, func() error {
-				tx, err = app.BeginTrans(l)
+				tx, err = app.BeginTrans(c.StdContext(), l)
 				return err
 			})
 			if err != nil {
@@ -584,7 +583,7 @@ func DeleteMembershipHandler(app *App) func(c echo.Context) error {
 		var payload *BasePayloadWithRequestorAndPlayerPublicIDs
 		var game *models.Game
 		var membership *models.Membership
-		var tx *gorp.Transaction
+		var tx interfaces.Transaction
 
 		c.Set("route", "DeleteMembership")
 		start := time.Now()
@@ -624,7 +623,7 @@ func DeleteMembershipHandler(app *App) func(c echo.Context) error {
 
 		err = WithSegment("membership-delete", c, func() error {
 			err = WithSegment("tx-begin", c, func() error {
-				tx, err = app.BeginTrans(l)
+				tx, err = app.BeginTrans(c.StdContext(), l)
 				return err
 			})
 			if err != nil {
@@ -705,6 +704,8 @@ func PromoteOrDemoteMembershipHandler(app *App, action string) func(c echo.Conte
 		start := time.Now()
 		clanPublicID := c.Param("clanPublicID")
 
+		db := app.Db(c.StdContext())
+
 		l := app.Logger.With(
 			zap.String("source", "membershipHandler"),
 			zap.String("operation", "promoteOrDemoteMembership"),
@@ -733,7 +734,7 @@ func PromoteOrDemoteMembershipHandler(app *App, action string) func(c echo.Conte
 			err = WithSegment("membership-promote-demote-query", c, func() error {
 				log.D(l, "Promoting/Demoting member...")
 				membership, err = models.PromoteOrDemoteMember(
-					app.Db,
+					db,
 					game,
 					game.PublicID,
 					payload.PlayerPublicID,
@@ -758,7 +759,7 @@ func PromoteOrDemoteMembershipHandler(app *App, action string) func(c echo.Conte
 
 			err = WithSegment("player-retrieve", c, func() error {
 				log.D(l, "Retrieving promoter/demoter member...")
-				requestor, err = models.GetPlayerByPublicID(app.Db, membership.GameID, payload.RequestorPublicID)
+				requestor, err = models.GetPlayerByPublicID(db, membership.GameID, payload.RequestorPublicID)
 				if err != nil {
 					log.E(l, "Promoter/Demoter member retrieval failed.", func(cm log.CM) {
 						cm.Write(zap.Error(err))
@@ -781,7 +782,7 @@ func PromoteOrDemoteMembershipHandler(app *App, action string) func(c echo.Conte
 			}
 
 			err = dispatchMembershipHookByID(
-				app, app.Db, hookType,
+				app, db, hookType,
 				membership.GameID, membership.ClanID, membership.PlayerID,
 				requestor.ID, membership.Message, membership.Level,
 			)
