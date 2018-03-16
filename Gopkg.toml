@@ -20,7 +20,7 @@
 
 [[constraint]]
   name = "github.com/topfreegames/extensions"
-  branch = "tracing"
+  version = "5.6.0"
 
 [[constraint]]
   name = "github.com/go-gorp/gorp"

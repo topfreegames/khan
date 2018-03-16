@@ -338,7 +338,6 @@
   version = "v1.0.0"
 
 [[projects]]
-  branch = "tracing"
   name = "github.com/topfreegames/extensions"
   packages = [
     "echo",
@@ -350,7 +349,8 @@
     "mongo",
     "mongo/interfaces"
   ]
-  revision = ""
+  revision = "27f64aa2ee6e01c0b323cc8e98590f28a6647390"
+  version = "v5.6.0"
 
 [[projects]]
   branch = "master"
@@ -505,6 +505,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "e99b43547369e3a04fc6b54d32d35ee97afa8e6b437a27025dc72e52e4a8452e"
+  inputs-digest = "e9a62bf8e305c851713f02c25b9f594b622ac776f4a3ceefcd4cca1a691ade33"
   solver-name = "gps-cdcl"
   solver-version = 1

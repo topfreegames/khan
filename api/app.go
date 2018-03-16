@@ -646,6 +646,7 @@ func (app *App) GetCtxDB(ctx echo.Context) (gorp.Database, error) {
 	return app.Db(ctx.StdContext()), nil
 }
 
+// Db returns a gorp database connection using the given context
 func (app *App) Db(ctx context.Context) gorp.Database {
 	if ctx == nil {
 		ctx = context.Background()
