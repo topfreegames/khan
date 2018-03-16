@@ -9,6 +9,7 @@ package api
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	dlog "log"
 	"net/http"
@@ -17,9 +18,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
-	"gopkg.in/gorp.v1"
-	mgo "gopkg.in/mgo.v2"
 
 	"github.com/getsentry/raven-go"
 	"github.com/jrallison/go-workers"
@@ -32,6 +30,10 @@ import (
 	"github.com/rcrowley/go-metrics"
 	"github.com/satori/go.uuid"
 	"github.com/spf13/viper"
+	eecho "github.com/topfreegames/extensions/echo"
+	gorp "github.com/topfreegames/extensions/gorp/interfaces"
+	"github.com/topfreegames/extensions/jaeger"
+	"github.com/topfreegames/extensions/mongo/interfaces"
 	"github.com/topfreegames/khan/es"
 	"github.com/topfreegames/khan/log"
 	"github.com/topfreegames/khan/models"
@@ -51,19 +53,20 @@ type App struct {
 	Host           string
 	ConfigPath     string
 	Errors         metrics.EWMA
-	App            *echo.Echo
+	App            *eecho.Echo
 	Engine         engine.Server
-	Db             models.DB
 	Config         *viper.Viper
 	Dispatcher     *Dispatcher
 	ESWorker       *models.ESWorker
 	MongoWorker    *models.MongoWorker
 	Logger         zap.Logger
 	ESClient       *es.Client
-	MongoDB        *mgo.Database
+	MongoDB        interfaces.MongoDB
 	ReadBufferSize int
 	Fast           bool
 	NewRelic       newrelic.Application
+
+	db gorp.Database
 }
 
 // GetApp returns a new Khan API Application
@@ -90,6 +93,7 @@ func (app *App) Configure() {
 	app.loadConfiguration()
 	app.configureSentry()
 	app.configureNewRelic()
+	app.configureJaeger()
 	app.connectDatabase()
 	app.configureApplication()
 	app.configureElasticsearch()
@@ -141,6 +145,24 @@ func (app *App) configureNewRelic() error {
 	return nil
 }
 
+func (app *App) configureJaeger() {
+	l := app.Logger.With(
+		zap.String("source", "app"),
+		zap.String("operation", "configureJaeger"),
+	)
+
+	opts := jaeger.Options{
+		Disabled:    app.Config.GetBool("jaeger.disabled"),
+		Probability: app.Config.GetFloat64("jaeger.samplingProbability"),
+		ServiceName: "khan",
+	}
+
+	_, err := jaeger.Configure(opts)
+	if err != nil {
+		l.Error("Failed to initialize Jaeger.")
+	}
+}
+
 func (app *App) configureElasticsearch() {
 	if app.Config.GetBool("elasticsearch.enabled") == true {
 		app.ESClient = es.GetClient(
@@ -156,8 +178,11 @@ func (app *App) configureElasticsearch() {
 }
 
 func (app *App) configureMongoDB() {
-	var err error
+	database := app.Config.GetString("mongodb.databaseName")
+	app.Config.Set("mongodb.database", database)
+
 	if app.Config.GetBool("mongodb.enabled") == true {
+		var err error
 		app.MongoDB, err = mongo.GetMongo(
 			app.Logger,
 			app.Config,
@@ -188,6 +213,8 @@ func (app *App) setConfigurationDefaults() {
 	app.Config.SetDefault("khan.maxPendingInvites", -1)
 	app.Config.SetDefault("khan.defaultCooldownBeforeInvite", -1)
 	app.Config.SetDefault("khan.defaultCooldownBeforeApply", -1)
+	app.Config.SetDefault("jaeger.disabled", true)
+	app.Config.SetDefault("jaeger.samplingProbability", 0.001)
 	log.D(l, "Configuration defaults set.")
 }
 
@@ -249,7 +276,7 @@ func (app *App) connectDatabase() {
 	}
 
 	log.I(l, "Connected to database successfully.")
-	app.Db = db
+	app.db = db
 }
 
 func (app *App) onErrorHandler(err error, stack []byte) {
@@ -274,7 +301,7 @@ func (app *App) configureApplication() {
 		engine.ReadBufferSize = app.ReadBufferSize
 		app.Engine = engine
 	}
-	app.App = echo.New()
+	app.App = eecho.New()
 	a := app.App
 
 	_, w, _ := os.Pipe()
@@ -369,7 +396,7 @@ func (app *App) GetHooks() map[string]map[int][]*models.Hook {
 
 	start := time.Now()
 	log.D(l, "Retrieving hooks...")
-	dbHooks, err := models.GetAllHooks(app.Db)
+	dbHooks, err := models.GetAllHooks(app.db)
 	if err != nil {
 		log.E(l, "Retrieve hooks failed.", func(cm log.CM) {
 			cm.Write(zap.String("error", err.Error()))
@@ -395,7 +422,7 @@ func (app *App) GetHooks() map[string]map[int][]*models.Hook {
 }
 
 //GetGame returns a game by Public ID
-func (app *App) GetGame(gameID string) (*models.Game, error) {
+func (app *App) GetGame(ctx context.Context, gameID string) (*models.Game, error) {
 	l := app.Logger.With(
 		zap.String("source", "app"),
 		zap.String("operation", "GetGame"),
@@ -405,7 +432,7 @@ func (app *App) GetGame(gameID string) (*models.Game, error) {
 	start := time.Now()
 	log.D(l, "Retrieving game...")
 
-	game, err := models.GetGameByPublicID(app.Db, gameID)
+	game, err := models.GetGameByPublicID(app.Db(ctx), gameID)
 	if err != nil {
 		log.E(l, "Retrieve game failed.", func(cm log.CM) {
 			cm.Write(zap.Error(err))
@@ -560,14 +587,14 @@ func (app *App) finalizeApp() {
 	)
 
 	log.D(l, "Closing DB connection...")
-	app.Db.(*gorp.DbMap).Db.Close()
+	app.db.Close()
 	log.I(l, "DB connection closed succesfully.")
 }
 
 //BeginTrans in the current Db connection
-func (app *App) BeginTrans(l zap.Logger) (*gorp.Transaction, error) {
+func (app *App) BeginTrans(ctx context.Context, l zap.Logger) (gorp.Transaction, error) {
 	log.D(l, "Beginning DB tx...")
-	tx, err := (app.Db).(*gorp.DbMap).Begin()
+	tx, err := app.Db(ctx).Begin()
 	if err != nil {
 		log.E(l, "Failed to begin tx.", func(cm log.CM) {
 			cm.Write(zap.Error(err))
@@ -579,7 +606,7 @@ func (app *App) BeginTrans(l zap.Logger) (*gorp.Transaction, error) {
 }
 
 //Rollback transaction
-func (app *App) Rollback(tx *gorp.Transaction, msg string, c echo.Context, l zap.Logger, err error) error {
+func (app *App) Rollback(tx gorp.Transaction, msg string, c echo.Context, l zap.Logger, err error) error {
 	sErr := WithSegment("tx-rollback", c, func() error {
 		txErr := tx.Rollback()
 		if txErr != nil {
@@ -594,7 +621,7 @@ func (app *App) Rollback(tx *gorp.Transaction, msg string, c echo.Context, l zap
 }
 
 //Commit transaction
-func (app *App) Commit(tx *gorp.Transaction, msg string, c echo.Context, l zap.Logger) error {
+func (app *App) Commit(tx gorp.Transaction, msg string, c echo.Context, l zap.Logger) error {
 	err := WithSegment("tx-commit", c, func() error {
 		txErr := tx.Commit()
 		if txErr != nil {
@@ -610,13 +637,21 @@ func (app *App) Commit(tx *gorp.Transaction, msg string, c echo.Context, l zap.L
 }
 
 // GetCtxDB returns the proper database connection depending on the request context
-func (app *App) GetCtxDB(ctx echo.Context) (models.DB, error) {
+func (app *App) GetCtxDB(ctx echo.Context) (gorp.Database, error) {
 	val := ctx.Get("db")
 	if val != nil {
-		return val.(models.DB), nil
+		return val.(gorp.Database), nil
 	}
 
-	return app.Db, nil
+	return app.Db(ctx.StdContext()), nil
+}
+
+// Db returns a gorp database connection using the given context
+func (app *App) Db(ctx context.Context) gorp.Database {
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	return app.db.WithContext(ctx).(gorp.Database)
 }
 
 // Start starts listening for web requests at specified host and port

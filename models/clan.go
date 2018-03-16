@@ -14,6 +14,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/go-gorp/gorp"
 	workers "github.com/jrallison/go-workers"
 	"github.com/mailru/easyjson/jlexer"
 	"github.com/mailru/easyjson/jwriter"
@@ -22,7 +23,6 @@ import (
 	"github.com/topfreegames/khan/queues"
 	"github.com/topfreegames/khan/util"
 	"github.com/uber-go/zap"
-	"gopkg.in/gorp.v1"
 )
 
 // ClanByName allows sorting clans by name
@@ -136,7 +136,7 @@ func (c *Clan) IndexClanIntoElasticSearch() error {
 
 // UpdateClanIntoMongoDB after operation in PG
 func (c *Clan) UpdateClanIntoMongoDB() error {
-	mongo, _ := mongo.GetConfiguredMongoClient()
+	mongo := mongo.GetConfiguredMongoClient()
 	if mongo != nil {
 		workers.Enqueue(queues.KhanMongoQueue, "Add", map[string]interface{}{
 			"game":   c.GameID,
@@ -150,7 +150,7 @@ func (c *Clan) UpdateClanIntoMongoDB() error {
 
 //DeleteClanFromMongoDB after deletion in PG
 func (c *Clan) DeleteClanFromMongoDB() error {
-	mongo, _ := mongo.GetConfiguredMongoClient()
+	mongo := mongo.GetConfiguredMongoClient()
 	if mongo != nil {
 		workers.Enqueue(queues.KhanMongoQueue, "Add", map[string]interface{}{
 			"game":   c.GameID,

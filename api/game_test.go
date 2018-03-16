@@ -47,7 +47,7 @@ func getGamePayload(publicID, name string) map[string]interface{} {
 }
 
 var _ = Describe("Game API Handler", func() {
-	var testDb models.DB
+	var testDb, db models.DB
 	var a *api.App
 
 	BeforeEach(func() {
@@ -56,6 +56,7 @@ var _ = Describe("Game API Handler", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		a = GetDefaultTestApp()
+		db = a.Db(nil)
 		a.NonblockingStartWorkers()
 	})
 
@@ -70,7 +71,7 @@ var _ = Describe("Game API Handler", func() {
 			Expect(result["success"]).To(BeTrue())
 			Expect(result["publicID"]).To(Equal(payload["publicID"].(string)))
 
-			dbGame, err := models.GetGameByPublicID(a.Db, payload["publicID"].(string))
+			dbGame, err := models.GetGameByPublicID(db, payload["publicID"].(string))
 			Expect(err).NotTo(HaveOccurred())
 			Expect(dbGame.PublicID).To(Equal(payload["publicID"]))
 			Expect(dbGame.Name).To(Equal(payload["name"]))
@@ -111,7 +112,7 @@ var _ = Describe("Game API Handler", func() {
 			Expect(result["success"]).To(BeTrue())
 			Expect(result["publicID"]).To(Equal(payload["publicID"].(string)))
 
-			dbGame, err := models.GetGameByPublicID(a.Db, payload["publicID"].(string))
+			dbGame, err := models.GetGameByPublicID(db, payload["publicID"].(string))
 			Expect(err).NotTo(HaveOccurred())
 			Expect(dbGame.CooldownBeforeInvite).To(Equal(2384))
 			Expect(dbGame.CooldownBeforeApply).To(Equal(2874))
@@ -169,7 +170,7 @@ var _ = Describe("Game API Handler", func() {
 	Describe("Update Game Handler", func() {
 		It("Should update game", func() {
 			game := models.GameFactory.MustCreate().(*models.Game)
-			err := a.Db.Insert(game)
+			err := db.Insert(game)
 			Expect(err).NotTo(HaveOccurred())
 
 			metadata := map[string]interface{}{"y": "10"}
@@ -184,7 +185,7 @@ var _ = Describe("Game API Handler", func() {
 			json.Unmarshal([]byte(body), &result)
 			Expect(result["success"]).To(BeTrue())
 
-			dbGame, err := models.GetGameByPublicID(a.Db, game.PublicID)
+			dbGame, err := models.GetGameByPublicID(db, game.PublicID)
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(dbGame.Metadata).To(Equal(metadata))
@@ -218,7 +219,7 @@ var _ = Describe("Game API Handler", func() {
 			json.Unmarshal([]byte(body), &result)
 			Expect(result["success"]).To(BeTrue())
 
-			dbGame, err := models.GetGameByPublicID(a.Db, gameID)
+			dbGame, err := models.GetGameByPublicID(db, gameID)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(dbGame.Metadata).To(Equal(payload["metadata"]))
 			Expect(dbGame.PublicID).To(Equal(gameID))
@@ -227,7 +228,7 @@ var _ = Describe("Game API Handler", func() {
 
 		It("Should not update game if missing parameters", func() {
 			game := models.GameFactory.MustCreate().(*models.Game)
-			err := a.Db.Insert(game)
+			err := db.Insert(game)
 			Expect(err).NotTo(HaveOccurred())
 
 			metadata := map[string]interface{}{"y": "10"}
@@ -248,7 +249,7 @@ var _ = Describe("Game API Handler", func() {
 
 		It("Should not update game if bad payload", func() {
 			game := models.GameFactory.MustCreate().(*models.Game)
-			err := a.Db.Insert(game)
+			err := db.Insert(game)
 			Expect(err).NotTo(HaveOccurred())
 
 			payload := getGamePayload(game.PublicID, game.Name)
@@ -276,7 +277,7 @@ var _ = Describe("Game API Handler", func() {
 
 		It("Should not update game if invalid data", func() {
 			game := models.GameFactory.MustCreate().(*models.Game)
-			err := a.Db.Insert(game)
+			err := db.Insert(game)
 			Expect(err).NotTo(HaveOccurred())
 
 			payload := getGamePayload(game.PublicID, strings.Repeat("a", 256))

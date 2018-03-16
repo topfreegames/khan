@@ -28,7 +28,7 @@ import (
 )
 
 var _ = Describe("Clan API Handler", func() {
-	var testDb models.DB
+	var testDb, db models.DB
 	var a *api.App
 
 	BeforeEach(func() {
@@ -37,6 +37,7 @@ var _ = Describe("Clan API Handler", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		a = GetDefaultTestApp()
+		db = a.Db(nil)
 		a.NonblockingStartWorkers()
 	})
 
@@ -66,7 +67,7 @@ var _ = Describe("Clan API Handler", func() {
 			Expect(result["success"]).To(BeTrue())
 			Expect(result["publicID"]).To(Equal(clanPublicID))
 
-			dbClan, err := models.GetClanByPublicID(a.Db, player.GameID, clanPublicID)
+			dbClan, err := models.GetClanByPublicID(db, player.GameID, clanPublicID)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(dbClan.GameID).To(Equal(player.GameID))
 			Expect(dbClan.OwnerID).To(Equal(player.ID))
@@ -106,9 +107,12 @@ var _ = Describe("Clan API Handler", func() {
 
 			colName := fmt.Sprintf("clans_%s", player.GameID)
 
+			col, sess := mongo.C(colName)
+			defer sess.Close()
+
 			var res *models.Clan
 			Eventually(func() *models.Clan {
-				err = mongo.C(colName).FindId(clanPublicID).One(&res)
+				err = col.FindId(clanPublicID).One(&res)
 				return res
 			}, 5).Should(Not(BeNil()))
 
@@ -251,7 +255,7 @@ var _ = Describe("Clan API Handler", func() {
 			newOwner := result["newOwner"].(map[string]interface{})
 			Expect(newOwner["publicID"]).To(BeEquivalentTo(players[0].PublicID))
 
-			dbClan, err := models.GetClanByPublicID(a.Db, clan.GameID, clan.PublicID)
+			dbClan, err := models.GetClanByPublicID(db, clan.GameID, clan.PublicID)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(dbClan.OwnerID).To(Equal(memberships[0].PlayerID))
 		})
@@ -287,7 +291,7 @@ var _ = Describe("Clan API Handler", func() {
 			json.Unmarshal([]byte(body), &result)
 			Expect(result["success"]).To(BeTrue())
 
-			dbClan, err := models.GetClanByPublicID(a.Db, clan.GameID, clan.PublicID)
+			dbClan, err := models.GetClanByPublicID(db, clan.GameID, clan.PublicID)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(dbClan.OwnerID).To(Equal(players[0].ID))
 		})
@@ -342,7 +346,7 @@ var _ = Describe("Clan API Handler", func() {
 			json.Unmarshal([]byte(body), &result)
 			Expect(result["success"]).To(BeTrue())
 
-			dbClan, err := models.GetClanByPublicID(a.Db, gameID, publicID)
+			dbClan, err := models.GetClanByPublicID(db, gameID, publicID)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(dbClan.GameID).To(Equal(gameID))
 			Expect(dbClan.PublicID).To(Equal(publicID))
@@ -363,9 +367,12 @@ var _ = Describe("Clan API Handler", func() {
 			publicID := clan.PublicID
 			colName := fmt.Sprintf("clans_%s", gameID)
 
+			col, sess := mongo.C(colName)
+			defer sess.Close()
+
 			var res *models.Clan
 			Eventually(func() *models.Clan {
-				err = mongo.C(colName).FindId(publicID).One(&res)
+				err = col.FindId(publicID).One(&res)
 				return res
 			}, 5).Should(Not(BeNil()))
 
@@ -395,7 +402,7 @@ var _ = Describe("Clan API Handler", func() {
 			json.Unmarshal([]byte(body), &result)
 			Expect(result["success"]).To(BeTrue())
 			Eventually(func() *models.Clan {
-				err = mongo.C(colName).FindId(publicID).One(&res)
+				err = col.FindId(publicID).One(&res)
 				return res
 			}).Should(SatisfyAll(
 				Not(BeNil()),

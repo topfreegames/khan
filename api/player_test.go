@@ -23,7 +23,7 @@ import (
 )
 
 var _ = Describe("Player API Handler", func() {
-	var testDb models.DB
+	var testDb, db models.DB
 	var a *api.App
 
 	BeforeEach(func() {
@@ -32,13 +32,14 @@ var _ = Describe("Player API Handler", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		a = GetDefaultTestApp()
+		db = a.Db(nil)
 		a.NonblockingStartWorkers()
 	})
 
 	Describe("Create Player Handler", func() {
 		It("Should create player", func() {
 			game := models.GameFactory.MustCreate().(*models.Game)
-			err := a.Db.Insert(game)
+			err := db.Insert(game)
 			Expect(err).NotTo(HaveOccurred())
 
 			payload := map[string]interface{}{
@@ -55,7 +56,7 @@ var _ = Describe("Player API Handler", func() {
 			Expect(result["publicID"]).To(Equal(payload["publicID"].(string)))
 
 			dbPlayer, err := models.GetPlayerByPublicID(
-				a.Db, game.PublicID, payload["publicID"].(string),
+				db, game.PublicID, payload["publicID"].(string),
 			)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(dbPlayer.GameID).To(Equal(game.PublicID))
@@ -88,7 +89,7 @@ var _ = Describe("Player API Handler", func() {
 
 		It("Should not create player if invalid data", func() {
 			game := models.GameFactory.MustCreate().(*models.Game)
-			err := a.Db.Insert(game)
+			err := db.Insert(game)
 			Expect(err).NotTo(HaveOccurred())
 
 			payload := map[string]interface{}{
@@ -108,7 +109,7 @@ var _ = Describe("Player API Handler", func() {
 
 	Describe("Update Player Handler", func() {
 		It("Should update player", func() {
-			_, player, err := models.CreatePlayerFactory(a.Db, "")
+			_, player, err := models.CreatePlayerFactory(db, "")
 			Expect(err).NotTo(HaveOccurred())
 
 			metadata := map[string]interface{}{"y": 10}
@@ -124,7 +125,7 @@ var _ = Describe("Player API Handler", func() {
 			json.Unmarshal([]byte(body), &result)
 			Expect(result["success"]).To(BeTrue())
 
-			dbPlayer, err := models.GetPlayerByPublicID(a.Db, player.GameID, player.PublicID)
+			dbPlayer, err := models.GetPlayerByPublicID(db, player.GameID, player.PublicID)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(dbPlayer.GameID).To(Equal(player.GameID))
 			Expect(dbPlayer.PublicID).To(Equal(player.PublicID))
@@ -155,7 +156,7 @@ var _ = Describe("Player API Handler", func() {
 		})
 
 		It("Should not update player if invalid data", func() {
-			_, player, err := models.CreatePlayerFactory(a.Db, "")
+			_, player, err := models.CreatePlayerFactory(db, "")
 			Expect(err).NotTo(HaveOccurred())
 
 			payload := map[string]interface{}{

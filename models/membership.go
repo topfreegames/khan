@@ -12,7 +12,7 @@ import (
 
 	"github.com/topfreegames/khan/util"
 
-	"gopkg.in/gorp.v1"
+	"github.com/go-gorp/gorp"
 )
 
 var approveString = "approve"

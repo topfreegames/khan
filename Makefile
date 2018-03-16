@@ -24,13 +24,14 @@ setup-docs:
 	@pip install -q --log /tmp/pip.log --no-cache-dir sphinx recommonmark sphinx_rtd_theme
 
 setup-ci:
+	@go get -u github.com/golang/dep/...
 	@go get github.com/mailru/easyjson/...
 	@go get -u github.com/Masterminds/glide/...
 	@go get -u github.com/jteeuwen/go-bindata/...
 	@go get github.com/topfreegames/goose/cmd/goose
 	@go get github.com/mattn/goveralls
 	@go get github.com/onsi/ginkgo/ginkgo
-	@glide install
+	@dep ensure
 
 build:
 	@go build $(PACKAGES)

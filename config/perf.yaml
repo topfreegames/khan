@@ -4,3 +4,7 @@ postgres:
   host: "localhost"
   port: 5433
   sslMode: "disable"
+
+jaeger:
+  disabled: true
+  samplingProbability: 0.001

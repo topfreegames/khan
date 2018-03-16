@@ -13,7 +13,7 @@ import (
 
 	"github.com/topfreegames/khan/util"
 
-	"gopkg.in/gorp.v1"
+	"github.com/go-gorp/gorp"
 )
 
 // Game identifies uniquely one game
