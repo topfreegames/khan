@@ -8,13 +8,13 @@ RUN apk update
 RUN apk add git make g++ apache2-utils
 RUN apk add --update bash
 
-RUN go get -u github.com/Masterminds/glide/...
+RUN go get -u github.com/golang/dep/cmd/dep
 RUN go get -u github.com/topfreegames/goose/cmd/goose
 
 ADD . /go/src/github.com/topfreegames/khan
 
 WORKDIR /go/src/github.com/topfreegames/khan
-RUN glide install
+RUN dep ensure
 RUN go install github.com/topfreegames/khan
 
 ENV KHAN_POSTGRES_HOST 0.0.0.0
