@@ -6,7 +6,7 @@
 
 .PHONY: db
 
-PACKAGES = $(shell dep novendor)
+PACKAGES = $(shell dep ensure)
 GODIRS = $(shell go list ./... | grep -v /vendor/ | sed s@github.com/topfreegames/khan@.@g | egrep -v "^[.]$$")
 PMD = "pmd-bin-5.3.3"
 OS = "$(shell uname | awk '{ print tolower($$0) }')"
