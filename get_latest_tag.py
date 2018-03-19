@@ -34,7 +34,10 @@ def get_tag_value(tag):
     total_value = 0
     for index, tag_part in enumerate(tag):
         power = pow(100, len(tag) - index)
-        total_value += int(tag_part) * power
+        try:
+            total_value += int(tag_part) * power
+        except:
+            pass
 
     return total_value
 

@@ -6,7 +6,7 @@
 
 .PHONY: db
 
-PACKAGES = $(shell dep ensure)
+PACKAGES = $(shell glide novendor)
 GODIRS = $(shell go list ./... | grep -v /vendor/ | sed s@github.com/topfreegames/khan@.@g | egrep -v "^[.]$$")
 PMD = "pmd-bin-5.3.3"
 OS = "$(shell uname | awk '{ print tolower($$0) }')"
@@ -26,7 +26,6 @@ setup-docs:
 setup-ci:
 	@go get -u github.com/golang/dep/...
 	@go get github.com/mailru/easyjson/...
-	@go get -u github.com/golang/dep/cmd/dep
 	@go get -u github.com/jteeuwen/go-bindata/...
 	@go get github.com/topfreegames/goose/cmd/goose
 	@go get github.com/mattn/goveralls

@@ -8,7 +8,7 @@ RUN apk update
 RUN apk add git make g++ apache2-utils
 RUN apk add --update bash
 
-RUN go get -u github.com/golang/dep/cmd/dep
+RUN go get -u github.com/golang/dep/...
 RUN go get -u github.com/topfreegames/goose/cmd/goose
 
 ADD . /go/src/github.com/topfreegames/khan
