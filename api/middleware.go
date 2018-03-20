@@ -17,6 +17,7 @@ import (
 
 	"github.com/getsentry/raven-go"
 	"github.com/labstack/echo"
+	"github.com/labstack/echo/engine"
 	"github.com/topfreegames/khan/log"
 	"github.com/topfreegames/khan/util"
 	"github.com/uber-go/zap"
@@ -205,12 +206,14 @@ func (l *LoggerMiddleware) Serve(next echo.HandlerFunc) echo.HandlerFunc {
 
 		//all except latency to string
 		var ip, method, path string
+		var header engine.Header
 		var status int
 		var latency time.Duration
 		var startTime, endTime time.Time
 
 		path = c.Path()
 		method = c.Request().Method()
+		header = c.Request().Header()
 
 		startTime = time.Now()
 
@@ -237,6 +240,7 @@ func (l *LoggerMiddleware) Serve(next echo.HandlerFunc) echo.HandlerFunc {
 			zap.String("ip", ip),
 			zap.String("method", method),
 			zap.String("path", path),
+			zap.Object("header", header),
 		)
 
 		//request failed
