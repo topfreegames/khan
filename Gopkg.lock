@@ -349,8 +349,8 @@
     "mongo",
     "mongo/interfaces"
   ]
-  revision = "27f64aa2ee6e01c0b323cc8e98590f28a6647390"
-  version = "v5.6.0"
+  revision = "95cb7e36337d12d590d769d493f79aa9c3b5acf5"
+  version = "v5.6.3"
 
 [[projects]]
   branch = "master"
@@ -505,6 +505,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "e9a62bf8e305c851713f02c25b9f594b622ac776f4a3ceefcd4cca1a691ade33"
+  inputs-digest = "9cb9f504d42a1e7eef44072d4bdfc566b00f9907997bc417f7cb6bc8a80e72a4"
   solver-name = "gps-cdcl"
   solver-version = 1
