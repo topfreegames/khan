@@ -31,8 +31,10 @@ import (
 	"github.com/satori/go.uuid"
 	"github.com/spf13/viper"
 	eecho "github.com/topfreegames/extensions/echo"
+	extechomiddleware "github.com/topfreegames/extensions/echo/middleware"
 	gorp "github.com/topfreegames/extensions/gorp/interfaces"
 	"github.com/topfreegames/extensions/jaeger"
+	extnethttpmiddleware "github.com/topfreegames/extensions/middleware"
 	"github.com/topfreegames/extensions/mongo/interfaces"
 	"github.com/topfreegames/khan/es"
 	"github.com/topfreegames/khan/log"
@@ -65,6 +67,7 @@ type App struct {
 	ReadBufferSize int
 	Fast           bool
 	NewRelic       newrelic.Application
+	DDStatsD       *extnethttpmiddleware.DogStatsD
 
 	db gorp.Database
 }
@@ -91,6 +94,7 @@ func GetApp(host string, port int, configPath string, debug bool, logger zap.Log
 func (app *App) Configure() {
 	app.setConfigurationDefaults()
 	app.loadConfiguration()
+	app.configureStatsD()
 	app.configureSentry()
 	app.configureNewRelic()
 	app.configureJaeger()
@@ -113,6 +117,25 @@ func (app *App) configureSentry() {
 	log.I(l, fmt.Sprintf("Configuring sentry with URL %s", sentryURL))
 	raven.SetDSN(sentryURL)
 	raven.SetRelease(util.VERSION)
+}
+
+func (app *App) configureStatsD() error {
+	l := app.Logger.With(
+		zap.String("source", "app"),
+		zap.String("operation", "configureStatsD"),
+	)
+
+	ddstatsd, err := extnethttpmiddleware.NewDogStatsD(app.Config)
+	if err != nil {
+		log.E(l, "Failed to initialize DogStatsD.", func(cm log.CM) {
+			cm.Write(zap.Error(err))
+		})
+		return err
+	}
+	app.DDStatsD = ddstatsd
+	l.Info("Initialized DogStatsD successfully.")
+
+	return nil
 }
 
 func (app *App) configureNewRelic() error {
@@ -320,6 +343,7 @@ func (app *App) configureApplication() {
 	a.Use(NewNewRelicMiddleware(app, app.Logger).Serve)
 
 	a.Use(NewRecoveryMiddleware(app.onErrorHandler).Serve)
+	a.Use(extechomiddleware.NewResponseTimeMetricsMiddleware(app.DDStatsD).Serve)
 	a.Use(NewVersionMiddleware().Serve)
 	a.Use(NewSentryMiddleware(app).Serve)
 	a.Use(NewLoggerMiddleware(app.Logger).Serve)
