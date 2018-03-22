@@ -8,3 +8,10 @@ postgres:
 jaeger:
   disabled: true
   samplingProbability: 0.001
+
+extensions:
+  dogstatsd:
+    host: localhost:8125
+    prefix: khan.
+    tags_prefix: ""
+    rate: 1

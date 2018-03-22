@@ -49,3 +49,10 @@ redis:
   database: 0
   pool: 30
   password: ""
+
+extensions:
+  dogstatsd:
+    host: localhost:8125
+    prefix: khan.
+    tags_prefix: ""
+    rate: 1
