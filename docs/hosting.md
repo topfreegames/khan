@@ -13,17 +13,20 @@ Khan uses PostgreSQL to store clans information. The container takes environment
 * `KHAN_POSTGRES_PORT` - PostgreSQL port to connect to;
 * `KHAN_POSTGRES_USER` - Password of the PostgreSQL Server to connect to;
 * `KHAN_POSTGRES_DBNAME` - Database name of the PostgreSQL Server to connect to;
-* `KHAN_POSTGRES_SSLMODE` - SSL Mode to connect to postgres with.
+* `KHAN_POSTGRES_SSLMODE` - SSL Mode to connect to postgres with;
 
 Other than that, there are a couple more configurations you can pass using environment variables:
 
 * `KHAN_NEWRELIC_KEY` - If you have a [New Relic](https://newrelic.com/) account, you can use this variable to specify your API Key to populate data with New Relic API;
-* `KHAN_SENTRY_URL` - If you have a [sentry server](https://docs.getsentry.com/hosted/) you can use this variable to specify your project's URL to send errors to.
+* `KHAN_SENTRY_URL` - If you have a [sentry server](https://docs.getsentry.com/hosted/) you can use this variable to specify your project's URL to send errors to;
+* `KHAN_EXTENSIONS_DOGSTATSD_HOST` - If you have a [statsd datadog daemon](https://docs.datadoghq.com/developers/dogstatsd/), Podium will publish metrics to the given host at a certain port. Ex. localhost:8125;
+* `KHAN_EXTENSIONS_DOGSTATSD_RATE` - If you have a [statsd daemon](https://docs.datadoghq.com/developers/dogstatsd/), Podium will export metrics to the deamon at the given rate;
+* `KHAN_EXTENSIONS_DOGSTATSD_TAGS_PREFIX` - If you have a [statsd daemon](https://docs.datadoghq.com/developers/dogstatsd/), you may set a prefix to every tag sent to the daemon;
 
 If you want to expose Khan outside your internal network it's advised to use Basic Authentication. You can specify basic authentication parameters with the following environment variables:
 
 * `KHAN_BASICAUTH_USERNAME` - If you specify this key, Khan will be configured to use basic auth with this user;
-* `KHAN_BASICAUTH_PASSWORD` - If you specify `BASICAUTH_USERNAME`, Khan will be configured to use basic auth with this password.
+* `KHAN_BASICAUTH_PASSWORD` - If you specify `BASICAUTH_USERNAME`, Khan will be configured to use basic auth with this password;
 
 ### Example command for running with Docker
 
