@@ -418,8 +418,8 @@
     "pg/interfaces",
     "worker/middleware"
   ]
-  revision = "244910ab66a9450a2c61270567bc192d2eced0a0"
-  version = "v5.11.0"
+  revision = "9cbbfa71489a43248014064ea65274401d5f71b3"
+  version = "v5.11.1"
 
 [[projects]]
   branch = "master"
@@ -605,6 +605,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "a92fd80fb07ad169141176c6789518a2c1d37151954705a2c486270663365853"
+  inputs-digest = "eee4bb49ceac36da5f4d6bb5851a58d32a3cc94268f0366630cf129865dc0389"
   solver-name = "gps-cdcl"
   solver-version = 1
