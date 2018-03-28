@@ -28,7 +28,7 @@ import (
 
 const hookInternalFailures = "hook_internal_failures"
 const requestingHookMilliseconds = "requesting_hook_milliseconds"
-const requestingHookURLkStatus = "requesting_hook_status"
+const requestingHookURLStatus = "requesting_hook_status"
 
 //Dispatcher is responsible for sending web hooks to workers
 type Dispatcher struct {
@@ -214,7 +214,7 @@ func (d *Dispatcher) PerformDispatchHook(m *workers.Msg) {
 		statsd.Timing(requestingHookMilliseconds, elapsed)
 
 		tags := []string{fmt.Sprintf("status:%d", resp.StatusCode())}
-		statsd.Increment(requestingHookURLkStatus, tags...)
+		statsd.Increment(requestingHookURLStatus, tags...)
 
 		if resp.StatusCode() > 399 {
 			app.addError()
