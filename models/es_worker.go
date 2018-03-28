@@ -2,8 +2,8 @@ package models
 
 import (
 	"context"
-	"time"
 	"encoding/json"
+	"time"
 
 	"github.com/jrallison/go-workers"
 	"github.com/topfreegames/khan/es"
@@ -36,7 +36,7 @@ func (w *ESWorker) PerformUpdateES(m *workers.Msg) {
 
 	index := data["index"].(string)
 	op := data["op"].(string)
-	clan := data["clan"].(map[string]interface {})
+	clan := data["clan"].(map[string]interface{})
 	clanID := data["clanID"].(string)
 
 	l := w.Logger.With(
@@ -65,6 +65,7 @@ func (w *ESWorker) PerformUpdateES(m *workers.Msg) {
 				l.Error("Failed to index clan into Elastic Search")
 				return
 			}
+
 			l.Info("Successfully indexed clan into Elastic Search.", zap.Duration("latency", time.Now().Sub(start)))
 		} else if op == "update" {
 			_, err := w.ES.Client.
@@ -77,6 +78,7 @@ func (w *ESWorker) PerformUpdateES(m *workers.Msg) {
 			if err != nil {
 				l.Error("Failed to update clan from Elastic Search.", zap.Error(err))
 			}
+
 			l.Info("Successfully updated clan from Elastic Search.", zap.Duration("latency", time.Now().Sub(start)))
 		} else if op == "delete" {
 			_, err := w.ES.Client.
@@ -85,9 +87,11 @@ func (w *ESWorker) PerformUpdateES(m *workers.Msg) {
 				Type("clan").
 				Id(clanID).
 				Do(context.TODO())
+
 			if err != nil {
 				l.Error("Failed to delete clan from Elastic Search.", zap.Error(err))
 			}
+
 			l.Info("Successfully deleted clan from Elastic Search.", zap.Duration("latency", time.Now().Sub(start)))
 		}
 	}
