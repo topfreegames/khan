@@ -26,6 +26,10 @@ import (
 	"github.com/valyala/fasttemplate"
 )
 
+const hookInternalFailures = "hook_internal_failures"
+const requestingHookMilliseconds = "requesting_hook_milliseconds"
+const requestingHookURLStatus = "requesting_hook_status"
+
 //Dispatcher is responsible for sending web hooks to workers
 type Dispatcher struct {
 	app *App
@@ -104,6 +108,7 @@ func basicAuth(username, password string) string {
 // PerformDispatchHook dispatches web hooks for a specific game and event type
 func (d *Dispatcher) PerformDispatchHook(m *workers.Msg) {
 	app := d.app
+	statsd := app.DDStatsD
 
 	item := m.Args()
 	data := item.MustMap()
@@ -143,6 +148,9 @@ func (d *Dispatcher) PerformDispatchHook(m *workers.Msg) {
 		requestURL, err := d.interpolateURL(hook.URL, payload)
 		if err != nil {
 			app.addError()
+			tags := []string{"error:interpolateurl"}
+			statsd.Increment(hookInternalFailures, tags...)
+
 			log.E(l, "Could not interpolate webhook.", func(cm log.CM) {
 				cm.Write(
 					zap.String("requestURL", hook.URL),
@@ -164,6 +172,9 @@ func (d *Dispatcher) PerformDispatchHook(m *workers.Msg) {
 		parsedURL, err := url.Parse(requestURL)
 		if err != nil {
 			app.addError()
+			tags := []string{"error:parserequesturl"}
+			statsd.Increment(hookInternalFailures, tags...)
+
 			log.E(l, "Could not parse request requestURL.", func(cm log.CM) {
 				cm.Write(
 					zap.String(requestURL, hook.URL),
@@ -184,14 +195,26 @@ func (d *Dispatcher) PerformDispatchHook(m *workers.Msg) {
 		req.SetRequestURI(requestURL)
 		resp := fasthttp.AcquireResponse()
 
+		start := time.Now()
 		err = client.DoTimeout(req, resp, timeout)
 		if err != nil {
 			app.addError()
+			tags := []string{"error:timeout"}
+			statsd.Increment(hookInternalFailures, tags...)
+
 			log.E(l, "Could not request webhook.", func(cm log.CM) {
 				cm.Write(zap.String("requestURL", hook.URL), zap.Error(err))
 			})
 			continue
 		}
+
+		// elapsed must be set after checking the error
+		// in order avoid noising the avg time with timeouts
+		elapsed := time.Since(start)
+		statsd.Timing(requestingHookMilliseconds, elapsed)
+
+		tags := []string{fmt.Sprintf("status:%d", resp.StatusCode())}
+		statsd.Increment(requestingHookURLStatus, tags...)
 
 		if resp.StatusCode() > 399 {
 			app.addError()

@@ -36,6 +36,7 @@ import (
 	"github.com/topfreegames/extensions/jaeger"
 	extnethttpmiddleware "github.com/topfreegames/extensions/middleware"
 	"github.com/topfreegames/extensions/mongo/interfaces"
+	extworkermiddleware "github.com/topfreegames/extensions/worker/middleware"
 	"github.com/topfreegames/khan/es"
 	"github.com/topfreegames/khan/log"
 	"github.com/topfreegames/khan/models"
@@ -515,6 +516,7 @@ func (app *App) configureGoWorkers() {
 		workers.Logger = dlog.New(&buf, "test: ", 0)
 	}
 
+	workers.Middleware.Append(extworkermiddleware.NewResponseTimeMetricsMiddleware(app.DDStatsD))
 	workers.Process(queues.KhanQueue, app.Dispatcher.PerformDispatchHook, workerCount)
 	workers.Process(queues.KhanESQueue, app.ESWorker.PerformUpdateES, workerCount)
 	workers.Process(queues.KhanMongoQueue, app.MongoWorker.PerformUpdateMongo, workerCount)

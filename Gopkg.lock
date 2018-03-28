@@ -159,9 +159,10 @@
   revision = "04140366298a54a039076d798123ffa108fff46c"
 
 [[projects]]
+  branch = "master"
   name = "github.com/jrallison/go-workers"
   packages = ["."]
-  revision = "d60d79dbbfbb83f849d2430013a59152845fa598"
+  revision = "dbf81d0b75bbe2fd90ef66a07643dd70cb42a88a"
 
 [[projects]]
   name = "github.com/klauspost/compress"
@@ -414,10 +415,11 @@
     "mongo",
     "mongo/interfaces",
     "oauth2",
-    "pg/interfaces"
+    "pg/interfaces",
+    "worker/middleware"
   ]
-  revision = "f6177c99f17f8ef000e4e3df2860e473b25f1f36"
-  version = "v5.9.0"
+  revision = "9cbbfa71489a43248014064ea65274401d5f71b3"
+  version = "v5.11.1"
 
 [[projects]]
   branch = "master"
@@ -603,6 +605,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "e9cbfbe8e6cf7bd1ecae6f70d6129a8a5bbf9b30c3c7c8700aa1579b5465e562"
+  inputs-digest = "eee4bb49ceac36da5f4d6bb5851a58d32a3cc94268f0366630cf129865dc0389"
   solver-name = "gps-cdcl"
   solver-version = 1

@@ -35,7 +35,6 @@ func (w *MongoWorker) configureMongoWorker(config *viper.Viper) {
 func (w *MongoWorker) PerformUpdateMongo(m *workers.Msg) {
 	item := m.Args()
 	data := item.MustMap()
-
 	game := data["game"].(string)
 	op := data["op"].(string)
 	clan := data["clan"].(map[string]interface{})
