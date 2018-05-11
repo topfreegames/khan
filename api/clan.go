@@ -630,10 +630,11 @@ func ListClansHandler(app *App) func(c echo.Context) error {
 // SearchClansHandler is the handler responsible for searching for clans
 func SearchClansHandler(app *App) func(c echo.Context) error {
 	return func(c echo.Context) error {
-		c.Set("route", "SearchClans")
+		c.Set("route", "MongoSearchClans")
 		start := time.Now()
 		gameID := c.Param("gameID")
 		term := c.QueryParam("term")
+		pageSize := app.Config.GetInt64("search.pageSize")
 
 		l := app.Logger.With(
 			zap.String("source", "clanHandler"),
@@ -642,28 +643,20 @@ func SearchClansHandler(app *App) func(c echo.Context) error {
 			zap.String("term", term),
 		)
 
-		log.D(l, "Getting DB connection...")
-		db, err := app.GetCtxDB(c)
-		if err != nil {
-			log.E(l, "Failed to connect to DB.", func(cm log.CM) {
-				cm.Write(zap.Error(err))
-			})
-			return FailWith(500, err.Error(), c)
-		}
-		log.D(l, "DB Connection successful.")
-
 		if term == "" {
 			log.W(l, "Clan search failed due to empty term.")
 			return FailWith(400, (&models.EmptySearchTermError{}).Error(), c)
 		}
 
 		var clans []models.Clan
-		err = WithSegment("clan-search", c, func() error {
+		var err error
+		err = WithSegment("clans-search", c, func() error {
 			log.D(l, "Searching clans...")
 			clans, err = models.SearchClan(
-				db,
+				app.MongoDB,
 				gameID,
 				term,
+				pageSize,
 			)
 
 			if err != nil {

@@ -13,7 +13,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/satori/go.uuid"
+	uuid "github.com/satori/go.uuid"
 	"github.com/topfreegames/khan/models"
 )
 
@@ -189,7 +189,7 @@ func BenchmarkSearchClan(b *testing.B) {
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		route := getRoute(fmt.Sprintf("/games/%s/clan-search?term=%s", game.Name, clans[0].PublicID))
+		route := getRoute(fmt.Sprintf("/games/%s/clans/search?term=%s", game.Name, clans[0].PublicID))
 		res, err := get(route)
 		validateResp(res, err)
 		res.Body.Close()
