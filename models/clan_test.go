@@ -1054,39 +1054,32 @@ var _ = Describe("Clan Model", func() {
 		})
 
 		Describe("Clan Search", func() {
-			It("Should return clan by search term", func() {
-				player, _, err := GetTestClans(
+			var player *Player
+
+			BeforeEach(func() {
+				var err error
+				player, _, err = GetTestClans(
 					testDb, "", "clan-search-clan", 10,
 				)
 				Expect(err).NotTo(HaveOccurred())
+				time.Sleep(500 * time.Millisecond)
+			})
 
+			It("Should return clan by search term", func() {
 				clans, err := SearchClan(testMongo, player.GameID, "SEARCH", 10)
 				Expect(err).NotTo(HaveOccurred())
-
 				Expect(len(clans)).To(Equal(10))
 			})
 
 			It("Should return clan by unicode search term", func() {
-				player, _, err := GetTestClans(
-					testDb, "", "clan-search-clan", 10,
-				)
-				Expect(err).NotTo(HaveOccurred())
-
 				clans, err := SearchClan(testMongo, player.GameID, "💩clán", 10)
 				Expect(err).NotTo(HaveOccurred())
-
 				Expect(len(clans)).To(Equal(10))
 			})
 
 			It("Should return empty list if search term is not found", func() {
-				player, _, err := GetTestClans(
-					testDb, "", "clan-search-clan-2", 10,
-				)
-				Expect(err).NotTo(HaveOccurred())
-
 				clans, err := SearchClan(testMongo, player.GameID, "qwfjur", 10)
 				Expect(err).NotTo(HaveOccurred())
-
 				Expect(len(clans)).To(Equal(0))
 			})
 
