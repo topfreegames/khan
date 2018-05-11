@@ -860,8 +860,7 @@ var _ = Describe("Clan API Handler", func() {
 				testDb, gameID, "clan-apisearch-clan", 10,
 			)
 			Expect(err).NotTo(HaveOccurred())
-
-			status, body := Get(a, GetGameRoute(player.GameID, "clan-search?term=APISEARCH"))
+			status, body := Get(a, GetGameRoute(player.GameID, "clans/search?term=APISEARCH"))
 
 			Expect(status).To(Equal(http.StatusOK))
 			var result map[string]interface{}
@@ -887,6 +886,29 @@ var _ = Describe("Clan API Handler", func() {
 			}
 		})
 
+		It("Should search for a clan by publicID", func() {
+			gameID := uuid.NewV4().String()
+			player, expectedClans, err := models.GetTestClans(
+				testDb, gameID, "clan-apisearch-clan", 10,
+			)
+			Expect(err).NotTo(HaveOccurred())
+			status, body := Get(a, GetGameRoute(
+				player.GameID, fmt.Sprintf("clans/search?term=%s", expectedClans[3].PublicID),
+			))
+
+			Expect(status).To(Equal(http.StatusOK))
+			var result map[string]interface{}
+			json.Unmarshal([]byte(body), &result)
+
+			Expect(result["success"]).To(BeTrue())
+
+			clans := result["clans"].([]interface{})
+			Expect(len(clans)).To(Equal(1))
+
+			Expect(clans[0].(map[string]interface{})["publicID"].(string)).
+				To(Equal(expectedClans[3].PublicID))
+		})
+
 		It("Should unicode search for a clan", func() {
 			gameID := uuid.NewV4().String()
 			player, expectedClans, err := models.GetTestClans(
@@ -894,7 +916,7 @@ var _ = Describe("Clan API Handler", func() {
 			)
 			Expect(err).NotTo(HaveOccurred())
 
-			url := "clan-search?term=💩clán-clan-APISEARCH"
+			url := "clans/search?term=💩clán-clan-APISEARCH"
 			status, body := Get(a, GetGameRoute(player.GameID, url))
 			Expect(status).To(Equal(http.StatusOK))
 			var result map[string]interface{}
@@ -919,7 +941,6 @@ var _ = Describe("Clan API Handler", func() {
 				Expect(clan["allowApplication"]).To(Equal(expectedClan.AllowApplication))
 			}
 		})
-
 	})
 
 	Describe("Clan Hooks", func() {

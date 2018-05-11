@@ -23,6 +23,9 @@ khan:
   defaultCooldownBeforeInvite: 0
   defaultCooldownBeforeApply: 3600
 
+search:
+  pageSize: 10
+
 healthcheck:
   workingText: "WORKING"
 

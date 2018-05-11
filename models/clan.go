@@ -18,11 +18,13 @@ import (
 	workers "github.com/jrallison/go-workers"
 	"github.com/mailru/easyjson/jlexer"
 	"github.com/mailru/easyjson/jwriter"
+	"github.com/topfreegames/extensions/mongo/interfaces"
 	"github.com/topfreegames/khan/es"
 	"github.com/topfreegames/khan/mongo"
 	"github.com/topfreegames/khan/queues"
 	"github.com/topfreegames/khan/util"
 	"github.com/uber-go/zap"
+	"gopkg.in/mgo.v2/bson"
 )
 
 // ClanByName allows sorting clans by name
@@ -817,20 +819,77 @@ func GetClansSummaries(db DB, gameID string, publicIDs []string) ([]map[string]i
 	return resultClans, nil
 }
 
+type mongoResult struct {
+	OK       int `bson:"ok"`
+	WaitedMS int `bson:"waitedMS"`
+	Cursor   struct {
+		ID         interface{} `bson:"id"`
+		NS         string      `bson:"ns"`
+		FirstBatch []bson.Raw  `bson:"firstBatch"`
+	} `bson:"cursor"`
+}
+
+func searchClanByID(db interfaces.MongoDB, gameID, term string) ([]Clan, error) {
+	col, sess := db.C(fmt.Sprintf("clans_%s", gameID))
+	defer sess.Close()
+
+	res := mongoResult{}
+	if err := col.Find(bson.M{"publicID": term}).One(&res); err != nil {
+		return nil, err
+	}
+	clan := Clan{}
+	sRaw := res.Cursor.FirstBatch
+	if len(sRaw) == 0 {
+		return nil, nil
+	}
+	if err := sRaw[0].Unmarshal(&clan); err != nil {
+		return nil, err
+	}
+	return []Clan{clan}, nil
+}
+
 // SearchClan returns a list of clans for a given term (by name or publicID)
-func SearchClan(db DB, gameID, term string) ([]Clan, error) {
+func SearchClan(
+	db interfaces.MongoDB, gameID, term string, pageSize int64,
+) ([]Clan, error) {
 	if term == "" {
 		return nil, &EmptySearchTermError{}
 	}
 
-	query := `SELECT * FROM clans WHERE game_id=$1 AND (lower(name) like $2) LIMIT 50`
+	clans, _ := searchClanByID(db, gameID, term)
+	if clans != nil {
+		return clans, nil
+	}
 
-	termStmt := fmt.Sprintf("%%%s%%", strings.ToLower(term))
+	cmd := bson.D{
+		{Name: "find", Value: fmt.Sprintf("clans_%s", gameID)},
+		{Name: "filter", Value: bson.M{"name": &bson.RegEx{Pattern: term, Options: "i"}}},
+		{Name: "sort", Value: bson.D{
+			{Name: "_id", Value: 1},
+		}},
+		{Name: "limit", Value: pageSize},
+		{Name: "batchSize", Value: pageSize},
+		{Name: "singleBatch", Value: true},
+	}
 
-	var clans []Clan
-	_, err := db.Select(&clans, query, gameID, termStmt)
-	if err != nil {
-		return nil, err
+	var res struct {
+		OK       int `bson:"ok"`
+		WaitedMS int `bson:"waitedMS"`
+		Cursor   struct {
+			ID         interface{} `bson:"id"`
+			NS         string      `bson:"ns"`
+			FirstBatch []bson.Raw  `bson:"firstBatch"`
+		} `bson:"cursor"`
+	}
+
+	if err := db.Run(cmd, &res); err != nil {
+		return []Clan{}, err
+	}
+	clans = make([]Clan, len(res.Cursor.FirstBatch))
+	for i, raw := range res.Cursor.FirstBatch {
+		if err := raw.Unmarshal(&clans[i]); err != nil {
+			return []Clan{}, err
+		}
 	}
 
 	return clans, nil

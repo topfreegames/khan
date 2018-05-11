@@ -16,6 +16,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/satori/go.uuid"
+	"github.com/topfreegames/extensions/mongo/interfaces"
 	. "github.com/topfreegames/khan/models"
 	"github.com/topfreegames/khan/util"
 
@@ -24,12 +25,18 @@ import (
 
 var _ = Describe("Clan Model", func() {
 	var testDb DB
+	var testMongo interfaces.MongoDB
 	var faultyDb DB
 
 	BeforeEach(func() {
 		var err error
+
 		testDb, err = GetTestDB()
 		Expect(err).NotTo(HaveOccurred())
+		testMongo, err = GetTestMongo()
+		Expect(err).NotTo(HaveOccurred())
+
+		ConfigureAndStartGoWorkers()
 
 		faultyDb = GetFaultyTestDB()
 	})
@@ -1047,58 +1054,37 @@ var _ = Describe("Clan Model", func() {
 		})
 
 		Describe("Clan Search", func() {
-			It("Should return clan by search term", func() {
-				player, _, err := GetTestClans(
+			var player *Player
+
+			BeforeEach(func() {
+				var err error
+				player, _, err = GetTestClans(
 					testDb, "", "clan-search-clan", 10,
 				)
 				Expect(err).NotTo(HaveOccurred())
+				time.Sleep(500 * time.Millisecond)
+			})
 
-				clans, err := SearchClan(testDb, player.GameID, "SEARCH")
+			It("Should return clan by search term", func() {
+				clans, err := SearchClan(testMongo, player.GameID, "SEARCH", 10)
 				Expect(err).NotTo(HaveOccurred())
-
 				Expect(len(clans)).To(Equal(10))
 			})
 
 			It("Should return clan by unicode search term", func() {
-				player, _, err := GetTestClans(
-					testDb, "", "clan-search-clan", 10,
-				)
+				clans, err := SearchClan(testMongo, player.GameID, "💩clán", 10)
 				Expect(err).NotTo(HaveOccurred())
-
-				clans, err := SearchClan(testDb, player.GameID, "💩clán")
-				Expect(err).NotTo(HaveOccurred())
-
 				Expect(len(clans)).To(Equal(10))
 			})
 
 			It("Should return empty list if search term is not found", func() {
-				player, _, err := GetTestClans(
-					testDb, "", "clan-search-clan-2", 10,
-				)
+				clans, err := SearchClan(testMongo, player.GameID, "qwfjur", 10)
 				Expect(err).NotTo(HaveOccurred())
-
-				clans, err := SearchClan(testDb, player.GameID, "qwfjur")
-				Expect(err).NotTo(HaveOccurred())
-
 				Expect(len(clans)).To(Equal(0))
 			})
 
-			It("Should return empty list if matches only PublicID", func() {
-				player, clans, err := GetTestClans(testDb, "", "super-specific-name-and-ID", 10)
-				Expect(err).NotTo(HaveOccurred())
-				clan := clans[0]
-				clan.Name = "should-not-match"
-				_, err = testDb.Update(clan)
-				Expect(err).NotTo(HaveOccurred())
-
-				searchedClans, err := SearchClan(testDb, player.GameID, "specific")
-				Expect(err).NotTo(HaveOccurred())
-
-				Expect(len(searchedClans)).To(Equal(9))
-			})
-
 			It("Should return invalid response if empty term", func() {
-				_, err := SearchClan(testDb, "some-game-id", "")
+				_, err := SearchClan(testMongo, "some-game-id", "", 10)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(Equal("A search term was not provided to find a clan."))
 			})

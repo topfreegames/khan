@@ -18,6 +18,9 @@ mongodb:
   databaseName: "khan"
   collectionTemplate: "clans_%s"
 
+search:
+  pageSize: 50
+
 webhooks:
   timeout: 2
   workers: 5

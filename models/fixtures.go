@@ -468,6 +468,10 @@ func GetTestClans(db DB, gameID string, publicIDTemplate string, numberOfClans i
 		if err != nil {
 			return nil, nil, err
 		}
+		err = clan.UpdateClanIntoMongoDB()
+		if err != nil {
+			return nil, nil, err
+		}
 
 		clans = append(clans, clan)
 	}
