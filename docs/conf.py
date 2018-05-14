@@ -24,7 +24,7 @@ from recommonmark.parser import CommonMarkParser
 import re
 
 def get_last_version():
-    with open('../api/version.go') as version_file:
+    with open('../util/version.go') as version_file:
         version_data = version_file.read()
         version = re.search('VERSION\s=\s["](.+)["]', version_data)
         if version:
