@@ -123,38 +123,47 @@ func easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi1(out *jwriter.Writer, in
 	out.RawByte('{')
 	first := true
 	_ = first
-	if !first {
-		out.RawByte(',')
-	}
-	first = false
-	out.RawString("\"name\":")
-	out.String(string(in.Name))
-	if !first {
-		out.RawByte(',')
-	}
-	first = false
-	out.RawString("\"metadata\":")
-	if in.Metadata == nil && (out.Flags&jwriter.NilMapAsEmpty) == 0 {
-		out.RawString(`null`)
-	} else {
-		out.RawByte('{')
-		v2First := true
-		for v2Name, v2Value := range in.Metadata {
-			if !v2First {
-				out.RawByte(',')
-			}
-			v2First = false
-			out.String(string(v2Name))
-			out.RawByte(':')
-			if m, ok := v2Value.(easyjson.Marshaler); ok {
-				m.MarshalEasyJSON(out)
-			} else if m, ok := v2Value.(json.Marshaler); ok {
-				out.Raw(m.MarshalJSON())
-			} else {
-				out.Raw(json.Marshal(v2Value))
-			}
+	{
+		const prefix string = ",\"name\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
 		}
-		out.RawByte('}')
+		out.String(string(in.Name))
+	}
+	{
+		const prefix string = ",\"metadata\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		if in.Metadata == nil && (out.Flags&jwriter.NilMapAsEmpty) == 0 {
+			out.RawString(`null`)
+		} else {
+			out.RawByte('{')
+			v2First := true
+			for v2Name, v2Value := range in.Metadata {
+				if v2First {
+					v2First = false
+				} else {
+					out.RawByte(',')
+				}
+				out.String(string(v2Name))
+				out.RawByte(':')
+				if m, ok := v2Value.(easyjson.Marshaler); ok {
+					m.MarshalEasyJSON(out)
+				} else if m, ok := v2Value.(json.Marshaler); ok {
+					out.Raw(m.MarshalJSON())
+				} else {
+					out.Raw(json.Marshal(v2Value))
+				}
+			}
+			out.RawByte('}')
+		}
 	}
 	out.RawByte('}')
 }
@@ -275,126 +284,180 @@ func easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi2(out *jwriter.Writer, in
 	out.RawByte('{')
 	first := true
 	_ = first
-	if !first {
-		out.RawByte(',')
-	}
-	first = false
-	out.RawString("\"name\":")
-	out.String(string(in.Name))
-	if !first {
-		out.RawByte(',')
-	}
-	first = false
-	out.RawString("\"membershipLevels\":")
-	if in.MembershipLevels == nil && (out.Flags&jwriter.NilMapAsEmpty) == 0 {
-		out.RawString(`null`)
-	} else {
-		out.RawByte('{')
-		v5First := true
-		for v5Name, v5Value := range in.MembershipLevels {
-			if !v5First {
-				out.RawByte(',')
-			}
-			v5First = false
-			out.String(string(v5Name))
-			out.RawByte(':')
-			if m, ok := v5Value.(easyjson.Marshaler); ok {
-				m.MarshalEasyJSON(out)
-			} else if m, ok := v5Value.(json.Marshaler); ok {
-				out.Raw(m.MarshalJSON())
-			} else {
-				out.Raw(json.Marshal(v5Value))
-			}
+	{
+		const prefix string = ",\"name\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
 		}
-		out.RawByte('}')
+		out.String(string(in.Name))
 	}
-	if !first {
-		out.RawByte(',')
-	}
-	first = false
-	out.RawString("\"metadata\":")
-	if in.Metadata == nil && (out.Flags&jwriter.NilMapAsEmpty) == 0 {
-		out.RawString(`null`)
-	} else {
-		out.RawByte('{')
-		v6First := true
-		for v6Name, v6Value := range in.Metadata {
-			if !v6First {
-				out.RawByte(',')
-			}
-			v6First = false
-			out.String(string(v6Name))
-			out.RawByte(':')
-			if m, ok := v6Value.(easyjson.Marshaler); ok {
-				m.MarshalEasyJSON(out)
-			} else if m, ok := v6Value.(json.Marshaler); ok {
-				out.Raw(m.MarshalJSON())
-			} else {
-				out.Raw(json.Marshal(v6Value))
-			}
+	{
+		const prefix string = ",\"membershipLevels\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
 		}
-		out.RawByte('}')
+		if in.MembershipLevels == nil && (out.Flags&jwriter.NilMapAsEmpty) == 0 {
+			out.RawString(`null`)
+		} else {
+			out.RawByte('{')
+			v5First := true
+			for v5Name, v5Value := range in.MembershipLevels {
+				if v5First {
+					v5First = false
+				} else {
+					out.RawByte(',')
+				}
+				out.String(string(v5Name))
+				out.RawByte(':')
+				if m, ok := v5Value.(easyjson.Marshaler); ok {
+					m.MarshalEasyJSON(out)
+				} else if m, ok := v5Value.(json.Marshaler); ok {
+					out.Raw(m.MarshalJSON())
+				} else {
+					out.Raw(json.Marshal(v5Value))
+				}
+			}
+			out.RawByte('}')
+		}
 	}
-	if !first {
-		out.RawByte(',')
+	{
+		const prefix string = ",\"metadata\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		if in.Metadata == nil && (out.Flags&jwriter.NilMapAsEmpty) == 0 {
+			out.RawString(`null`)
+		} else {
+			out.RawByte('{')
+			v6First := true
+			for v6Name, v6Value := range in.Metadata {
+				if v6First {
+					v6First = false
+				} else {
+					out.RawByte(',')
+				}
+				out.String(string(v6Name))
+				out.RawByte(':')
+				if m, ok := v6Value.(easyjson.Marshaler); ok {
+					m.MarshalEasyJSON(out)
+				} else if m, ok := v6Value.(json.Marshaler); ok {
+					out.Raw(m.MarshalJSON())
+				} else {
+					out.Raw(json.Marshal(v6Value))
+				}
+			}
+			out.RawByte('}')
+		}
 	}
-	first = false
-	out.RawString("\"minLevelToAcceptApplication\":")
-	out.Int(int(in.MinLevelToAcceptApplication))
-	if !first {
-		out.RawByte(',')
+	{
+		const prefix string = ",\"minLevelToAcceptApplication\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		out.Int(int(in.MinLevelToAcceptApplication))
 	}
-	first = false
-	out.RawString("\"minLevelToCreateInvitation\":")
-	out.Int(int(in.MinLevelToCreateInvitation))
-	if !first {
-		out.RawByte(',')
+	{
+		const prefix string = ",\"minLevelToCreateInvitation\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		out.Int(int(in.MinLevelToCreateInvitation))
 	}
-	first = false
-	out.RawString("\"minLevelToRemoveMember\":")
-	out.Int(int(in.MinLevelToRemoveMember))
-	if !first {
-		out.RawByte(',')
+	{
+		const prefix string = ",\"minLevelToRemoveMember\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		out.Int(int(in.MinLevelToRemoveMember))
 	}
-	first = false
-	out.RawString("\"minLevelOffsetToRemoveMember\":")
-	out.Int(int(in.MinLevelOffsetToRemoveMember))
-	if !first {
-		out.RawByte(',')
+	{
+		const prefix string = ",\"minLevelOffsetToRemoveMember\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		out.Int(int(in.MinLevelOffsetToRemoveMember))
 	}
-	first = false
-	out.RawString("\"minLevelOffsetToPromoteMember\":")
-	out.Int(int(in.MinLevelOffsetToPromoteMember))
-	if !first {
-		out.RawByte(',')
+	{
+		const prefix string = ",\"minLevelOffsetToPromoteMember\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		out.Int(int(in.MinLevelOffsetToPromoteMember))
 	}
-	first = false
-	out.RawString("\"minLevelOffsetToDemoteMember\":")
-	out.Int(int(in.MinLevelOffsetToDemoteMember))
-	if !first {
-		out.RawByte(',')
+	{
+		const prefix string = ",\"minLevelOffsetToDemoteMember\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		out.Int(int(in.MinLevelOffsetToDemoteMember))
 	}
-	first = false
-	out.RawString("\"maxMembers\":")
-	out.Int(int(in.MaxMembers))
-	if !first {
-		out.RawByte(',')
+	{
+		const prefix string = ",\"maxMembers\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		out.Int(int(in.MaxMembers))
 	}
-	first = false
-	out.RawString("\"maxClansPerPlayer\":")
-	out.Int(int(in.MaxClansPerPlayer))
-	if !first {
-		out.RawByte(',')
+	{
+		const prefix string = ",\"maxClansPerPlayer\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		out.Int(int(in.MaxClansPerPlayer))
 	}
-	first = false
-	out.RawString("\"cooldownAfterDeny\":")
-	out.Int(int(in.CooldownAfterDeny))
-	if !first {
-		out.RawByte(',')
+	{
+		const prefix string = ",\"cooldownAfterDeny\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		out.Int(int(in.CooldownAfterDeny))
 	}
-	first = false
-	out.RawString("\"cooldownAfterDelete\":")
-	out.Int(int(in.CooldownAfterDelete))
+	{
+		const prefix string = ",\"cooldownAfterDelete\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		out.Int(int(in.CooldownAfterDelete))
+	}
 	out.RawByte('}')
 }
 
@@ -474,57 +537,78 @@ func easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi3(out *jwriter.Writer, in
 	out.RawByte('{')
 	first := true
 	_ = first
-	if !first {
-		out.RawByte(',')
-	}
-	first = false
-	out.RawString("\"name\":")
-	out.String(string(in.Name))
-	if !first {
-		out.RawByte(',')
-	}
-	first = false
-	out.RawString("\"ownerPublicID\":")
-	out.String(string(in.OwnerPublicID))
-	if !first {
-		out.RawByte(',')
-	}
-	first = false
-	out.RawString("\"metadata\":")
-	if in.Metadata == nil && (out.Flags&jwriter.NilMapAsEmpty) == 0 {
-		out.RawString(`null`)
-	} else {
-		out.RawByte('{')
-		v8First := true
-		for v8Name, v8Value := range in.Metadata {
-			if !v8First {
-				out.RawByte(',')
-			}
-			v8First = false
-			out.String(string(v8Name))
-			out.RawByte(':')
-			if m, ok := v8Value.(easyjson.Marshaler); ok {
-				m.MarshalEasyJSON(out)
-			} else if m, ok := v8Value.(json.Marshaler); ok {
-				out.Raw(m.MarshalJSON())
-			} else {
-				out.Raw(json.Marshal(v8Value))
-			}
+	{
+		const prefix string = ",\"name\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
 		}
-		out.RawByte('}')
+		out.String(string(in.Name))
 	}
-	if !first {
-		out.RawByte(',')
+	{
+		const prefix string = ",\"ownerPublicID\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		out.String(string(in.OwnerPublicID))
 	}
-	first = false
-	out.RawString("\"allowApplication\":")
-	out.Bool(bool(in.AllowApplication))
-	if !first {
-		out.RawByte(',')
+	{
+		const prefix string = ",\"metadata\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		if in.Metadata == nil && (out.Flags&jwriter.NilMapAsEmpty) == 0 {
+			out.RawString(`null`)
+		} else {
+			out.RawByte('{')
+			v8First := true
+			for v8Name, v8Value := range in.Metadata {
+				if v8First {
+					v8First = false
+				} else {
+					out.RawByte(',')
+				}
+				out.String(string(v8Name))
+				out.RawByte(':')
+				if m, ok := v8Value.(easyjson.Marshaler); ok {
+					m.MarshalEasyJSON(out)
+				} else if m, ok := v8Value.(json.Marshaler); ok {
+					out.Raw(m.MarshalJSON())
+				} else {
+					out.Raw(json.Marshal(v8Value))
+				}
+			}
+			out.RawByte('}')
+		}
 	}
-	first = false
-	out.RawString("\"autoJoin\":")
-	out.Bool(bool(in.AutoJoin))
+	{
+		const prefix string = ",\"allowApplication\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		out.Bool(bool(in.AllowApplication))
+	}
+	{
+		const prefix string = ",\"autoJoin\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		out.Bool(bool(in.AutoJoin))
+	}
 	out.RawByte('}')
 }
 
@@ -572,12 +656,16 @@ func easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi4(out *jwriter.Writer, in
 	out.RawByte('{')
 	first := true
 	_ = first
-	if !first {
-		out.RawByte(',')
+	{
+		const prefix string = ",\"playerPublicID\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		out.String(string(in.PlayerPublicID))
 	}
-	first = false
-	out.RawString("\"playerPublicID\":")
-	out.String(string(in.PlayerPublicID))
 	out.RawByte('}')
 }
 
@@ -629,24 +717,36 @@ func easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi5(out *jwriter.Writer, in
 	out.RawByte('{')
 	first := true
 	_ = first
-	if !first {
-		out.RawByte(',')
+	{
+		const prefix string = ",\"level\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		out.String(string(in.Level))
 	}
-	first = false
-	out.RawString("\"level\":")
-	out.String(string(in.Level))
-	if !first {
-		out.RawByte(',')
+	{
+		const prefix string = ",\"playerPublicID\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		out.String(string(in.PlayerPublicID))
 	}
-	first = false
-	out.RawString("\"playerPublicID\":")
-	out.String(string(in.PlayerPublicID))
-	if !first {
-		out.RawByte(',')
+	{
+		const prefix string = ",\"requestorPublicID\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		out.String(string(in.RequestorPublicID))
 	}
-	first = false
-	out.RawString("\"requestorPublicID\":")
-	out.String(string(in.RequestorPublicID))
 	out.RawByte('}')
 }
 
@@ -696,18 +796,26 @@ func easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi6(out *jwriter.Writer, in
 	out.RawByte('{')
 	first := true
 	_ = first
-	if !first {
-		out.RawByte(',')
+	{
+		const prefix string = ",\"type\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		out.Int(int(in.Type))
 	}
-	first = false
-	out.RawString("\"type\":")
-	out.Int(int(in.Type))
-	if !first {
-		out.RawByte(',')
+	{
+		const prefix string = ",\"hookURL\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		out.String(string(in.HookURL))
 	}
-	first = false
-	out.RawString("\"hookURL\":")
-	out.String(string(in.HookURL))
 	out.RawByte('}')
 }
 
@@ -783,44 +891,57 @@ func easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi7(out *jwriter.Writer, in
 	out.RawByte('{')
 	first := true
 	_ = first
-	if !first {
-		out.RawByte(',')
-	}
-	first = false
-	out.RawString("\"publicID\":")
-	out.String(string(in.PublicID))
-	if !first {
-		out.RawByte(',')
-	}
-	first = false
-	out.RawString("\"name\":")
-	out.String(string(in.Name))
-	if !first {
-		out.RawByte(',')
-	}
-	first = false
-	out.RawString("\"metadata\":")
-	if in.Metadata == nil && (out.Flags&jwriter.NilMapAsEmpty) == 0 {
-		out.RawString(`null`)
-	} else {
-		out.RawByte('{')
-		v10First := true
-		for v10Name, v10Value := range in.Metadata {
-			if !v10First {
-				out.RawByte(',')
-			}
-			v10First = false
-			out.String(string(v10Name))
-			out.RawByte(':')
-			if m, ok := v10Value.(easyjson.Marshaler); ok {
-				m.MarshalEasyJSON(out)
-			} else if m, ok := v10Value.(json.Marshaler); ok {
-				out.Raw(m.MarshalJSON())
-			} else {
-				out.Raw(json.Marshal(v10Value))
-			}
+	{
+		const prefix string = ",\"publicID\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
 		}
-		out.RawByte('}')
+		out.String(string(in.PublicID))
+	}
+	{
+		const prefix string = ",\"name\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		out.String(string(in.Name))
+	}
+	{
+		const prefix string = ",\"metadata\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		if in.Metadata == nil && (out.Flags&jwriter.NilMapAsEmpty) == 0 {
+			out.RawString(`null`)
+		} else {
+			out.RawByte('{')
+			v10First := true
+			for v10Name, v10Value := range in.Metadata {
+				if v10First {
+					v10First = false
+				} else {
+					out.RawByte(',')
+				}
+				out.String(string(v10Name))
+				out.RawByte(':')
+				if m, ok := v10Value.(easyjson.Marshaler); ok {
+					m.MarshalEasyJSON(out)
+				} else if m, ok := v10Value.(json.Marshaler); ok {
+					out.Raw(m.MarshalJSON())
+				} else {
+					out.Raw(json.Marshal(v10Value))
+				}
+			}
+			out.RawByte('}')
+		}
 	}
 	out.RawByte('}')
 }
@@ -943,132 +1064,190 @@ func easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi8(out *jwriter.Writer, in
 	out.RawByte('{')
 	first := true
 	_ = first
-	if !first {
-		out.RawByte(',')
-	}
-	first = false
-	out.RawString("\"publicID\":")
-	out.String(string(in.PublicID))
-	if !first {
-		out.RawByte(',')
-	}
-	first = false
-	out.RawString("\"name\":")
-	out.String(string(in.Name))
-	if !first {
-		out.RawByte(',')
-	}
-	first = false
-	out.RawString("\"membershipLevels\":")
-	if in.MembershipLevels == nil && (out.Flags&jwriter.NilMapAsEmpty) == 0 {
-		out.RawString(`null`)
-	} else {
-		out.RawByte('{')
-		v13First := true
-		for v13Name, v13Value := range in.MembershipLevels {
-			if !v13First {
-				out.RawByte(',')
-			}
-			v13First = false
-			out.String(string(v13Name))
-			out.RawByte(':')
-			if m, ok := v13Value.(easyjson.Marshaler); ok {
-				m.MarshalEasyJSON(out)
-			} else if m, ok := v13Value.(json.Marshaler); ok {
-				out.Raw(m.MarshalJSON())
-			} else {
-				out.Raw(json.Marshal(v13Value))
-			}
+	{
+		const prefix string = ",\"publicID\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
 		}
-		out.RawByte('}')
+		out.String(string(in.PublicID))
 	}
-	if !first {
-		out.RawByte(',')
-	}
-	first = false
-	out.RawString("\"metadata\":")
-	if in.Metadata == nil && (out.Flags&jwriter.NilMapAsEmpty) == 0 {
-		out.RawString(`null`)
-	} else {
-		out.RawByte('{')
-		v14First := true
-		for v14Name, v14Value := range in.Metadata {
-			if !v14First {
-				out.RawByte(',')
-			}
-			v14First = false
-			out.String(string(v14Name))
-			out.RawByte(':')
-			if m, ok := v14Value.(easyjson.Marshaler); ok {
-				m.MarshalEasyJSON(out)
-			} else if m, ok := v14Value.(json.Marshaler); ok {
-				out.Raw(m.MarshalJSON())
-			} else {
-				out.Raw(json.Marshal(v14Value))
-			}
+	{
+		const prefix string = ",\"name\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
 		}
-		out.RawByte('}')
+		out.String(string(in.Name))
 	}
-	if !first {
-		out.RawByte(',')
+	{
+		const prefix string = ",\"membershipLevels\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		if in.MembershipLevels == nil && (out.Flags&jwriter.NilMapAsEmpty) == 0 {
+			out.RawString(`null`)
+		} else {
+			out.RawByte('{')
+			v13First := true
+			for v13Name, v13Value := range in.MembershipLevels {
+				if v13First {
+					v13First = false
+				} else {
+					out.RawByte(',')
+				}
+				out.String(string(v13Name))
+				out.RawByte(':')
+				if m, ok := v13Value.(easyjson.Marshaler); ok {
+					m.MarshalEasyJSON(out)
+				} else if m, ok := v13Value.(json.Marshaler); ok {
+					out.Raw(m.MarshalJSON())
+				} else {
+					out.Raw(json.Marshal(v13Value))
+				}
+			}
+			out.RawByte('}')
+		}
 	}
-	first = false
-	out.RawString("\"minLevelToAcceptApplication\":")
-	out.Int(int(in.MinLevelToAcceptApplication))
-	if !first {
-		out.RawByte(',')
+	{
+		const prefix string = ",\"metadata\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		if in.Metadata == nil && (out.Flags&jwriter.NilMapAsEmpty) == 0 {
+			out.RawString(`null`)
+		} else {
+			out.RawByte('{')
+			v14First := true
+			for v14Name, v14Value := range in.Metadata {
+				if v14First {
+					v14First = false
+				} else {
+					out.RawByte(',')
+				}
+				out.String(string(v14Name))
+				out.RawByte(':')
+				if m, ok := v14Value.(easyjson.Marshaler); ok {
+					m.MarshalEasyJSON(out)
+				} else if m, ok := v14Value.(json.Marshaler); ok {
+					out.Raw(m.MarshalJSON())
+				} else {
+					out.Raw(json.Marshal(v14Value))
+				}
+			}
+			out.RawByte('}')
+		}
 	}
-	first = false
-	out.RawString("\"minLevelToCreateInvitation\":")
-	out.Int(int(in.MinLevelToCreateInvitation))
-	if !first {
-		out.RawByte(',')
+	{
+		const prefix string = ",\"minLevelToAcceptApplication\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		out.Int(int(in.MinLevelToAcceptApplication))
 	}
-	first = false
-	out.RawString("\"minLevelToRemoveMember\":")
-	out.Int(int(in.MinLevelToRemoveMember))
-	if !first {
-		out.RawByte(',')
+	{
+		const prefix string = ",\"minLevelToCreateInvitation\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		out.Int(int(in.MinLevelToCreateInvitation))
 	}
-	first = false
-	out.RawString("\"minLevelOffsetToRemoveMember\":")
-	out.Int(int(in.MinLevelOffsetToRemoveMember))
-	if !first {
-		out.RawByte(',')
+	{
+		const prefix string = ",\"minLevelToRemoveMember\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		out.Int(int(in.MinLevelToRemoveMember))
 	}
-	first = false
-	out.RawString("\"minLevelOffsetToPromoteMember\":")
-	out.Int(int(in.MinLevelOffsetToPromoteMember))
-	if !first {
-		out.RawByte(',')
+	{
+		const prefix string = ",\"minLevelOffsetToRemoveMember\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		out.Int(int(in.MinLevelOffsetToRemoveMember))
 	}
-	first = false
-	out.RawString("\"minLevelOffsetToDemoteMember\":")
-	out.Int(int(in.MinLevelOffsetToDemoteMember))
-	if !first {
-		out.RawByte(',')
+	{
+		const prefix string = ",\"minLevelOffsetToPromoteMember\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		out.Int(int(in.MinLevelOffsetToPromoteMember))
 	}
-	first = false
-	out.RawString("\"maxMembers\":")
-	out.Int(int(in.MaxMembers))
-	if !first {
-		out.RawByte(',')
+	{
+		const prefix string = ",\"minLevelOffsetToDemoteMember\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		out.Int(int(in.MinLevelOffsetToDemoteMember))
 	}
-	first = false
-	out.RawString("\"maxClansPerPlayer\":")
-	out.Int(int(in.MaxClansPerPlayer))
-	if !first {
-		out.RawByte(',')
+	{
+		const prefix string = ",\"maxMembers\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		out.Int(int(in.MaxMembers))
 	}
-	first = false
-	out.RawString("\"cooldownAfterDeny\":")
-	out.Int(int(in.CooldownAfterDeny))
-	if !first {
-		out.RawByte(',')
+	{
+		const prefix string = ",\"maxClansPerPlayer\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		out.Int(int(in.MaxClansPerPlayer))
 	}
-	first = false
-	out.RawString("\"cooldownAfterDelete\":")
-	out.Int(int(in.CooldownAfterDelete))
+	{
+		const prefix string = ",\"cooldownAfterDeny\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		out.Int(int(in.CooldownAfterDeny))
+	}
+	{
+		const prefix string = ",\"cooldownAfterDelete\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		out.Int(int(in.CooldownAfterDelete))
+	}
 	out.RawByte('}')
 }
 
@@ -1150,63 +1329,88 @@ func easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi9(out *jwriter.Writer, in
 	out.RawByte('{')
 	first := true
 	_ = first
-	if !first {
-		out.RawByte(',')
-	}
-	first = false
-	out.RawString("\"publicID\":")
-	out.String(string(in.PublicID))
-	if !first {
-		out.RawByte(',')
-	}
-	first = false
-	out.RawString("\"name\":")
-	out.String(string(in.Name))
-	if !first {
-		out.RawByte(',')
-	}
-	first = false
-	out.RawString("\"ownerPublicID\":")
-	out.String(string(in.OwnerPublicID))
-	if !first {
-		out.RawByte(',')
-	}
-	first = false
-	out.RawString("\"metadata\":")
-	if in.Metadata == nil && (out.Flags&jwriter.NilMapAsEmpty) == 0 {
-		out.RawString(`null`)
-	} else {
-		out.RawByte('{')
-		v16First := true
-		for v16Name, v16Value := range in.Metadata {
-			if !v16First {
-				out.RawByte(',')
-			}
-			v16First = false
-			out.String(string(v16Name))
-			out.RawByte(':')
-			if m, ok := v16Value.(easyjson.Marshaler); ok {
-				m.MarshalEasyJSON(out)
-			} else if m, ok := v16Value.(json.Marshaler); ok {
-				out.Raw(m.MarshalJSON())
-			} else {
-				out.Raw(json.Marshal(v16Value))
-			}
+	{
+		const prefix string = ",\"publicID\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
 		}
-		out.RawByte('}')
+		out.String(string(in.PublicID))
 	}
-	if !first {
-		out.RawByte(',')
+	{
+		const prefix string = ",\"name\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		out.String(string(in.Name))
 	}
-	first = false
-	out.RawString("\"allowApplication\":")
-	out.Bool(bool(in.AllowApplication))
-	if !first {
-		out.RawByte(',')
+	{
+		const prefix string = ",\"ownerPublicID\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		out.String(string(in.OwnerPublicID))
 	}
-	first = false
-	out.RawString("\"autoJoin\":")
-	out.Bool(bool(in.AutoJoin))
+	{
+		const prefix string = ",\"metadata\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		if in.Metadata == nil && (out.Flags&jwriter.NilMapAsEmpty) == 0 {
+			out.RawString(`null`)
+		} else {
+			out.RawByte('{')
+			v16First := true
+			for v16Name, v16Value := range in.Metadata {
+				if v16First {
+					v16First = false
+				} else {
+					out.RawByte(',')
+				}
+				out.String(string(v16Name))
+				out.RawByte(':')
+				if m, ok := v16Value.(easyjson.Marshaler); ok {
+					m.MarshalEasyJSON(out)
+				} else if m, ok := v16Value.(json.Marshaler); ok {
+					out.Raw(m.MarshalJSON())
+				} else {
+					out.Raw(json.Marshal(v16Value))
+				}
+			}
+			out.RawByte('}')
+		}
+	}
+	{
+		const prefix string = ",\"allowApplication\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		out.Bool(bool(in.AllowApplication))
+	}
+	{
+		const prefix string = ",\"autoJoin\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		out.Bool(bool(in.AutoJoin))
+	}
 	out.RawByte('}')
 }
 
@@ -1256,18 +1460,26 @@ func easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi10(out *jwriter.Writer, i
 	out.RawByte('{')
 	first := true
 	_ = first
-	if !first {
-		out.RawByte(',')
+	{
+		const prefix string = ",\"playerPublicID\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		out.String(string(in.PlayerPublicID))
 	}
-	first = false
-	out.RawString("\"playerPublicID\":")
-	out.String(string(in.PlayerPublicID))
-	if !first {
-		out.RawByte(',')
+	{
+		const prefix string = ",\"requestorPublicID\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		out.String(string(in.RequestorPublicID))
 	}
-	first = false
-	out.RawString("\"requestorPublicID\":")
-	out.String(string(in.RequestorPublicID))
 	out.RawByte('}')
 }
 
@@ -1315,12 +1527,16 @@ func easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi11(out *jwriter.Writer, i
 	out.RawByte('{')
 	first := true
 	_ = first
-	if !first {
-		out.RawByte(',')
+	{
+		const prefix string = ",\"playerPublicID\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		out.String(string(in.PlayerPublicID))
 	}
-	first = false
-	out.RawString("\"playerPublicID\":")
-	out.String(string(in.PlayerPublicID))
 	out.RawByte('}')
 }
 
@@ -1370,18 +1586,26 @@ func easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi12(out *jwriter.Writer, i
 	out.RawByte('{')
 	first := true
 	_ = first
-	if !first {
-		out.RawByte(',')
+	{
+		const prefix string = ",\"level\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		out.String(string(in.Level))
 	}
-	first = false
-	out.RawString("\"level\":")
-	out.String(string(in.Level))
-	if !first {
-		out.RawByte(',')
+	{
+		const prefix string = ",\"playerPublicID\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		out.String(string(in.PlayerPublicID))
 	}
-	first = false
-	out.RawString("\"playerPublicID\":")
-	out.String(string(in.PlayerPublicID))
 	out.RawByte('}')
 }
 

@@ -18,6 +18,9 @@ mongodb:
   databaseName: "khan"
   collectionTemplate: "clans_%s"
 
+search:
+  pageSize: 50
+
 khan:
   maxPendingInvites: -1
   defaultCooldownBeforeInvite: 0

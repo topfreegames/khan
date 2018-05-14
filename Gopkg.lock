@@ -241,6 +241,7 @@
   packages = [
     ".",
     "buffer",
+    "gen",
     "jlexer",
     "jwriter"
   ]
@@ -605,6 +606,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "eee4bb49ceac36da5f4d6bb5851a58d32a3cc94268f0366630cf129865dc0389"
+  inputs-digest = "f30d07750dab9f00d314359561be57b2d251cc836f566e4576e9ef4294a3d384"
   solver-name = "gps-cdcl"
   solver-version = 1

@@ -894,9 +894,11 @@ Khan API
       An empty list will be returned if there are no clans for the given game.
 
   ### Search Clans
-  `GET /games/:gameID/clan-search`
+  `GET /games/:gameID/clans/search`
 
-  Searches for clans of a given game where the name or the publicID include the term passed in the query string.
+  Searches for clans of a given game where the name include the term passed in the query string, or term is a publicID.
+
+  Results are limited by "search.pageSize" set via config YAML or environment variable KHAN\_SEARCH\_PAGESIZE
 
   * URL Parameters
 

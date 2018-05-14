@@ -98,99 +98,148 @@ func easyjson91eb9988EncodeGithubComTopfreegamesKhanModels(out *jwriter.Writer, 
 	out.RawByte('{')
 	first := true
 	_ = first
-	if !first {
-		out.RawByte(',')
-	}
-	first = false
-	out.RawString("\"id\":")
-	out.Int(int(in.ID))
-	if !first {
-		out.RawByte(',')
-	}
-	first = false
-	out.RawString("\"gameId\":")
-	out.String(string(in.GameID))
-	if !first {
-		out.RawByte(',')
-	}
-	first = false
-	out.RawString("\"publicId\":")
-	out.String(string(in.PublicID))
-	if !first {
-		out.RawByte(',')
-	}
-	first = false
-	out.RawString("\"name\":")
-	out.String(string(in.Name))
-	if !first {
-		out.RawByte(',')
-	}
-	first = false
-	out.RawString("\"ownerId\":")
-	out.Int(int(in.OwnerID))
-	if !first {
-		out.RawByte(',')
-	}
-	first = false
-	out.RawString("\"membershipCount\":")
-	out.Int(int(in.MembershipCount))
-	if !first {
-		out.RawByte(',')
-	}
-	first = false
-	out.RawString("\"metadata\":")
-	if in.Metadata == nil && (out.Flags&jwriter.NilMapAsEmpty) == 0 {
-		out.RawString(`null`)
-	} else {
-		out.RawByte('{')
-		v2First := true
-		for v2Name, v2Value := range in.Metadata {
-			if !v2First {
-				out.RawByte(',')
-			}
-			v2First = false
-			out.String(string(v2Name))
-			out.RawByte(':')
-			if m, ok := v2Value.(easyjson.Marshaler); ok {
-				m.MarshalEasyJSON(out)
-			} else if m, ok := v2Value.(json.Marshaler); ok {
-				out.Raw(m.MarshalJSON())
-			} else {
-				out.Raw(json.Marshal(v2Value))
-			}
+	{
+		const prefix string = ",\"id\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
 		}
-		out.RawByte('}')
+		out.Int(int(in.ID))
 	}
-	if !first {
-		out.RawByte(',')
+	{
+		const prefix string = ",\"gameId\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		out.String(string(in.GameID))
 	}
-	first = false
-	out.RawString("\"allowApplication\":")
-	out.Bool(bool(in.AllowApplication))
-	if !first {
-		out.RawByte(',')
+	{
+		const prefix string = ",\"publicId\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		out.String(string(in.PublicID))
 	}
-	first = false
-	out.RawString("\"autoJoin\":")
-	out.Bool(bool(in.AutoJoin))
-	if !first {
-		out.RawByte(',')
+	{
+		const prefix string = ",\"name\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		out.String(string(in.Name))
 	}
-	first = false
-	out.RawString("\"createdAt\":")
-	out.Int64(int64(in.CreatedAt))
-	if !first {
-		out.RawByte(',')
+	{
+		const prefix string = ",\"ownerId\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		out.Int(int(in.OwnerID))
 	}
-	first = false
-	out.RawString("\"updatedAt\":")
-	out.Int64(int64(in.UpdatedAt))
-	if !first {
-		out.RawByte(',')
+	{
+		const prefix string = ",\"membershipCount\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		out.Int(int(in.MembershipCount))
 	}
-	first = false
-	out.RawString("\"deletedAt\":")
-	out.Int64(int64(in.DeletedAt))
+	{
+		const prefix string = ",\"metadata\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		if in.Metadata == nil && (out.Flags&jwriter.NilMapAsEmpty) == 0 {
+			out.RawString(`null`)
+		} else {
+			out.RawByte('{')
+			v2First := true
+			for v2Name, v2Value := range in.Metadata {
+				if v2First {
+					v2First = false
+				} else {
+					out.RawByte(',')
+				}
+				out.String(string(v2Name))
+				out.RawByte(':')
+				if m, ok := v2Value.(easyjson.Marshaler); ok {
+					m.MarshalEasyJSON(out)
+				} else if m, ok := v2Value.(json.Marshaler); ok {
+					out.Raw(m.MarshalJSON())
+				} else {
+					out.Raw(json.Marshal(v2Value))
+				}
+			}
+			out.RawByte('}')
+		}
+	}
+	{
+		const prefix string = ",\"allowApplication\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		out.Bool(bool(in.AllowApplication))
+	}
+	{
+		const prefix string = ",\"autoJoin\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		out.Bool(bool(in.AutoJoin))
+	}
+	{
+		const prefix string = ",\"createdAt\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		out.Int64(int64(in.CreatedAt))
+	}
+	{
+		const prefix string = ",\"updatedAt\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		out.Int64(int64(in.UpdatedAt))
+	}
+	{
+		const prefix string = ",\"deletedAt\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		out.Int64(int64(in.DeletedAt))
+	}
 	out.RawByte('}')
 }
 
