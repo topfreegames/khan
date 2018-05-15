@@ -892,6 +892,7 @@ var _ = Describe("Clan API Handler", func() {
 				testDb, gameID, "clan-apisearch-clan", 10,
 			)
 			Expect(err).NotTo(HaveOccurred())
+			time.Sleep(1000 * time.Millisecond)
 			status, body := Get(a, GetGameRoute(
 				player.GameID, fmt.Sprintf("clans/search?term=%s", expectedClans[3].PublicID),
 			))
