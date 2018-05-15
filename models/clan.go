@@ -834,7 +834,7 @@ func searchClanByID(db interfaces.MongoDB, gameID, term string) ([]Clan, error) 
 	defer sess.Close()
 
 	res := mongoResult{}
-	if err := col.Find(bson.M{"publicID": term}).One(&res); err != nil {
+	if err := col.Find(bson.M{"publicId": term}).One(&res); err != nil {
 		return nil, err
 	}
 	clan := Clan{}
