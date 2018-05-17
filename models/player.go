@@ -18,7 +18,7 @@ import (
 
 // Player identifies uniquely one player in a given game
 type Player struct {
-	ID              int                    `db:"id"`
+	ID              int64                  `db:"id"`
 	GameID          string                 `db:"game_id"`
 	PublicID        string                 `db:"public_id"`
 	Name            string                 `db:"name"`
@@ -55,7 +55,7 @@ func (p *Player) Serialize() map[string]interface{} {
 }
 
 // UpdatePlayerMembershipCount updates the player membership count
-func UpdatePlayerMembershipCount(db DB, id int) error {
+func UpdatePlayerMembershipCount(db DB, id int64) error {
 	query := `
 	UPDATE players SET membership_count=membership.count
 	FROM (
@@ -83,7 +83,7 @@ func UpdatePlayerMembershipCount(db DB, id int) error {
 }
 
 // UpdatePlayerOwnershipCount updates the player ownership count
-func UpdatePlayerOwnershipCount(db DB, id int) error {
+func UpdatePlayerOwnershipCount(db DB, id int64) error {
 	query := `
 	UPDATE players SET ownership_count=ownership.count
 	FROM (
@@ -109,7 +109,7 @@ func UpdatePlayerOwnershipCount(db DB, id int) error {
 }
 
 // GetPlayerByID returns a player by id
-func GetPlayerByID(db DB, id int) (*Player, error) {
+func GetPlayerByID(db DB, id int64) (*Player, error) {
 	obj, err := db.Get(Player{}, id)
 	if err != nil {
 		return nil, err
@@ -161,7 +161,7 @@ func CreatePlayer(db DB, gameID, publicID, name string, metadata map[string]inte
 	if err != nil {
 		return nil, err
 	}
-	return GetPlayerByID(db, int(lastID))
+	return GetPlayerByID(db, lastID)
 }
 
 // UpdatePlayer updates an existing player
@@ -340,7 +340,6 @@ func GetPlayerMembershipDetails(db DB, gameID, publicID string) (map[string]inte
 			"pendingApplications": pendingApplications,
 			"pendingInvites":      pendingInvites,
 		}
-
 	} else {
 		result["memberships"] = []map[string]interface{}{}
 		result["clans"] = map[string]interface{}{

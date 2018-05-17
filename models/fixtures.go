@@ -167,7 +167,7 @@ var MembershipFactory = factory.NewFactory(
 	return fmt.Sprintf("game-%d", n), nil
 }).Attr("ApproverID", func(args factory.Args) (interface{}, error) {
 	membership := args.Instance().(*Membership)
-	approverID := 0
+	approverID := int64(0)
 	valid := false
 	if membership.Approved {
 		approverID = membership.RequestorID
@@ -176,13 +176,13 @@ var MembershipFactory = factory.NewFactory(
 	return sql.NullInt64{Int64: int64(approverID), Valid: valid}, nil
 }).Attr("DenierID", func(args factory.Args) (interface{}, error) {
 	membership := args.Instance().(*Membership)
-	denierID := 0
+	denierID := int64(0)
 	valid := false
 	if membership.Denied {
 		denierID = membership.RequestorID
 		valid = true
 	}
-	return sql.NullInt64{Int64: int64(denierID), Valid: valid}, nil
+	return sql.NullInt64{Int64: denierID, Valid: valid}, nil
 })
 
 // GetClanWithMemberships returns a clan filled with the number of memberships specified

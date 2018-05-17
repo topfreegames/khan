@@ -813,7 +813,7 @@ var _ = Describe("Clan Model", func() {
 					playerDict[players[i].PublicID] = players[i]
 				}
 
-				membershipDict := map[int]*Membership{}
+				membershipDict := map[int64]*Membership{}
 				for i := 0; i < 22; i++ {
 					membershipDict[memberships[i].PlayerID] = memberships[i]
 				}

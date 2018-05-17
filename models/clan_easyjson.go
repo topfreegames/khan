@@ -37,7 +37,7 @@ func easyjson91eb9988DecodeGithubComTopfreegamesKhanModels(in *jlexer.Lexer, out
 		}
 		switch key {
 		case "id":
-			out.ID = int(in.Int())
+			out.ID = int64(in.Int64())
 		case "gameId":
 			out.GameID = string(in.String())
 		case "publicId":
@@ -45,7 +45,7 @@ func easyjson91eb9988DecodeGithubComTopfreegamesKhanModels(in *jlexer.Lexer, out
 		case "name":
 			out.Name = string(in.String())
 		case "ownerId":
-			out.OwnerID = int(in.Int())
+			out.OwnerID = int64(in.Int64())
 		case "membershipCount":
 			out.MembershipCount = int(in.Int())
 		case "metadata":
@@ -106,7 +106,7 @@ func easyjson91eb9988EncodeGithubComTopfreegamesKhanModels(out *jwriter.Writer, 
 		} else {
 			out.RawString(prefix)
 		}
-		out.Int(int(in.ID))
+		out.Int64(int64(in.ID))
 	}
 	{
 		const prefix string = ",\"gameId\":"
@@ -146,7 +146,7 @@ func easyjson91eb9988EncodeGithubComTopfreegamesKhanModels(out *jwriter.Writer, 
 		} else {
 			out.RawString(prefix)
 		}
-		out.Int(int(in.OwnerID))
+		out.Int64(int64(in.OwnerID))
 	}
 	{
 		const prefix string = ",\"membershipCount\":"

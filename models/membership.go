@@ -19,20 +19,20 @@ var approveString = "approve"
 
 // Membership relates a player to a clan
 type Membership struct {
-	ID          int           `db:"id"`
+	ID          int64         `db:"id"`
 	GameID      string        `db:"game_id"`
 	Level       string        `db:"membership_level"`
 	Approved    bool          `db:"approved"`
 	Denied      bool          `db:"denied"`
 	Banned      bool          `db:"banned"`
-	PlayerID    int           `db:"player_id"`
-	ClanID      int           `db:"clan_id"`
-	RequestorID int           `db:"requestor_id"`
+	PlayerID    int64         `db:"player_id"`
+	ClanID      int64         `db:"clan_id"`
+	RequestorID int64         `db:"requestor_id"`
 	ApproverID  sql.NullInt64 `db:"approver_id"`
 	DenierID    sql.NullInt64 `db:"denier_id"`
 	CreatedAt   int64         `db:"created_at"`
 	UpdatedAt   int64         `db:"updated_at"`
-	DeletedBy   int           `db:"deleted_by"`
+	DeletedBy   int64         `db:"deleted_by"`
 	DeletedAt   int64         `db:"deleted_at"`
 	ApprovedAt  int64         `db:"approved_at"`
 	DeniedAt    int64         `db:"denied_at"`
@@ -55,7 +55,7 @@ func (m *Membership) PreUpdate(s gorp.SqlExecutor) error {
 }
 
 // GetMembershipByID returns a membership by id
-func GetMembershipByID(db DB, id int) (*Membership, error) {
+func GetMembershipByID(db DB, id int64) (*Membership, error) {
 	obj, err := db.Get(Membership{}, id)
 	if err != nil {
 		return nil, err
@@ -111,7 +111,7 @@ func GetMembershipByClanAndPlayerPublicID(db DB, gameID, clanPublicID, playerPub
 }
 
 // GetDeletedMembershipByClanAndPlayerID returns a deleted membership for the player with the given ID and the clan ID
-func GetDeletedMembershipByClanAndPlayerID(db DB, gameID string, clanID, playerID int) (*Membership, error) {
+func GetDeletedMembershipByClanAndPlayerID(db DB, gameID string, clanID, playerID int64) (*Membership, error) {
 	var memberships []*Membership
 	query := `
 	SELECT
@@ -156,7 +156,7 @@ func GetOldestMemberWithHighestLevel(db DB, gameID, clanPublicID string) (*Membe
 	return memberships[0], nil
 }
 
-func clanReachedMaxMemberships(db DB, game *Game, clan *Clan, clanID int) error {
+func clanReachedMaxMemberships(db DB, game *Game, clan *Clan, clanID int64) error {
 	var err error
 	if clan == nil {
 		clan, err = GetClanByID(db, clanID)
@@ -170,7 +170,7 @@ func clanReachedMaxMemberships(db DB, game *Game, clan *Clan, clanID int) error 
 	return nil
 }
 
-func playerReachedMaxInvites(db DB, game *Game, playerID int) error {
+func playerReachedMaxInvites(db DB, game *Game, playerID int64) error {
 	player, err := GetPlayerByID(db, playerID)
 	if err != nil {
 		return err
@@ -337,8 +337,8 @@ func CreateMembership(db DB, game *Game, gameID, level, playerPublicID, clanPubl
 	return inviteMember(db, game, membership, level, clan, playerID, requestorPublicID, message, previousMembership)
 }
 
-func validateMembership(db DB, game *Game, membership *Membership, clan *Clan, playerPublicID, requestorPublicID string) (int, bool, error) {
-	playerID := -1
+func validateMembership(db DB, game *Game, membership *Membership, clan *Clan, playerPublicID, requestorPublicID string) (int64, bool, error) {
+	playerID := int64(-1)
 	previousMembership := false
 	if membership != nil {
 		previousMembership = true
@@ -346,7 +346,7 @@ func validateMembership(db DB, game *Game, membership *Membership, clan *Clan, p
 		applicationInOpenClan := requestorPublicID == playerPublicID && clan.AllowApplication && clan.AutoJoin
 		if membership.Approved {
 			return -1, false, &AlreadyHasValidMembershipError{playerPublicID, clan.PublicID}
-		} else if !applicationInOpenClan && membership.Denied && int(membership.DenierID.Int64) != membership.PlayerID {
+		} else if !applicationInOpenClan && membership.Denied && membership.DenierID.Int64 != membership.PlayerID {
 			timeToBeReady := game.CooldownAfterDeny - int(nowInMilliseconds-membership.DeniedAt)/1000
 			if timeToBeReady > 0 {
 				return -1, false, &MustWaitMembershipCooldownError{timeToBeReady, playerPublicID, clan.PublicID}
@@ -405,7 +405,7 @@ func validateMembership(db DB, game *Game, membership *Membership, clan *Clan, p
 	return playerID, previousMembership, nil
 }
 
-func applyForMembership(db DB, game *Game, membership *Membership, level string, clan *Clan, playerID int, requestorPublicID, message string, previousMembership bool) (*Membership, error) {
+func applyForMembership(db DB, game *Game, membership *Membership, level string, clan *Clan, playerID int64, requestorPublicID, message string, previousMembership bool) (*Membership, error) {
 	if !clan.AllowApplication {
 		return nil, &PlayerCannotCreateMembershipError{requestorPublicID, clan.PublicID}
 	}
@@ -420,7 +420,7 @@ func applyForMembership(db DB, game *Game, membership *Membership, level string,
 	return createMembershipHelper(db, game.PublicID, level, playerID, clan.ID, playerID, message, clan.AutoJoin)
 }
 
-func inviteMember(db DB, game *Game, membership *Membership, level string, clan *Clan, playerID int, requestorPublicID, message string, previousMembership bool) (*Membership, error) {
+func inviteMember(db DB, game *Game, membership *Membership, level string, clan *Clan, playerID int64, requestorPublicID, message string, previousMembership bool) (*Membership, error) {
 	reqMembership, _ := GetValidMembershipByClanAndPlayerPublicID(db, game.PublicID, clan.PublicID, requestorPublicID)
 	if reqMembership == nil {
 		requestor, err := GetPlayerByPublicID(db, game.PublicID, requestorPublicID)
@@ -538,11 +538,11 @@ func approveOrDenyMembershipHelper(db DB, membership *Membership, action string,
 	approve := action == approveString
 	if approve {
 		membership.Approved = true
-		membership.ApproverID = sql.NullInt64{Int64: int64(performer.ID), Valid: true}
+		membership.ApproverID = sql.NullInt64{Int64: performer.ID, Valid: true}
 		membership.ApprovedAt = util.NowMilli()
 	} else if action == "deny" {
 		membership.Denied = true
-		membership.DenierID = sql.NullInt64{Int64: int64(performer.ID), Valid: true}
+		membership.DenierID = sql.NullInt64{Int64: performer.ID, Valid: true}
 		membership.DeniedAt = util.NowMilli()
 
 	} else {
@@ -565,7 +565,7 @@ func approveOrDenyMembershipHelper(db DB, membership *Membership, action string,
 	return membership, nil
 }
 
-func createMembershipHelper(db DB, gameID, level string, playerID, clanID, requestorID int, message string, approved bool) (*Membership, error) {
+func createMembershipHelper(db DB, gameID, level string, playerID, clanID, requestorID int64, message string, approved bool) (*Membership, error) {
 	membership := &Membership{
 		GameID:      gameID,
 		ClanID:      clanID,
@@ -578,7 +578,7 @@ func createMembershipHelper(db DB, gameID, level string, playerID, clanID, reque
 	}
 
 	if approved {
-		membership.ApproverID = sql.NullInt64{Int64: int64(requestorID), Valid: true}
+		membership.ApproverID = sql.NullInt64{Int64: requestorID, Valid: true}
 	}
 	err := db.Insert(membership)
 	if err != nil {
@@ -597,7 +597,7 @@ func createMembershipHelper(db DB, gameID, level string, playerID, clanID, reque
 	return membership, nil
 }
 
-func updatePreviousMembershipHelper(db DB, membership *Membership, level string, requestorID int, message string, approved bool) (*Membership, error) {
+func updatePreviousMembershipHelper(db DB, membership *Membership, level string, requestorID int64, message string, approved bool) (*Membership, error) {
 	membership.RequestorID = requestorID
 	membership.Level = level
 	membership.Approved = approved
@@ -607,7 +607,7 @@ func updatePreviousMembershipHelper(db DB, membership *Membership, level string,
 	membership.DeletedBy = 0
 	membership.Message = message
 	if approved {
-		membership.ApproverID = sql.NullInt64{Int64: int64(requestorID), Valid: true}
+		membership.ApproverID = sql.NullInt64{Int64: requestorID, Valid: true}
 	}
 
 	_, err := db.Update(membership)
@@ -648,7 +648,7 @@ func promoteOrDemoteMemberHelper(db DB, membership *Membership, action string, l
 	return membership, nil
 }
 
-func deleteMembershipHelper(db DB, membership *Membership, deletedBy int) (*Membership, error) {
+func deleteMembershipHelper(db DB, membership *Membership, deletedBy int64) (*Membership, error) {
 	membershipWasApproved := membership.Approved
 	membership.DeletedAt = util.NowMilli()
 	membership.DeletedBy = deletedBy

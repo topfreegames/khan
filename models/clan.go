@@ -37,11 +37,11 @@ func (a ClanByName) Less(i, j int) bool { return a[i].Name < a[j].Name }
 // Clan identifies uniquely one clan in a given game
 //easyjson:json
 type Clan struct {
-	ID               int                    `db:"id" json:"id" bson:"id"`
+	ID               int64                  `db:"id" json:"id" bson:"id"`
 	GameID           string                 `db:"game_id" json:"gameId" bson:"gameId"`
 	PublicID         string                 `db:"public_id" json:"publicId" bson:"publicId"`
 	Name             string                 `db:"name" json:"name" bson:"name"`
-	OwnerID          int                    `db:"owner_id" json:"ownerId" bson:"ownerId"`
+	OwnerID          int64                  `db:"owner_id" json:"ownerId" bson:"ownerId"`
 	MembershipCount  int                    `db:"membership_count" json:"membershipCount" bson:"membershipCount"`
 	Metadata         map[string]interface{} `db:"metadata" json:"metadata" bson:"metadata"`
 	AllowApplication bool                   `db:"allow_application" json:"allowApplication" bson:"allowApplication"`
@@ -194,7 +194,7 @@ func (c *Clan) DeleteClanFromElasticSearch() error {
 	return nil
 }
 
-func updateClanIntoES(db DB, id int) error {
+func updateClanIntoES(db DB, id int64) error {
 	clan, err := GetClanByID(db, id)
 	if err != nil {
 		return err
@@ -205,7 +205,7 @@ func updateClanIntoES(db DB, id int) error {
 	return clan.UpdateClanIntoElasticSearch()
 }
 
-func updateClanIntoMongo(db DB, id int) error {
+func updateClanIntoMongo(db DB, id int64) error {
 	clan, err := GetClanByID(db, id)
 	if err != nil {
 		return err
@@ -230,7 +230,7 @@ func (c *Clan) Serialize() map[string]interface{} {
 }
 
 // UpdateClanMembershipCount updates the clan membership count
-func UpdateClanMembershipCount(db DB, id int) error {
+func UpdateClanMembershipCount(db DB, id int64) error {
 	query := `
 	UPDATE clans SET membership_count=membership.count+1
 	FROM (
@@ -271,7 +271,7 @@ func UpdateClanMembershipCount(db DB, id int) error {
 }
 
 // GetClanByID returns a clan by id
-func GetClanByID(db DB, id int) (*Clan, error) {
+func GetClanByID(db DB, id int64) (*Clan, error) {
 	obj, err := db.Get(Clan{}, id)
 	if err != nil {
 		return nil, err

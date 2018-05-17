@@ -66,7 +66,7 @@ func dispatchMembershipHookByPublicID(app *App, db models.DB, hookType int, game
 	return dispatchMembershipHook(app, db, hookType, gameID, clan, player, requestor, "", membershipLevel)
 }
 
-func dispatchMembershipHookByID(app *App, db models.DB, hookType int, gameID string, clanID, playerID, requestorID int, message, membershipLevel string) error {
+func dispatchMembershipHookByID(app *App, db models.DB, hookType int, gameID string, clanID, playerID, requestorID int64, message, membershipLevel string) error {
 	clan, err := models.GetClanByID(db, clanID)
 	if err != nil {
 		return err
@@ -88,7 +88,7 @@ func dispatchMembershipHookByID(app *App, db models.DB, hookType int, gameID str
 	return dispatchMembershipHook(app, db, hookType, gameID, clan, player, requestor, message, membershipLevel)
 }
 
-func dispatchApproveDenyMembershipHookByID(app *App, db models.DB, hookType int, gameID string, clanID, playerID, requestorID, creatorID int, message, membershipLevel string) error {
+func dispatchApproveDenyMembershipHookByID(app *App, db models.DB, hookType int, gameID string, clanID, playerID, requestorID, creatorID int64, message, membershipLevel string) error {
 	clan, err := models.GetClanByID(db, clanID)
 	if err != nil {
 		return err
