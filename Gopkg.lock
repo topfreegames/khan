@@ -577,6 +577,12 @@
   version = "v1.0.0"
 
 [[projects]]
+  branch = "v1"
+  name = "gopkg.in/jarcoal/httpmock.v1"
+  packages = ["."]
+  revision = "d805e540cd37b8aa6e2ad7d94f06f6537493e710"
+
+[[projects]]
   branch = "v2"
   name = "gopkg.in/mgo.v2"
   packages = [
@@ -606,6 +612,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "f30d07750dab9f00d314359561be57b2d251cc836f566e4576e9ef4294a3d384"
+  inputs-digest = "a08b350d9840bc13cd2c2471dbedcdc82d22f07af11a5b102e332987e83fad2d"
   solver-name = "gps-cdcl"
   solver-version = 1

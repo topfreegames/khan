@@ -33,3 +33,4 @@ khan-perf.dump
 /dev/default.yaml
 *.coverprofile
 dev/khan-linux-x86_64
+*.swp
