@@ -9,8 +9,10 @@ import (
 	"net/http"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/spf13/viper"
+	ehttp "github.com/topfreegames/extensions/http"
 )
 
 // Khan is a struct that represents a khan API application
@@ -28,17 +30,21 @@ var (
 	once   sync.Once
 )
 
-func getHTTPClient() *http.Client {
+func getHTTPClient(timeoutMs int) *http.Client {
 	once.Do(func() {
-		client = &http.Client{}
+		client = &http.Client{
+			Timeout: time.Duration(timeoutMs) * time.Millisecond,
+		}
+		ehttp.Instrument(client)
 	})
 	return client
 }
 
 // NewKhan returns a new khan API application
 func NewKhan(config *viper.Viper) KhanInterface {
+	config.SetDefault("khan.timeout", 1000)
 	k := &Khan{
-		httpClient: getHTTPClient(),
+		httpClient: getHTTPClient(config.GetInt("khan.timeout")),
 		Config:     config,
 		url:        config.GetString("khan.url"),
 		user:       config.GetString("khan.user"),

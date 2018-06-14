@@ -408,9 +408,11 @@
     "echo/middleware",
     "gorp",
     "gorp/interfaces",
+    "http",
     "jaeger",
     "jaeger/echo",
     "jaeger/gorp",
+    "jaeger/http",
     "jaeger/mongo",
     "middleware",
     "mongo",
@@ -612,6 +614,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "a08b350d9840bc13cd2c2471dbedcdc82d22f07af11a5b102e332987e83fad2d"
+  inputs-digest = "2bd61ba8c13704cd58da717f5f1d74432e6261a69912a0b7e9ae818c27edcd72"
   solver-name = "gps-cdcl"
   solver-version = 1
