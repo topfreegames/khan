@@ -86,8 +86,8 @@
     "orm",
     "types"
   ]
-  revision = "24dfe0572921e42ffe1035f7afbd40f9d97cb8c8"
-  version = "v6.10.0"
+  revision = "8c7fa0eed0d9e9d07fca2cc9e08e3171da0521d5"
+  version = "v6.13.5"
 
 [[projects]]
   name = "github.com/go-sql-driver/mysql"
@@ -421,8 +421,8 @@
     "pg/interfaces",
     "worker/middleware"
   ]
-  revision = "9cbbfa71489a43248014064ea65274401d5f71b3"
-  version = "v5.11.1"
+  revision = "e732c691014172aa81c280d852530cc03fcc590a"
+  version = "v6.2.4"
 
 [[projects]]
   branch = "master"
@@ -614,6 +614,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "2bd61ba8c13704cd58da717f5f1d74432e6261a69912a0b7e9ae818c27edcd72"
+  inputs-digest = "d9d4254fee77b30ec7ead1090bb9c65f23a0002273d32b1d262b6504a556916e"
   solver-name = "gps-cdcl"
   solver-version = 1
