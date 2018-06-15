@@ -229,3 +229,6 @@ schema-update: schema-clean
 
 schema-clean:
 	@rm -rf ./models/*easyjson.go
+
+mock-lib:
+	@mockgen github.com/topfreegames/khan/lib KhanInterface | sed 's/mock_lib/mocks/' > lib/mocks/khan.go
