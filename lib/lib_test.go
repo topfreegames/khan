@@ -10,7 +10,6 @@ import (
 )
 
 var _ = Describe("Lib", func() {
-
 	var k lib.KhanInterface
 	var config *viper.Viper
 	var gameID string
@@ -168,6 +167,77 @@ var _ = Describe("Lib", func() {
 			err := k.UpdateClan(nil, clanPayload)
 
 			Expect(err).To(BeNil())
+		})
+	})
+
+	Describe("RetrieveClan", func() {
+		It("Should call khan API to retrieve clan", func() {
+			publicID := "testid"
+			url := "http://khan/games/" + gameID + "/clans/" + publicID
+			httpmock.RegisterResponder("GET", url,
+				httpmock.NewStringResponder(200, `{
+					"success": true,
+					"publicID": "testid",
+					"name": "testname",
+					"metadata": {},
+					"allowApplication": true,
+					"autoJoin": false,
+					"membershipCount": 3,
+					"owner": {
+						"publicID": "ownerID",
+						"name": "owner1"
+					},
+					"roster": [
+					  {
+						  "level": 1,
+						  "message": "hey",
+						  "player": {
+							  "publicID": "pid1",
+							  "name": "name1",
+							  "approver": {
+								  "publicID": "ownerID",
+								  "name": "owner1"
+							  }
+						  }
+					  },
+					  {
+						  "level": 1,
+						  "message": "hey!",
+						  "player": {
+							  "publicID": "pid2",
+							  "name": "name2",
+							  "approver": {
+								  "publicID": "ownerID",
+								  "name": "owner1"
+							  }
+						  }
+					  }
+					]
+				}`))
+
+			clan, err := k.RetrieveClan(nil, publicID)
+
+			Expect(err).To(BeNil())
+			Expect(clan.PublicID).To(Equal(publicID))
+			Expect(clan.Name).To(Equal("testname"))
+			Expect(clan.AllowApplication).To(Equal(true))
+			Expect(clan.AutoJoin).To(Equal(false))
+			Expect(clan.MembershipCount).To(Equal(3))
+			Expect(clan.Owner.PublicID).To(Equal("ownerID"))
+			Expect(clan.Owner.Name).To(Equal("owner1"))
+			Expect(clan.Roster).To(HaveLen(2))
+			Expect(clan.Roster[0].Level).To(Equal(1))
+			Expect(clan.Roster[0].Message).To(Equal("hey"))
+			Expect(clan.Roster[0].Player.PublicID).To(Equal("pid1"))
+			Expect(clan.Roster[0].Player.Name).To(Equal("name1"))
+			Expect(clan.Roster[0].Player.Approver.PublicID).To(Equal("ownerID"))
+			Expect(clan.Roster[0].Player.Approver.Name).To(Equal("owner1"))
+			Expect(clan.Roster[1].Level).To(Equal(1))
+			Expect(clan.Roster[1].Message).To(Equal("hey!"))
+			Expect(clan.Roster[1].Player.PublicID).To(Equal("pid2"))
+			Expect(clan.Roster[1].Player.Name).To(Equal("name2"))
+			Expect(clan.Roster[1].Player.Approver.PublicID).To(Equal("ownerID"))
+			Expect(clan.Roster[1].Player.Approver.Name).To(Equal("owner1"))
 		})
 	})
 

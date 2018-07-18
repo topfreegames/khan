@@ -34,7 +34,7 @@ type Player struct {
 	Name        string              `json:"name"`
 	Metadata    interface{}         `json:"metadata"`
 	Clans       *ClansRelationships `json:"clans,omitempty"`
-	Memberships []*Membership       `json:"memberships,omitempty"`
+	Memberships []*PlayerMembership `json:"memberships,omitempty"`
 }
 
 // ClansRelationships defines the struct returned inside player
@@ -53,22 +53,22 @@ type ClanNameAndPublicID struct {
 	PublicID string `json:"publicID"`
 }
 
-// Membership defines the membership returned by retrieve player
-type Membership struct {
-	Approved   bool                     `json:"approved"`
-	Banned     bool                     `json:"banned"`
-	Denied     bool                     `json:"denied"`
-	Clan       *ClanPlayerInfo          `json:"clan"`
-	CreatedAt  int64                    `json:"createdAt"`
-	UpdatedAt  int64                    `json:"updatedAt"`
-	DeletedAt  int64                    `json:"deletedAt"`
-	ApprovedAt int64                    `json:"approvedAt"`
-	DeniedAt   int64                    `json:"deniedAt"`
-	Level      string                   `json:"level"`
-	Message    string                   `json:"message"`
-	Requestor  *ApproverRequestorDenier `json:"requestor"`
-	Approver   *ApproverRequestorDenier `json:"approver"`
-	Denier     *ApproverRequestorDenier `json:"denier"`
+// PlayerMembership defines the membership returned by retrieve player
+type PlayerMembership struct {
+	Approved   bool             `json:"approved"`
+	Banned     bool             `json:"banned"`
+	Denied     bool             `json:"denied"`
+	Clan       *ClanPlayerInfo  `json:"clan"`
+	CreatedAt  int64            `json:"createdAt"`
+	UpdatedAt  int64            `json:"updatedAt"`
+	DeletedAt  int64            `json:"deletedAt"`
+	ApprovedAt int64            `json:"approvedAt"`
+	DeniedAt   int64            `json:"deniedAt"`
+	Level      string           `json:"level"`
+	Message    string           `json:"message"`
+	Requestor  *ShortPlayerInfo `json:"requestor"`
+	Approver   *ShortPlayerInfo `json:"approver"`
+	Denier     *ShortPlayerInfo `json:"denier"`
 }
 
 // ClanPlayerInfo defines the clan info returned on the membership
@@ -79,8 +79,8 @@ type ClanPlayerInfo struct {
 	MembershipCount int         `json:"membershipCount"`
 }
 
-// ApproverRequestorDenier defines the data returned for these elements on each membership
-type ApproverRequestorDenier struct {
+// ShortPlayerInfo defines the data returned for these elements on each membership
+type ShortPlayerInfo struct {
 	PublicID string      `json:"publicID"`
 	Name     string      `json:"name"`
 	Metadata interface{} `json:"metadata"`
@@ -99,4 +99,40 @@ type ClanSummary struct {
 // ClansSummary defines the clans summary
 type ClansSummary struct {
 	Clans []*ClanSummary `json:"clans"`
+}
+
+// ClanMembershipPlayer represents the player structure inside the clan membership
+type ClanMembershipPlayer struct {
+	Approver *ShortPlayerInfo `json:"approver"`
+	Metadata interface{}      `json:"metadata"`
+	Name     string           `json:"name"`
+	PublicID string           `json:"publicID"`
+}
+
+// ClanMembership represents the membership structure inside a clan response
+type ClanMembership struct {
+	Level   int                   `json:"level"`
+	Message string                `json:"message"`
+	Player  *ClanMembershipPlayer `json:"player"`
+}
+
+// ClanMemberships is the memberships structure inside a clan response
+type ClanMemberships struct {
+	PendingApplications []*ClanMembership `json:"pendingApplications"`
+	PendingInvites      []*ClanMembership `json:"pendingInvites"`
+	Denied              []*ClanMembership `json:"denied"`
+	Banned              []*ClanMembership `json:"banned"`
+}
+
+// Clan is the structure returned by the retrieve clan route
+type Clan struct {
+	PublicID         string            `json:"publicID"`
+	Name             string            `json:"name"`
+	Metadata         interface{}       `json:"metadata"`
+	AllowApplication bool              `json:"allowApplication"`
+	AutoJoin         bool              `json:"autoJoin"`
+	MembershipCount  int               `json:"membershipCount"`
+	Owner            *ShortPlayerInfo  `json:"owner"`
+	Roster           []*ClanMembership `json:"roster"`
+	Memberships      *ClanMemberships  `json:"memberships"`
 }

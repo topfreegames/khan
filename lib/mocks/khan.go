@@ -60,6 +60,19 @@ func (mr *MockKhanInterfaceMockRecorder) CreatePlayer(arg0, arg1, arg2, arg3 int
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreatePlayer", reflect.TypeOf((*MockKhanInterface)(nil).CreatePlayer), arg0, arg1, arg2, arg3)
 }
 
+// RetrieveClan mocks base method
+func (m *MockKhanInterface) RetrieveClan(arg0 context.Context, arg1 string) (*lib.Clan, error) {
+	ret := m.ctrl.Call(m, "RetrieveClan", arg0, arg1)
+	ret0, _ := ret[0].(*lib.Clan)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// RetrieveClan indicates an expected call of RetrieveClan
+func (mr *MockKhanInterfaceMockRecorder) RetrieveClan(arg0, arg1 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RetrieveClan", reflect.TypeOf((*MockKhanInterface)(nil).RetrieveClan), arg0, arg1)
+}
+
 // RetrieveClanSummary mocks base method
 func (m *MockKhanInterface) RetrieveClanSummary(arg0 context.Context, arg1 string) (*lib.ClanSummary, error) {
 	ret := m.ctrl.Call(m, "RetrieveClanSummary", arg0, arg1)

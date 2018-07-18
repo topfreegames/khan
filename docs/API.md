@@ -724,15 +724,15 @@ Khan API
         "allowApplication": [bool],
         "autoJoin": [bool],
         "membershipCount": [int],
-        "owner": [
+        "owner": {
             "publicID": [string],
             "name":     [string],
             "metadata": [JSON],
-        ],
+        },
         "roster": [
           [membership],     //a list of the above membership structure
         ],
-        "memberships": [
+        "memberships": {
           "pendingApplications": [
             [membership],   //a list of all the pending applications in this clan
           ],
@@ -745,7 +745,7 @@ Khan API
           "banned": [
             [membership],   //a list of all the banned memberships in this clan
           ],
-        ]
+        }
       }
       ```
 

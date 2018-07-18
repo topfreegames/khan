@@ -127,6 +127,11 @@ func (k *Khan) buildUpdateClanURL(clanID string) string {
 	return k.buildURL(pathname)
 }
 
+func (k *Khan) buildRetrieveClanURL(clanID string) string {
+	pathname := fmt.Sprintf("clans/%s", clanID)
+	return k.buildURL(pathname)
+}
+
 func (k *Khan) buildRetrieveClanSummaryURL(clanID string) string {
 	pathname := fmt.Sprintf("clans/%s/summary", clanID)
 	return k.buildURL(pathname)
@@ -232,4 +237,18 @@ func (k *Khan) RetrieveClansSummary(ctx context.Context, clanIDs []string) ([]*C
 		return nil, err
 	}
 	return clansSummary.Clans, nil
+}
+
+// RetrieveClan calls the route to retrieve clan from khan
+func (k *Khan) RetrieveClan(ctx context.Context, clanID string) (*Clan, error) {
+	route := k.buildRetrieveClanURL(clanID)
+	body, err := k.sendTo(ctx, "GET", route, nil)
+
+	if err != nil {
+		return nil, err
+	}
+
+	var clan Clan
+	err = json.Unmarshal(body, &clan)
+	return &clan, err
 }
