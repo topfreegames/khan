@@ -20,12 +20,12 @@ func (r *requestError) Error() string {
 
 //ClanPayload maps the payload for the Create Clan route and Update Clan route
 type ClanPayload struct {
-	PublicID         string                 `json:"publicID,omitempty"`
-	Name             string                 `json:"name"`
-	OwnerPublicID    string                 `json:"ownerPublicID"`
-	Metadata         map[string]interface{} `json:"metadata"`
-	AllowApplication bool                   `json:"allowApplication"`
-	AutoJoin         bool                   `json:"autoJoin"`
+	PublicID         string      `json:"publicID,omitempty"`
+	Name             string      `json:"name"`
+	OwnerPublicID    string      `json:"ownerPublicID"`
+	Metadata         interface{} `json:"metadata"`
+	AllowApplication bool        `json:"allowApplication"`
+	AutoJoin         bool        `json:"autoJoin"`
 }
 
 // Player defines the struct returned by the khan API for retrieve player
