@@ -150,7 +150,7 @@ func CreateClanHandler(app *App) func(c echo.Context) error {
 			return FailWith(500, err.Error(), c)
 		}
 
-		log.I(l, "Clan created successfully.", func(cm log.CM) {
+		log.D(l, "Clan created successfully.", func(cm log.CM) {
 			cm.Write(
 				zap.String("clanPublicID", clan.PublicID),
 				zap.Duration("duration", time.Now().Sub(start)),
@@ -287,7 +287,7 @@ func UpdateClanHandler(app *App) func(c echo.Context) error {
 			return FailWith(500, err.Error(), c)
 		}
 
-		log.I(l, "Clan updated successfully.", func(cm log.CM) {
+		log.D(l, "Clan updated successfully.", func(cm log.CM) {
 			cm.Write(zap.Duration("duration", time.Now().Sub(start)))
 		})
 		return SucceedWith(map[string]interface{}{}, c)
@@ -313,7 +313,6 @@ func LeaveClanHandler(app *App) func(c echo.Context) error {
 		var clan *models.Clan
 		var previousOwner, newOwner *models.Player
 		var err error
-		status := 500
 
 		//rollback function
 		rb := func(err error) error {
@@ -352,7 +351,6 @@ func LeaveClanHandler(app *App) func(c echo.Context) error {
 						log.W(l, "Clan was not found.", func(cm log.CM) {
 							cm.Write(zap.Error(err))
 						})
-						status = 400
 						return &models.ModelNotFoundError{Type: "Clan", ID: publicID}
 					}
 					log.E(l, "Clan leave failed.", func(cm log.CM) {
@@ -417,7 +415,7 @@ func LeaveClanHandler(app *App) func(c echo.Context) error {
 			return FailWith(500, err.Error(), c)
 		}
 
-		log.I(l, "Clan left successfully.", func(cm log.CM) {
+		log.D(l, "Clan left successfully.", func(cm log.CM) {
 			cm.Write(fields...)
 		})
 
@@ -554,7 +552,7 @@ func TransferOwnershipHandler(app *App) func(c echo.Context) error {
 			return FailWith(500, err.Error(), c)
 		}
 
-		log.I(l, "Clan ownership transfer completed successfully.", func(cm log.CM) {
+		log.D(l, "Clan ownership transfer completed successfully.", func(cm log.CM) {
 			cm.Write(
 				zap.String("previousOwnerPublicID", previousOwner.PublicID),
 				zap.String("newOwnerPublicID", newOwner.PublicID),
@@ -617,7 +615,7 @@ func ListClansHandler(app *App) func(c echo.Context) error {
 			return nil
 		})
 
-		log.I(l, "Retrieve all clans completed successfully.", func(cm log.CM) {
+		log.D(l, "Retrieve all clans completed successfully.", func(cm log.CM) {
 			cm.Write(zap.Duration("duration", time.Now().Sub(start)))
 		})
 
@@ -677,7 +675,7 @@ func SearchClansHandler(app *App) func(c echo.Context) error {
 			return nil
 		})
 
-		log.I(l, "Clan search successful.", func(cm log.CM) {
+		log.D(l, "Clan search successful.", func(cm log.CM) {
 			cm.Write(zap.Duration("duration", time.Now().Sub(start)))
 		})
 
@@ -768,7 +766,7 @@ func RetrieveClanHandler(app *App) func(c echo.Context) error {
 			return FailWith(500, err.Error(), c)
 		}
 
-		log.I(l, "Clan details retrieved successfully.", func(cm log.CM) {
+		log.D(l, "Clan details retrieved successfully.", func(cm log.CM) {
 			cm.Write(zap.Duration("duration", time.Now().Sub(start)))
 		})
 		return SucceedWith(clanResult, c)
@@ -820,7 +818,7 @@ func RetrieveClanMembersHandler(app *App) func(c echo.Context) error {
 			return FailWith(500, err.Error(), c)
 		}
 
-		log.I(l, "Clan playerids retrieved successfully.", func(cm log.CM) {
+		log.D(l, "Clan playerids retrieved successfully.", func(cm log.CM) {
 			cm.Write(zap.Duration("duration", time.Now().Sub(start)))
 		})
 
@@ -875,7 +873,7 @@ func RetrieveClanSummaryHandler(app *App) func(c echo.Context) error {
 			return FailWithError(err, c)
 		}
 
-		log.I(l, "Clan summary retrieved successfully.", func(cm log.CM) {
+		log.D(l, "Clan summary retrieved successfully.", func(cm log.CM) {
 			cm.Write(zap.Duration("duration", time.Now().Sub(start)))
 		})
 
@@ -949,7 +947,7 @@ func RetrieveClansSummariesHandler(app *App) func(c echo.Context) error {
 		if err != nil {
 			return FailWith(status, err.Error(), c)
 		}
-		log.I(l, "Clans summaries retrieved successfully.", func(cm log.CM) {
+		log.D(l, "Clans summaries retrieved successfully.", func(cm log.CM) {
 			cm.Write(zap.Duration("duration", time.Now().Sub(start)))
 		})
 

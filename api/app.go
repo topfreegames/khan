@@ -465,7 +465,7 @@ func (app *App) GetGame(ctx context.Context, gameID string) (*models.Game, error
 		return nil, err
 	}
 
-	log.I(l, "Game retrieved succesfully.", func(cm log.CM) {
+	log.D(l, "Game retrieved succesfully.", func(cm log.CM) {
 		cm.Write(zap.Duration("gameRetrievalDuration", time.Now().Sub(start)))
 	})
 	return game, nil

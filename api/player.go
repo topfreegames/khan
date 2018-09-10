@@ -90,7 +90,7 @@ func CreatePlayerHandler(app *App) func(c echo.Context) error {
 			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 
-		log.I(l, "Player created successfully.", func(cm log.CM) {
+		log.D(l, "Player created successfully.", func(cm log.CM) {
 			cm.Write(zap.Duration("duration", time.Now().Sub(start)))
 		})
 
@@ -196,7 +196,7 @@ func UpdatePlayerHandler(app *App) func(c echo.Context) error {
 			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 
-		log.I(l, "Player updated successfully.", func(cm log.CM) {
+		log.D(l, "Player updated successfully.", func(cm log.CM) {
 			cm.Write(zap.Duration("duration", time.Now().Sub(start)))
 		})
 		return SucceedWith(map[string]interface{}{}, c)
@@ -253,7 +253,7 @@ func RetrievePlayerHandler(app *App) func(c echo.Context) error {
 			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 
-		log.I(l, "Player details retrieved successfully.", func(cm log.CM) {
+		log.D(l, "Player details retrieved successfully.", func(cm log.CM) {
 			cm.Write(zap.Duration("duration", time.Now().Sub(start)))
 		})
 
