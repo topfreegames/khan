@@ -698,7 +698,7 @@ Khan API
   The roster, as well as the memberships return a list of players, following this structure:
 
     {
-        "level": [int],  // not returned for denied/banned memberships
+        "level": [string],  // not returned for denied/banned memberships
         "message": [string], // the message sent with the application
                              // or "" if the membership was not created with and application
         "player": {

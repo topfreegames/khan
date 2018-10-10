@@ -117,7 +117,7 @@ type ClanMembershipPlayer struct {
 
 // ClanMembership represents the membership structure inside a clan response
 type ClanMembership struct {
-	Level   int                   `json:"level"`
+	Level   string                `json:"level"`
 	Message string                `json:"message"`
 	Player  *ClanMembershipPlayer `json:"player"`
 }
