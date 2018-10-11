@@ -189,7 +189,7 @@ var _ = Describe("Lib", func() {
 					},
 					"roster": [
 					  {
-						  "level": 1,
+						  "level": "member",
 						  "message": "hey",
 						  "player": {
 							  "publicID": "pid1",
@@ -201,7 +201,7 @@ var _ = Describe("Lib", func() {
 						  }
 					  },
 					  {
-						  "level": 1,
+						  "level": "member",
 						  "message": "hey!",
 						  "player": {
 							  "publicID": "pid2",
@@ -226,13 +226,13 @@ var _ = Describe("Lib", func() {
 			Expect(clan.Owner.PublicID).To(Equal("ownerID"))
 			Expect(clan.Owner.Name).To(Equal("owner1"))
 			Expect(clan.Roster).To(HaveLen(2))
-			Expect(clan.Roster[0].Level).To(Equal(1))
+			Expect(clan.Roster[0].Level).To(Equal("member"))
 			Expect(clan.Roster[0].Message).To(Equal("hey"))
 			Expect(clan.Roster[0].Player.PublicID).To(Equal("pid1"))
 			Expect(clan.Roster[0].Player.Name).To(Equal("name1"))
 			Expect(clan.Roster[0].Player.Approver.PublicID).To(Equal("ownerID"))
 			Expect(clan.Roster[0].Player.Approver.Name).To(Equal("owner1"))
-			Expect(clan.Roster[1].Level).To(Equal(1))
+			Expect(clan.Roster[1].Level).To(Equal("member"))
 			Expect(clan.Roster[1].Message).To(Equal("hey!"))
 			Expect(clan.Roster[1].Player.PublicID).To(Equal("pid2"))
 			Expect(clan.Roster[1].Player.Name).To(Equal("name2"))
