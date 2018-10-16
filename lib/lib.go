@@ -42,7 +42,7 @@ func getHTTPClient(timeout time.Duration) *http.Client {
 
 // NewKhan returns a new khan API application
 func NewKhan(config *viper.Viper) KhanInterface {
-	config.SetDefault("khan.timeout", 1*time.Second)
+	config.SetDefault("khan.timeout", 500*time.Millisecond)
 	k := &Khan{
 		httpClient: getHTTPClient(config.GetDuration("khan.timeout")),
 		Config:     config,
