@@ -58,9 +58,10 @@ var _ = Describe("Lib", func() {
 			httpmock.RegisterResponder("PUT", url,
 				httpmock.NewStringResponder(200, `{ "success": true, "publicID": "testid" }`))
 
-			err := k.UpdatePlayer(nil, publicID, "testname", nil)
+			result, err := k.UpdatePlayer(nil, publicID, "testname", nil)
 
 			Expect(err).To(BeNil())
+			Expect(result).To(Equal(&lib.Result{Success: true}))
 		})
 	})
 
@@ -164,9 +165,10 @@ var _ = Describe("Lib", func() {
 				AllowApplication: false,
 				AutoJoin:         false,
 			}
-			err := k.UpdateClan(nil, clanPayload)
+			result, err := k.UpdateClan(nil, clanPayload)
 
 			Expect(err).To(BeNil())
+			Expect(result).To(Equal(&lib.Result{Success: true}))
 		})
 	})
 

@@ -30,10 +30,10 @@ var (
 	once   sync.Once
 )
 
-func getHTTPClient(timeoutMs int) *http.Client {
+func getHTTPClient(timeout time.Duration) *http.Client {
 	once.Do(func() {
 		client = &http.Client{
-			Timeout: time.Duration(timeoutMs) * time.Millisecond,
+			Timeout: timeout,
 		}
 		ehttp.Instrument(client)
 	})
@@ -42,9 +42,9 @@ func getHTTPClient(timeoutMs int) *http.Client {
 
 // NewKhan returns a new khan API application
 func NewKhan(config *viper.Viper) KhanInterface {
-	config.SetDefault("khan.timeout", 1000)
+	config.SetDefault("khan.timeout", 500*time.Millisecond)
 	k := &Khan{
-		httpClient: getHTTPClient(config.GetInt("khan.timeout")),
+		httpClient: getHTTPClient(config.GetDuration("khan.timeout")),
 		Config:     config,
 		url:        config.GetString("khan.url"),
 		user:       config.GetString("khan.user"),
@@ -142,6 +142,46 @@ func (k *Khan) buildRetrieveClansSummaryURL(clanIDs []string) string {
 	return k.buildURL(pathname)
 }
 
+func (k *Khan) buildApplyForMembershipURL(clanID string) string {
+	pathname := fmt.Sprintf("clans/%s/memberships/application", clanID)
+	return k.buildURL(pathname)
+}
+
+func (k *Khan) buildInviteForMembershipURL(clanID string) string {
+	pathname := fmt.Sprintf("clans/%s/memberships/invitation", clanID)
+	return k.buildURL(pathname)
+}
+
+func (k *Khan) buildApproveDenyMembershipApplicationURL(clanID, action string) string {
+	pathname := fmt.Sprintf("clans/%s/memberships/application/%s", clanID, action)
+	return k.buildURL(pathname)
+}
+
+func (k *Khan) buildApproveDenyMembershipInvitationURL(clanID, action string) string {
+	pathname := fmt.Sprintf("clans/%s/memberships/invitation/%s", clanID, action)
+	return k.buildURL(pathname)
+}
+
+func (k *Khan) buildPromoteDemoteURL(clanID, action string) string {
+	pathname := fmt.Sprintf("clans/%s/memberships/%s", clanID, action)
+	return k.buildURL(pathname)
+}
+
+func (k *Khan) buildDeleteMembershipURL(clanID string) string {
+	pathname := fmt.Sprintf("clans/%s/memberships/delete", clanID)
+	return k.buildURL(pathname)
+}
+
+func (k *Khan) buildLeaveClanURL(clanID string) string {
+	pathname := fmt.Sprintf("clans/%s/leave", clanID)
+	return k.buildURL(pathname)
+}
+
+func (k *Khan) buildTransferOwnershipURL(clanID string) string {
+	pathname := fmt.Sprintf("clans/%s/transfer-ownership", clanID)
+	return k.buildURL(pathname)
+}
+
 // CreatePlayer calls Khan to create a new player
 func (k *Khan) CreatePlayer(ctx context.Context, publicID, name string, metadata interface{}) (string, error) {
 	route := k.buildCreatePlayerURL()
@@ -163,14 +203,21 @@ func (k *Khan) CreatePlayer(ctx context.Context, publicID, name string, metadata
 }
 
 // UpdatePlayer calls khan to update the player
-func (k *Khan) UpdatePlayer(ctx context.Context, publicID, name string, metadata interface{}) error {
+func (k *Khan) UpdatePlayer(
+	ctx context.Context,
+	publicID, name string,
+	metadata interface{},
+) (*Result, error) {
 	route := k.buildUpdatePlayerURL(publicID)
-	playerPayload := &Player{
-		Name:     name,
-		Metadata: metadata,
+	playerPayload := &Player{Name: name, Metadata: metadata}
+	body, err := k.sendTo(ctx, "PUT", route, playerPayload)
+	if err != nil {
+		return nil, err
 	}
-	_, err := k.sendTo(ctx, "PUT", route, playerPayload)
-	return err
+
+	var result Result
+	err = json.Unmarshal(body, &result)
+	return &result, err
 }
 
 // RetrievePlayer calls the retrieve player route from khan
@@ -202,10 +249,16 @@ func (k *Khan) CreateClan(ctx context.Context, clan *ClanPayload) (string, error
 }
 
 // UpdateClan calls the update clan route from khan
-func (k *Khan) UpdateClan(ctx context.Context, clan *ClanPayload) error {
+func (k *Khan) UpdateClan(ctx context.Context, clan *ClanPayload) (*Result, error) {
 	route := k.buildUpdateClanURL(clan.PublicID)
-	_, err := k.sendTo(ctx, "PUT", route, clan)
-	return err
+	body, err := k.sendTo(ctx, "PUT", route, clan)
+	if err != nil {
+		return nil, err
+	}
+
+	var result Result
+	err = json.Unmarshal(body, &result)
+	return &result, err
 }
 
 // RetrieveClanSummary calls the route to retrieve clan summary from khan
@@ -251,4 +304,119 @@ func (k *Khan) RetrieveClan(ctx context.Context, clanID string) (*Clan, error) {
 	var clan Clan
 	err = json.Unmarshal(body, &clan)
 	return &clan, err
+}
+
+// ApplyForMembership calls apply for membership route on khan
+func (k *Khan) ApplyForMembership(
+	ctx context.Context,
+	payload *ApplicationPayload,
+) (*ClanApplyResult, error) {
+	route := k.buildApplyForMembershipURL(payload.ClanID)
+	body, err := k.sendTo(ctx, "POST", route, payload)
+
+	if err != nil {
+		return nil, err
+	}
+
+	var application ClanApplyResult
+	err = json.Unmarshal(body, &application)
+	return &application, err
+}
+
+// InviteForMembership invites a clan member to join clan
+func (k *Khan) InviteForMembership(
+	ctx context.Context,
+	payload *InvitationPayload,
+) (*Result, error) {
+	route := k.buildInviteForMembershipURL(payload.ClanID)
+	return k.defaultPostRequest(ctx, route, payload)
+}
+
+// ApproveDenyMembershipApplication approves or deny player
+// application on clan
+func (k *Khan) ApproveDenyMembershipApplication(
+	ctx context.Context,
+	payload *ApplicationApprovalPayload,
+) (*Result, error) {
+	route := k.buildApproveDenyMembershipApplicationURL(payload.ClanID, payload.Action)
+	return k.defaultPostRequest(ctx, route, payload)
+}
+
+// ApproveDenyMembershipInvitation approves or deny player
+// invitation on clan
+func (k *Khan) ApproveDenyMembershipInvitation(
+	ctx context.Context,
+	payload *InvitationApprovalPayload,
+) (*Result, error) {
+	route := k.buildApproveDenyMembershipInvitationURL(payload.ClanID, payload.Action)
+	return k.defaultPostRequest(ctx, route, payload)
+}
+
+// PromoteDemote promotes or demotes player on clan
+func (k *Khan) PromoteDemote(
+	ctx context.Context,
+	payload *PromoteDemotePayload,
+) (*Result, error) {
+	route := k.buildPromoteDemoteURL(payload.ClanID, payload.Action)
+	return k.defaultPostRequest(ctx, route, payload)
+}
+
+// DeleteMembership deletes membership on clan
+func (k *Khan) DeleteMembership(
+	ctx context.Context,
+	payload *DeleteMembershipPayload,
+) (*Result, error) {
+	route := k.buildDeleteMembershipURL(payload.ClanID)
+	return k.defaultPostRequest(ctx, route, payload)
+}
+
+// LeaveClan allows member to leave clan
+func (k *Khan) LeaveClan(
+	ctx context.Context,
+	clanID string,
+) (*LeaveClanResult, error) {
+	route := k.buildLeaveClanURL(clanID)
+	body, err := k.sendTo(ctx, "POST", route, nil)
+
+	if err != nil {
+		return nil, err
+	}
+
+	var result LeaveClanResult
+	err = json.Unmarshal(body, &result)
+	return &result, err
+}
+
+// TransferOwnership transfers clan ownership to another member
+func (k *Khan) TransferOwnership(
+	ctx context.Context,
+	playerPublicID, clanID string,
+) (*TransferOwnershipResult, error) {
+	route := k.buildTransferOwnershipURL(clanID)
+	body, err := k.sendTo(ctx, "POST", route, map[string]interface{}{
+		"playerPublicID": playerPublicID,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	var result TransferOwnershipResult
+	err = json.Unmarshal(body, &result)
+	return &result, err
+}
+
+func (k *Khan) defaultPostRequest(
+	ctx context.Context,
+	route string,
+	payload interface{},
+) (*Result, error) {
+	body, err := k.sendTo(ctx, "POST", route, payload)
+	if err != nil {
+		return nil, err
+	}
+
+	var result Result
+	err = json.Unmarshal(body, &result)
+	return &result, err
 }

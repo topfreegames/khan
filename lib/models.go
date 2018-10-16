@@ -142,3 +142,77 @@ type Clan struct {
 	Roster           []*ClanMembership `json:"roster"`
 	Memberships      *ClanMemberships  `json:"memberships"`
 }
+
+// ApplicationPayload is the argument on apply for membership
+type ApplicationPayload struct {
+	ClanID         string `json:"-"`
+	Message        string `json:"message"`
+	Level          string `json:"level"`
+	PlayerPublicID string `json:"playerPublicID"`
+}
+
+// ClanApplyResult is the result on apply for membership
+type ClanApplyResult struct {
+	Success  bool
+	Approved bool
+}
+
+// InvitationPayload is the argument on invite for membership
+type InvitationPayload struct {
+	ClanID            string `json:"-"`
+	Level             string `json:"level"`
+	PlayerPublicID    string `json:"playerPublicID"`
+	RequestorPublicID string `json:"requestorPublicID"`
+}
+
+// ApplicationApprovalPayload is the argument on approve or
+// deny membership application
+type ApplicationApprovalPayload struct {
+	ClanID            string `json:"-"`
+	Action            string `json:"-"`
+	PlayerPublicID    string `json:"playerPublicID"`
+	RequestorPublicID string `json:"requestorPublicID"`
+}
+
+// InvitationApprovalPayload is the argument on approve or
+// deny membership invitation
+type InvitationApprovalPayload struct {
+	ClanID         string `json:"-"`
+	Action         string `json:"-"`
+	PlayerPublicID string `json:"playerPublicID"`
+}
+
+// PromoteDemotePayload is the argument on promote or demote method
+type PromoteDemotePayload struct {
+	ClanID            string `json:"-"`
+	Action            string `json:"-"`
+	PlayerPublicID    string `json:"playerPublicID"`
+	RequestorPublicID string `json:"requestorPublicID"`
+}
+
+// DeleteMembershipPayload is the argument on delete membership method
+type DeleteMembershipPayload struct {
+	ClanID            string `json:"-"`
+	PlayerPublicID    string `json:"playerPublicID"`
+	RequestorPublicID string `json:"requestorPublicID"`
+}
+
+// LeaveClanResult is the result of leave clan method
+type LeaveClanResult struct {
+	Success       bool
+	IsDeleted     bool
+	PreviousOwner *ClanPlayerInfo
+	NewOwner      *ClanPlayerInfo
+}
+
+// TransferOwnershipResult is the result of transfer ownership method
+type TransferOwnershipResult struct {
+	Success       bool
+	PreviousOwner *ClanPlayerInfo
+	NewOwner      *ClanPlayerInfo
+}
+
+// Result is the default result
+type Result struct {
+	Success bool
+}
