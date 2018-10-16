@@ -203,14 +203,21 @@ func (k *Khan) CreatePlayer(ctx context.Context, publicID, name string, metadata
 }
 
 // UpdatePlayer calls khan to update the player
-func (k *Khan) UpdatePlayer(ctx context.Context, publicID, name string, metadata interface{}) error {
+func (k *Khan) UpdatePlayer(
+	ctx context.Context,
+	publicID, name string,
+	metadata interface{},
+) (*Result, error) {
 	route := k.buildUpdatePlayerURL(publicID)
-	playerPayload := &Player{
-		Name:     name,
-		Metadata: metadata,
+	playerPayload := &Player{Name: name, Metadata: metadata}
+	body, err := k.sendTo(ctx, "PUT", route, playerPayload)
+	if err != nil {
+		return nil, err
 	}
-	_, err := k.sendTo(ctx, "PUT", route, playerPayload)
-	return err
+
+	var result Result
+	err = json.Unmarshal(body, &result)
+	return &result, err
 }
 
 // RetrievePlayer calls the retrieve player route from khan
@@ -242,10 +249,16 @@ func (k *Khan) CreateClan(ctx context.Context, clan *ClanPayload) (string, error
 }
 
 // UpdateClan calls the update clan route from khan
-func (k *Khan) UpdateClan(ctx context.Context, clan *ClanPayload) error {
+func (k *Khan) UpdateClan(ctx context.Context, clan *ClanPayload) (*Result, error) {
 	route := k.buildUpdateClanURL(clan.PublicID)
-	_, err := k.sendTo(ctx, "PUT", route, clan)
-	return err
+	body, err := k.sendTo(ctx, "PUT", route, clan)
+	if err != nil {
+		return nil, err
+	}
+
+	var result Result
+	err = json.Unmarshal(body, &result)
+	return &result, err
 }
 
 // RetrieveClanSummary calls the route to retrieve clan summary from khan
@@ -314,10 +327,9 @@ func (k *Khan) ApplyForMembership(
 func (k *Khan) InviteForMembership(
 	ctx context.Context,
 	payload *InvitationPayload,
-) error {
+) (*Result, error) {
 	route := k.buildInviteForMembershipURL(payload.ClanID)
-	_, err := k.sendTo(ctx, "POST", route, payload)
-	return err
+	return k.defaultPostRequest(ctx, route, payload)
 }
 
 // ApproveDenyMembershipApplication approves or deny player
@@ -325,10 +337,9 @@ func (k *Khan) InviteForMembership(
 func (k *Khan) ApproveDenyMembershipApplication(
 	ctx context.Context,
 	payload *ApplicationApprovalPayload,
-) error {
+) (*Result, error) {
 	route := k.buildApproveDenyMembershipApplicationURL(payload.ClanID, payload.Action)
-	_, err := k.sendTo(ctx, "POST", route, payload)
-	return err
+	return k.defaultPostRequest(ctx, route, payload)
 }
 
 // ApproveDenyMembershipInvitation approves or deny player
@@ -336,30 +347,27 @@ func (k *Khan) ApproveDenyMembershipApplication(
 func (k *Khan) ApproveDenyMembershipInvitation(
 	ctx context.Context,
 	payload *InvitationApprovalPayload,
-) error {
+) (*Result, error) {
 	route := k.buildApproveDenyMembershipInvitationURL(payload.ClanID, payload.Action)
-	_, err := k.sendTo(ctx, "POST", route, payload)
-	return err
+	return k.defaultPostRequest(ctx, route, payload)
 }
 
 // PromoteDemote promotes or demotes player on clan
 func (k *Khan) PromoteDemote(
 	ctx context.Context,
 	payload *PromoteDemotePayload,
-) error {
+) (*Result, error) {
 	route := k.buildPromoteDemoteURL(payload.ClanID, payload.Action)
-	_, err := k.sendTo(ctx, "POST", route, payload)
-	return err
+	return k.defaultPostRequest(ctx, route, payload)
 }
 
 // DeleteMembership deletes membership on clan
 func (k *Khan) DeleteMembership(
 	ctx context.Context,
 	payload *DeleteMembershipPayload,
-) error {
+) (*Result, error) {
 	route := k.buildDeleteMembershipURL(payload.ClanID)
-	_, err := k.sendTo(ctx, "POST", route, payload)
-	return err
+	return k.defaultPostRequest(ctx, route, payload)
 }
 
 // LeaveClan allows member to leave clan
@@ -394,6 +402,21 @@ func (k *Khan) TransferOwnership(
 	}
 
 	var result TransferOwnershipResult
+	err = json.Unmarshal(body, &result)
+	return &result, err
+}
+
+func (k *Khan) defaultPostRequest(
+	ctx context.Context,
+	route string,
+	payload interface{},
+) (*Result, error) {
+	body, err := k.sendTo(ctx, "POST", route, payload)
+	if err != nil {
+		return nil, err
+	}
+
+	var result Result
 	err = json.Unmarshal(body, &result)
 	return &result, err
 }

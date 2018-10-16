@@ -211,3 +211,8 @@ type TransferOwnershipResult struct {
 	PreviousOwner *ClanPlayerInfo
 	NewOwner      *ClanPlayerInfo
 }
+
+// Result is the default result
+type Result struct {
+	Success bool
+}
