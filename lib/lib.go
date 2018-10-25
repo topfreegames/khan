@@ -30,26 +30,52 @@ var (
 	once   sync.Once
 )
 
-func getHTTPClient(timeout time.Duration) *http.Client {
+func getHTTPClient(
+	timeout time.Duration,
+	maxIdleConns, maxIdleConnsPerHost int,
+) *http.Client {
 	once.Do(func() {
 		client = &http.Client{
-			Timeout: timeout,
+			Transport: getHTTPTransport(maxIdleConns, maxIdleConnsPerHost),
+			Timeout:   timeout,
 		}
 		ehttp.Instrument(client)
 	})
 	return client
 }
 
+func getHTTPTransport(
+	maxIdleConns, maxIdleConnsPerHost int,
+) http.RoundTripper {
+	transport, ok := http.DefaultTransport.(*http.Transport)
+	if !ok {
+		return http.DefaultTransport // tests use mock transport
+	}
+
+	transport.MaxIdleConnsPerHost = maxIdleConnsPerHost
+	if maxIdleConns > 0 {
+		transport.MaxIdleConns = maxIdleConns
+	}
+
+	return transport
+}
+
 // NewKhan returns a new khan API application
 func NewKhan(config *viper.Viper) KhanInterface {
 	config.SetDefault("khan.timeout", 500*time.Millisecond)
+	config.SetDefault("khan.maxIdleConnsPerHost", http.DefaultMaxIdleConnsPerHost)
+
 	k := &Khan{
-		httpClient: getHTTPClient(config.GetDuration("khan.timeout")),
-		Config:     config,
-		url:        config.GetString("khan.url"),
-		user:       config.GetString("khan.user"),
-		pass:       config.GetString("khan.pass"),
-		gameID:     config.GetString("khan.gameid"),
+		httpClient: getHTTPClient(
+			config.GetDuration("khan.timeout"),
+			config.GetInt("khan.maxIdleConns"),
+			config.GetInt("khan.maxIdleConnsPerHost"),
+		),
+		Config: config,
+		url:    config.GetString("khan.url"),
+		user:   config.GetString("khan.user"),
+		pass:   config.GetString("khan.pass"),
+		gameID: config.GetString("khan.gameid"),
 	}
 	return k
 }
