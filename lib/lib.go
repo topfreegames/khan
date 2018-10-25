@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"net"
 	"net/http"
 	"strings"
 	"sync"
@@ -47,23 +48,34 @@ func getHTTPClient(
 func getHTTPTransport(
 	maxIdleConns, maxIdleConnsPerHost int,
 ) http.RoundTripper {
-	transport, ok := http.DefaultTransport.(*http.Transport)
-	if !ok {
-		return http.DefaultTransport // tests use mock transport
+	if _, ok := http.DefaultTransport.(*http.Transport); !ok {
+		return http.DefaultTransport // tests use a mock transport
 	}
 
-	transport.MaxIdleConnsPerHost = maxIdleConnsPerHost
-	if maxIdleConns > 0 {
-		transport.MaxIdleConns = maxIdleConns
+	// We can't get http.DefaultTransport here and update its
+	// fields since it's an exported variable, so other libs could
+	// also change it and overwrite. This hardcoded values are copied
+	// from http.DefaultTransport but could be configurable too.
+	return &http.Transport{
+		Proxy: http.ProxyFromEnvironment,
+		DialContext: (&net.Dialer{
+			Timeout:   30 * time.Second,
+			KeepAlive: 30 * time.Second,
+			DualStack: true,
+		}).DialContext,
+		MaxIdleConns:          maxIdleConns,
+		IdleConnTimeout:       90 * time.Second,
+		TLSHandshakeTimeout:   10 * time.Second,
+		ExpectContinueTimeout: 1 * time.Second,
+		MaxIdleConnsPerHost:   maxIdleConnsPerHost,
 	}
-
-	return transport
 }
 
 // NewKhan returns a new khan API application
 func NewKhan(config *viper.Viper) KhanInterface {
 	config.SetDefault("khan.timeout", 500*time.Millisecond)
 	config.SetDefault("khan.maxIdleConnsPerHost", http.DefaultMaxIdleConnsPerHost)
+	config.SetDefault("khan.maxIdleConns", 100)
 
 	k := &Khan{
 		httpClient: getHTTPClient(
