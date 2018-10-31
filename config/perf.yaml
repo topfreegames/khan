@@ -17,6 +17,7 @@ search:
 jaeger:
   disabled: true
   samplingProbability: 0.001
+  serviceName: "khan"
 
 extensions:
   dogstatsd:
