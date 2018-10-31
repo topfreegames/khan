@@ -178,7 +178,7 @@ func (app *App) configureJaeger() {
 	opts := jaeger.Options{
 		Disabled:    app.Config.GetBool("jaeger.disabled"),
 		Probability: app.Config.GetFloat64("jaeger.samplingProbability"),
-		ServiceName: "khan",
+		ServiceName: app.Config.GetString("jaeger.serviceName"),
 	}
 
 	_, err := jaeger.Configure(opts)

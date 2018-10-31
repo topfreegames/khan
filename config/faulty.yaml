@@ -11,6 +11,7 @@ newrelic:
 jaeger:
   disabled: false
   samplingProbability: 1.0
+  serviceName: "khan"
 
  extensions:
   dogstatsd:

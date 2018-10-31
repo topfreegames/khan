@@ -38,6 +38,7 @@ newrelic:
 jaeger:
   disabled: false
   samplingProbability: 1.0
+  serviceName: "khan"
 
 redis:
   host: 0.0.0.0
