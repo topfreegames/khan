@@ -73,8 +73,8 @@ func GetValidMembershipByClanAndPlayerPublicID(db DB, gameID, clanPublicID, play
 	SELECT
 		m.*
 	FROM memberships m
-		INNER JOIN clans c ON c.public_id=$1 AND c.id=m.clan_id
-		INNER JOIN players p ON p.public_id=$2 AND p.id=m.player_id
+		INNER JOIN clans c ON c.game_id=$3 AND c.public_id=$1 AND c.id=m.clan_id
+		INNER JOIN players p ON p.game_id=$3 AND p.public_id=$2 AND p.id=m.player_id
 	WHERE
 		m.game_id=$3 AND
 		m.deleted_at=0`
@@ -96,8 +96,8 @@ func GetMembershipByClanAndPlayerPublicID(db DB, gameID, clanPublicID, playerPub
 	SELECT
 		m.*
 	FROM memberships m
-		INNER JOIN clans c ON c.public_id=$1 AND c.id=m.clan_id
-		INNER JOIN players p ON p.public_id=$2 AND p.id=m.player_id
+		INNER JOIN clans c ON c.game_id=$3 AND c.public_id=$1 AND c.id=m.clan_id
+		INNER JOIN players p ON p.game_id=$3 AND p.public_id=$2 AND p.id=m.player_id
 	WHERE m.game_id=$3`
 
 	_, err := db.Select(&memberships, query, clanPublicID, playerPublicID, gameID)
@@ -117,8 +117,8 @@ func GetDeletedMembershipByClanAndPlayerID(db DB, gameID string, clanID, playerI
 	SELECT
 		m.*
 	FROM memberships m
-		INNER JOIN clans c ON c.id=$1 AND c.id=m.clan_id
-		INNER JOIN players p ON p.id=$2 AND p.id=m.player_id
+		INNER JOIN clans c ON c.game_id=$3 AND c.id=$1 AND c.id=m.clan_id
+		INNER JOIN players p ON p.game_id=$3 AND p.id=$2 AND p.id=m.player_id
 	WHERE
 		m.deleted_at!=0 AND m.game_id=$3`
 
@@ -139,8 +139,8 @@ func GetOldestMemberWithHighestLevel(db DB, gameID, clanPublicID string) (*Membe
 	SELECT
 	 m.*
 	FROM memberships m
-	 INNER JOIN games g ON g.public_id=$1 AND g.public_id=m.game_id
-	 INNER JOIN clans c ON c.public_id=$2 AND c.id=m.clan_id
+	 INNER JOIN games g ON g.public_id=m.game_id AND g.public_id=$1
+	 INNER JOIN clans c ON c.id=m.clan_id AND c.public_id=$2
 	WHERE m.deleted_at=0 AND m.approved=true
 	ORDER BY
 	 g.membership_levels::json->>m.membership_level DESC,
