@@ -140,7 +140,7 @@ func GetOldestMemberWithHighestLevel(db DB, gameID, clanPublicID string) (*Membe
 	 m.*
 	FROM memberships m
 	 INNER JOIN games g ON g.public_id=m.game_id AND g.public_id=$1
-	 INNER JOIN clans c ON c.id=m.clan_id AND c.public_id=$2
+	 INNER JOIN clans c ON c.game_id=$1 AND c.public_id=$2 AND c.id=m.clan_id
 	WHERE m.deleted_at=0 AND m.approved=true
 	ORDER BY
 	 g.membership_levels::json->>m.membership_level DESC,

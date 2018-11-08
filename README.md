@@ -71,4 +71,3 @@ Getting coverage data can be achieved with `make coverage`, while reading the ac
 Khan goes through some static analysis tools for go. To run them just use `make static`.
 
 Right now, gocyclo can't process the vendor folder, so we just ignore the exit code for it, while maintaining the output for anything not in the vendor folder.
-
