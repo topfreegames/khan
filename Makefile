@@ -6,7 +6,6 @@
 
 .PHONY: db
 
-PACKAGES = $(shell glide novendor)
 GODIRS = $(shell go list ./... | grep -v /vendor/ | sed s@github.com/topfreegames/khan@.@g | egrep -v "^[.]$$")
 PMD = "pmd-bin-5.3.3"
 OS = "$(shell uname | awk '{ print tolower($$0) }')"
@@ -33,7 +32,6 @@ setup-ci:
 	@dep ensure
 
 build:
-	@go build $(PACKAGES)
 	@go build -o ./bin/khan main.go
 
 assets:
@@ -194,7 +192,6 @@ migrate-perf:
 	@go run main.go migrate -c ./config/perf.yaml
 
 static:
-	@-go vet $(PACKAGES)
 	@-gocyclo -over 5 . | egrep -v vendor/
 	@for pkg in $$(go list ./... | grep -v /vendor/ | grep -v "/db") ; do \
         golint $$pkg ; \
