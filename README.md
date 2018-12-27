@@ -72,6 +72,6 @@ Khan goes through some static analysis tools for go. To run them just use `make 
 
 Right now, gocyclo can't process the vendor folder, so we just ignore the exit code for it, while maintaining the output for anything not in the vendor folder.
 
-### Security
+## Security
 
 If you have found a security vulnerability, please email security@tfgco.com
