@@ -34,8 +34,54 @@ func (m *MockKhanInterface) EXPECT() *MockKhanInterfaceMockRecorder {
 	return m.recorder
 }
 
+// ApplyForMembership mocks base method
+func (m *MockKhanInterface) ApplyForMembership(arg0 context.Context, arg1 *lib.ApplicationPayload) (*lib.ClanApplyResult, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ApplyForMembership", arg0, arg1)
+	ret0, _ := ret[0].(*lib.ClanApplyResult)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ApplyForMembership indicates an expected call of ApplyForMembership
+func (mr *MockKhanInterfaceMockRecorder) ApplyForMembership(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ApplyForMembership", reflect.TypeOf((*MockKhanInterface)(nil).ApplyForMembership), arg0, arg1)
+}
+
+// ApproveDenyMembershipApplication mocks base method
+func (m *MockKhanInterface) ApproveDenyMembershipApplication(arg0 context.Context, arg1 *lib.ApplicationApprovalPayload) (*lib.Result, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ApproveDenyMembershipApplication", arg0, arg1)
+	ret0, _ := ret[0].(*lib.Result)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ApproveDenyMembershipApplication indicates an expected call of ApproveDenyMembershipApplication
+func (mr *MockKhanInterfaceMockRecorder) ApproveDenyMembershipApplication(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ApproveDenyMembershipApplication", reflect.TypeOf((*MockKhanInterface)(nil).ApproveDenyMembershipApplication), arg0, arg1)
+}
+
+// ApproveDenyMembershipInvitation mocks base method
+func (m *MockKhanInterface) ApproveDenyMembershipInvitation(arg0 context.Context, arg1 *lib.InvitationApprovalPayload) (*lib.Result, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ApproveDenyMembershipInvitation", arg0, arg1)
+	ret0, _ := ret[0].(*lib.Result)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ApproveDenyMembershipInvitation indicates an expected call of ApproveDenyMembershipInvitation
+func (mr *MockKhanInterfaceMockRecorder) ApproveDenyMembershipInvitation(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ApproveDenyMembershipInvitation", reflect.TypeOf((*MockKhanInterface)(nil).ApproveDenyMembershipInvitation), arg0, arg1)
+}
+
 // CreateClan mocks base method
 func (m *MockKhanInterface) CreateClan(arg0 context.Context, arg1 *lib.ClanPayload) (string, error) {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateClan", arg0, arg1)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
@@ -44,11 +90,13 @@ func (m *MockKhanInterface) CreateClan(arg0 context.Context, arg1 *lib.ClanPaylo
 
 // CreateClan indicates an expected call of CreateClan
 func (mr *MockKhanInterfaceMockRecorder) CreateClan(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateClan", reflect.TypeOf((*MockKhanInterface)(nil).CreateClan), arg0, arg1)
 }
 
 // CreatePlayer mocks base method
 func (m *MockKhanInterface) CreatePlayer(arg0 context.Context, arg1, arg2 string, arg3 interface{}) (string, error) {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreatePlayer", arg0, arg1, arg2, arg3)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
@@ -57,11 +105,73 @@ func (m *MockKhanInterface) CreatePlayer(arg0 context.Context, arg1, arg2 string
 
 // CreatePlayer indicates an expected call of CreatePlayer
 func (mr *MockKhanInterfaceMockRecorder) CreatePlayer(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreatePlayer", reflect.TypeOf((*MockKhanInterface)(nil).CreatePlayer), arg0, arg1, arg2, arg3)
+}
+
+// DeleteMembership mocks base method
+func (m *MockKhanInterface) DeleteMembership(arg0 context.Context, arg1 *lib.DeleteMembershipPayload) (*lib.Result, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteMembership", arg0, arg1)
+	ret0, _ := ret[0].(*lib.Result)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DeleteMembership indicates an expected call of DeleteMembership
+func (mr *MockKhanInterfaceMockRecorder) DeleteMembership(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteMembership", reflect.TypeOf((*MockKhanInterface)(nil).DeleteMembership), arg0, arg1)
+}
+
+// InviteForMembership mocks base method
+func (m *MockKhanInterface) InviteForMembership(arg0 context.Context, arg1 *lib.InvitationPayload) (*lib.Result, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "InviteForMembership", arg0, arg1)
+	ret0, _ := ret[0].(*lib.Result)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// InviteForMembership indicates an expected call of InviteForMembership
+func (mr *MockKhanInterfaceMockRecorder) InviteForMembership(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InviteForMembership", reflect.TypeOf((*MockKhanInterface)(nil).InviteForMembership), arg0, arg1)
+}
+
+// LeaveClan mocks base method
+func (m *MockKhanInterface) LeaveClan(arg0 context.Context, arg1 string) (*lib.LeaveClanResult, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LeaveClan", arg0, arg1)
+	ret0, _ := ret[0].(*lib.LeaveClanResult)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LeaveClan indicates an expected call of LeaveClan
+func (mr *MockKhanInterfaceMockRecorder) LeaveClan(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LeaveClan", reflect.TypeOf((*MockKhanInterface)(nil).LeaveClan), arg0, arg1)
+}
+
+// PromoteDemote mocks base method
+func (m *MockKhanInterface) PromoteDemote(arg0 context.Context, arg1 *lib.PromoteDemotePayload) (*lib.Result, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "PromoteDemote", arg0, arg1)
+	ret0, _ := ret[0].(*lib.Result)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// PromoteDemote indicates an expected call of PromoteDemote
+func (mr *MockKhanInterfaceMockRecorder) PromoteDemote(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PromoteDemote", reflect.TypeOf((*MockKhanInterface)(nil).PromoteDemote), arg0, arg1)
 }
 
 // RetrieveClan mocks base method
 func (m *MockKhanInterface) RetrieveClan(arg0 context.Context, arg1 string) (*lib.Clan, error) {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "RetrieveClan", arg0, arg1)
 	ret0, _ := ret[0].(*lib.Clan)
 	ret1, _ := ret[1].(error)
@@ -70,11 +180,13 @@ func (m *MockKhanInterface) RetrieveClan(arg0 context.Context, arg1 string) (*li
 
 // RetrieveClan indicates an expected call of RetrieveClan
 func (mr *MockKhanInterfaceMockRecorder) RetrieveClan(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RetrieveClan", reflect.TypeOf((*MockKhanInterface)(nil).RetrieveClan), arg0, arg1)
 }
 
 // RetrieveClanSummary mocks base method
 func (m *MockKhanInterface) RetrieveClanSummary(arg0 context.Context, arg1 string) (*lib.ClanSummary, error) {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "RetrieveClanSummary", arg0, arg1)
 	ret0, _ := ret[0].(*lib.ClanSummary)
 	ret1, _ := ret[1].(error)
@@ -83,11 +195,13 @@ func (m *MockKhanInterface) RetrieveClanSummary(arg0 context.Context, arg1 strin
 
 // RetrieveClanSummary indicates an expected call of RetrieveClanSummary
 func (mr *MockKhanInterfaceMockRecorder) RetrieveClanSummary(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RetrieveClanSummary", reflect.TypeOf((*MockKhanInterface)(nil).RetrieveClanSummary), arg0, arg1)
 }
 
 // RetrieveClansSummary mocks base method
 func (m *MockKhanInterface) RetrieveClansSummary(arg0 context.Context, arg1 []string) ([]*lib.ClanSummary, error) {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "RetrieveClansSummary", arg0, arg1)
 	ret0, _ := ret[0].([]*lib.ClanSummary)
 	ret1, _ := ret[1].(error)
@@ -96,11 +210,13 @@ func (m *MockKhanInterface) RetrieveClansSummary(arg0 context.Context, arg1 []st
 
 // RetrieveClansSummary indicates an expected call of RetrieveClansSummary
 func (mr *MockKhanInterfaceMockRecorder) RetrieveClansSummary(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RetrieveClansSummary", reflect.TypeOf((*MockKhanInterface)(nil).RetrieveClansSummary), arg0, arg1)
 }
 
 // RetrievePlayer mocks base method
 func (m *MockKhanInterface) RetrievePlayer(arg0 context.Context, arg1 string) (*lib.Player, error) {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "RetrievePlayer", arg0, arg1)
 	ret0, _ := ret[0].(*lib.Player)
 	ret1, _ := ret[1].(error)
@@ -109,29 +225,51 @@ func (m *MockKhanInterface) RetrievePlayer(arg0 context.Context, arg1 string) (*
 
 // RetrievePlayer indicates an expected call of RetrievePlayer
 func (mr *MockKhanInterfaceMockRecorder) RetrievePlayer(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RetrievePlayer", reflect.TypeOf((*MockKhanInterface)(nil).RetrievePlayer), arg0, arg1)
 }
 
+// TransferOwnership mocks base method
+func (m *MockKhanInterface) TransferOwnership(arg0 context.Context, arg1, arg2 string) (*lib.TransferOwnershipResult, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "TransferOwnership", arg0, arg1, arg2)
+	ret0, _ := ret[0].(*lib.TransferOwnershipResult)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// TransferOwnership indicates an expected call of TransferOwnership
+func (mr *MockKhanInterfaceMockRecorder) TransferOwnership(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TransferOwnership", reflect.TypeOf((*MockKhanInterface)(nil).TransferOwnership), arg0, arg1, arg2)
+}
+
 // UpdateClan mocks base method
-func (m *MockKhanInterface) UpdateClan(arg0 context.Context, arg1 *lib.ClanPayload) error {
+func (m *MockKhanInterface) UpdateClan(arg0 context.Context, arg1 *lib.ClanPayload) (*lib.Result, error) {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateClan", arg0, arg1)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret0, _ := ret[0].(*lib.Result)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // UpdateClan indicates an expected call of UpdateClan
 func (mr *MockKhanInterfaceMockRecorder) UpdateClan(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateClan", reflect.TypeOf((*MockKhanInterface)(nil).UpdateClan), arg0, arg1)
 }
 
 // UpdatePlayer mocks base method
-func (m *MockKhanInterface) UpdatePlayer(arg0 context.Context, arg1, arg2 string, arg3 interface{}) error {
+func (m *MockKhanInterface) UpdatePlayer(arg0 context.Context, arg1, arg2 string, arg3 interface{}) (*lib.Result, error) {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdatePlayer", arg0, arg1, arg2, arg3)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret0, _ := ret[0].(*lib.Result)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // UpdatePlayer indicates an expected call of UpdatePlayer
 func (mr *MockKhanInterfaceMockRecorder) UpdatePlayer(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdatePlayer", reflect.TypeOf((*MockKhanInterface)(nil).UpdatePlayer), arg0, arg1, arg2, arg3)
 }
