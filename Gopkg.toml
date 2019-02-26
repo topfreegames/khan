@@ -20,7 +20,7 @@
 
 [[constraint]]
   name = "github.com/topfreegames/extensions"
-  version = "6.2.4"
+  version = "8.0.5"
 
 [[constraint]]
   name = "github.com/go-gorp/gorp"
@@ -30,10 +30,13 @@
   name = "gopkg.in/olivere/elastic.v5"
   version = "5.0.39"
 
-
 [[constraint]]
   name = "github.com/mailru/easyjson"
   branch = "master"
+
+[[override]]
+  name = "github.com/spf13/viper"
+  revision = "25b30aa063fc18e48662b86996252eabdcf2f0c7"
 
 [prune]
   go-tests = true
