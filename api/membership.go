@@ -287,7 +287,6 @@ func InviteForMembershipHandler(app *App) func(c echo.Context) error {
 // ApproveOrDenyMembershipApplicationHandler is the handler responsible for approving or denying a membership invitation
 func ApproveOrDenyMembershipApplicationHandler(app *App) func(c echo.Context) error {
 	return func(c echo.Context) error {
-
 		c.Set("route", "ApproverOrDenyApplication")
 		start := time.Now()
 		action := c.Param("action")
@@ -375,10 +374,10 @@ func ApproveOrDenyMembershipApplicationHandler(app *App) func(c echo.Context) er
 				return nil
 			})
 			if qErr != nil {
-				return FailWithError(qErr, c)
+				return qErr
 			}
 
-			pErr := WithSegment("player-retrieve", c, func() error {
+			return WithSegment("player-retrieve", c, func() error {
 				log.D(l, "Retrieving requestor details.")
 				var gErr error
 				requestor, gErr = models.GetPlayerByPublicID(tx, gameID, payload.RequestorPublicID)
@@ -395,13 +394,9 @@ func ApproveOrDenyMembershipApplicationHandler(app *App) func(c echo.Context) er
 				log.D(l, "Requestor details retrieved successfully.")
 				return nil
 			})
-			if pErr != nil {
-				return pErr
-			}
-			return nil
 		})
 		if err != nil {
-			return FailWith(http.StatusInternalServerError, err.Error(), c)
+			return FailWithError(err, c)
 		}
 
 		err = WithSegment("hook-dispatch", c, func() error {

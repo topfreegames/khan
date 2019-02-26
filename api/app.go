@@ -633,7 +633,7 @@ func (app *App) BeginTrans(ctx context.Context, l zap.Logger) (gorp.Transaction,
 
 //Rollback transaction
 func (app *App) Rollback(tx gorp.Transaction, msg string, c echo.Context, l zap.Logger, err error) error {
-	sErr := WithSegment("tx-rollback", c, func() error {
+	return WithSegment("tx-rollback", c, func() error {
 		txErr := tx.Rollback()
 		if txErr != nil {
 			log.E(l, fmt.Sprintf("%s and failed to rollback transaction.", msg), func(cm log.CM) {
@@ -643,12 +643,11 @@ func (app *App) Rollback(tx gorp.Transaction, msg string, c echo.Context, l zap.
 		}
 		return nil
 	})
-	return sErr
 }
 
 //Commit transaction
 func (app *App) Commit(tx gorp.Transaction, msg string, c echo.Context, l zap.Logger) error {
-	err := WithSegment("tx-commit", c, func() error {
+	return WithSegment("tx-commit", c, func() error {
 		txErr := tx.Commit()
 		if txErr != nil {
 			log.E(l, fmt.Sprintf("%s failed to commit transaction.", msg), func(cm log.CM) {
@@ -656,10 +655,8 @@ func (app *App) Commit(tx gorp.Transaction, msg string, c echo.Context, l zap.Lo
 			})
 			return txErr
 		}
-
 		return nil
 	})
-	return err
 }
 
 // GetCtxDB returns the proper database connection depending on the request context
