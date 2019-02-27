@@ -8,13 +8,12 @@
 package models_test
 
 import (
-	"bytes"
 	"fmt"
-	dlog "log"
 	"strconv"
 
 	workers "github.com/jrallison/go-workers"
 	uuid "github.com/satori/go.uuid"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"github.com/topfreegames/extensions/mongo/interfaces"
 	"github.com/topfreegames/khan/models"
@@ -83,10 +82,9 @@ func ConfigureAndStartGoWorkers() error {
 		opts["password"] = redisPass
 	}
 	workers.Configure(opts)
-	if config.GetBool("webhooks.logToBuf") {
-		var buf bytes.Buffer
-		workers.Logger = dlog.New(&buf, "test: ", 0)
-	}
+	wl := logrus.New()
+	wl.Level = logrus.FatalLevel
+	workers.SetLogger(wl)
 
 	l := kt.NewMockLogger()
 	mongoWorker := models.NewMongoWorker(l, config)

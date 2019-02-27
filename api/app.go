@@ -8,10 +8,8 @@
 package api
 
 import (
-	"bytes"
 	"context"
 	"fmt"
-	dlog "log"
 	"net/http"
 	"net/http/pprof"
 	"os"
@@ -31,6 +29,7 @@ import (
 	newrelic "github.com/newrelic/go-agent"
 	"github.com/rcrowley/go-metrics"
 	"github.com/satori/go.uuid"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	eecho "github.com/topfreegames/extensions/echo"
 	extechomiddleware "github.com/topfreegames/extensions/echo/middleware"
@@ -513,10 +512,16 @@ func (app *App) configureGoWorkers() {
 	}
 	l.Debug("Configuring workers...")
 	workers.Configure(opts)
-	if app.Config.GetBool("webhooks.logToBuf") {
-		var buf bytes.Buffer
-		workers.Logger = dlog.New(&buf, "test: ", 0)
+
+	// TODO: replace zap with logrus so we don't need two loggers
+	wl := logrus.New()
+	wl.Formatter = new(logrus.JSONFormatter)
+	if app.Debug {
+		wl.Level = logrus.DebugLevel
+	} else {
+		wl.Level = logrus.InfoLevel
 	}
+	workers.SetLogger(wl)
 
 	workers.Middleware.Append(extworkermiddleware.NewResponseTimeMetricsMiddleware(app.DDStatsD))
 	workers.Process(queues.KhanQueue, app.Dispatcher.PerformDispatchHook, workerCount)
@@ -537,7 +542,6 @@ func (app *App) StartWorkers() {
 		jobsStatsPort := app.Config.GetInt("webhooks.statsPort")
 		go workers.StatsServer(jobsStatsPort)
 	}
-
 	workers.Run()
 }
 

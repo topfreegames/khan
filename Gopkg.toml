@@ -35,6 +35,11 @@
   branch = "master"
 
 [[override]]
+  name = "github.com/jrallison/go-workers"
+  source = "github.com/topfreegames/go-workers"
+  version = "1.0.0"
+
+[[override]]
   name = "github.com/spf13/viper"
   revision = "25b30aa063fc18e48662b86996252eabdcf2f0c7"
 

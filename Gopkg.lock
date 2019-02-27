@@ -70,14 +70,15 @@
   revision = "f12c6236fe7b5cf6bcf30e5935d08cb079d78334"
 
 [[projects]]
-  digest = "1:aba919ea5e7edff31f1bad7f69dbf29aa4a86a0205b1c6dc8f73a35e6a8babeb"
+  digest = "1:0594af97b2f4cec6554086eeace6597e20a4b69466eb4ada25adf9f4300dddd2"
   name = "github.com/garyburd/redigo"
   packages = [
     "internal",
     "redis",
   ]
   pruneopts = "UT"
-  revision = "80f7de34463b0ed3d7c61303e5619efe1b227f92"
+  revision = "a69d19351219b6dd56f274f96d85a7014a2ec34e"
+  version = "v1.6.0"
 
 [[projects]]
   digest = "1:86182b0a05e928b62775e9012b613dbb59bd41ed1c80375bcca40a4ccdea29ba"
@@ -213,11 +214,13 @@
   revision = "04140366298a54a039076d798123ffa108fff46c"
 
 [[projects]]
-  digest = "1:2ed84e4d8015eaf56a29b3ce8512a91973084014061a452d112838351b42364c"
+  digest = "1:04e729cc283db01695b1df9e036ecf1feb06988ec9e4ca5f6406a3f374967ea5"
   name = "github.com/jrallison/go-workers"
   packages = ["."]
   pruneopts = "UT"
-  revision = "dbf81d0b75bbe2fd90ef66a07643dd70cb42a88a"
+  revision = "d1be24994f2aef33257256035eaba70a112bf57f"
+  source = "github.com/topfreegames/go-workers"
+  version = "v1.0.0"
 
 [[projects]]
   digest = "1:88a87d3a1fa2b355e78bde9de127b5e63b3f2d16f1acc7b3d0200b686ce7d608"
