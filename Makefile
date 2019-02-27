@@ -78,14 +78,14 @@ run-verbose:
 
 run:
 	@echo "Khan running at http://localhost:8888/"
-	@go run main.go start -q -c ./config/local.yaml
+	@go run main.go start -c ./config/local.yaml
 
 worker:
 	@echo "Khan Worker running at http://localhost:9999/"
 	@go run main.go worker -d -c ./config/local.yaml
 
 run-fast:
-	@go run main.go start -q --fast -c ./config/local.yaml
+	@go run main.go start --fast -c ./config/local.yaml
 
 build-docker:
 	@docker build -t khan .

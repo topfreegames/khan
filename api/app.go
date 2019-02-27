@@ -15,8 +15,10 @@ import (
 	"net/http"
 	"net/http/pprof"
 	"os"
+	"os/signal"
 	"strconv"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/getsentry/raven-go"
@@ -51,7 +53,6 @@ import (
 type App struct {
 	ID             string
 	Debug          bool
-	Background     bool
 	Port           int
 	Host           string
 	ConfigPath     string
@@ -222,6 +223,7 @@ func (app *App) setConfigurationDefaults() {
 		zap.String("source", "app"),
 		zap.String("operation", "setConfigurationDefaults"),
 	)
+	app.Config.SetDefault("graceperiod.ms", 5000)
 	app.Config.SetDefault("healthcheck.workingText", "WORKING")
 	app.Config.SetDefault("postgres.host", "localhost")
 	app.Config.SetDefault("postgres.user", "khan")
@@ -685,15 +687,26 @@ func (app *App) Start() {
 	)
 
 	defer app.finalizeApp()
-	log.D(l, "App started.", func(cm log.CM) {
+	log.I(l, "app started", func(cm log.CM) {
 		cm.Write(zap.String("host", app.Host), zap.Int("port", app.Port))
 	})
 
-	if app.Background {
-		go func() {
-			app.App.Run(app.Engine)
-		}()
-	} else {
+	go func() {
 		app.App.Run(app.Engine)
+	}()
+
+	sg := make(chan os.Signal)
+	signal.Notify(sg, syscall.SIGINT, syscall.SIGQUIT, syscall.SIGKILL, syscall.SIGTERM)
+
+	// stop server
+	select {
+	case s := <-sg:
+		graceperiod := app.Config.GetInt("graceperiod.ms")
+		log.I(l, "shutting down", func(cm log.CM) {
+			cm.Write(zap.String("signal", fmt.Sprintf("%v", s)),
+				zap.Int("graceperiod", graceperiod))
+		})
+		time.Sleep(time.Duration(graceperiod) * time.Millisecond)
 	}
+	log.I(l, "app stopped")
 }
