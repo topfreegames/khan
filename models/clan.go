@@ -14,6 +14,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/globalsign/mgo/bson"
 	"github.com/go-gorp/gorp"
 	workers "github.com/jrallison/go-workers"
 	"github.com/mailru/easyjson/jlexer"
@@ -24,7 +25,6 @@ import (
 	"github.com/topfreegames/khan/queues"
 	"github.com/topfreegames/khan/util"
 	"github.com/uber-go/zap"
-	"gopkg.in/mgo.v2/bson"
 )
 
 // ClanByName allows sorting clans by name
@@ -883,11 +883,13 @@ func SearchClan(
 	}
 
 	if err := db.Run(cmd, &res); err != nil {
+		fmt.Println("CACA", err, cmd)
 		return []Clan{}, err
 	}
 	clans = make([]Clan, len(res.Cursor.FirstBatch))
 	for i, raw := range res.Cursor.FirstBatch {
 		if err := raw.Unmarshal(&clans[i]); err != nil {
+			fmt.Println("CACA2", err)
 			return []Clan{}, err
 		}
 	}

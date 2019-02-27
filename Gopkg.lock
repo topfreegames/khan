@@ -48,6 +48,14 @@
   revision = "8a28e9752dbc744626695b749a3ab474b8b372fa"
 
 [[projects]]
+  branch = "master"
+  digest = "1:4c4c33075b704791d6a7f09dfb55c66769e8a1dc6adf87026292d274fe8ad113"
+  name = "github.com/codahale/hdrhistogram"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "3a0bb77429bd3a61596f5e8a3172445844342120"
+
+[[projects]]
   digest = "1:02630c70b55ecda2dcb85805170923d8389c632487568ccffadc5482e8a191ed"
   name = "github.com/dgrijalva/jwt-go"
   packages = ["."]
@@ -205,7 +213,6 @@
   revision = "04140366298a54a039076d798123ffa108fff46c"
 
 [[projects]]
-  branch = "master"
   digest = "1:2ed84e4d8015eaf56a29b3ce8512a91973084014061a452d112838351b42364c"
   name = "github.com/jrallison/go-workers"
   packages = ["."]
@@ -398,10 +405,11 @@
   version = "v1.2.0"
 
 [[projects]]
-  digest = "1:9d7b1f07e44cada28e6160cb0a808ad2f71f32bd7114793fb0baa302db0e6229"
+  digest = "1:450b7623b185031f3a456801155c8320209f75d0d4c4e633c6b1e59d44d6e392"
   name = "github.com/opentracing/opentracing-go"
   packages = [
     ".",
+    "ext",
     "log",
   ]
   pruneopts = "UT"
@@ -507,7 +515,7 @@
   revision = "25b30aa063fc18e48662b86996252eabdcf2f0c7"
 
 [[projects]]
-  digest = "1:5deb18e60063a7156c41845e97669b57258064be5145211a4a663c7b8c093da1"
+  digest = "1:0f26fb9ec35872c6b9df645268f286045bb58534438f8cd463828a8930c81166"
   name = "github.com/topfreegames/extensions"
   packages = [
     "dogstatsd",
@@ -516,6 +524,7 @@
     "gorp",
     "gorp/interfaces",
     "http",
+    "jaeger",
     "middleware",
     "mongo",
     "mongo/interfaces",
@@ -554,6 +563,40 @@
   packages = ["."]
   pruneopts = "UT"
   revision = "d11d2851fcabcf03421c4dbdbc3146fc74eb1035"
+
+[[projects]]
+  digest = "1:ac6f26e917fd2fb3194a7ebe2baf6fb32de2f2fbfed130c18aac0e758a6e1d22"
+  name = "github.com/uber/jaeger-client-go"
+  packages = [
+    ".",
+    "config",
+    "internal/baggage",
+    "internal/baggage/remote",
+    "internal/spanlog",
+    "internal/throttler",
+    "internal/throttler/remote",
+    "log",
+    "rpcmetrics",
+    "thrift",
+    "thrift-gen/agent",
+    "thrift-gen/baggage",
+    "thrift-gen/jaeger",
+    "thrift-gen/sampling",
+    "thrift-gen/zipkincore",
+    "transport",
+    "utils",
+  ]
+  pruneopts = "UT"
+  revision = "1a782e2da844727691fef1757c72eb190c2909f0"
+  version = "v2.15.0"
+
+[[projects]]
+  digest = "1:0f09db8429e19d57c8346ad76fbbc679341fa86073d3b8fb5ac919f0357d8f4c"
+  name = "github.com/uber/jaeger-lib"
+  packages = ["metrics"]
+  pruneopts = "UT"
+  revision = "ed3a127ec5fef7ae9ea95b01b542c47fbd999ce5"
+  version = "v1.5.0"
 
 [[projects]]
   branch = "master"
@@ -696,17 +739,6 @@
   revision = "d805e540cd37b8aa6e2ad7d94f06f6537493e710"
 
 [[projects]]
-  branch = "v2"
-  digest = "1:9e8ac8aa4f4c5557ba0b03a55d407b07b7030ed552b437a9dc7e5ec90f16ab39"
-  name = "gopkg.in/mgo.v2"
-  packages = [
-    "bson",
-    "internal/json",
-  ]
-  pruneopts = "UT"
-  revision = "3f83fa5005286a7fe593b055f0d7771a7dce4655"
-
-[[projects]]
   digest = "1:14aa12a4a23b14afe5731023e50b7ad98fd61ab4c17e6fcbf1ea62a151b8d02b"
   name = "gopkg.in/olivere/elastic.v5"
   packages = [
@@ -740,6 +772,7 @@
     "github.com/Pallinder/go-randomdata",
     "github.com/bluele/factory-go/factory",
     "github.com/getsentry/raven-go",
+    "github.com/globalsign/mgo/bson",
     "github.com/go-gorp/gorp",
     "github.com/golang/mock/gomock",
     "github.com/gosuri/uiprogress",
@@ -767,10 +800,10 @@
     "github.com/topfreegames/extensions/gorp",
     "github.com/topfreegames/extensions/gorp/interfaces",
     "github.com/topfreegames/extensions/http",
+    "github.com/topfreegames/extensions/jaeger",
     "github.com/topfreegames/extensions/middleware",
     "github.com/topfreegames/extensions/mongo",
     "github.com/topfreegames/extensions/mongo/interfaces",
-    "github.com/topfreegames/extensions/tracing",
     "github.com/topfreegames/extensions/worker/middleware",
     "github.com/topfreegames/goose/lib/goose",
     "github.com/uber-go/zap",
@@ -778,7 +811,6 @@
     "github.com/valyala/fasthttp/fasthttpadaptor",
     "github.com/valyala/fasttemplate",
     "gopkg.in/jarcoal/httpmock.v1",
-    "gopkg.in/mgo.v2/bson",
     "gopkg.in/olivere/elastic.v5",
   ]
   solver-name = "gps-cdcl"
