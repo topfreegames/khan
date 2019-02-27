@@ -66,7 +66,7 @@ var _ = Describe("API Application", func() {
 	Describe("App Struct", func() {
 		It("should create app with custom arguments", func() {
 			l := kt.NewMockLogger()
-			app := GetApp("127.0.0.1", 9999, "../config/test.yaml", false, l, false)
+			app := GetApp("127.0.0.1", 9999, "../config/test.yaml", false, l, false, true)
 			Expect(app.Port).To(Equal(9999))
 			Expect(app.Host).To(Equal("127.0.0.1"))
 		})

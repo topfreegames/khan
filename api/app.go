@@ -51,6 +51,7 @@ import (
 // App is a struct that represents a Khan API Application
 type App struct {
 	ID             string
+	Test           bool
 	Debug          bool
 	Port           int
 	Host           string
@@ -74,9 +75,10 @@ type App struct {
 }
 
 // GetApp returns a new Khan API Application
-func GetApp(host string, port int, configPath string, debug bool, logger zap.Logger, fast bool) *App {
+func GetApp(host string, port int, configPath string, debug bool, logger zap.Logger, fast, test bool) *App {
 	app := &App{
 		ID:             "default",
+		Test:           test,
 		Fast:           fast,
 		Host:           host,
 		Port:           port,
@@ -516,7 +518,9 @@ func (app *App) configureGoWorkers() {
 	// TODO: replace zap with logrus so we don't need two loggers
 	wl := logrus.New()
 	wl.Formatter = new(logrus.JSONFormatter)
-	if app.Debug {
+	if app.Test {
+		wl.Level = logrus.FatalLevel
+	} else if app.Debug {
 		wl.Level = logrus.DebugLevel
 	} else {
 		wl.Level = logrus.InfoLevel

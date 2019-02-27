@@ -13,7 +13,6 @@ import (
 
 	workers "github.com/jrallison/go-workers"
 	uuid "github.com/satori/go.uuid"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"github.com/topfreegames/extensions/mongo/interfaces"
 	"github.com/topfreegames/khan/models"
@@ -82,9 +81,6 @@ func ConfigureAndStartGoWorkers() error {
 		opts["password"] = redisPass
 	}
 	workers.Configure(opts)
-	wl := logrus.New()
-	wl.Level = logrus.FatalLevel
-	workers.SetLogger(wl)
 
 	l := kt.NewMockLogger()
 	mongoWorker := models.NewMongoWorker(l, config)

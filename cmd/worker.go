@@ -52,6 +52,7 @@ environment variables to override configuration keys.`,
 			debug,
 			l,
 			false,
+			false,
 		)
 		log.D(cmdL, "Application created successfully.")
 
