@@ -6,6 +6,8 @@ import (
 	"time"
 
 	"github.com/jrallison/go-workers"
+	opentracing "github.com/opentracing/opentracing-go"
+	"github.com/topfreegames/extensions/tracing"
 	"github.com/topfreegames/khan/es"
 	"github.com/uber-go/zap"
 )
@@ -31,6 +33,12 @@ func (w *ESWorker) configureESWorker() {
 
 // PerformUpdateES updates the clan into elasticsearc
 func (w *ESWorker) PerformUpdateES(m *workers.Msg) {
+	tags := opentracing.Tags{"component": "go-workers"}
+	span := opentracing.StartSpan("PerformUpdateES", tags)
+	defer span.Finish()
+	defer tracing.LogPanic(span)
+	ctx := opentracing.ContextWithSpan(context.Background(), span)
+
 	item := m.Args()
 	data := item.MustMap()
 
@@ -60,7 +68,7 @@ func (w *ESWorker) PerformUpdateES(m *workers.Msg) {
 				Type("clan").
 				Id(clanID).
 				BodyString(string(body)).
-				Do(context.TODO())
+				Do(ctx)
 			if err != nil {
 				l.Error("Failed to index clan into Elastic Search")
 				return
@@ -74,7 +82,7 @@ func (w *ESWorker) PerformUpdateES(m *workers.Msg) {
 				Type("clan").
 				Id(clanID).
 				Doc(clan).
-				Do(context.TODO())
+				Do(ctx)
 			if err != nil {
 				l.Error("Failed to update clan from Elastic Search.", zap.Error(err))
 			}
@@ -86,7 +94,7 @@ func (w *ESWorker) PerformUpdateES(m *workers.Msg) {
 				Index(index).
 				Type("clan").
 				Id(clanID).
-				Do(context.TODO())
+				Do(ctx)
 
 			if err != nil {
 				l.Error("Failed to delete clan from Elastic Search.", zap.Error(err))

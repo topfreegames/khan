@@ -1,11 +1,14 @@
 package models
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/jrallison/go-workers"
+	opentracing "github.com/opentracing/opentracing-go"
 	"github.com/spf13/viper"
 	"github.com/topfreegames/extensions/mongo/interfaces"
+	"github.com/topfreegames/extensions/tracing"
 	"github.com/topfreegames/khan/mongo"
 	"github.com/uber-go/zap"
 )
@@ -33,6 +36,12 @@ func (w *MongoWorker) configureMongoWorker(config *viper.Viper) {
 
 // PerformUpdateMongo updates the clan into elasticsearc
 func (w *MongoWorker) PerformUpdateMongo(m *workers.Msg) {
+	tags := opentracing.Tags{"component": "go-workers"}
+	span := opentracing.StartSpan("PerformUpdateMongo", tags)
+	defer span.Finish()
+	defer tracing.LogPanic(span)
+	ctx := opentracing.ContextWithSpan(context.Background(), span)
+
 	item := m.Args()
 	data := item.MustMap()
 	game := data["game"].(string)
@@ -48,7 +57,7 @@ func (w *MongoWorker) PerformUpdateMongo(m *workers.Msg) {
 	)
 
 	if w.MongoDB != nil {
-		mongoCol, mongoSess := w.MongoDB.C(fmt.Sprintf(w.MongoCollectionTemplate, game))
+		mongoCol, mongoSess := w.MongoDB.WithContext(ctx).C(fmt.Sprintf(w.MongoCollectionTemplate, game))
 		defer mongoSess.Close()
 
 		if op == "update" {

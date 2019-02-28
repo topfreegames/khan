@@ -8,6 +8,7 @@
 package api_test
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -110,7 +111,7 @@ var _ = Describe("API Application", func() {
 			app := GetDefaultTestApp()
 			app.NonblockingStartWorkers()
 
-			hooks := app.GetHooks()
+			hooks := app.GetHooks(context.Background())
 			Expect(len(hooks[gameID])).To(Equal(2))
 			Expect(len(hooks[gameID][0])).To(Equal(2))
 			Expect(len(hooks[gameID][1])).To(Equal(2))

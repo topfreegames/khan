@@ -231,7 +231,9 @@ func (app *App) setConfigurationDefaults() {
 	app.Config.SetDefault("postgres.dbName", "khan")
 	app.Config.SetDefault("postgres.port", 5432)
 	app.Config.SetDefault("postgres.sslMode", "disable")
-	app.Config.SetDefault("webhooks.timeout", 2)
+	app.Config.SetDefault("webhooks.timeout", 500)
+	app.Config.SetDefault("webhooks.maxIdleConnsPerHost", http.DefaultMaxIdleConnsPerHost)
+	app.Config.SetDefault("webhooks.maxIdleConns", 100)
 	app.Config.SetDefault("elasticsearch.host", "localhost")
 	app.Config.SetDefault("elasticsearch.port", 9234)
 	app.Config.SetDefault("elasticsearch.sniff", true)
@@ -416,7 +418,7 @@ func (app *App) addError() {
 }
 
 //GetHooks returns all available hooks
-func (app *App) GetHooks() map[string]map[int][]*models.Hook {
+func (app *App) GetHooks(ctx context.Context) map[string]map[int][]*models.Hook {
 	l := app.Logger.With(
 		zap.String("source", "app"),
 		zap.String("operation", "GetHooks"),
@@ -424,7 +426,7 @@ func (app *App) GetHooks() map[string]map[int][]*models.Hook {
 
 	start := time.Now()
 	log.D(l, "Retrieving hooks...")
-	dbHooks, err := models.GetAllHooks(app.db)
+	dbHooks, err := models.GetAllHooks(app.Db(ctx))
 	if err != nil {
 		log.E(l, "Retrieve hooks failed.", func(cm log.CM) {
 			cm.Write(zap.String("error", err.Error()))

@@ -5,11 +5,11 @@ import (
 	"os"
 	"sync"
 
-	"gopkg.in/olivere/elastic.v5"
-
 	newrelic "github.com/newrelic/go-agent"
+	eelastic "github.com/topfreegames/extensions/elastic"
 	"github.com/topfreegames/khan/log"
 	"github.com/uber-go/zap"
+	"gopkg.in/olivere/elastic.v5"
 )
 
 // Client is the struct of an elasticsearch client
@@ -93,10 +93,11 @@ func (es *Client) configureClient() {
 		)
 	})
 	var err error
-	es.Client, err = elastic.NewClient(
+	es.Client, err = eelastic.NewClient(
 		elastic.SetURL(fmt.Sprintf("http://%s:%d", es.Host, es.Port)),
 		elastic.SetSniff(es.Sniff),
 	)
+
 	if err != nil {
 		log.E(l, "Failed to connect to elasticsearch!", func(cm log.CM) {
 			cm.Write(

@@ -518,12 +518,13 @@
   revision = "25b30aa063fc18e48662b86996252eabdcf2f0c7"
 
 [[projects]]
-  digest = "1:0f26fb9ec35872c6b9df645268f286045bb58534438f8cd463828a8930c81166"
+  digest = "1:4102c0f538fcd1b36853878a0f3e33288618fe0e769d059b0be6424991e850dc"
   name = "github.com/topfreegames/extensions"
   packages = [
     "dogstatsd",
     "echo",
     "echo/middleware",
+    "elastic",
     "gorp",
     "gorp/interfaces",
     "http",
@@ -794,12 +795,15 @@
     "github.com/newrelic/go-agent",
     "github.com/onsi/ginkgo",
     "github.com/onsi/gomega",
+    "github.com/opentracing/opentracing-go",
     "github.com/rcrowley/go-metrics",
     "github.com/satori/go.uuid",
+    "github.com/sirupsen/logrus",
     "github.com/spf13/cobra",
     "github.com/spf13/viper",
     "github.com/topfreegames/extensions/echo",
     "github.com/topfreegames/extensions/echo/middleware",
+    "github.com/topfreegames/extensions/elastic",
     "github.com/topfreegames/extensions/gorp",
     "github.com/topfreegames/extensions/gorp/interfaces",
     "github.com/topfreegames/extensions/http",
@@ -807,6 +811,7 @@
     "github.com/topfreegames/extensions/middleware",
     "github.com/topfreegames/extensions/mongo",
     "github.com/topfreegames/extensions/mongo/interfaces",
+    "github.com/topfreegames/extensions/tracing",
     "github.com/topfreegames/extensions/worker/middleware",
     "github.com/topfreegames/goose/lib/goose",
     "github.com/uber-go/zap",

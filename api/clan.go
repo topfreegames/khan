@@ -651,7 +651,7 @@ func SearchClansHandler(app *App) func(c echo.Context) error {
 		err = WithSegment("clans-search", c, func() error {
 			log.D(l, "Searching clans...")
 			clans, err = models.SearchClan(
-				app.MongoDB,
+				app.MongoDB.WithContext(c.StdContext()),
 				gameID,
 				term,
 				pageSize,
