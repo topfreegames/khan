@@ -38,7 +38,6 @@ var httpClient *http.Client
 
 const hookInternalFailures = "hook_internal_failures"
 const requestingHookMilliseconds = "requesting_hook_milliseconds"
-const requestingHookURLStatus = "requesting_hook_status"
 
 //Dispatcher is responsible for sending web hooks to workers
 type Dispatcher struct {
@@ -160,8 +159,8 @@ func basicAuth(username, password string) string {
 
 // PerformDispatchHook dispatches web hooks for a specific game and event type
 func (d *Dispatcher) PerformDispatchHook(m *workers.Msg) {
-	tags := opentracing.Tags{"component": "go-workers"}
-	span := opentracing.StartSpan("PerformDispatchHook", tags)
+	jtags := opentracing.Tags{"component": "go-workers"}
+	span := opentracing.StartSpan("PerformDispatchHook", jtags)
 	defer span.Finish()
 	defer tracing.LogPanic(span)
 	ctx := opentracing.ContextWithSpan(context.Background(), span)
@@ -200,7 +199,11 @@ func (d *Dispatcher) PerformDispatchHook(m *workers.Msg) {
 		requestURL, err := d.interpolateURL(hook.URL, payload)
 		if err != nil {
 			app.addError()
-			tags := []string{"error:interpolateurl"}
+			tags := []string{
+				"error:true",
+				fmt.Sprintf("url:%s", hook.URL),
+				fmt.Sprintf("game:%s", gameID),
+			}
 			statsd.Increment(hookInternalFailures, tags...)
 
 			log.E(l, "Could not interpolate webhook.", func(cm log.CM) {
@@ -234,7 +237,11 @@ func (d *Dispatcher) PerformDispatchHook(m *workers.Msg) {
 		parsedURL, err := url.Parse(requestURL)
 		if err != nil {
 			app.addError()
-			tags := []string{"error:parserequesturl"}
+			tags := []string{
+				"error:true",
+				fmt.Sprintf("url:%s", hook.URL),
+				fmt.Sprintf("game:%s", gameID),
+			}
 			statsd.Increment(hookInternalFailures, tags...)
 
 			log.E(l, "Could not parse request requestURL.", func(cm log.CM) {
@@ -258,7 +265,14 @@ func (d *Dispatcher) PerformDispatchHook(m *workers.Msg) {
 		resp, err := d.httpClient.Do(req)
 		if err != nil {
 			app.addError()
-			tags := []string{"error:timeout"}
+			tags := []string{
+				"error:true",
+				fmt.Sprintf("url:%s", hook.URL),
+				fmt.Sprintf("game:%s", gameID),
+				fmt.Sprintf("status:500"),
+			}
+			elapsed := time.Since(start)
+			statsd.Timing(requestingHookMilliseconds, elapsed, tags...)
 			statsd.Increment(hookInternalFailures, tags...)
 
 			log.E(l, "Could not request webhook.", func(cm log.CM) {
@@ -276,13 +290,14 @@ func (d *Dispatcher) PerformDispatchHook(m *workers.Msg) {
 			continue
 		}
 
-		// elapsed must be set after checking the error
-		// in order avoid noising the avg time with timeouts
+		tags := []string{
+			fmt.Sprintf("error:%t", resp.StatusCode > 399),
+			fmt.Sprintf("url:%s", hook.URL),
+			fmt.Sprintf("game:%s", gameID),
+			fmt.Sprintf("status:%d", resp.StatusCode),
+		}
 		elapsed := time.Since(start)
-		statsd.Timing(requestingHookMilliseconds, elapsed)
-
-		tags := []string{fmt.Sprintf("status:%d", resp.StatusCode)}
-		statsd.Increment(requestingHookURLStatus, tags...)
+		statsd.Timing(requestingHookMilliseconds, elapsed, tags...)
 
 		if resp.StatusCode > 399 {
 			app.addError()
