@@ -747,7 +747,7 @@ func PromoteOrDemoteMembershipHandler(app *App, action string) func(c echo.Conte
 			})
 
 			if err != nil {
-				return FailWithError(err, c)
+				return err
 			}
 
 			err = WithSegment("player-retrieve", c, func() error {
