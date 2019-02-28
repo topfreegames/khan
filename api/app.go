@@ -117,7 +117,7 @@ func (app *App) configureSentry() {
 		zap.String("operation", "configureSentry"),
 	)
 	sentryURL := app.Config.GetString("sentry.url")
-	log.I(l, fmt.Sprintf("Configuring sentry with URL %s", sentryURL))
+	log.D(l, fmt.Sprintf("Configuring sentry with URL %s", sentryURL))
 	raven.SetDSN(sentryURL)
 	raven.SetRelease(util.VERSION)
 }
@@ -433,7 +433,7 @@ func (app *App) GetHooks(ctx context.Context) map[string]map[int][]*models.Hook 
 		})
 		return nil
 	}
-	log.I(l, "Hooks retrieved successfully.", func(cm log.CM) {
+	log.D(l, "Hooks retrieved successfully.", func(cm log.CM) {
 		cm.Write(zap.Duration("hookRetrievalDuration", time.Now().Sub(start)))
 	})
 
@@ -612,7 +612,7 @@ func (app *App) DispatchHooks(gameID string, eventType int, payload map[string]i
 	start := time.Now()
 	log.D(l, "Dispatching hook...")
 	app.Dispatcher.DispatchHook(gameID, eventType, payload)
-	log.I(l, "Hook dispatched successfully.", func(cm log.CM) {
+	log.D(l, "Hook dispatched successfully.", func(cm log.CM) {
 		cm.Write(zap.Duration("hookDispatchDuration", time.Now().Sub(start)))
 	})
 	return nil

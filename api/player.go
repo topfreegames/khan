@@ -241,7 +241,7 @@ func RetrievePlayerHandler(app *App) func(c echo.Context) error {
 
 		if err != nil {
 			if err.Error() == fmt.Sprintf("Player was not found with id: %s", publicID) {
-				log.W(l, "Player was not found.", func(cm log.CM) {
+				log.D(l, "Player was not found.", func(cm log.CM) {
 					cm.Write(zap.Error(err))
 				})
 				return FailWith(http.StatusNotFound, err.Error(), c)

@@ -74,7 +74,7 @@ func (w *ESWorker) PerformUpdateES(m *workers.Msg) {
 				return
 			}
 
-			l.Info("Successfully indexed clan into Elastic Search.", zap.Duration("latency", time.Now().Sub(start)))
+			l.Debug("Successfully indexed clan into Elastic Search.", zap.Duration("latency", time.Now().Sub(start)))
 		} else if op == "update" {
 			_, err := w.ES.Client.
 				Update().
@@ -87,7 +87,7 @@ func (w *ESWorker) PerformUpdateES(m *workers.Msg) {
 				l.Error("Failed to update clan from Elastic Search.", zap.Error(err))
 			}
 
-			l.Info("Successfully updated clan from Elastic Search.", zap.Duration("latency", time.Now().Sub(start)))
+			l.Debug("Successfully updated clan from Elastic Search.", zap.Duration("latency", time.Now().Sub(start)))
 		} else if op == "delete" {
 			_, err := w.ES.Client.
 				Delete().
@@ -100,7 +100,7 @@ func (w *ESWorker) PerformUpdateES(m *workers.Msg) {
 				l.Error("Failed to delete clan from Elastic Search.", zap.Error(err))
 			}
 
-			l.Info("Successfully deleted clan from Elastic Search.", zap.Duration("latency", time.Now().Sub(start)))
+			l.Debug("Successfully deleted clan from Elastic Search.", zap.Duration("latency", time.Now().Sub(start)))
 		}
 	}
 

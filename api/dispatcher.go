@@ -101,7 +101,7 @@ func (d *Dispatcher) DispatchHook(gameID string, eventType int, payload map[stri
 	payload["timestamp"] = time.Now().Format(time.RFC3339)
 
 	// Push the work onto the queue.
-	log.I(d.app.Logger, "Pushing work into dispatch queue.", func(cm log.CM) {
+	log.D(d.app.Logger, "Pushing work into dispatch queue.", func(cm log.CM) {
 		cm.Write(
 			zap.String("source", "dispatcher"),
 			zap.String("operation", "DispatchHook"),

@@ -415,7 +415,7 @@ func LeaveClanHandler(app *App) func(c echo.Context) error {
 			return FailWith(500, err.Error(), c)
 		}
 
-		log.D(l, "Clan left successfully.", func(cm log.CM) {
+		log.I(l, "Clan left successfully.", func(cm log.CM) {
 			cm.Write(fields...)
 		})
 
@@ -552,7 +552,7 @@ func TransferOwnershipHandler(app *App) func(c echo.Context) error {
 			return FailWith(500, err.Error(), c)
 		}
 
-		log.D(l, "Clan ownership transfer completed successfully.", func(cm log.CM) {
+		log.I(l, "Clan ownership transfer completed successfully.", func(cm log.CM) {
 			cm.Write(
 				zap.String("previousOwnerPublicID", previousOwner.PublicID),
 				zap.String("newOwnerPublicID", newOwner.PublicID),
