@@ -366,7 +366,7 @@ func LeaveClanHandler(app *App) func(c echo.Context) error {
 		}
 
 		err = WithSegment("hook-dispatch", c, func() error {
-			err = dispatchClanOwnershipChangeHook(app, tx, models.ClanLeftHook, clan, previousOwner, newOwner)
+			err = dispatchClanOwnershipChangeHook(app, models.ClanLeftHook, clan, previousOwner, newOwner)
 			if err != nil {
 				txErr := rb(err)
 				if txErr == nil {
@@ -410,12 +410,12 @@ func LeaveClanHandler(app *App) func(c echo.Context) error {
 			return nil
 		})
 
-		err = app.Commit(tx, "Clan left", c, l)
+		err = app.Commit(tx, "Left clan", c, l)
 		if err != nil {
 			return FailWith(500, err.Error(), c)
 		}
 
-		log.I(l, "Clan left successfully.", func(cm log.CM) {
+		log.I(l, "Left clan successfully.", func(cm log.CM) {
 			cm.Write(fields...)
 		})
 
@@ -518,7 +518,7 @@ func TransferOwnershipHandler(app *App) func(c echo.Context) error {
 
 		err = WithSegment("hook-dispatch", c, func() error {
 			err = dispatchClanOwnershipChangeHook(
-				app, tx, models.ClanOwnershipTransferredHook,
+				app, models.ClanOwnershipTransferredHook,
 				clan, previousOwner, newOwner,
 			)
 			if err != nil {

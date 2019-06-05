@@ -815,7 +815,6 @@
     "github.com/topfreegames/extensions/worker/middleware",
     "github.com/topfreegames/goose/lib/goose",
     "github.com/uber-go/zap",
-    "github.com/valyala/fasthttp",
     "github.com/valyala/fasthttp/fasthttpadaptor",
     "github.com/valyala/fasttemplate",
     "gopkg.in/jarcoal/httpmock.v1",

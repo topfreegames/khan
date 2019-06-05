@@ -622,7 +622,7 @@ func DeleteMembershipHandler(app *App) func(c echo.Context) error {
 			if err != nil {
 				return err
 			}
-			log.D(l, "DB Tx begun successful.")
+			log.D(l, "DB Tx began successfully.")
 
 			log.D(l, "Deleting membership...")
 			membership, err = models.DeleteMembership(

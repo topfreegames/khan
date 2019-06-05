@@ -559,7 +559,6 @@ func TransferClanOwnership(db DB, gameID, clanPublicID, playerPublicID string, l
 		}
 	}
 
-	//Update new owner memberships
 	_, err = deleteMembershipHelper(db, newOwnerMembership, newOwnerMembership.PlayerID)
 	if err != nil {
 		return nil, nil, nil, err
@@ -575,7 +574,6 @@ func TransferClanOwnership(db DB, gameID, clanPublicID, playerPublicID string, l
 		return nil, nil, nil, err
 	}
 
-	//Update old owner membership
 	err = UpdatePlayerOwnershipCount(db, oldOwnerID)
 	if err != nil {
 		return nil, nil, nil, err
