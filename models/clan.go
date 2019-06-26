@@ -504,7 +504,7 @@ func LeaveClan(db DB, gameID, publicID string) (*Clan, *Player, *Player, error) 
 	return clan, oldOwner, newOwner, nil
 }
 
-// TransferClanOwnership allows the clan owner to transfer the clan ownership to the a clan member
+// TransferClanOwnership allows the clan owner to transfer the clan ownership to a clan member
 func TransferClanOwnership(db DB, gameID, clanPublicID, playerPublicID string, levels map[string]interface{}, maxLevel int) (*Clan, *Player, *Player, error) {
 	clan, err := GetClanByPublicID(db, gameID, clanPublicID)
 	if err != nil {
@@ -881,13 +881,11 @@ func SearchClan(
 	}
 
 	if err := db.Run(cmd, &res); err != nil {
-		fmt.Println("CACA", err, cmd)
 		return []Clan{}, err
 	}
 	clans = make([]Clan, len(res.Cursor.FirstBatch))
 	for i, raw := range res.Cursor.FirstBatch {
 		if err := raw.Unmarshal(&clans[i]); err != nil {
-			fmt.Println("CACA2", err)
 			return []Clan{}, err
 		}
 	}
