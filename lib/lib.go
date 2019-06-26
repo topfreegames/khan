@@ -220,6 +220,11 @@ func (k *Khan) buildTransferOwnershipURL(clanID string) string {
 	return k.buildURL(pathname)
 }
 
+func (k *Khan) buildSearchClansURL(clanName string) string {
+	pathname := fmt.Sprintf("clans/search?term=%s", clanName)
+	return k.buildURL(pathname)
+}
+
 // CreatePlayer calls Khan to create a new player
 func (k *Khan) CreatePlayer(ctx context.Context, publicID, name string, metadata interface{}) (string, error) {
 	route := k.buildCreatePlayerURL()
@@ -455,6 +460,19 @@ func (k *Khan) defaultPostRequest(
 	}
 
 	var result Result
+	err = json.Unmarshal(body, &result)
+	return &result, err
+}
+
+// SearchClans returns clan summaries for all clans that contain the string "clanName".
+func (k *Khan) SearchClans(ctx context.Context, clanName string) (*SearchClansResult, error) {
+	route := k.buildSearchClansURL(clanName)
+	body, err := k.sendTo(ctx, "GET", route, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	var result SearchClansResult
 	err = json.Unmarshal(body, &result)
 	return &result, err
 }

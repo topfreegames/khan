@@ -15,7 +15,7 @@ MYIP=`ifconfig | grep --color=none -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep
 setup-hooks:
 	@cd .git/hooks && ln -sf ../../hooks/pre-commit.sh pre-commit
 
-setup: setup-ci setup-hooks
+setup: setup-ci 
 	@go get -v github.com/spf13/cobra/cobra
 	@go get github.com/fzipp/gocyclo
 	@go get github.com/gordonklaus/ineffassign
