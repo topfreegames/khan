@@ -216,3 +216,8 @@ type TransferOwnershipResult struct {
 type Result struct {
 	Success bool
 }
+
+type SearchClansResult struct {
+	Success bool
+	Clans   []*ClanSummary
+}

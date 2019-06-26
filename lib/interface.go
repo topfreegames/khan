@@ -20,4 +20,5 @@ type KhanInterface interface {
 	TransferOwnership(context.Context, string, string) (*TransferOwnershipResult, error)
 	UpdateClan(context.Context, *ClanPayload) (*Result, error)
 	UpdatePlayer(context.Context, string, string, interface{}) (*Result, error)
+	SearchClans(context.Context, string) (*SearchClansResult, error)
 }
