@@ -25,14 +25,6 @@
   revision = "01563c9f5c2dd648444bde7b3705a37698581364"
 
 [[projects]]
-  digest = "1:9752dad5e89cd779096bf2477a4ded16bea7ac62de453c8d6b4bf841d51a8512"
-  name = "github.com/apache/thrift"
-  packages = ["lib/go/thrift"]
-  pruneopts = "UT"
-  revision = "b2a4d4ae21c789b689dd162deb819665567f481c"
-  version = "0.10.0"
-
-[[projects]]
   digest = "1:320e7ead93de9fd2b0e59b50fd92a4d50c1f8ab455d96bc2eb083267453a9709"
   name = "github.com/asaskevich/govalidator"
   packages = ["."]
@@ -78,14 +70,15 @@
   revision = "f12c6236fe7b5cf6bcf30e5935d08cb079d78334"
 
 [[projects]]
-  digest = "1:aba919ea5e7edff31f1bad7f69dbf29aa4a86a0205b1c6dc8f73a35e6a8babeb"
+  digest = "1:0594af97b2f4cec6554086eeace6597e20a4b69466eb4ada25adf9f4300dddd2"
   name = "github.com/garyburd/redigo"
   packages = [
     "internal",
     "redis",
   ]
   pruneopts = "UT"
-  revision = "80f7de34463b0ed3d7c61303e5619efe1b227f92"
+  revision = "a69d19351219b6dd56f274f96d85a7014a2ec34e"
+  version = "v1.6.0"
 
 [[projects]]
   digest = "1:86182b0a05e928b62775e9012b613dbb59bd41ed1c80375bcca40a4ccdea29ba"
@@ -93,6 +86,20 @@
   packages = ["."]
   pruneopts = "UT"
   revision = "c9d3cc542ad199f62c0264286be537f9bce6063c"
+
+[[projects]]
+  digest = "1:4b08116de0de75c041bb341686f0b139930f26cb84dfdf7641d435548114181d"
+  name = "github.com/globalsign/mgo"
+  packages = [
+    ".",
+    "bson",
+    "internal/json",
+    "internal/sasl",
+    "internal/scram",
+  ]
+  pruneopts = "UT"
+  revision = "113d3961e7311526535a1ef7042196563d442761"
+  version = "r2018.06.15"
 
 [[projects]]
   digest = "1:670d1f29fa2aa15ea777cc5bcf95881f379bf8a71dbbe145be0774da97fede72"
@@ -103,7 +110,7 @@
   version = "2.1"
 
 [[projects]]
-  digest = "1:e1bb493d8504f7721e8a5da3e272d71dcf1db9a81666a10879f9e611484b74a4"
+  digest = "1:0a2260bcfa15237979ef496f03fb6af215c247ad998881a4d039992228876ae3"
   name = "github.com/go-pg/pg"
   packages = [
     ".",
@@ -114,8 +121,8 @@
     "types",
   ]
   pruneopts = "UT"
-  revision = "8c7fa0eed0d9e9d07fca2cc9e08e3171da0521d5"
-  version = "v6.13.5"
+  revision = "ae5d5e7df4b2e598390e10b66b849c6af94f092b"
+  version = "v6.15.1"
 
 [[projects]]
   digest = "1:4e717b211b133963a5c761d9e93d0b91f004187cc808891e7039186daa28ea4f"
@@ -125,12 +132,12 @@
   revision = "0b58b37b664c21f3010e836f1b931e1d0b0b0685"
 
 [[projects]]
-  digest = "1:a62049a8fa554d688c8db4845c65ddcd5986b75f3a851e4fb563c6893d292e38"
+  digest = "1:b60efdeb75d3c0ceed88783ac2495256aba3491a537d0f31401202579fd62a94"
   name = "github.com/golang/mock"
   packages = ["gomock"]
   pruneopts = "UT"
-  revision = "13f360950a79f5864a972c786a10a50e44b69541"
-  version = "v1.0.0"
+  revision = "51421b967af1f557f93a59e0057aaf15ca02e29c"
+  version = "v1.2.0"
 
 [[projects]]
   digest = "1:ffc060c551980d37ee9e428ef528ee2813137249ccebb0bfc412ef83071cac91"
@@ -207,12 +214,13 @@
   revision = "04140366298a54a039076d798123ffa108fff46c"
 
 [[projects]]
-  branch = "master"
-  digest = "1:2ed84e4d8015eaf56a29b3ce8512a91973084014061a452d112838351b42364c"
+  digest = "1:04e729cc283db01695b1df9e036ecf1feb06988ec9e4ca5f6406a3f374967ea5"
   name = "github.com/jrallison/go-workers"
   packages = ["."]
   pruneopts = "UT"
-  revision = "dbf81d0b75bbe2fd90ef66a07643dd70cb42a88a"
+  revision = "d1be24994f2aef33257256035eaba70a112bf57f"
+  source = "github.com/topfreegames/go-workers"
+  version = "v1.0.0"
 
 [[projects]]
   digest = "1:88a87d3a1fa2b355e78bde9de127b5e63b3f2d16f1acc7b3d0200b686ce7d608"
@@ -508,33 +516,34 @@
   packages = ["."]
   pruneopts = "UT"
   revision = "25b30aa063fc18e48662b86996252eabdcf2f0c7"
-  version = "v1.0.0"
 
 [[projects]]
-  digest = "1:4bf1a0c3e8d7ac03a7ee0bed6dea162a93a5eed7f2a40d5a6edb9e03b7aa3ec4"
+  digest = "1:4102c0f538fcd1b36853878a0f3e33288618fe0e769d059b0be6424991e850dc"
   name = "github.com/topfreegames/extensions"
   packages = [
     "dogstatsd",
     "echo",
     "echo/middleware",
+    "elastic",
     "gorp",
     "gorp/interfaces",
     "http",
     "jaeger",
-    "jaeger/echo",
-    "jaeger/gorp",
-    "jaeger/http",
-    "jaeger/mongo",
     "middleware",
     "mongo",
     "mongo/interfaces",
     "oauth2",
     "pg/interfaces",
+    "tracing",
+    "tracing/echo",
+    "tracing/gorp",
+    "tracing/http",
+    "tracing/mongo",
     "worker/middleware",
   ]
   pruneopts = "UT"
-  revision = "e732c691014172aa81c280d852530cc03fcc590a"
-  version = "v6.2.4"
+  revision = "b915720a3f4b5f0b27627c575f43088bd76dbdbc"
+  version = "v8.0.5"
 
 [[projects]]
   branch = "master"
@@ -560,7 +569,7 @@
   revision = "d11d2851fcabcf03421c4dbdbc3146fc74eb1035"
 
 [[projects]]
-  digest = "1:8b7a2609692cfade851ff69f371314a8ab77dfb89242e7836f8213af7b16b74c"
+  digest = "1:ac6f26e917fd2fb3194a7ebe2baf6fb32de2f2fbfed130c18aac0e758a6e1d22"
   name = "github.com/uber/jaeger-client-go"
   packages = [
     ".",
@@ -568,26 +577,30 @@
     "internal/baggage",
     "internal/baggage/remote",
     "internal/spanlog",
+    "internal/throttler",
+    "internal/throttler/remote",
     "log",
     "rpcmetrics",
+    "thrift",
     "thrift-gen/agent",
     "thrift-gen/baggage",
     "thrift-gen/jaeger",
     "thrift-gen/sampling",
     "thrift-gen/zipkincore",
+    "transport",
     "utils",
   ]
   pruneopts = "UT"
-  revision = "3ac96c6e679cb60a74589b0d0aa7c70a906183f7"
-  version = "v2.11.2"
+  revision = "1a782e2da844727691fef1757c72eb190c2909f0"
+  version = "v2.15.0"
 
 [[projects]]
-  digest = "1:0da2810678a062e0567c3215911869b0423da0e497c56683ff8e87e7a6952597"
+  digest = "1:0f09db8429e19d57c8346ad76fbbc679341fa86073d3b8fb5ac919f0357d8f4c"
   name = "github.com/uber/jaeger-lib"
   packages = ["metrics"]
   pruneopts = "UT"
-  revision = "4267858c0679cd4e47cefed8d7f70fd386cfb567"
-  version = "v1.4.0"
+  revision = "ed3a127ec5fef7ae9ea95b01b542c47fbd999ce5"
+  version = "v1.5.0"
 
 [[projects]]
   branch = "master"
@@ -627,12 +640,13 @@
   revision = "df6241f6355c5595d99e9661039f8648c440deba"
 
 [[projects]]
-  digest = "1:3e9bc10b1094bd3a422b18b3adf4fda467ad57b813f69907f96e5b0293c7073d"
+  digest = "1:ffed49936eb3812b6824211b95112a01ebab612a83c21c3597d9bde4e2f170ed"
   name = "golang.org/x/crypto"
   packages = [
     "curve25519",
     "ed25519",
     "ed25519/internal/edwards25519",
+    "pbkdf2",
     "ssh",
     "ssh/terminal",
   ]
@@ -729,20 +743,6 @@
   revision = "d805e540cd37b8aa6e2ad7d94f06f6537493e710"
 
 [[projects]]
-  branch = "v2"
-  digest = "1:5052389c6c809eeced44ec24ff9958bfea70b9859b7a25061c6fd9086c8f8989"
-  name = "gopkg.in/mgo.v2"
-  packages = [
-    ".",
-    "bson",
-    "internal/json",
-    "internal/sasl",
-    "internal/scram",
-  ]
-  pruneopts = "UT"
-  revision = "3f83fa5005286a7fe593b055f0d7771a7dce4655"
-
-[[projects]]
   digest = "1:14aa12a4a23b14afe5731023e50b7ad98fd61ab4c17e6fcbf1ea62a151b8d02b"
   name = "gopkg.in/olivere/elastic.v5"
   packages = [
@@ -761,6 +761,14 @@
   pruneopts = "UT"
   revision = "e4d366fc3c7938e2958e662b4258c7a89e1f0e3e"
 
+[[projects]]
+  digest = "1:999d566ad1ae4303c456af5a155f7b42401cca4fd33552567ed9dd997b107a08"
+  name = "mellium.im/sasl"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "e58e780e1378aa4df5dc705364ff5ae9a4dd1e04"
+  version = "v0.2.1"
+
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
@@ -768,6 +776,7 @@
     "github.com/Pallinder/go-randomdata",
     "github.com/bluele/factory-go/factory",
     "github.com/getsentry/raven-go",
+    "github.com/globalsign/mgo/bson",
     "github.com/go-gorp/gorp",
     "github.com/golang/mock/gomock",
     "github.com/gosuri/uiprogress",
@@ -786,12 +795,15 @@
     "github.com/newrelic/go-agent",
     "github.com/onsi/ginkgo",
     "github.com/onsi/gomega",
+    "github.com/opentracing/opentracing-go",
     "github.com/rcrowley/go-metrics",
     "github.com/satori/go.uuid",
+    "github.com/sirupsen/logrus",
     "github.com/spf13/cobra",
     "github.com/spf13/viper",
     "github.com/topfreegames/extensions/echo",
     "github.com/topfreegames/extensions/echo/middleware",
+    "github.com/topfreegames/extensions/elastic",
     "github.com/topfreegames/extensions/gorp",
     "github.com/topfreegames/extensions/gorp/interfaces",
     "github.com/topfreegames/extensions/http",
@@ -799,14 +811,13 @@
     "github.com/topfreegames/extensions/middleware",
     "github.com/topfreegames/extensions/mongo",
     "github.com/topfreegames/extensions/mongo/interfaces",
+    "github.com/topfreegames/extensions/tracing",
     "github.com/topfreegames/extensions/worker/middleware",
     "github.com/topfreegames/goose/lib/goose",
     "github.com/uber-go/zap",
-    "github.com/valyala/fasthttp",
     "github.com/valyala/fasthttp/fasthttpadaptor",
     "github.com/valyala/fasttemplate",
     "gopkg.in/jarcoal/httpmock.v1",
-    "gopkg.in/mgo.v2/bson",
     "gopkg.in/olivere/elastic.v5",
   ]
   solver-name = "gps-cdcl"

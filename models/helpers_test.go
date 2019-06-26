@@ -8,9 +8,7 @@
 package models_test
 
 import (
-	"bytes"
 	"fmt"
-	dlog "log"
 	"strconv"
 
 	workers "github.com/jrallison/go-workers"
@@ -83,10 +81,6 @@ func ConfigureAndStartGoWorkers() error {
 		opts["password"] = redisPass
 	}
 	workers.Configure(opts)
-	if config.GetBool("webhooks.logToBuf") {
-		var buf bytes.Buffer
-		workers.Logger = dlog.New(&buf, "test: ", 0)
-	}
 
 	l := kt.NewMockLogger()
 	mongoWorker := models.NewMongoWorker(l, config)

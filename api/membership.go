@@ -287,12 +287,6 @@ func InviteForMembershipHandler(app *App) func(c echo.Context) error {
 // ApproveOrDenyMembershipApplicationHandler is the handler responsible for approving or denying a membership invitation
 func ApproveOrDenyMembershipApplicationHandler(app *App) func(c echo.Context) error {
 	return func(c echo.Context) error {
-		var game *models.Game
-		var membership *models.Membership
-		var requestor *models.Player
-		var err error
-		var tx interfaces.Transaction
-
 		c.Set("route", "ApproverOrDenyApplication")
 		start := time.Now()
 		action := c.Param("action")
@@ -308,7 +302,7 @@ func ApproveOrDenyMembershipApplicationHandler(app *App) func(c echo.Context) er
 		)
 
 		var payload BasePayloadWithRequestorAndPlayerPublicIDs
-		err = WithSegment("payload", c, func() error {
+		err := WithSegment("payload", c, func() error {
 			if err := LoadJSONPayload(&payload, c, l); err != nil {
 				return err
 			}
@@ -323,11 +317,13 @@ func ApproveOrDenyMembershipApplicationHandler(app *App) func(c echo.Context) er
 			zap.String("requestorPublicID", payload.RequestorPublicID),
 		)
 
+		var game *models.Game
 		err = WithSegment("game-retrieve", c, func() error {
-			game, err = app.GetGame(c.StdContext(), gameID)
-			if err != nil {
+			var gErr error
+			game, gErr = app.GetGame(c.StdContext(), gameID)
+			if gErr != nil {
 				log.W(l, "Could not find game.")
-				return err
+				return gErr
 			}
 			return nil
 		})
@@ -335,28 +331,28 @@ func ApproveOrDenyMembershipApplicationHandler(app *App) func(c echo.Context) er
 			return FailWith(404, err.Error(), c)
 		}
 
-		rb := func(err error) error {
-			txErr := app.Rollback(tx, "Approving/Denying membership application failed", c, l, err)
+		var tx interfaces.Transaction
+		rb := func(rbErr error) error {
+			return app.Rollback(tx, "Approving/Denying membership application failed", c, l, rbErr)
+		}
+
+		var membership *models.Membership
+		var requestor *models.Player
+		err = WithSegment("membership-approve-deny", c, func() error {
+			txErr := WithSegment("tx-begin", c, func() error {
+				var txBErr error
+				tx, txBErr = app.BeginTrans(c.StdContext(), l)
+				return txBErr
+			})
 			if txErr != nil {
 				return txErr
 			}
-
-			return nil
-		}
-
-		err = WithSegment("membership-approve-deny", c, func() error {
-			err = WithSegment("tx-begin", c, func() error {
-				tx, err = app.BeginTrans(c.StdContext(), l)
-				return err
-			})
-			if err != nil {
-				return err
-			}
 			log.D(l, "DB Tx begun successful.")
 
-			err = WithSegment("membership-approve-deny-query", c, func() error {
+			qErr := WithSegment("membership-approve-deny-query", c, func() error {
 				log.D(l, "Approving/Denying membership application.")
-				membership, err = models.ApproveOrDenyMembershipApplication(
+				var mErr error
+				membership, mErr = models.ApproveOrDenyMembershipApplication(
 					tx,
 					game,
 					gameID,
@@ -366,44 +362,41 @@ func ApproveOrDenyMembershipApplicationHandler(app *App) func(c echo.Context) er
 					action,
 				)
 
-				if err != nil {
-					txErr := rb(err)
+				if mErr != nil {
+					txErr := rb(mErr)
 					if txErr == nil {
 						log.E(l, "Approving/Denying membership application failed.", func(cm log.CM) {
-							cm.Write(zap.Error(err))
+							cm.Write(zap.Error(mErr))
 						})
 					}
-					return err
+					return mErr
 				}
 				return nil
 			})
-			if err != nil {
-				return FailWithError(err, c)
+			if qErr != nil {
+				return qErr
 			}
 
-			err = WithSegment("player-retrieve", c, func() error {
+			return WithSegment("player-retrieve", c, func() error {
 				log.D(l, "Retrieving requestor details.")
-				requestor, err = models.GetPlayerByPublicID(tx, gameID, payload.RequestorPublicID)
-				if err != nil {
+				var gErr error
+				requestor, gErr = models.GetPlayerByPublicID(tx, gameID, payload.RequestorPublicID)
+				if gErr != nil {
 					msg := "Requestor details retrieval failed."
-					txErr := rb(err)
+					txErr := rb(gErr)
 					if txErr == nil {
 						log.E(l, msg, func(cm log.CM) {
-							cm.Write(zap.Error(err))
+							cm.Write(zap.Error(gErr))
 						})
 					}
-					return err
+					return gErr
 				}
 				log.D(l, "Requestor details retrieved successfully.")
 				return nil
 			})
-			if err != nil {
-				return err
-			}
-			return nil
 		})
 		if err != nil {
-			return FailWith(http.StatusInternalServerError, err.Error(), c)
+			return FailWithError(err, c)
 		}
 
 		err = WithSegment("hook-dispatch", c, func() error {
@@ -411,20 +404,20 @@ func ApproveOrDenyMembershipApplicationHandler(app *App) func(c echo.Context) er
 			if action == "deny" {
 				hookType = models.MembershipDeniedHook
 			}
-			err = dispatchApproveDenyMembershipHookByID(
+			aErr := dispatchApproveDenyMembershipHookByID(
 				app, tx, hookType,
 				membership.GameID, membership.ClanID, membership.PlayerID,
 				requestor.ID, membership.RequestorID, membership.Message, membership.Level,
 			)
-			if err != nil {
+			if aErr != nil {
 				msg := "Membership approved/denied application dispatch hook failed."
-				txErr := rb(err)
+				txErr := rb(aErr)
 				if txErr == nil {
 					log.E(l, msg, func(cm log.CM) {
-						cm.Write(zap.Error(err))
+						cm.Write(zap.Error(aErr))
 					})
 				}
-				return err
+				return aErr
 			}
 			return nil
 		})
@@ -629,7 +622,7 @@ func DeleteMembershipHandler(app *App) func(c echo.Context) error {
 			if err != nil {
 				return err
 			}
-			log.D(l, "DB Tx begun successful.")
+			log.D(l, "DB Tx began successfully.")
 
 			log.D(l, "Deleting membership...")
 			membership, err = models.DeleteMembership(
@@ -754,7 +747,7 @@ func PromoteOrDemoteMembershipHandler(app *App, action string) func(c echo.Conte
 			})
 
 			if err != nil {
-				return FailWithError(err, c)
+				return err
 			}
 
 			err = WithSegment("player-retrieve", c, func() error {

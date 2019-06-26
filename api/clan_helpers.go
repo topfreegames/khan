@@ -15,7 +15,7 @@ import (
 	"github.com/uber-go/zap"
 )
 
-func dispatchClanOwnershipChangeHook(app *App, db models.DB, hookType int, clan *models.Clan, previousOwner *models.Player, newOwner *models.Player) error {
+func dispatchClanOwnershipChangeHook(app *App, hookType int, clan *models.Clan, previousOwner *models.Player, newOwner *models.Player) error {
 	newOwnerPublicID := ""
 	if newOwner != nil {
 		newOwnerPublicID = newOwner.PublicID

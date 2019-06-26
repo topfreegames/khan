@@ -30,7 +30,7 @@ healthcheck:
   workingText: "WORKING"
 
 webhooks:
-  timeout: 2
+  timeout: 500
 
 newrelic:
   key: ""

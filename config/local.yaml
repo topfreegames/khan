@@ -22,7 +22,7 @@ search:
   pageSize: 50
 
 webhooks:
-  timeout: 2
+  timeout: 500
   workers: 5
   statsPort: 9999
   runStats: true

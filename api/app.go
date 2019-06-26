@@ -8,15 +8,15 @@
 package api
 
 import (
-	"bytes"
 	"context"
 	"fmt"
-	dlog "log"
 	"net/http"
 	"net/http/pprof"
 	"os"
+	"os/signal"
 	"strconv"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/getsentry/raven-go"
@@ -29,6 +29,7 @@ import (
 	newrelic "github.com/newrelic/go-agent"
 	"github.com/rcrowley/go-metrics"
 	"github.com/satori/go.uuid"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	eecho "github.com/topfreegames/extensions/echo"
 	extechomiddleware "github.com/topfreegames/extensions/echo/middleware"
@@ -50,8 +51,8 @@ import (
 // App is a struct that represents a Khan API Application
 type App struct {
 	ID             string
+	Test           bool
 	Debug          bool
-	Background     bool
 	Port           int
 	Host           string
 	ConfigPath     string
@@ -74,9 +75,10 @@ type App struct {
 }
 
 // GetApp returns a new Khan API Application
-func GetApp(host string, port int, configPath string, debug bool, logger zap.Logger, fast bool) *App {
+func GetApp(host string, port int, configPath string, debug bool, logger zap.Logger, fast, test bool) *App {
 	app := &App{
 		ID:             "default",
+		Test:           test,
 		Fast:           fast,
 		Host:           host,
 		Port:           port,
@@ -115,7 +117,7 @@ func (app *App) configureSentry() {
 		zap.String("operation", "configureSentry"),
 	)
 	sentryURL := app.Config.GetString("sentry.url")
-	log.I(l, fmt.Sprintf("Configuring sentry with URL %s", sentryURL))
+	log.D(l, fmt.Sprintf("Configuring sentry with URL %s", sentryURL))
 	raven.SetDSN(sentryURL)
 	raven.SetRelease(util.VERSION)
 }
@@ -222,13 +224,16 @@ func (app *App) setConfigurationDefaults() {
 		zap.String("source", "app"),
 		zap.String("operation", "setConfigurationDefaults"),
 	)
+	app.Config.SetDefault("graceperiod.ms", 5000)
 	app.Config.SetDefault("healthcheck.workingText", "WORKING")
 	app.Config.SetDefault("postgres.host", "localhost")
 	app.Config.SetDefault("postgres.user", "khan")
 	app.Config.SetDefault("postgres.dbName", "khan")
 	app.Config.SetDefault("postgres.port", 5432)
 	app.Config.SetDefault("postgres.sslMode", "disable")
-	app.Config.SetDefault("webhooks.timeout", 2)
+	app.Config.SetDefault("webhooks.timeout", 500)
+	app.Config.SetDefault("webhooks.maxIdleConnsPerHost", http.DefaultMaxIdleConnsPerHost)
+	app.Config.SetDefault("webhooks.maxIdleConns", 100)
 	app.Config.SetDefault("elasticsearch.host", "localhost")
 	app.Config.SetDefault("elasticsearch.port", 9234)
 	app.Config.SetDefault("elasticsearch.sniff", true)
@@ -413,7 +418,7 @@ func (app *App) addError() {
 }
 
 //GetHooks returns all available hooks
-func (app *App) GetHooks() map[string]map[int][]*models.Hook {
+func (app *App) GetHooks(ctx context.Context) map[string]map[int][]*models.Hook {
 	l := app.Logger.With(
 		zap.String("source", "app"),
 		zap.String("operation", "GetHooks"),
@@ -421,14 +426,14 @@ func (app *App) GetHooks() map[string]map[int][]*models.Hook {
 
 	start := time.Now()
 	log.D(l, "Retrieving hooks...")
-	dbHooks, err := models.GetAllHooks(app.db)
+	dbHooks, err := models.GetAllHooks(app.Db(ctx))
 	if err != nil {
 		log.E(l, "Retrieve hooks failed.", func(cm log.CM) {
 			cm.Write(zap.String("error", err.Error()))
 		})
 		return nil
 	}
-	log.I(l, "Hooks retrieved successfully.", func(cm log.CM) {
+	log.D(l, "Hooks retrieved successfully.", func(cm log.CM) {
 		cm.Write(zap.Duration("hookRetrievalDuration", time.Now().Sub(start)))
 	})
 
@@ -511,10 +516,18 @@ func (app *App) configureGoWorkers() {
 	}
 	l.Debug("Configuring workers...")
 	workers.Configure(opts)
-	if app.Config.GetBool("webhooks.logToBuf") {
-		var buf bytes.Buffer
-		workers.Logger = dlog.New(&buf, "test: ", 0)
+
+	// TODO: replace zap with logrus so we don't need two loggers
+	wl := logrus.New()
+	wl.Formatter = new(logrus.JSONFormatter)
+	if app.Test {
+		wl.Level = logrus.FatalLevel
+	} else if app.Debug {
+		wl.Level = logrus.DebugLevel
+	} else {
+		wl.Level = logrus.InfoLevel
 	}
+	workers.SetLogger(wl)
 
 	workers.Middleware.Append(extworkermiddleware.NewResponseTimeMetricsMiddleware(app.DDStatsD))
 	workers.Process(queues.KhanQueue, app.Dispatcher.PerformDispatchHook, workerCount)
@@ -535,7 +548,6 @@ func (app *App) StartWorkers() {
 		jobsStatsPort := app.Config.GetInt("webhooks.statsPort")
 		go workers.StatsServer(jobsStatsPort)
 	}
-
 	workers.Run()
 }
 
@@ -600,7 +612,7 @@ func (app *App) DispatchHooks(gameID string, eventType int, payload map[string]i
 	start := time.Now()
 	log.D(l, "Dispatching hook...")
 	app.Dispatcher.DispatchHook(gameID, eventType, payload)
-	log.I(l, "Hook dispatched successfully.", func(cm log.CM) {
+	log.D(l, "Hook dispatched successfully.", func(cm log.CM) {
 		cm.Write(zap.Duration("hookDispatchDuration", time.Now().Sub(start)))
 	})
 	return nil
@@ -633,7 +645,7 @@ func (app *App) BeginTrans(ctx context.Context, l zap.Logger) (gorp.Transaction,
 
 //Rollback transaction
 func (app *App) Rollback(tx gorp.Transaction, msg string, c echo.Context, l zap.Logger, err error) error {
-	sErr := WithSegment("tx-rollback", c, func() error {
+	return WithSegment("tx-rollback", c, func() error {
 		txErr := tx.Rollback()
 		if txErr != nil {
 			log.E(l, fmt.Sprintf("%s and failed to rollback transaction.", msg), func(cm log.CM) {
@@ -643,12 +655,11 @@ func (app *App) Rollback(tx gorp.Transaction, msg string, c echo.Context, l zap.
 		}
 		return nil
 	})
-	return sErr
 }
 
 //Commit transaction
 func (app *App) Commit(tx gorp.Transaction, msg string, c echo.Context, l zap.Logger) error {
-	err := WithSegment("tx-commit", c, func() error {
+	return WithSegment("tx-commit", c, func() error {
 		txErr := tx.Commit()
 		if txErr != nil {
 			log.E(l, fmt.Sprintf("%s failed to commit transaction.", msg), func(cm log.CM) {
@@ -656,10 +667,8 @@ func (app *App) Commit(tx gorp.Transaction, msg string, c echo.Context, l zap.Lo
 			})
 			return txErr
 		}
-
 		return nil
 	})
-	return err
 }
 
 // GetCtxDB returns the proper database connection depending on the request context
@@ -688,15 +697,26 @@ func (app *App) Start() {
 	)
 
 	defer app.finalizeApp()
-	log.D(l, "App started.", func(cm log.CM) {
+	log.I(l, "app started", func(cm log.CM) {
 		cm.Write(zap.String("host", app.Host), zap.Int("port", app.Port))
 	})
 
-	if app.Background {
-		go func() {
-			app.App.Run(app.Engine)
-		}()
-	} else {
+	go func() {
 		app.App.Run(app.Engine)
+	}()
+
+	sg := make(chan os.Signal)
+	signal.Notify(sg, syscall.SIGINT, syscall.SIGQUIT, syscall.SIGKILL, syscall.SIGTERM)
+
+	// stop server
+	select {
+	case s := <-sg:
+		graceperiod := app.Config.GetInt("graceperiod.ms")
+		log.I(l, "shutting down", func(cm log.CM) {
+			cm.Write(zap.String("signal", fmt.Sprintf("%v", s)),
+				zap.Int("graceperiod", graceperiod))
+		})
+		time.Sleep(time.Duration(graceperiod) * time.Millisecond)
 	}
+	log.I(l, "app stopped")
 }

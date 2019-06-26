@@ -68,7 +68,7 @@ func GetFaultyTestDB() models.DB {
 // GetDefaultTestApp returns a new Khan API Application bound to 0.0.0.0:8888 for test
 func GetDefaultTestApp() *api.App {
 	l := kt.NewMockLogger()
-	app := api.GetApp("0.0.0.0", 8888, "../config/test.yaml", true, l, false)
+	app := api.GetApp("0.0.0.0", 8888, "../config/test.yaml", true, l, false, true)
 	app.Configure()
 	return app
 }
