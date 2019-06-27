@@ -229,6 +229,21 @@ func (mr *MockKhanInterfaceMockRecorder) RetrievePlayer(arg0, arg1 interface{}) 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RetrievePlayer", reflect.TypeOf((*MockKhanInterface)(nil).RetrievePlayer), arg0, arg1)
 }
 
+// SearchClans mocks base method
+func (m *MockKhanInterface) SearchClans(arg0 context.Context, arg1 string) (*lib.SearchClansResult, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SearchClans", arg0, arg1)
+	ret0, _ := ret[0].(*lib.SearchClansResult)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SearchClans indicates an expected call of SearchClans
+func (mr *MockKhanInterfaceMockRecorder) SearchClans(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SearchClans", reflect.TypeOf((*MockKhanInterface)(nil).SearchClans), arg0, arg1)
+}
+
 // TransferOwnership mocks base method
 func (m *MockKhanInterface) TransferOwnership(arg0 context.Context, arg1, arg2 string) (*lib.TransferOwnershipResult, error) {
 	m.ctrl.T.Helper()
