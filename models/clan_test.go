@@ -1055,10 +1055,11 @@ var _ = Describe("Clan Model", func() {
 
 		Describe("Clan Search", func() {
 			var player *Player
+			var realClans []*Clan
 
 			BeforeEach(func() {
 				var err error
-				player, _, err = GetTestClans(
+				player, realClans, err = GetTestClans(
 					testDb, "", "clan-search-clan", 10,
 				)
 				Expect(err).NotTo(HaveOccurred())
@@ -1073,6 +1074,21 @@ var _ = Describe("Clan Model", func() {
 
 			It("Should return clan by unicode search term", func() {
 				clans, err := SearchClan(testDb, testMongo, player.GameID, "💩clán", 10)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(len(clans)).To(Equal(10))
+			})
+
+			It("Should return clan by full public ID as search term", func() {
+				searchClanID := realClans[0].PublicID
+				clans, err := SearchClan(testDb, testMongo, player.GameID, searchClanID, 10)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(len(clans)).To(Equal(1))
+			})
+
+			It("Should return clan by short public ID as search term", func() {
+				clanID := realClans[0].PublicID
+				searchClanID := clanID[:8]
+				clans, err := SearchClan(testDb, testMongo, player.GameID, searchClanID, 10)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(len(clans)).To(Equal(10))
 			})
