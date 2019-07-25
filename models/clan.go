@@ -827,34 +827,37 @@ type mongoResult struct {
 	} `bson:"cursor"`
 }
 
-func searchClanByID(db interfaces.MongoDB, gameID, term string) ([]Clan, error) {
-	col, sess := db.C(fmt.Sprintf("clans_%s", gameID))
-	defer sess.Close()
+func min(x, y int) int {
+	if x < y {
+		return x
+	}
+	return y
+}
 
-	res := mongoResult{}
-	if err := col.Find(bson.M{"publicId": term}).One(&res); err != nil {
-		return nil, err
+func searchClanByID(db DB, gameID, publicID string) []Clan {
+	var clan *Clan
+	var err error
+	if clan, err = GetClanByPublicID(db, gameID, publicID); err != nil {
+		shortPublicID := publicID[:min(8, len(publicID))]
+		if len(shortPublicID) < 8 {
+			return nil
+		}
+		if clan, err = GetClanByShortPublicID(db, gameID, shortPublicID); err != nil {
+			return nil
+		}
 	}
-	clan := Clan{}
-	sRaw := res.Cursor.FirstBatch
-	if len(sRaw) == 0 {
-		return nil, nil
-	}
-	if err := sRaw[0].Unmarshal(&clan); err != nil {
-		return nil, err
-	}
-	return []Clan{clan}, nil
+	return []Clan{*clan}
 }
 
 // SearchClan returns a list of clans for a given term (by name or publicID)
 func SearchClan(
-	db interfaces.MongoDB, gameID, term string, pageSize int64,
+	db DB, mongo interfaces.MongoDB, gameID, term string, pageSize int64,
 ) ([]Clan, error) {
 	if term == "" {
 		return nil, &EmptySearchTermError{}
 	}
 
-	clans, _ := searchClanByID(db, gameID, term)
+	clans := searchClanByID(db, gameID, term)
 	if clans != nil {
 		return clans, nil
 	}
@@ -880,7 +883,7 @@ func SearchClan(
 		} `bson:"cursor"`
 	}
 
-	if err := db.Run(cmd, &res); err != nil {
+	if err := mongo.Run(cmd, &res); err != nil {
 		return []Clan{}, err
 	}
 	clans = make([]Clan, len(res.Cursor.FirstBatch))
