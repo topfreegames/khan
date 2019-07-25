@@ -646,11 +646,21 @@ func SearchClansHandler(app *App) func(c echo.Context) error {
 			return FailWith(400, (&models.EmptySearchTermError{}).Error(), c)
 		}
 
+		log.D(l, "Getting DB connection...")
+		db, err := app.GetCtxDB(c)
+		if err != nil {
+			log.E(l, "Failed to connect to DB.", func(cm log.CM) {
+				cm.Write(zap.Error(err))
+			})
+			return FailWith(500, err.Error(), c)
+		}
+		log.D(l, "DB Connection successful.")
+
 		var clans []models.Clan
-		var err error
 		err = WithSegment("clans-search", c, func() error {
 			log.D(l, "Searching clans...")
 			clans, err = models.SearchClan(
+				db,
 				app.MongoDB.WithContext(c.StdContext()),
 				gameID,
 				term,

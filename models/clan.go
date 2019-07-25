@@ -848,13 +848,13 @@ func searchClanByID(db interfaces.MongoDB, gameID, term string) ([]Clan, error) 
 
 // SearchClan returns a list of clans for a given term (by name or publicID)
 func SearchClan(
-	db interfaces.MongoDB, gameID, term string, pageSize int64,
+	db DB, mongo interfaces.MongoDB, gameID, term string, pageSize int64,
 ) ([]Clan, error) {
 	if term == "" {
 		return nil, &EmptySearchTermError{}
 	}
 
-	clans, _ := searchClanByID(db, gameID, term)
+	clans, _ := searchClanByID(mongo, gameID, term)
 	if clans != nil {
 		return clans, nil
 	}
@@ -880,7 +880,7 @@ func SearchClan(
 		} `bson:"cursor"`
 	}
 
-	if err := db.Run(cmd, &res); err != nil {
+	if err := mongo.Run(cmd, &res); err != nil {
 		return []Clan{}, err
 	}
 	clans = make([]Clan, len(res.Cursor.FirstBatch))
