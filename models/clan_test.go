@@ -1086,11 +1086,12 @@ var _ = Describe("Clan Model", func() {
 			})
 
 			It("Should return clan by short public ID as search term", func() {
-				clanID := realClans[0].PublicID
-				searchClanID := clanID[:8]
+				dbClan, err := GetTestClanWithRandomPublicIDAndName(testDb, player.GameID, player.ID)
+				Expect(err).NotTo(HaveOccurred())
+				searchClanID := dbClan.PublicID[:8]
 				clans, err := SearchClan(testDb, testMongo, player.GameID, searchClanID, 10)
 				Expect(err).NotTo(HaveOccurred())
-				Expect(len(clans)).To(Equal(10))
+				Expect(len(clans)).To(Equal(1))
 			})
 
 			It("Should return empty list if search term is not found", func() {

@@ -14,7 +14,7 @@ import (
 
 	"github.com/Pallinder/go-randomdata"
 	"github.com/bluele/factory-go/factory"
-	"github.com/satori/go.uuid"
+	uuid "github.com/satori/go.uuid"
 	"github.com/topfreegames/khan/util"
 )
 
@@ -428,6 +428,25 @@ func GetClanReachedMaxMemberships(db DB) (*Game, *Clan, *Player, []*Player, []*M
 	memberships = append(memberships, membership)
 
 	return game, clan, owner, players, memberships, nil
+}
+
+// GetTestClanWithRandomPublicIDAndName returns a clan with random UUID v4 publicID and name for tests
+func GetTestClanWithRandomPublicIDAndName(db DB, gameID string, ownerID int64) (*Clan, error) {
+	clan := ClanFactory.MustCreateWithOption(map[string]interface{}{
+		"GameID":   gameID,
+		"PublicID": uuid.NewV4().String(),
+		"Name":     uuid.NewV4().String(),
+		"OwnerID":  ownerID,
+	}).(*Clan)
+	err := db.Insert(clan)
+	if err != nil {
+		return nil, err
+	}
+	err = clan.UpdateClanIntoMongoDB()
+	if err != nil {
+		return nil, err
+	}
+	return clan, nil
 }
 
 // GetTestClans returns a list of clans for tests
