@@ -18,6 +18,44 @@ import (
 	"github.com/uber-go/zap"
 )
 
+func logClanOwnerID(app *App, c echo.Context, gameID, clanPublicID, when, operation string) {
+	l := app.Logger.With(
+		zap.String("source", "clanHandler"),
+		zap.String("operation", operation),
+		zap.String("gameID", gameID),
+		zap.String("clanPublicID", clanPublicID),
+		zap.String("when", when),
+	)
+
+	db, err := app.GetCtxDB(c)
+	if err != nil {
+		log.E(l, "Failed to fetch db when logging clan ownerID.", func(cm log.CM) {
+			cm.Write(zap.Error(err))
+		})
+		return
+	}
+
+	clan, err := models.GetClanByPublicID(db, gameID, clanPublicID)
+	if err != nil {
+		log.E(l, "Failed to fetch clan when logging clan ownerID.", func(cm log.CM) {
+			cm.Write(zap.Error(err))
+		})
+		return
+	}
+	if clan == nil {
+		log.E(l, "Clan do not exists when logging clan ownerID.", func(cm log.CM) {
+			cm.Write(zap.Error(err))
+		})
+		return
+	}
+
+	log.I(l, "Logged clan ownerID successfully.", func(cm log.CM) {
+		cm.Write(
+			zap.Int64("previousOwnerPublicID", clan.OwnerID),
+		)
+	})
+}
+
 //CreateClanHandler is the handler responsible for creating new clans
 func CreateClanHandler(app *App) func(c echo.Context) error {
 	return func(c echo.Context) error {
@@ -302,6 +340,9 @@ func LeaveClanHandler(app *App) func(c echo.Context) error {
 		gameID := c.Param("gameID")
 		publicID := c.Param("clanPublicID")
 
+		logClanOwnerID(app, c, gameID, publicID, "before", "leaveClan")
+		defer logClanOwnerID(app, c, gameID, publicID, "after", "leaveClan")
+
 		l := app.Logger.With(
 			zap.String("source", "clanHandler"),
 			zap.String("operation", "leaveClan"),
@@ -430,6 +471,9 @@ func TransferOwnershipHandler(app *App) func(c echo.Context) error {
 		start := time.Now()
 		gameID := c.Param("gameID")
 		publicID := c.Param("clanPublicID")
+
+		logClanOwnerID(app, c, gameID, publicID, "before", "transferClanOwnership")
+		defer logClanOwnerID(app, c, gameID, publicID, "after", "transferClanOwnership")
 
 		l := app.Logger.With(
 			zap.String("source", "clanHandler"),
