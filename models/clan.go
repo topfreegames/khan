@@ -10,6 +10,8 @@
 package models
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"os"
 	"strings"
@@ -595,7 +597,6 @@ func TransferClanOwnership(db DB, gameID, clanPublicID, playerPublicID string, l
 // UpdateClan updates an existing clan
 func UpdateClan(db DB, gameID, publicID, name, ownerPublicID string, metadata map[string]interface{}, allowApplication, autoJoin bool) (*Clan, error) {
 	clan, err := GetClanByPublicIDAndOwnerPublicID(db, gameID, publicID, ownerPublicID)
-
 	if err != nil {
 		return nil, err
 	}
@@ -605,8 +606,27 @@ func UpdateClan(db DB, gameID, publicID, name, ownerPublicID string, metadata ma
 	clan.AllowApplication = allowApplication
 	clan.AutoJoin = autoJoin
 
-	_, err = db.Update(clan)
+	metadataBuffer := bytes.NewBuffer([]byte{})
+	enc := json.NewEncoder(metadataBuffer)
+	err = enc.Encode(metadata)
+	if err != nil {
+		return nil, err
+	}
 
+	query := `
+		UPDATE clans SET name=$1, metadata=$2, allow_application=$3, auto_join=$4
+		WHERE clans.id=$5
+	`
+	_, err = db.Exec(query, name, metadataBuffer.String(), allowApplication, autoJoin, clan.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	gorpSQLExecutor, ok := db.(gorp.SqlExecutor)
+	if !ok {
+		return nil, &InvalidCastToGorpSQLExecutorError{}
+	}
+	err = clan.PostUpdate(gorpSQLExecutor)
 	if err != nil {
 		return nil, err
 	}
