@@ -51,7 +51,7 @@ func logClanOwnerID(app *App, c echo.Context, gameID, clanPublicID, when, operat
 
 	log.I(l, "Logged clan ownerID successfully.", func(cm log.CM) {
 		cm.Write(
-			zap.Int64("previousOwnerPublicID", clan.OwnerID),
+			zap.Int64("ownerID", clan.OwnerID),
 		)
 	})
 }
