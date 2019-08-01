@@ -622,6 +622,9 @@ func UpdateClan(db DB, gameID, publicID, name, ownerPublicID string, metadata ma
 		return nil, err
 	}
 
+	// since this function should update only the 4 fields above,
+	// we cannot use db.Update(clan), so clan.PostUpdate() should
+	// be called explicitly
 	gorpSQLExecutor, ok := db.(gorp.SqlExecutor)
 	if !ok {
 		return nil, &InvalidCastToGorpSQLExecutorError{}
