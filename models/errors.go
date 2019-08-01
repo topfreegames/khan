@@ -194,3 +194,11 @@ func (e *ForbiddenError) Error() string {
 		e.GameID,
 	)
 }
+
+// InvalidCastToGorpSQLExecutorError identifies that cast to gorp.SqlExecutor failed
+type InvalidCastToGorpSQLExecutorError struct {
+}
+
+func (e *InvalidCastToGorpSQLExecutorError) Error() string {
+	return "Invalid cast to gorp.SqlExecutor"
+}

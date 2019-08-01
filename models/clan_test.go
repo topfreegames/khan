@@ -422,12 +422,14 @@ var _ = Describe("Clan Model", func() {
 
 				Expect(err).NotTo(HaveOccurred())
 				Expect(updClan.ID).To(Equal(clan.ID))
+				Expect(updClan.OwnerID).To(Equal(clan.OwnerID))
 
 				dbClan, err := GetClanByPublicID(testDb, clan.GameID, clan.PublicID)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(dbClan.Metadata["x"]).To(BeEquivalentTo(metadata["x"]))
 				Expect(dbClan.AllowApplication).To(Equal(allowApplication))
 				Expect(dbClan.AutoJoin).To(Equal(autoJoin))
+				Expect(dbClan.OwnerID).To(Equal(clan.OwnerID))
 			})
 
 			It("Should not update a Clan if player is not the clan owner with UpdateClan", func() {
