@@ -30,5 +30,12 @@ var _ = Describe("Status API Handler", func() {
 			app := result["app"].(map[string]interface{})
 			Expect(app["errorRate"]).To(Equal(0.0))
 		})
+
+		It("Should respond with 401 Unauthorized", func() {
+			a := GetTestAppWithBasicAuth("basicauthuser", "basicauthpass")
+			status, _ := Get(a, "/status")
+
+			Expect(status).To(Equal(http.StatusUnauthorized))
+		})
 	})
 })
