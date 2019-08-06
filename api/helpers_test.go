@@ -73,6 +73,16 @@ func GetDefaultTestApp() *api.App {
 	return app
 }
 
+// GetTestAppWithBasicAuth returns a new Khan API application bound to 0.0.0.0:8888 for test with basic auth configs
+func GetTestAppWithBasicAuth(username, password string) *api.App {
+	l := kt.NewMockLogger()
+	app := api.GetApp("0.0.0.0", 8888, "../config/test.yaml", true, l, false, true)
+	app.Config.Set("basicauth.username", username)
+	app.Config.Set("basicauth.password", password)
+	app.Configure()
+	return app
+}
+
 //Get from server
 func Get(app *api.App, url string) (int, string) {
 	return doRequest(app, "GET", url, "")

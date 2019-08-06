@@ -30,5 +30,12 @@ var _ = Describe("Healthcheck API Handler", func() {
 			Expect(status).To(Equal(http.StatusOK))
 			Expect(body).To(Equal("OTHERWORKING"))
 		})
+
+		It("Should ignore basic auth", func() {
+			a := GetTestAppWithBasicAuth("basicauthuser", "basicauthpass")
+			status, body := Get(a, "/healthcheck")
+			Expect(status).To(Equal(http.StatusOK))
+			Expect(body).To(Equal("WORKING"))
+		})
 	})
 })

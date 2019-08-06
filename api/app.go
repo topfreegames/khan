@@ -340,8 +340,13 @@ func (app *App) configureApplication() {
 	if basicAuthUser != "" {
 		basicAuthPass := app.Config.GetString("basicauth.password")
 
-		a.Use(middleware.BasicAuth(func(username, password string) bool {
-			return username == basicAuthUser && password == basicAuthPass
+		a.Use(middleware.BasicAuthWithConfig(middleware.BasicAuthConfig{
+			Skipper: func(c echo.Context) bool {
+				return c.Path() == "/healthcheck"
+			},
+			Validator: func(username, password string) bool {
+				return username == basicAuthUser && password == basicAuthPass
+			},
 		}))
 	}
 
