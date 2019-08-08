@@ -52,3 +52,12 @@ extensions:
     prefix: khan.
     tags_prefix: ""
     rate: 1
+
+loadtest:
+  requests:
+    amount: 1
+    period:
+      ms: 1
+  operations:
+    retrieveClan:
+      probability: 0.5
