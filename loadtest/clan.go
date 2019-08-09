@@ -1,8 +1,6 @@
 package loadtest
 
 import (
-	"math/rand"
-
 	"github.com/topfreegames/khan/lib"
 )
 
@@ -11,6 +9,7 @@ func (app *App) setClanConfigurationDefaults() {
 
 func (app *App) configureClanOperations() {
 	app.appendOperation(app.getUpdateSharedClanScoreOperation())
+	app.appendOperation(app.getCreateClanOperation())
 }
 
 func (app *App) getUpdateSharedClanScoreOperation() operation {
@@ -36,9 +35,7 @@ func (app *App) getUpdateSharedClanScoreOperation() operation {
 			}
 
 			// updatePlayer
-			playerMetadata := make(map[string]interface{})
-			playerMetadata["score"] = int(rand.Float64() * 1000)
-			_, err = app.client.UpdatePlayer(nil, playerPublicID, "PlayerName", playerMetadata)
+			_, err = app.client.UpdatePlayer(nil, playerPublicID, getRandomPlayerName(), getMetadataWithRandomScore())
 			if err != nil {
 				return err
 			}
@@ -50,12 +47,13 @@ func (app *App) getUpdateSharedClanScoreOperation() operation {
 			}
 
 			// updateClan
-			clanScore := getPlayerScoreFromMetadata(clan.Owner.Metadata)
+			clanScore := getScoreFromMetadata(clan.Owner.Metadata)
 			for _, member := range clan.Roster {
-				clanScore += getPlayerScoreFromMetadata(member.Player.Metadata)
+				clanScore += getScoreFromMetadata(member.Player.Metadata)
 			}
-			clanMetadata := make(map[string]interface{})
-			clanMetadata["score"] = clanScore
+			clanMetadata := map[string]interface{}{
+				"score": clanScore,
+			}
 			_, err = app.client.UpdateClan(nil, &lib.ClanPayload{
 				PublicID:         clan.PublicID,
 				Name:             clan.Name,
@@ -69,12 +67,36 @@ func (app *App) getUpdateSharedClanScoreOperation() operation {
 	}
 }
 
-func getPlayerScoreFromMetadata(metadata interface{}) int {
-	if metadata != nil {
-		metadataMap := metadata.(map[string]interface{})
-		if score, ok := metadataMap["score"]; ok {
-			return int(score.(float64))
-		}
+func (app *App) getCreateClanOperation() operation {
+	operationKey := "createClan"
+	return operation{
+		probability: app.getOperationProbabilityConfig(operationKey),
+		canExecute: func() (bool, error) {
+			count, err := app.cache.getFreePlayersCount()
+			if err != nil {
+				return false, err
+			}
+			return count > 0, nil
+		},
+		execute: func() error {
+			playerPublicID, err := app.cache.chooseRandomFreePlayer()
+			if err != nil {
+				return err
+			}
+
+			clanPublicID := getRandomPublicID()
+			_, err = app.client.CreateClan(nil, &lib.ClanPayload{
+				PublicID:         clanPublicID,
+				Name:             getRandomClanName(),
+				OwnerPublicID:    playerPublicID,
+				Metadata:         getMetadataWithRandomScore(),
+				AllowApplication: getRandomBool(),
+				AutoJoin:         getRandomBool(),
+			})
+			if err != nil {
+				return err
+			}
+			return app.cache.bindPlayer(playerPublicID, clanPublicID)
+		},
 	}
-	return 0
 }

@@ -10,8 +10,12 @@ import (
 type (
 	cache interface {
 		loadSharedClansMembers(lib.KhanInterface) error
-		chooseRandomSharedClanAndPlayer() (string, string, error)
 		getSharedClansCount() (int, error)
+		chooseRandomSharedClanAndPlayer() (string, string, error)
+		getFreePlayersCount() (int, error)
+		chooseRandomFreePlayer() (string, error)
+		addFreePlayer(string) error
+		bindPlayer(string, string) error
 	}
 
 	sharedClan struct {
@@ -20,7 +24,9 @@ type (
 	}
 
 	cacheImpl struct {
-		sharedClans []sharedClan
+		sharedClans  []sharedClan
+		freePlayers  *DynamicStringSet
+		boundPlayers *DynamicStringSet
 	}
 )
 
@@ -32,7 +38,10 @@ func getCacheImpl(config *viper.Viper, sharedClansFile string) (*cacheImpl, erro
 	if err := sharedClansConfig.ReadInConfig(); err != nil {
 		return nil, err
 	}
-	c := &cacheImpl{}
+	c := &cacheImpl{
+		freePlayers:  NewDynamicStringSet(),
+		boundPlayers: NewDynamicStringSet(),
+	}
 	for _, clanPublicID := range sharedClansConfig.GetStringSlice("clans") {
 		c.sharedClans = append(c.sharedClans, sharedClan{
 			publicID: clanPublicID,
@@ -62,12 +71,35 @@ func (c *cacheImpl) loadSharedClanMembers(client lib.KhanInterface, clanIdx int)
 	return nil
 }
 
+func (c *cacheImpl) getSharedClansCount() (int, error) {
+	return len(c.sharedClans), nil
+}
+
 func (c *cacheImpl) chooseRandomSharedClanAndPlayer() (string, string, error) {
-	clanIdx := int(rand.Float64() * float64(len(c.sharedClans)))
-	playerIdx := int(rand.Float64() * float64(len(c.sharedClans[clanIdx].membersPublicIDs)))
+	clanIdx := rand.Intn(len(c.sharedClans))
+	playerIdx := rand.Intn(len(c.sharedClans[clanIdx].membersPublicIDs))
 	return c.sharedClans[clanIdx].publicID, c.sharedClans[clanIdx].membersPublicIDs[playerIdx], nil
 }
 
-func (c *cacheImpl) getSharedClansCount() (int, error) {
-	return len(c.sharedClans), nil
+func (c *cacheImpl) getFreePlayersCount() (int, error) {
+	return c.freePlayers.Len(), nil
+}
+
+func (c *cacheImpl) chooseRandomFreePlayer() (string, error) {
+	count := c.freePlayers.Len()
+	if count > 0 {
+		return c.freePlayers.Get(rand.Intn(count))
+	}
+	return "", &GenericError{"NoFreePlayersError", "Cant choose free player from empty set."}
+}
+
+func (c *cacheImpl) addFreePlayer(playerPublicID string) error {
+	c.freePlayers.AddString(playerPublicID)
+	return nil
+}
+
+func (c *cacheImpl) bindPlayer(playerPublicID, clanPublicID string) error {
+	c.freePlayers.RemoveString(playerPublicID)
+	c.boundPlayers.AddString(playerPublicID)
+	return nil
 }

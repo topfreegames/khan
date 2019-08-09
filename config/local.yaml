@@ -61,3 +61,7 @@ loadtest:
   operations:
     updateSharedClanScore:
       probability: 0.8
+    createPlayer:
+      probability: 0.01
+    createClan:
+      probability: 0.01
