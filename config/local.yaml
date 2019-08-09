@@ -59,5 +59,7 @@ loadtest:
     period:
       ms: 1
   operations:
-    retrieveClan:
-      probability: 0.5
+    retrieveSharedClan:
+      probability: 0.3
+    updateSharedClan:
+      probability: 0.3

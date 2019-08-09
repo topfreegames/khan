@@ -6,11 +6,12 @@ func (app *App) setClanConfigurationDefaults() {
 }
 
 func (app *App) configureClanOperations() {
-	app.appendOperation(app.getRetrieveClanOperation())
+	app.appendOperation(app.getRetrieveSharedClanOperation())
+	app.appendOperation(app.getUpdateSharedClanOperation())
 }
 
-func (app *App) getRetrieveClanOperation() operation {
-	operationKey := "retrieveClan"
+func (app *App) getRetrieveSharedClanOperation() operation {
+	operationKey := "retrieveSharedClan"
 	return operation{
 		probability: app.getOperationProbabilityConfig(operationKey),
 		canExecute: func() (bool, error) {
@@ -29,6 +30,19 @@ func (app *App) getRetrieveClanOperation() operation {
 			if err != nil {
 				return err
 			}
+			return nil
+		},
+	}
+}
+
+func (app *App) getUpdateSharedClanOperation() operation {
+	operationKey := "updateSharedClan"
+	return operation{
+		probability: app.getOperationProbabilityConfig(operationKey),
+		canExecute: func() (bool, error) {
+			return true, nil
+		},
+		execute: func() error {
 			return nil
 		},
 	}
