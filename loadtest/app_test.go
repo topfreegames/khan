@@ -5,6 +5,17 @@ import (
 	. "github.com/onsi/gomega"
 )
 
+func getNewTestSampleSpace() []operation {
+	var sampleSpace []operation
+	sampleSpace = append(sampleSpace, operation{
+		probability: 0.2,
+	})
+	sampleSpace = append(sampleSpace, operation{
+		probability: 0.3,
+	})
+	return sampleSpace
+}
+
 var _ = Describe("Load Test Application", func() {
 	Describe("normalizeSampleSpace()", func() {
 		It("Should change slice contents", func() {
@@ -20,52 +31,28 @@ var _ = Describe("Load Test Application", func() {
 
 	Describe("getRandomOperationFromSampleSpace()", func() {
 		It("Should return first operation", func() {
-			var sampleSpace []operation
-			sampleSpace = append(sampleSpace, operation{
-				probability: 0.2,
-			})
-			sampleSpace = append(sampleSpace, operation{
-				probability: 0.3,
-			})
+			sampleSpace := getNewTestSampleSpace()
 			operation, err := getRandomOperationFromSampleSpace(sampleSpace, 0.15)
 			Expect(operation.probability).To(Equal(sampleSpace[0].probability))
 			Expect(err).To(BeNil())
 		})
 
 		It("Should return second operation", func() {
-			var sampleSpace []operation
-			sampleSpace = append(sampleSpace, operation{
-				probability: 0.2,
-			})
-			sampleSpace = append(sampleSpace, operation{
-				probability: 0.3,
-			})
+			sampleSpace := getNewTestSampleSpace()
 			operation, err := getRandomOperationFromSampleSpace(sampleSpace, 0.25)
 			Expect(operation.probability).To(Equal(sampleSpace[1].probability))
 			Expect(err).To(BeNil())
 		})
 
 		It("Should return last operation", func() {
-			var sampleSpace []operation
-			sampleSpace = append(sampleSpace, operation{
-				probability: 0.2,
-			})
-			sampleSpace = append(sampleSpace, operation{
-				probability: 0.3,
-			})
+			sampleSpace := getNewTestSampleSpace()
 			operation, err := getRandomOperationFromSampleSpace(sampleSpace, 0.5)
 			Expect(operation.probability).To(Equal(sampleSpace[1].probability))
 			Expect(err).To(BeNil())
 		})
 
 		It("Should return an error because dice is larger than one", func() {
-			var sampleSpace []operation
-			sampleSpace = append(sampleSpace, operation{
-				probability: 0.2,
-			})
-			sampleSpace = append(sampleSpace, operation{
-				probability: 0.3,
-			})
+			sampleSpace := getNewTestSampleSpace()
 			_, err := getRandomOperationFromSampleSpace(sampleSpace, 1.1)
 			expectedError := &GenericError{"SampleSpaceSumBelowOneError", "Sum of all probabilities is less than one."}
 			Expect(err).To(Not(BeNil()))
