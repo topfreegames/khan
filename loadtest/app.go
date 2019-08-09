@@ -42,7 +42,9 @@ func (app *App) configure(configFile, sharedClansFile string) {
 func (app *App) setConfigurationDefaults() {
 	app.config.SetDefault("loadtest.requests.amount", 0)
 	app.config.SetDefault("loadtest.requests.period.ms", 0)
+	app.setPlayerConfigurationDefaults()
 	app.setClanConfigurationDefaults()
+	app.setMembershipConfigurationDefaults()
 }
 
 func (app *App) loadConfiguration(configFile string) {
@@ -67,7 +69,9 @@ func (app *App) loadConfiguration(configFile string) {
 }
 
 func (app *App) configureOperations() {
+	app.configurePlayerOperations()
 	app.configureClanOperations()
+	app.configureMembershipOperations()
 }
 
 func (app *App) configureCache(sharedClansFile string) {
@@ -172,4 +176,8 @@ func (app *App) appendOperation(op operation) {
 func (app *App) getOperationProbabilityConfig(operation string) float64 {
 	key := fmt.Sprintf("loadtest.operations.%s.probability", operation)
 	return app.config.GetFloat64(key)
+}
+
+func (app *App) loadSharedClansMembers() error {
+	return app.cache.loadSharedClansMembers(app.client)
 }

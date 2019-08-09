@@ -92,6 +92,11 @@ type ShortPlayerInfo struct {
 	Metadata interface{} `json:"metadata"`
 }
 
+// ClanMembers is used to unmarshal the response payload for clan members route
+type ClanMembers struct {
+	Members []string `json:"members"`
+}
+
 // ClanSummary defines the clan summary
 type ClanSummary struct {
 	PublicID         string      `json:"publicID"`

@@ -15,6 +15,7 @@ type KhanInterface interface {
 	PromoteDemote(context.Context, *PromoteDemotePayload) (*Result, error)
 	RetrieveClan(context.Context, string) (*Clan, error)
 	RetrieveClansSummary(context.Context, []string) ([]*ClanSummary, error)
+	RetrieveClanMembers(context.Context, string) (*ClanMembers, error)
 	RetrieveClanSummary(context.Context, string) (*ClanSummary, error)
 	RetrievePlayer(context.Context, string) (*Player, error)
 	TransferOwnership(context.Context, string, string) (*TransferOwnershipResult, error)
