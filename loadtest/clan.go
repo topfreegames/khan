@@ -9,9 +9,9 @@ func (app *App) configureClanOperations() {
 	app.appendOperation(app.getRetrieveClanOperation())
 }
 
-func (app *App) getRetrieveClanOperation() Operation {
+func (app *App) getRetrieveClanOperation() operation {
 	operationKey := "retrieveClan"
-	return Operation{
+	return operation{
 		probability: app.getOperationProbabilityConfig(operationKey),
 		canExecute: func() (bool, error) {
 			count, err := app.cache.getSharedClansCount()

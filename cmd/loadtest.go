@@ -40,6 +40,6 @@ func init() {
 		&sharedClansFile,
 		"clans",
 		"./config/loadTestSharedClans.yaml",
-		"shared clans list for load test (default is ./config/loadTestSharedClans.yaml)",
+		"shared clans list for load test",
 	)
 }

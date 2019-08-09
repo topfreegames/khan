@@ -18,7 +18,7 @@ type App struct {
 	logger     zap.Logger
 	cache      cache
 	client     lib.KhanInterface
-	operations []Operation
+	operations []operation
 }
 
 // GetApp returns a new app
@@ -117,17 +117,17 @@ func (app *App) performOperation() error {
 	return nil
 }
 
-func (app *App) getRandomOperation() (Operation, error) {
+func (app *App) getRandomOperation() (operation, error) {
 	sampleSpace, err := app.getOperationSampleSpace()
 	if err != nil {
-		return Operation{}, err
+		return operation{}, err
 	}
 	return getRandomOperationFromSampleSpace(sampleSpace, -1)
 }
 
-func (app *App) getOperationSampleSpace() ([]Operation, error) {
+func (app *App) getOperationSampleSpace() ([]operation, error) {
 	var pSum float64
-	var sampleSpace []Operation
+	var sampleSpace []operation
 	for _, operation := range app.operations {
 		ok, err := operation.canExecute()
 		if err != nil {
@@ -145,13 +145,13 @@ func (app *App) getOperationSampleSpace() ([]Operation, error) {
 	return sampleSpace, nil
 }
 
-func normalizeSampleSpace(sampleSpace []Operation, pSum float64) {
+func normalizeSampleSpace(sampleSpace []operation, pSum float64) {
 	for i := range sampleSpace {
 		sampleSpace[i].probability /= pSum
 	}
 }
 
-func getRandomOperationFromSampleSpace(sampleSpace []Operation, dice float64) (Operation, error) {
+func getRandomOperationFromSampleSpace(sampleSpace []operation, dice float64) (operation, error) {
 	if dice < 0 {
 		dice = rand.Float64()
 	}
@@ -162,11 +162,11 @@ func getRandomOperationFromSampleSpace(sampleSpace []Operation, dice float64) (O
 			return operation, nil
 		}
 	}
-	return Operation{}, &GenericError{"SampleSpaceSumBelowOneError", "Sum of all probabilities is less than one."}
+	return operation{}, &GenericError{"SampleSpaceSumBelowOneError", "Sum of all probabilities is less than one."}
 }
 
-func (app *App) appendOperation(operation Operation) {
-	app.operations = append(app.operations, operation)
+func (app *App) appendOperation(op operation) {
+	app.operations = append(app.operations, op)
 }
 
 func (app *App) getOperationProbabilityConfig(operation string) float64 {

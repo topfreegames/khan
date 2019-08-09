@@ -9,8 +9,8 @@ var _ = Describe("Load Test Application", func() {
 	Describe("normalizeSampleSpace()", func() {
 		It("Should change slice contents", func() {
 			const pSum float64 = 0.5
-			var sampleSpace []Operation
-			sampleSpace = append(sampleSpace, Operation{
+			var sampleSpace []operation
+			sampleSpace = append(sampleSpace, operation{
 				probability: pSum,
 			})
 			normalizeSampleSpace(sampleSpace, pSum)
@@ -20,11 +20,11 @@ var _ = Describe("Load Test Application", func() {
 
 	Describe("getRandomOperationFromSampleSpace()", func() {
 		It("Should return first operation", func() {
-			var sampleSpace []Operation
-			sampleSpace = append(sampleSpace, Operation{
+			var sampleSpace []operation
+			sampleSpace = append(sampleSpace, operation{
 				probability: 0.2,
 			})
-			sampleSpace = append(sampleSpace, Operation{
+			sampleSpace = append(sampleSpace, operation{
 				probability: 0.3,
 			})
 			operation, err := getRandomOperationFromSampleSpace(sampleSpace, 0.15)
@@ -33,11 +33,11 @@ var _ = Describe("Load Test Application", func() {
 		})
 
 		It("Should return second operation", func() {
-			var sampleSpace []Operation
-			sampleSpace = append(sampleSpace, Operation{
+			var sampleSpace []operation
+			sampleSpace = append(sampleSpace, operation{
 				probability: 0.2,
 			})
-			sampleSpace = append(sampleSpace, Operation{
+			sampleSpace = append(sampleSpace, operation{
 				probability: 0.3,
 			})
 			operation, err := getRandomOperationFromSampleSpace(sampleSpace, 0.25)
@@ -46,11 +46,11 @@ var _ = Describe("Load Test Application", func() {
 		})
 
 		It("Should return last operation", func() {
-			var sampleSpace []Operation
-			sampleSpace = append(sampleSpace, Operation{
+			var sampleSpace []operation
+			sampleSpace = append(sampleSpace, operation{
 				probability: 0.2,
 			})
-			sampleSpace = append(sampleSpace, Operation{
+			sampleSpace = append(sampleSpace, operation{
 				probability: 0.3,
 			})
 			operation, err := getRandomOperationFromSampleSpace(sampleSpace, 0.5)
@@ -59,11 +59,11 @@ var _ = Describe("Load Test Application", func() {
 		})
 
 		It("Should return an error because dice is larger than one", func() {
-			var sampleSpace []Operation
-			sampleSpace = append(sampleSpace, Operation{
+			var sampleSpace []operation
+			sampleSpace = append(sampleSpace, operation{
 				probability: 0.2,
 			})
-			sampleSpace = append(sampleSpace, Operation{
+			sampleSpace = append(sampleSpace, operation{
 				probability: 0.3,
 			})
 			_, err := getRandomOperationFromSampleSpace(sampleSpace, 1.1)
