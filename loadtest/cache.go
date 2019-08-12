@@ -90,7 +90,7 @@ func (c *cacheImpl) chooseRandomFreePlayer() (string, error) {
 	if count > 0 {
 		return c.freePlayers.Get(rand.Intn(count))
 	}
-	return "", &GenericError{"NoFreePlayersError", "Cant choose free player from empty set."}
+	return "", &GenericError{"NoFreePlayersError", "Cannot choose free player from empty set."}
 }
 
 func (c *cacheImpl) addFreePlayer(playerPublicID string) error {
