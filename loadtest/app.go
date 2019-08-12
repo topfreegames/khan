@@ -126,7 +126,7 @@ func (app *App) getRandomOperation() (operation, error) {
 	if err != nil {
 		return operation{}, err
 	}
-	return getRandomOperationFromSampleSpace(sampleSpace, -1)
+	return getRandomOperationFromSampleSpace(sampleSpace, -1), nil
 }
 
 func (app *App) getOperationSampleSpace() ([]operation, error) {
@@ -155,7 +155,7 @@ func normalizeSampleSpace(sampleSpace []operation, pSum float64) {
 	}
 }
 
-func getRandomOperationFromSampleSpace(sampleSpace []operation, dice float64) (operation, error) {
+func getRandomOperationFromSampleSpace(sampleSpace []operation, dice float64) operation {
 	if dice < 0 {
 		dice = rand.Float64()
 	}
@@ -163,10 +163,10 @@ func getRandomOperationFromSampleSpace(sampleSpace []operation, dice float64) (o
 	for _, operation := range sampleSpace {
 		pSum += operation.probability
 		if dice <= pSum {
-			return operation, nil
+			return operation
 		}
 	}
-	return operation{}, &GenericError{"SampleSpaceSumBelowOneError", "Sum of all probabilities is less than one."}
+	return sampleSpace[0]
 }
 
 func (app *App) appendOperation(op operation) {
