@@ -77,6 +77,15 @@ func (d *UnorderedStringMap) GetKey(idx int) (string, error) {
 	}
 }
 
+// GetValue returns the interface{} content at the specified integer index
+func (d *UnorderedStringMap) GetValue(idx int) (interface{}, error) {
+	key, err := d.GetKey(idx)
+	if err != nil {
+		return nil, err
+	}
+	return d.stringToInt[key].content, nil
+}
+
 // Has returns a boolean telling whether a string is in the key space or not
 func (d *UnorderedStringMap) Has(key string) bool {
 	_, ok := d.stringToInt[key]

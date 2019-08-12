@@ -97,7 +97,7 @@ func (app *App) getCreateClanOperation() operation {
 			if err != nil {
 				return err
 			}
-			return app.cache.bindPlayer(playerPublicID, clanPublicID)
+			return app.cache.addClanAndOwner(clanPublicID, playerPublicID)
 		},
 	}
 }
@@ -107,10 +107,28 @@ func (app *App) getLeaveClanOperation() operation {
 	return operation{
 		probability: app.getOperationProbabilityConfig(operationKey),
 		canExecute: func() (bool, error) {
-			return true, nil
+			count, err := app.cache.getOwnerPlayersCount()
+			if err != nil {
+				return false, err
+			}
+			return count > 0, nil
 		},
 		execute: func() error {
-			return nil
+			clanPublicID, err := app.cache.chooseRandomClan()
+			if err != nil {
+				return err
+			}
+
+			res, err := app.client.LeaveClan(nil, clanPublicID)
+			if err != nil {
+				return err
+			}
+			oldOwnerPublicID := res.PreviousOwner.PublicID
+			newOwnerPublicID := ""
+			if res.NewOwner != nil {
+				newOwnerPublicID = res.NewOwner.PublicID
+			}
+			return app.cache.leaveClan(clanPublicID, oldOwnerPublicID, newOwnerPublicID)
 		},
 	}
 }

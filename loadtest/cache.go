@@ -14,8 +14,11 @@ type (
 		chooseRandomSharedClanAndPlayer() (string, string, error)
 		getFreePlayersCount() (int, error)
 		chooseRandomFreePlayer() (string, error)
+		getOwnerPlayersCount() (int, error)
+		chooseRandomClan() (string, error)
 		addFreePlayer(string) error
-		bindPlayer(string, string) error
+		addClanAndOwner(string, string) error
+		leaveClan(string, string, string) error
 	}
 
 	sharedClan struct {
@@ -24,9 +27,10 @@ type (
 	}
 
 	cacheImpl struct {
-		sharedClans  []sharedClan
-		freePlayers  *UnorderedStringMap
-		boundPlayers *UnorderedStringMap
+		sharedClans   []sharedClan
+		freePlayers   *UnorderedStringMap
+		ownerPlayers  *UnorderedStringMap
+		memberPlayers *UnorderedStringMap
 	}
 )
 
@@ -39,8 +43,9 @@ func getCacheImpl(config *viper.Viper, sharedClansFile string) (*cacheImpl, erro
 		return nil, err
 	}
 	c := &cacheImpl{
-		freePlayers:  NewUnorderedStringMap(),
-		boundPlayers: NewUnorderedStringMap(),
+		freePlayers:   NewUnorderedStringMap(),
+		ownerPlayers:  NewUnorderedStringMap(),
+		memberPlayers: NewUnorderedStringMap(),
 	}
 	for _, clanPublicID := range sharedClansConfig.GetStringSlice("clans") {
 		c.sharedClans = append(c.sharedClans, sharedClan{
@@ -93,13 +98,39 @@ func (c *cacheImpl) chooseRandomFreePlayer() (string, error) {
 	return "", &GenericError{"NoFreePlayersError", "Cannot choose free player from empty set."}
 }
 
+func (c *cacheImpl) getOwnerPlayersCount() (int, error) {
+	return c.ownerPlayers.Len(), nil
+}
+
+func (c *cacheImpl) chooseRandomClan() (string, error) {
+	count := c.ownerPlayers.Len()
+	if count > 0 {
+		clanPublicID, err := c.ownerPlayers.GetValue(rand.Intn(count))
+		if err != nil {
+			return "", err
+		}
+		return clanPublicID.(string), nil
+	}
+	return "", &GenericError{"NoClansError", "Cannot choose clan from empty set."}
+}
+
 func (c *cacheImpl) addFreePlayer(playerPublicID string) error {
 	c.freePlayers.Set(playerPublicID, nil)
 	return nil
 }
 
-func (c *cacheImpl) bindPlayer(playerPublicID, clanPublicID string) error {
+func (c *cacheImpl) addClanAndOwner(clanPublicID, playerPublicID string) error {
 	c.freePlayers.Remove(playerPublicID)
-	c.boundPlayers.Set(playerPublicID, nil)
+	c.ownerPlayers.Set(playerPublicID, clanPublicID)
+	return nil
+}
+
+func (c *cacheImpl) leaveClan(clanPublicID, oldOnwerPublicID, newOwnerPublicID string) error {
+	c.ownerPlayers.Remove(oldOnwerPublicID)
+	c.freePlayers.Set(oldOnwerPublicID, nil)
+	if newOwnerPublicID != "" {
+		c.memberPlayers.Remove(newOwnerPublicID)
+		c.ownerPlayers.Set(newOwnerPublicID, clanPublicID)
+	}
 	return nil
 }
