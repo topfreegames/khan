@@ -37,7 +37,3 @@ func getMetadataWithRandomScore() map[string]interface{} {
 		"score": getRandomScore(),
 	}
 }
-
-func getRandomBool() bool {
-	return rand.Intn(2) == 1
-}

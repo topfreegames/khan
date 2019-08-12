@@ -3,6 +3,20 @@ Load Test for Khan API
 
 This application performs a specified amount of sequential requests to a remote Khan API server, with a specified time period between two consecutive requests. Usage: `../khan loadtest --help`
 
+# Game parameters
+Khan does not offer a route to get game information, so the maximum number of members per clan and the membership level for application are defined under the key `loadtest` within `../config/local.yaml`:
+```
+loadtest:
+  game:
+    maxMembers: 50
+    membershipLevel: "member"
+```
+Or setting the following environment variables:
+```
+KHAN_LOADTEST_GAME_MAXMEMBERS (default: 0)
+KHAN_LOADTEST_GAME_MEMBERSHIPLEVEL (default: "")
+```
+
 # Request parameters
 Both amount and period are defined under the key `loadtest` within `../config/local.yaml`:
 ```
@@ -14,8 +28,8 @@ loadtest:
 ```
 Or setting the following environment variables:
 ```
-KHAN_LOADTEST_REQUESTS_AMOUNT (default: 1)
-KHAN_LOADTEST_REQUESTS_PERIOD_MS (default: 1)
+KHAN_LOADTEST_REQUESTS_AMOUNT (default: 0)
+KHAN_LOADTEST_REQUESTS_PERIOD_MS (default: 0)
 ```
 
 # Request operations

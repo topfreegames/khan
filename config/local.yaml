@@ -54,6 +54,9 @@ extensions:
     rate: 1
 
 loadtest:
+  game:
+    maxMembers: 50
+    membershipLevel: "member"
   requests:
     amount: 1
     period:
@@ -66,4 +69,6 @@ loadtest:
     createClan:
       probability: 0.01
     leaveClan:
+      probability: 0.01
+    applyForMembership:
       probability: 0.01

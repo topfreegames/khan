@@ -25,11 +25,6 @@ func (app *App) getUpdateSharedClanScoreOperation() operation {
 			return count > 0, nil
 		},
 		execute: func() error {
-			err := app.loadSharedClansMembers() // cached
-			if err != nil {
-				return err
-			}
-
 			clanPublicID, playerPublicID, err := app.cache.chooseRandomSharedClanAndPlayer()
 			if err != nil {
 				return err
@@ -91,13 +86,13 @@ func (app *App) getCreateClanOperation() operation {
 				Name:             getRandomClanName(),
 				OwnerPublicID:    playerPublicID,
 				Metadata:         getMetadataWithRandomScore(),
-				AllowApplication: getRandomBool(),
-				AutoJoin:         getRandomBool(),
+				AllowApplication: true,
+				AutoJoin:         true,
 			})
 			if err != nil {
 				return err
 			}
-			return app.cache.addClanAndOwner(clanPublicID, playerPublicID)
+			return app.cache.createClan(clanPublicID, playerPublicID)
 		},
 	}
 }

@@ -20,7 +20,7 @@ func (app *App) getCreatePlayerOperation() operation {
 			if err != nil {
 				return err
 			}
-			return app.cache.addFreePlayer(playerPublicID)
+			return app.cache.createPlayer(playerPublicID)
 		},
 	}
 }

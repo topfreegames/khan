@@ -42,6 +42,8 @@ func (app *App) configure(configFile, sharedClansFile string) {
 func (app *App) setConfigurationDefaults() {
 	app.config.SetDefault("loadtest.requests.amount", 0)
 	app.config.SetDefault("loadtest.requests.period.ms", 0)
+	app.config.SetDefault("loadtest.game.maxMembers", 0)
+	app.config.SetDefault("loadtest.game.membershipLevel", "")
 	app.setPlayerConfigurationDefaults()
 	app.setClanConfigurationDefaults()
 	app.setMembershipConfigurationDefaults()
@@ -94,6 +96,9 @@ func (app *App) configureClient() {
 
 // Run executes the load test suite
 func (app *App) Run() error {
+	if err := app.cache.loadInitialData(app.client); err != nil {
+		return err
+	}
 	nRequests := app.config.GetInt("loadtest.requests.amount")
 	periodMs := app.config.GetInt("loadtest.requests.period.ms")
 	for i := 0; i < nRequests; i++ {
@@ -171,8 +176,4 @@ func (app *App) appendOperation(op operation) {
 func (app *App) getOperationProbabilityConfig(operation string) float64 {
 	key := fmt.Sprintf("loadtest.operations.%s.probability", operation)
 	return app.config.GetFloat64(key)
-}
-
-func (app *App) loadSharedClansMembers() error {
-	return app.cache.loadSharedClansMembers(app.client)
 }

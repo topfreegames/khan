@@ -9,16 +9,19 @@ import (
 
 type (
 	cache interface {
-		loadSharedClansMembers(lib.KhanInterface) error
+		loadInitialData(lib.KhanInterface) error
 		getSharedClansCount() (int, error)
 		chooseRandomSharedClanAndPlayer() (string, string, error)
 		getFreePlayersCount() (int, error)
 		chooseRandomFreePlayer() (string, error)
 		getOwnerPlayersCount() (int, error)
 		chooseRandomClan() (string, error)
-		addFreePlayer(string) error
-		addClanAndOwner(string, string) error
+		getNotFullClansCount() (int, error)
+		chooseRandomNotFullClan() (string, error)
+		createPlayer(string) error
+		createClan(string, string) error
 		leaveClan(string, string, string) error
+		applyForMembership(string, string) error
 	}
 
 	sharedClan struct {
@@ -27,14 +30,27 @@ type (
 	}
 
 	cacheImpl struct {
-		sharedClans   []sharedClan
-		freePlayers   *UnorderedStringMap
-		ownerPlayers  *UnorderedStringMap
-		memberPlayers *UnorderedStringMap
+		gameMaxMembers int
+		sharedClans    []sharedClan
+		freePlayers    *UnorderedStringMap
+		ownerPlayers   *UnorderedStringMap
+		memberPlayers  *UnorderedStringMap
+		fullClans      *UnorderedStringMap
+		notFullClans   *UnorderedStringMap
 	}
 )
 
 func getCacheImpl(config *viper.Viper, sharedClansFile string) (*cacheImpl, error) {
+	c := &cacheImpl{
+		gameMaxMembers: config.GetInt("loadtest.game.maxMembers"),
+		freePlayers:    NewUnorderedStringMap(),
+		ownerPlayers:   NewUnorderedStringMap(),
+		memberPlayers:  NewUnorderedStringMap(),
+		fullClans:      NewUnorderedStringMap(),
+		notFullClans:   NewUnorderedStringMap(),
+	}
+
+	// shared clans config
 	sharedClansConfig := viper.New()
 	sharedClansConfig.SetConfigType("yaml")
 	sharedClansConfig.SetConfigFile(sharedClansFile)
@@ -42,17 +58,20 @@ func getCacheImpl(config *viper.Viper, sharedClansFile string) (*cacheImpl, erro
 	if err := sharedClansConfig.ReadInConfig(); err != nil {
 		return nil, err
 	}
-	c := &cacheImpl{
-		freePlayers:   NewUnorderedStringMap(),
-		ownerPlayers:  NewUnorderedStringMap(),
-		memberPlayers: NewUnorderedStringMap(),
-	}
 	for _, clanPublicID := range sharedClansConfig.GetStringSlice("clans") {
 		c.sharedClans = append(c.sharedClans, sharedClan{
 			publicID: clanPublicID,
 		})
 	}
+
 	return c, nil
+}
+
+func (c *cacheImpl) loadInitialData(client lib.KhanInterface) error {
+	if err := c.loadSharedClansMembers(client); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (c *cacheImpl) loadSharedClansMembers(client lib.KhanInterface) error {
@@ -114,23 +133,73 @@ func (c *cacheImpl) chooseRandomClan() (string, error) {
 	return "", &GenericError{"NoClansError", "Cannot choose clan from empty set."}
 }
 
-func (c *cacheImpl) addFreePlayer(playerPublicID string) error {
+func (c *cacheImpl) getNotFullClansCount() (int, error) {
+	return c.notFullClans.Len(), nil
+}
+
+func (c *cacheImpl) chooseRandomNotFullClan() (string, error) {
+	count := c.notFullClans.Len()
+	if count > 0 {
+		return c.notFullClans.GetKey(rand.Intn(count))
+	}
+	return "", &GenericError{"NoNotFullClansError", "Cannot choose not full clan from empty set."}
+}
+
+func (c *cacheImpl) createPlayer(playerPublicID string) error {
 	c.freePlayers.Set(playerPublicID, nil)
 	return nil
 }
 
-func (c *cacheImpl) addClanAndOwner(clanPublicID, playerPublicID string) error {
+func (c *cacheImpl) createClan(clanPublicID, playerPublicID string) error {
 	c.freePlayers.Remove(playerPublicID)
 	c.ownerPlayers.Set(playerPublicID, clanPublicID)
+	c.incrementMembershipCount(clanPublicID)
 	return nil
 }
 
 func (c *cacheImpl) leaveClan(clanPublicID, oldOnwerPublicID, newOwnerPublicID string) error {
 	c.ownerPlayers.Remove(oldOnwerPublicID)
 	c.freePlayers.Set(oldOnwerPublicID, nil)
+	c.decrementMembershipCount(clanPublicID)
 	if newOwnerPublicID != "" {
 		c.memberPlayers.Remove(newOwnerPublicID)
 		c.ownerPlayers.Set(newOwnerPublicID, clanPublicID)
 	}
 	return nil
+}
+
+func (c *cacheImpl) applyForMembership(clanPublicID, playerPublicID string) error {
+	c.freePlayers.Remove(playerPublicID)
+	c.memberPlayers.Set(playerPublicID, clanPublicID)
+	c.incrementMembershipCount(clanPublicID)
+	return nil
+}
+
+func (c *cacheImpl) incrementMembershipCount(clanPublicID string) {
+	if !c.notFullClans.Has(clanPublicID) {
+		c.notFullClans.Set(clanPublicID, 1)
+	} else {
+		count := c.notFullClans.Get(clanPublicID).(int) + 1
+		if count < c.gameMaxMembers {
+			c.notFullClans.Set(clanPublicID, count)
+		} else {
+			c.notFullClans.Remove(clanPublicID)
+			c.fullClans.Set(clanPublicID, count)
+		}
+	}
+}
+
+func (c *cacheImpl) decrementMembershipCount(clanPublicID string) {
+	if c.fullClans.Has(clanPublicID) {
+		count := c.fullClans.Get(clanPublicID).(int) - 1
+		c.fullClans.Remove(clanPublicID)
+		c.notFullClans.Set(clanPublicID, count)
+	} else {
+		count := c.notFullClans.Get(clanPublicID).(int) - 1
+		if count == 0 {
+			c.notFullClans.Remove(clanPublicID)
+		} else {
+			c.notFullClans.Set(clanPublicID, count)
+		}
+	}
 }
