@@ -11,11 +11,11 @@ func getRandomScore() int {
 }
 
 func getRandomPlayerName() string {
-	return "playerName"
+	return "PlayerName"
 }
 
 func getRandomClanName() string {
-	return "clanName"
+	return "ClanName"
 }
 
 func getRandomPublicID() string {
