@@ -82,10 +82,9 @@ func (app *App) configureCache(sharedClansFile string) {
 			zap.String("source", "loadtest/app"),
 			zap.String("operation", "configureCache"),
 			zap.String("sharedClansFile", sharedClansFile),
+			zap.String("error", err.Error()),
 		)
-		log.P(l, "Error reading shared clans config.", func(cm log.CM) {
-			cm.Write(zap.String("error", err.Error()))
-		})
+		log.P(l, "Error reading shared clans config.")
 	}
 }
 
