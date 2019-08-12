@@ -32,31 +32,26 @@ var _ = Describe("Load Test Application", func() {
 	Describe("getRandomOperationFromSampleSpace()", func() {
 		It("Should return first operation", func() {
 			sampleSpace := getNewTestSampleSpace()
-			operation, err := getRandomOperationFromSampleSpace(sampleSpace, 0.15)
+			operation := getRandomOperationFromSampleSpace(sampleSpace, 0.15)
 			Expect(operation.probability).To(Equal(sampleSpace[0].probability))
-			Expect(err).To(BeNil())
 		})
 
 		It("Should return second operation", func() {
 			sampleSpace := getNewTestSampleSpace()
-			operation, err := getRandomOperationFromSampleSpace(sampleSpace, 0.25)
+			operation := getRandomOperationFromSampleSpace(sampleSpace, 0.25)
 			Expect(operation.probability).To(Equal(sampleSpace[1].probability))
-			Expect(err).To(BeNil())
 		})
 
 		It("Should return last operation", func() {
 			sampleSpace := getNewTestSampleSpace()
-			operation, err := getRandomOperationFromSampleSpace(sampleSpace, 0.5)
+			operation := getRandomOperationFromSampleSpace(sampleSpace, 0.5)
 			Expect(operation.probability).To(Equal(sampleSpace[1].probability))
-			Expect(err).To(BeNil())
 		})
 
-		It("Should return an error because dice is larger than one", func() {
+		It("Should return the first operation because dice is larger than one", func() {
 			sampleSpace := getNewTestSampleSpace()
-			_, err := getRandomOperationFromSampleSpace(sampleSpace, 1.1)
-			expectedError := &GenericError{"SampleSpaceSumBelowOneError", "Sum of all probabilities is less than one."}
-			Expect(err).To(Not(BeNil()))
-			Expect(err.Error()).To(Equal(expectedError.Error()))
+			operation := getRandomOperationFromSampleSpace(sampleSpace, 1.1)
+			Expect(operation.probability).To(Equal(sampleSpace[0].probability))
 		})
 	})
 })
