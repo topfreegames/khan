@@ -7,7 +7,7 @@ type unorderedStringMapValue struct {
 	content interface{}
 }
 
-// UnorderedStringMap represents a map from strings to interface{}s that can be looped using zero-based indexes with order based on previously executed set/remove operations
+// UnorderedStringMap represents a map from strings to interface{}s that can be looped using zero-based indexes with order based on previously executed Set/Remove operations
 type UnorderedStringMap struct {
 	stringToInt map[string]unorderedStringMapValue
 	intToString []string
@@ -30,12 +30,23 @@ func NewUnorderedStringMap() *UnorderedStringMap {
 	}
 }
 
+// Get returns the interface{} content for a key
+func (d *UnorderedStringMap) Get(key string) interface{} {
+	value, ok := d.stringToInt[key]
+	if ok {
+		return value.content
+	}
+	return nil
+}
+
 // Set maps a string to a value
-func (d *UnorderedStringMap) Set(key string, value interface{}) {
-	if _, ok := d.stringToInt[key]; !ok {
+func (d *UnorderedStringMap) Set(key string, content interface{}) {
+	if value, ok := d.stringToInt[key]; !ok {
 		idx := d.Len()
-		d.stringToInt[key] = unorderedStringMapValue{idx, value}
+		d.stringToInt[key] = unorderedStringMapValue{idx, content}
 		d.intToString = append(d.intToString, key)
+	} else {
+		d.stringToInt[key] = unorderedStringMapValue{value.index, content}
 	}
 }
 
@@ -67,7 +78,7 @@ func (d *UnorderedStringMap) GetKey(idx int) (string, error) {
 }
 
 // Has returns a boolean telling whether a string is in the key space or not
-func (d *UnorderedStringMap) Has(str string) bool {
-	_, ok := d.stringToInt[str]
+func (d *UnorderedStringMap) Has(key string) bool {
+	_, ok := d.stringToInt[key]
 	return ok
 }
