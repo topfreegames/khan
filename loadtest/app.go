@@ -144,14 +144,10 @@ func (app *App) getOperationSampleSpace() ([]operation, error) {
 	if pSum <= 0 {
 		return nil, &GenericError{"NoOperationsAvailableError", "No operations can be executed anymore."}
 	}
-	normalizeSampleSpace(sampleSpace, pSum)
-	return sampleSpace, nil
-}
-
-func normalizeSampleSpace(sampleSpace []operation, pSum float64) {
 	for i := range sampleSpace {
 		sampleSpace[i].probability /= pSum
 	}
+	return sampleSpace, nil
 }
 
 func getRandomOperationFromSampleSpace(sampleSpace []operation, dice float64) operation {

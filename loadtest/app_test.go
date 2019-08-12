@@ -17,18 +17,6 @@ func getNewTestSampleSpace() []operation {
 }
 
 var _ = Describe("Load Test Application", func() {
-	Describe("normalizeSampleSpace()", func() {
-		It("Should change slice contents", func() {
-			const pSum float64 = 0.5
-			var sampleSpace []operation
-			sampleSpace = append(sampleSpace, operation{
-				probability: pSum,
-			})
-			normalizeSampleSpace(sampleSpace, pSum)
-			Expect(sampleSpace[0].probability).To(Equal(1.0))
-		})
-	})
-
 	Describe("getRandomOperationFromSampleSpace()", func() {
 		It("Should return first operation", func() {
 			sampleSpace := getNewTestSampleSpace()
