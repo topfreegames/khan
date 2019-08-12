@@ -25,8 +25,8 @@ type (
 
 	cacheImpl struct {
 		sharedClans  []sharedClan
-		freePlayers  *DynamicStringSet
-		boundPlayers *DynamicStringSet
+		freePlayers  *UnorderedStringMap
+		boundPlayers *UnorderedStringMap
 	}
 )
 
@@ -39,8 +39,8 @@ func getCacheImpl(config *viper.Viper, sharedClansFile string) (*cacheImpl, erro
 		return nil, err
 	}
 	c := &cacheImpl{
-		freePlayers:  NewDynamicStringSet(),
-		boundPlayers: NewDynamicStringSet(),
+		freePlayers:  NewUnorderedStringMap(),
+		boundPlayers: NewUnorderedStringMap(),
 	}
 	for _, clanPublicID := range sharedClansConfig.GetStringSlice("clans") {
 		c.sharedClans = append(c.sharedClans, sharedClan{
@@ -88,18 +88,18 @@ func (c *cacheImpl) getFreePlayersCount() (int, error) {
 func (c *cacheImpl) chooseRandomFreePlayer() (string, error) {
 	count := c.freePlayers.Len()
 	if count > 0 {
-		return c.freePlayers.Get(rand.Intn(count))
+		return c.freePlayers.GetKey(rand.Intn(count))
 	}
 	return "", &GenericError{"NoFreePlayersError", "Cannot choose free player from empty set."}
 }
 
 func (c *cacheImpl) addFreePlayer(playerPublicID string) error {
-	c.freePlayers.AddString(playerPublicID)
+	c.freePlayers.Set(playerPublicID, nil)
 	return nil
 }
 
 func (c *cacheImpl) bindPlayer(playerPublicID, clanPublicID string) error {
-	c.freePlayers.RemoveString(playerPublicID)
-	c.boundPlayers.AddString(playerPublicID)
+	c.freePlayers.Remove(playerPublicID)
+	c.boundPlayers.Set(playerPublicID, nil)
 	return nil
 }

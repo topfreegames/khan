@@ -10,6 +10,7 @@ func (app *App) setClanConfigurationDefaults() {
 func (app *App) configureClanOperations() {
 	app.appendOperation(app.getUpdateSharedClanScoreOperation())
 	app.appendOperation(app.getCreateClanOperation())
+	app.appendOperation(app.getLeaveClanOperation())
 }
 
 func (app *App) getUpdateSharedClanScoreOperation() operation {
@@ -97,6 +98,19 @@ func (app *App) getCreateClanOperation() operation {
 				return err
 			}
 			return app.cache.bindPlayer(playerPublicID, clanPublicID)
+		},
+	}
+}
+
+func (app *App) getLeaveClanOperation() operation {
+	operationKey := "leaveClan"
+	return operation{
+		probability: app.getOperationProbabilityConfig(operationKey),
+		canExecute: func() (bool, error) {
+			return true, nil
+		},
+		execute: func() error {
+			return nil
 		},
 	}
 }

@@ -65,3 +65,5 @@ loadtest:
       probability: 0.01
     createClan:
       probability: 0.01
+    leaveClan:
+      probability: 0.01
