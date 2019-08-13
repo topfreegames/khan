@@ -47,7 +47,7 @@ You can use environment variables to override configuration keys.`,
 			zap.String("source", "loadtestCmd"),
 			zap.String("operation", "Run"),
 		)
-		log.I(l, "Application exited without errors.")
+		log.I(l, "Application exited.")
 	},
 }
 
