@@ -72,3 +72,5 @@ loadtest:
       probability: 0.01
     applyForMembership:
       probability: 0.01
+    selfDeleteMembership:
+      probability: 0.01

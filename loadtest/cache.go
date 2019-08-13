@@ -18,10 +18,13 @@ type (
 		chooseRandomClan() (string, error)
 		getNotFullClansCount() (int, error)
 		chooseRandomNotFullClan() (string, error)
+		getMemberPlayersCount() (int, error)
+		chooseRandomMemberPlayerAndClan() (string, string, error)
 		createPlayer(string) error
 		createClan(string, string) error
 		leaveClan(string, string, string) error
 		applyForMembership(string, string) error
+		deleteMembership(string, string) error
 	}
 
 	sharedClan struct {
@@ -87,11 +90,17 @@ func (c *cacheImpl) loadSharedClansMembers(client lib.KhanInterface) error {
 }
 
 func (c *cacheImpl) loadSharedClanMembers(client lib.KhanInterface, clanIdx int) error {
-	membersPayload, err := client.RetrieveClanMembers(nil, c.sharedClans[clanIdx].publicID)
+	clanMembers, err := client.RetrieveClanMembers(nil, c.sharedClans[clanIdx].publicID)
 	if err != nil {
 		return err
 	}
-	c.sharedClans[clanIdx].membersPublicIDs = membersPayload.Members
+	if clanMembers == nil {
+		return &GenericError{"NilPayloadError", "Operation retrieveClanMembers returned no error with nil payload."}
+	}
+	if len(clanMembers.Members) == 0 {
+		return &GenericError{"EmptyClanError", "Operation retrieveClanMembers returned no error with empty clan."}
+	}
+	c.sharedClans[clanIdx].membersPublicIDs = clanMembers.Members
 	return nil
 }
 
@@ -145,6 +154,27 @@ func (c *cacheImpl) chooseRandomNotFullClan() (string, error) {
 	return "", &GenericError{"NoNotFullClansError", "Cannot choose not full clan from empty set."}
 }
 
+func (c *cacheImpl) getMemberPlayersCount() (int, error) {
+	return c.memberPlayers.Len(), nil
+}
+
+func (c *cacheImpl) chooseRandomMemberPlayerAndClan() (string, string, error) {
+	count := c.memberPlayers.Len()
+	if count > 0 {
+		idx := rand.Intn(count)
+		playerPublicID, err := c.memberPlayers.GetKey(idx)
+		if err != nil {
+			return "", "", err
+		}
+		clanPublicID, err := c.memberPlayers.GetValue(idx)
+		if err != nil {
+			return "", "", err
+		}
+		return playerPublicID, clanPublicID.(string), nil
+	}
+	return "", "", &GenericError{"NoMemberPlayersError", "Cannot choose member player from empty set."}
+}
+
 func (c *cacheImpl) createPlayer(playerPublicID string) error {
 	c.freePlayers.Set(playerPublicID, nil)
 	return nil
@@ -172,6 +202,13 @@ func (c *cacheImpl) applyForMembership(clanPublicID, playerPublicID string) erro
 	c.freePlayers.Remove(playerPublicID)
 	c.memberPlayers.Set(playerPublicID, clanPublicID)
 	c.incrementMembershipCount(clanPublicID)
+	return nil
+}
+
+func (c *cacheImpl) deleteMembership(clanPublicID, playerPublicID string) error {
+	c.memberPlayers.Remove(playerPublicID)
+	c.freePlayers.Set(playerPublicID, nil)
+	c.decrementMembershipCount(clanPublicID)
 	return nil
 }
 

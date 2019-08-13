@@ -31,15 +31,27 @@ func (app *App) getUpdateSharedClanScoreOperation() operation {
 			}
 
 			// updatePlayer
-			_, err = app.client.UpdatePlayer(nil, playerPublicID, getRandomPlayerName(), getMetadataWithRandomScore())
+			result, err := app.client.UpdatePlayer(nil, playerPublicID, getRandomPlayerName(), getMetadataWithRandomScore())
 			if err != nil {
 				return err
+			}
+			if result == nil {
+				return &GenericError{"NilPayloadError", "Operation updatePlayer returned no error with nil payload."}
+			}
+			if !result.Success {
+				return &GenericError{"FailurePayloadError", "Operation updatePlayer returned no error with failure payload."}
 			}
 
 			// getClan
 			clan, err := app.client.RetrieveClan(nil, clanPublicID)
 			if err != nil {
 				return err
+			}
+			if clan == nil {
+				return &GenericError{"NilPayloadError", "Operation retrieveClan returned no error with nil payload."}
+			}
+			if clan.PublicID != clanPublicID {
+				return &GenericError{"WrongPublicIDError", "Operation retrieveClan returned no error with public ID different from requested."}
 			}
 
 			// updateClan
@@ -50,7 +62,7 @@ func (app *App) getUpdateSharedClanScoreOperation() operation {
 			clanMetadata := map[string]interface{}{
 				"score": clanScore,
 			}
-			_, err = app.client.UpdateClan(nil, &lib.ClanPayload{
+			result, err = app.client.UpdateClan(nil, &lib.ClanPayload{
 				PublicID:         clan.PublicID,
 				Name:             clan.Name,
 				OwnerPublicID:    clan.Owner.PublicID,
@@ -58,7 +70,17 @@ func (app *App) getUpdateSharedClanScoreOperation() operation {
 				AllowApplication: clan.AllowApplication,
 				AutoJoin:         clan.AutoJoin,
 			})
-			return err
+			if err != nil {
+				return err
+			}
+			if result == nil {
+				return &GenericError{"NilPayloadError", "Operation updateClan returned no error with nil payload."}
+			}
+			if !result.Success {
+				return &GenericError{"FailurePayloadError", "Operation updateclan returned no error with failure payload."}
+			}
+
+			return nil
 		},
 	}
 }
@@ -81,7 +103,7 @@ func (app *App) getCreateClanOperation() operation {
 			}
 
 			clanPublicID := getRandomPublicID()
-			_, err = app.client.CreateClan(nil, &lib.ClanPayload{
+			createdPublicID, err := app.client.CreateClan(nil, &lib.ClanPayload{
 				PublicID:         clanPublicID,
 				Name:             getRandomClanName(),
 				OwnerPublicID:    playerPublicID,
@@ -92,6 +114,10 @@ func (app *App) getCreateClanOperation() operation {
 			if err != nil {
 				return err
 			}
+			if createdPublicID != clanPublicID {
+				return &GenericError{"WrongPublicIDError", "Operation createClan returned no error with public ID different from requested."}
+			}
+
 			return app.cache.createClan(clanPublicID, playerPublicID)
 		},
 	}
@@ -114,14 +140,18 @@ func (app *App) getLeaveClanOperation() operation {
 				return err
 			}
 
-			res, err := app.client.LeaveClan(nil, clanPublicID)
+			leaveClanResult, err := app.client.LeaveClan(nil, clanPublicID)
 			if err != nil {
 				return err
 			}
-			oldOwnerPublicID := res.PreviousOwner.PublicID
+			if leaveClanResult == nil {
+				return &GenericError{"NilPayloadError", "Operation leaveClan returned no error with nil payload."}
+			}
+
+			oldOwnerPublicID := leaveClanResult.PreviousOwner.PublicID
 			newOwnerPublicID := ""
-			if res.NewOwner != nil {
-				newOwnerPublicID = res.NewOwner.PublicID
+			if leaveClanResult.NewOwner != nil {
+				newOwnerPublicID = leaveClanResult.NewOwner.PublicID
 			}
 			return app.cache.leaveClan(clanPublicID, oldOwnerPublicID, newOwnerPublicID)
 		},

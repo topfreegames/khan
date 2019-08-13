@@ -16,10 +16,15 @@ func (app *App) getCreatePlayerOperation() operation {
 		},
 		execute: func() error {
 			playerPublicID := getRandomPublicID()
-			_, err := app.client.CreatePlayer(nil, playerPublicID, getRandomPlayerName(), getMetadataWithRandomScore())
+
+			createdPublicID, err := app.client.CreatePlayer(nil, playerPublicID, getRandomPlayerName(), getMetadataWithRandomScore())
 			if err != nil {
 				return err
 			}
+			if createdPublicID != playerPublicID {
+				return &GenericError{"WrongPublicIDError", "Operation createPlayer returned no error with public ID different from requested."}
+			}
+
 			return app.cache.createPlayer(playerPublicID)
 		},
 	}
