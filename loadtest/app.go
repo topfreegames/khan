@@ -186,7 +186,14 @@ func (app *App) appendOperation(op operation) {
 	app.operations = append(app.operations, op)
 }
 
+func (app *App) getOperationProbabilityConfigKey(operation string) string {
+	return fmt.Sprintf("loadtest.operations.%s.probability", operation)
+}
+
 func (app *App) getOperationProbabilityConfig(operation string) float64 {
-	key := fmt.Sprintf("loadtest.operations.%s.probability", operation)
-	return app.config.GetFloat64(key)
+	return app.config.GetFloat64(app.getOperationProbabilityConfigKey(operation))
+}
+
+func (app *App) setOperationProbabilityConfigDefault(operation string, probability float64) {
+	app.config.SetDefault(app.getOperationProbabilityConfigKey(operation), probability)
 }

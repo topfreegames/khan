@@ -45,19 +45,19 @@ loadtest:
     period:
       ms: 1
     updateSharedClanScore:
-      probability: 0.8
+      probability: 1
     createPlayer:
-      probability: 0.01
+      probability: 1
     createClan:
-      probability: 0.01
+      probability: 1
     leaveClan:
-      probability: 0.01
+      probability: 1
     transferClanOwnership:
-      probability: 0.01
+      probability: 1
     applyForMembership:
-      probability: 0.01
+      probability: 1
     selfDeleteMembership:
-      probability: 0.01
+      probability: 1
 ```
 Or setting the following environment variables:
 ```

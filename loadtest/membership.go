@@ -5,6 +5,8 @@ import (
 )
 
 func (app *App) setMembershipConfigurationDefaults() {
+	app.setOperationProbabilityConfigDefault("applyForMembership", 1)
+	app.setOperationProbabilityConfigDefault("selfDeleteMembership", 1)
 }
 
 func (app *App) configureMembershipOperations() {
