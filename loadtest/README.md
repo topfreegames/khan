@@ -1,7 +1,7 @@
 Load Test for Khan API
 ======================
 
-This application performs a random sequence with a specified amount of operations on a remote Khan API server, with a specified time period between two consecutive operations. It also allows multiple goroutines for local concurrency (multiple concurrent random sequences). Usage: `../khan loadtest --help`
+This application performs a random sequence of a specified amount of operations on a remote Khan API server, with a specified time period between two consecutive operations. It also allows multiple goroutines for local concurrency (multiple concurrent random sequences). Usage: `../khan loadtest --help`
 
 # Game parameters
 Khan does not offer a route to get game information, so the membership level for application and the maximum number of members per clan are defined under the key `loadtest.game` within `../config/local.yaml`:
