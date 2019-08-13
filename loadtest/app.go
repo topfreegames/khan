@@ -3,6 +3,7 @@ package loadtest
 import (
 	"fmt"
 	"math/rand"
+	"net/http"
 	"strings"
 	"time"
 
@@ -40,13 +41,16 @@ func (app *App) configure(configFile, sharedClansFile string) {
 }
 
 func (app *App) setConfigurationDefaults() {
-	app.config.SetDefault("loadtest.requests.amount", 0)
-	app.config.SetDefault("loadtest.requests.period.ms", 0)
-	app.config.SetDefault("loadtest.game.maxMembers", 0)
-	app.config.SetDefault("loadtest.game.membershipLevel", "")
 	app.setPlayerConfigurationDefaults()
 	app.setClanConfigurationDefaults()
 	app.setMembershipConfigurationDefaults()
+	app.setClientConfigurationDefaults()
+}
+
+func (app *App) setClientConfigurationDefaults() {
+	app.config.SetDefault("loadtest.client.timeout", 500*time.Millisecond)
+	app.config.SetDefault("loadtest.client.maxIdleConns", 100)
+	app.config.SetDefault("loadtest.client.maxIdleConnsPerHost", http.DefaultMaxIdleConnsPerHost)
 }
 
 func (app *App) loadConfiguration(configFile string) {
@@ -92,7 +96,15 @@ func (app *App) configureCache(sharedClansFile string) {
 }
 
 func (app *App) configureClient() {
-	app.client = lib.NewKhan(app.config)
+	app.client = lib.NewKhanWithParams(&lib.KhanParams{
+		Timeout:             app.config.GetDuration("loadtest.client.timeout"),
+		MaxIdleConns:        app.config.GetInt("loadtest.client.maxIdleConns"),
+		MaxIdleConnsPerHost: app.config.GetInt("loadtest.client.maxIdleConnsPerHost"),
+		URL:                 app.config.GetString("loadtest.client.url"),
+		User:                app.config.GetString("loadtest.client.user"),
+		Pass:                app.config.GetString("loadtest.client.pass"),
+		GameID:              app.config.GetString("loadtest.client.gameid"),
+	})
 }
 
 // Run executes the load test suite
@@ -100,14 +112,14 @@ func (app *App) Run() error {
 	if err := app.cache.loadInitialData(app.client); err != nil {
 		return err
 	}
-	nRequests := app.config.GetInt("loadtest.requests.amount")
-	periodMs := app.config.GetInt("loadtest.requests.period.ms")
-	for i := 0; i < nRequests; i++ {
+	nOperations := app.config.GetInt("loadtest.operations.amount")
+	periodMs := app.config.GetInt("loadtest.operations.period.ms")
+	for i := 0; i < nOperations; i++ {
 		err := app.performOperation()
 		if err != nil {
 			return err
 		}
-		if i+1 < nRequests {
+		if i+1 < nOperations {
 			time.Sleep(time.Duration(periodMs) * time.Millisecond)
 		}
 	}

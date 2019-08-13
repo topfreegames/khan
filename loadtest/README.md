@@ -1,64 +1,75 @@
 Load Test for Khan API
 ======================
 
-This application performs a specified amount of sequential requests to a remote Khan API server, with a specified time period between two consecutive requests. Usage: `../khan loadtest --help`
+This application performs a random sequence with a specified amount of operations on a remote Khan API server, with a specified time period between two consecutive operations. It also allows multiple goroutines for local concurrency (multiple concurrent random sequences). Usage: `../khan loadtest --help`
 
 # Game parameters
-Khan does not offer a route to get game information, so the maximum number of members per clan and the membership level for application are defined under the key `loadtest` within `../config/local.yaml`:
+Khan does not offer a route to get game information, so the membership level for application and the maximum number of members per clan are defined under the key `loadtest.game` within `../config/local.yaml`:
 ```
 loadtest:
   game:
-    maxMembers: 50
     membershipLevel: "member"
+    maxMembers: 50
 ```
 Or setting the following environment variables:
 ```
-KHAN_LOADTEST_GAME_MAXMEMBERS (default: 0)
 KHAN_LOADTEST_GAME_MEMBERSHIPLEVEL (default: "")
+KHAN_LOADTEST_GAME_MAXMEMBERS (default: 0)
 ```
 
-# Request parameters
-Both amount and period are defined under the key `loadtest` within `../config/local.yaml`:
+# Client parameters 
+Client parameters are defined under the key `loadtest.client` within `../config/local.yaml`:
 ```
 loadtest:
-  requests:
-    amount: 1
-    period:
-      ms: 1
+  client:
+    url: "http://localhost:8080"
+    gameid: "epiccardgame"
 ```
 Or setting the following environment variables:
 ```
-KHAN_LOADTEST_REQUESTS_AMOUNT (default: 0)
-KHAN_LOADTEST_REQUESTS_PERIOD_MS (default: 0)
+KHAN_LOADTEST_CLIENT_URL: URL including protocol (http/https) and port to remote Khan API server (default: "")
+KHAN_LOADTEST_CLIENT_USER: basic auth username (default: "")
+KHAN_LOADTEST_CLIENT_PASS: basic auth password (default: "")
+KHAN_LOADTEST_CLIENT_GAMEID: game public ID (default: "")
+KHAN_LOADTEST_CLIENT_TIMEOUT: nanoseconds to wait before timing out a request (default: 500 ms)
+KHAN_LOADTEST_CLIENT_MAXIDLECONNS: max keep-alive connections to keep among all hosts (default: 100)
+KHAN_LOADTEST_CLIENT_MAXIDLECONNSPERHOST: max keep-alive connections to keep per-host (default: 2)
 ```
 
-# Request operations
-For each request, an operation is chosen at random with probabilities defined at `../config/local.yaml`, like this:
+# Operation parameters
+The amount of operations per sequence/goroutine, the period between two consecutive operations and the probabilities per operation are defined under the key `loadtest.operations` within `../config/local.yaml`:
 ```
 loadtest:
   operations:
-    retrieveSharedClan:
-      probability: 0.3
-    updateSharedClan:
-      probability: 0.3
+    amount: 1
+    period:
+      ms: 1
+    updateSharedClanScore:
+      probability: 0.8
+    createPlayer:
+      probability: 0.01
+    createClan:
+      probability: 0.01
+    leaveClan:
+      probability: 0.01
+    transferClanOwnership:
+      probability: 0.01
+    applyForMembership:
+      probability: 0.01
+    selfDeleteMembership:
+      probability: 0.01
 ```
 Or setting the following environment variables:
 ```
-KHAN_LOADTEST_OPERATIONS_RETRIEVESHAREDCLAN_PROBABILITY (no default value)
-KHAN_LOADTEST_OPERATIONS_UPDATESHAREDCLAN_PROBABILITY (no default value)
-```
-Request operations are defined in files `player.go`, `clan.go` and `membership.go`. Check the operation keys to set the probabilities.
-
-# Remote KHAN API server parameters 
-Khan API server URL and credentials should be set by environment variables, like this:
-```
-KHAN_KHAN_URL: URL including protocol and port to remote Khan API server
-KHAN_KHAN_USER: basic auth username
-KHAN_KHAN_PASS: basic auth password
-KHAN_KHAN_GAMEID: game public ID
-KHAN_KHAN_TIMEOUT: nanoseconds to wait before timing out a request (default: 500 ms)
-KHAN_KHAN_MAXIDLECONNS: max keep-alive connections to keep among all hosts (default: 100)
-KHAN_KHAN_MAXIDLECONNSPERHOST: max keep-alive connections to keep per-host (default: 2)
+KHAN_LOADTEST_OPERATIONS_AMOUNT (default: 0)
+KHAN_LOADTEST_OPERATIONS_PERIOD_MS (default: 0)
+KHAN_LOADTEST_OPERATIONS_UPDATESHAREDCLANSCORE_PROBABILITY (default: 0.8)
+KHAN_LOADTEST_OPERATIONS_CREATEPLAYER_PROBABILITY (default: 0.01)
+KHAN_LOADTEST_OPERATIONS_CREATECLAN_PROBABILITY (default: 0.01)
+KHAN_LOADTEST_OPERATIONS_LEAVECLAN_PROBABILITY (default: 0.01)
+KHAN_LOADTEST_OPERATIONS_TRANSFERCLANOWNERSHIP_PROBABILITY (default: 0.01)
+KHAN_LOADTEST_OPERATIONS_APPLYFORMEMBERSHIP_PROBABILITY (default: 0.01)
+KHAN_LOADTEST_OPERATIONS_SELFDELETEMEMBERSHIP_PROBABILITY (default: 0.01)
 ```
 
 # Operations with clans shared among different load test processes

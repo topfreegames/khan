@@ -26,6 +26,17 @@ type Khan struct {
 	gameID     string
 }
 
+// KhanParams represents the params to create a Khan client
+type KhanParams struct {
+	Timeout             time.Duration
+	MaxIdleConns        int
+	MaxIdleConnsPerHost int
+	URL                 string
+	User                string
+	Pass                string
+	GameID              string
+}
+
 var (
 	client *http.Client
 	once   sync.Once
@@ -90,6 +101,30 @@ func NewKhan(config *viper.Viper) KhanInterface {
 		gameID: config.GetString("khan.gameid"),
 	}
 	return k
+}
+
+// NewKhanParams returns a new KhanParams instance with default values
+func NewKhanParams() *KhanParams {
+	return &KhanParams{
+		Timeout:             500 * time.Millisecond,
+		MaxIdleConns:        100,
+		MaxIdleConnsPerHost: http.DefaultMaxIdleConnsPerHost,
+	}
+}
+
+// NewKhanWithParams returns a new khan API application initialized with passed params
+func NewKhanWithParams(params *KhanParams) KhanInterface {
+	return &Khan{
+		httpClient: getHTTPClient(
+			params.Timeout,
+			params.MaxIdleConns,
+			params.MaxIdleConnsPerHost,
+		),
+		url:    params.URL,
+		user:   params.User,
+		pass:   params.Pass,
+		gameID: params.GameID,
+	}
 }
 
 func (k *Khan) sendTo(ctx context.Context, method, url string, payload interface{}) ([]byte, error) {

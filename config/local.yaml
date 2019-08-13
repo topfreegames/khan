@@ -55,13 +55,15 @@ extensions:
 
 loadtest:
   game:
-    maxMembers: 50
     membershipLevel: "member"
-  requests:
+    maxMembers: 50
+  client:
+    url: "http://localhost:8080"
+    gameid: "epiccardgame"
+  operations:
     amount: 1
     period:
       ms: 1
-  operations:
     updateSharedClanScore:
       probability: 0.8
     createPlayer:
