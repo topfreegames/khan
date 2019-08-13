@@ -56,6 +56,7 @@ func (d *UnorderedStringMap) Remove(key string) {
 		sz := d.Len()
 		delete(d.stringToInt, key)
 		d.intToString[value.index] = d.intToString[sz-1]
+		d.intToString[sz-1] = ""
 		d.intToString = d.intToString[:sz-1]
 	}
 }
