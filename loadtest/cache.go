@@ -44,9 +44,9 @@ type (
 	}
 )
 
-func getCacheImpl(config *viper.Viper, sharedClansFile string) (*cacheImpl, error) {
+func newCacheImpl(gameMaxMembers int, sharedClansFile string) (*cacheImpl, error) {
 	c := &cacheImpl{
-		gameMaxMembers: config.GetInt("loadtest.game.maxMembers"),
+		gameMaxMembers: gameMaxMembers,
 		freePlayers:    NewUnorderedStringMap(),
 		ownerPlayers:   NewUnorderedStringMap(),
 		memberPlayers:  NewUnorderedStringMap(),

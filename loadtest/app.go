@@ -77,8 +77,9 @@ func (app *App) configureOperations() {
 }
 
 func (app *App) configureCache(sharedClansFile string) {
+	gameMaxMembers := app.config.GetInt("loadtest.game.maxMembers")
 	var err error
-	app.cache, err = getCacheImpl(app.config, sharedClansFile)
+	app.cache, err = newCacheImpl(gameMaxMembers, sharedClansFile)
 	if err != nil {
 		l := app.logger.With(
 			zap.String("source", "loadtest/app"),
