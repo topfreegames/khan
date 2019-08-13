@@ -13,6 +13,7 @@ func (app *App) configureMembershipOperations() {
 }
 
 func (app *App) getApplyForMembershipOperation() operation {
+	membershipLevel := app.config.GetString("loadtest.game.membershipLevel")
 	operationKey := "applyForMembership"
 	return operation{
 		probability: app.getOperationProbabilityConfig(operationKey),
@@ -41,7 +42,7 @@ func (app *App) getApplyForMembershipOperation() operation {
 			clanApplyResult, err := app.client.ApplyForMembership(nil, &lib.ApplicationPayload{
 				ClanID:         clanPublicID,
 				Message:        "",
-				Level:          app.config.GetString("loadtest.game.membershipLevel"),
+				Level:          membershipLevel,
 				PlayerPublicID: playerPublicID,
 			})
 			if err != nil {
