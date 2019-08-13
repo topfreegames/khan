@@ -23,6 +23,7 @@ type (
 		createPlayer(string) error
 		createClan(string, string) error
 		leaveClan(string, string, string) error
+		transferClanOwnership(string, string, string) error
 		applyForMembership(string, string) error
 		deleteMembership(string, string) error
 	}
@@ -195,6 +196,14 @@ func (c *cacheImpl) leaveClan(clanPublicID, oldOnwerPublicID, newOwnerPublicID s
 		c.memberPlayers.Remove(newOwnerPublicID)
 		c.ownerPlayers.Set(newOwnerPublicID, clanPublicID)
 	}
+	return nil
+}
+
+func (c *cacheImpl) transferClanOwnership(clanPublicID, oldOnwerPublicID, newOwnerPublicID string) error {
+	c.ownerPlayers.Remove(oldOnwerPublicID)
+	c.memberPlayers.Set(oldOnwerPublicID, clanPublicID)
+	c.memberPlayers.Remove(newOwnerPublicID)
+	c.ownerPlayers.Set(newOwnerPublicID, clanPublicID)
 	return nil
 }
 

@@ -70,6 +70,8 @@ loadtest:
       probability: 0.01
     leaveClan:
       probability: 0.01
+    transferClanOwnership:
+      probability: 0.01
     applyForMembership:
       probability: 0.01
     selfDeleteMembership:

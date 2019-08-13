@@ -11,6 +11,7 @@ func (app *App) configureClanOperations() {
 	app.appendOperation(app.getUpdateSharedClanScoreOperation())
 	app.appendOperation(app.getCreateClanOperation())
 	app.appendOperation(app.getLeaveClanOperation())
+	app.appendOperation(app.getTransferClanOwnershipOperation())
 }
 
 func (app *App) getUpdateSharedClanScoreOperation() operation {
@@ -154,6 +155,37 @@ func (app *App) getLeaveClanOperation() operation {
 				newOwnerPublicID = leaveClanResult.NewOwner.PublicID
 			}
 			return app.cache.leaveClan(clanPublicID, oldOwnerPublicID, newOwnerPublicID)
+		},
+	}
+}
+
+func (app *App) getTransferClanOwnershipOperation() operation {
+	operationKey := "transferClanOwnership"
+	return operation{
+		probability: app.getOperationProbabilityConfig(operationKey),
+		canExecute: func() (bool, error) {
+			count, err := app.cache.getMemberPlayersCount()
+			if err != nil {
+				return false, nil
+			}
+			return count > 0, nil
+		},
+		execute: func() error {
+			newOwnerPublicID, clanPublicID, err := app.cache.chooseRandomMemberPlayerAndClan()
+			if err != nil {
+				return err
+			}
+
+			transferOwnershipResult, err := app.client.TransferOwnership(nil, newOwnerPublicID, clanPublicID)
+			if err != nil {
+				return err
+			}
+			if transferOwnershipResult == nil {
+				return &GenericError{"NilPayloadError", "Operation transferClanOwnership returned no error with nil payload."}
+			}
+
+			oldOwnerPublicID := transferOwnershipResult.PreviousOwner.PublicID
+			return app.cache.transferClanOwnership(clanPublicID, oldOwnerPublicID, newOwnerPublicID)
 		},
 	}
 }
