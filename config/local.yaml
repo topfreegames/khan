@@ -52,3 +52,29 @@ extensions:
     prefix: khan.
     tags_prefix: ""
     rate: 1
+
+loadtest:
+  game:
+    membershipLevel: "member"
+    maxMembers: 50
+  client:
+    url: "http://localhost:8080"
+    gameid: "epiccardgame"
+  operations:
+    amount: 1
+    period:
+      ms: 1
+    updateSharedClanScore:
+      probability: 0.8
+    createPlayer:
+      probability: 0.01
+    createClan:
+      probability: 0.01
+    leaveClan:
+      probability: 0.01
+    transferClanOwnership:
+      probability: 0.01
+    applyForMembership:
+      probability: 0.01
+    selfDeleteMembership:
+      probability: 0.01
