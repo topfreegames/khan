@@ -37,7 +37,7 @@ KHAN_LOADTEST_CLIENT_MAXIDLECONNSPERHOST: max keep-alive connections to keep per
 ```
 
 # Operation parameters
-The amount of operations per sequence/goroutine, the period between two consecutive operations and the probabilities per operation are defined under the key `loadtest.operations` within `../config/local.yaml`:
+The amount of operations per sequence/goroutine, the time period between two consecutive operations and the probabilities per operation are defined under the key `loadtest.operations` within `../config/local.yaml`:
 ```
 loadtest:
   operations:
