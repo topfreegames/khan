@@ -73,7 +73,7 @@ KHAN_LOADTEST_OPERATIONS_SELFDELETEMEMBERSHIP_PROBABILITY (default: 0.01)
 ```
 
 # Operations with clans shared among different load test processes
-Some operations are targeted to a set of clans that should be shared among different processes running a load test. This is supposed to test the most common sequence of operations (`updatePlayer`, then `getClan`, then `updateClan`) in its most common use case, which is a number of different clients updating the score of a particular clan within its metadata field. Use the file `../config/loadTestSharedClans.yaml` to specify a list of clan public IDs, like this:
+Some operations are targeted to a set of clans that should be shared among different goroutines/sequences of operations. One of these operations is supposed to test the most common sequence of requests (`updatePlayer`, then `getClan`, then `updateClan`) in its most common use case, which is a number of different clients updating the score of a particular clan within its metadata field. Use the file `../config/loadTestSharedClans.yaml` to specify the list of public IDs for shared clans:
 
 ```
 clans:
