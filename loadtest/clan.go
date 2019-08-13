@@ -5,6 +5,10 @@ import (
 )
 
 func (app *App) setClanConfigurationDefaults() {
+	app.setOperationProbabilityConfigDefault("updateSharedClanScore", 1)
+	app.setOperationProbabilityConfigDefault("createClan", 1)
+	app.setOperationProbabilityConfigDefault("leaveClan", 1)
+	app.setOperationProbabilityConfigDefault("transferClanOwnership", 1)
 }
 
 func (app *App) configureClanOperations() {

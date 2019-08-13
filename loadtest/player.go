@@ -1,6 +1,7 @@
 package loadtest
 
 func (app *App) setPlayerConfigurationDefaults() {
+	app.setOperationProbabilityConfigDefault("createPlayer", 1)
 }
 
 func (app *App) configurePlayerOperations() {
