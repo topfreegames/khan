@@ -54,10 +54,18 @@ func (d *UnorderedStringMap) Set(key string, content interface{}) {
 func (d *UnorderedStringMap) Remove(key string) {
 	if value, ok := d.stringToInt[key]; ok {
 		sz := d.Len()
-		delete(d.stringToInt, key)
-		d.intToString[value.index] = d.intToString[sz-1]
-		d.intToString[sz-1] = ""
-		d.intToString = d.intToString[:sz-1]
+		movedKey := d.intToString[sz-1]
+		movedKeyContent := d.stringToInt[movedKey].content
+		movedKeyNewIndex := value.index
+
+		// map update
+		d.stringToInt[movedKey] = unorderedStringMapValue{movedKeyNewIndex, movedKeyContent}
+		delete(d.stringToInt, key) // key may be equal to movedKey, so we delete after the update
+
+		// slice update
+		d.intToString[movedKeyNewIndex] = movedKey
+		d.intToString[sz-1] = ""             // prevent potential memory leak
+		d.intToString = d.intToString[:sz-1] // sz-1 may be equal to movedKeyNewIndex, so we delete after the update
 	}
 }
 
