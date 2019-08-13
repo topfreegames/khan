@@ -1,6 +1,7 @@
 package loadtest
 
 import (
+	"fmt"
 	"math/rand"
 
 	uuid "github.com/satori/go.uuid"
@@ -11,11 +12,11 @@ func getRandomScore() int {
 }
 
 func getRandomPlayerName() string {
-	return "PlayerName"
+	return fmt.Sprintf("PlayerName-%s", uuid.NewV4().String()[:8])
 }
 
 func getRandomClanName() string {
-	return "ClanName"
+	return fmt.Sprintf("ClanName-%s", uuid.NewV4().String()[:8])
 }
 
 func getRandomPublicID() string {
