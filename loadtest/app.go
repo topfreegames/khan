@@ -41,9 +41,6 @@ func (app *App) configure(configFile, sharedClansFile string) {
 }
 
 func (app *App) setConfigurationDefaults() {
-	app.setPlayerConfigurationDefaults()
-	app.setClanConfigurationDefaults()
-	app.setMembershipConfigurationDefaults()
 	app.setClientConfigurationDefaults()
 }
 

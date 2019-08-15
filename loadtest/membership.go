@@ -4,19 +4,15 @@ import (
 	"github.com/topfreegames/khan/lib"
 )
 
-func (app *App) setMembershipConfigurationDefaults() {
-	app.setOperationProbabilityConfigDefault("applyForMembership", 1)
-	app.setOperationProbabilityConfigDefault("selfDeleteMembership", 1)
-}
-
 func (app *App) configureMembershipOperations() {
 	app.appendOperation(app.getApplyForMembershipOperation())
 	app.appendOperation(app.getSelfDeleteMembershipOperation())
 }
 
 func (app *App) getApplyForMembershipOperation() operation {
-	membershipLevel := app.config.GetString("loadtest.game.membershipLevel")
 	operationKey := "applyForMembership"
+	app.setOperationProbabilityConfigDefault(operationKey, 1)
+	membershipLevel := app.config.GetString("loadtest.game.membershipLevel")
 	return operation{
 		probability: app.getOperationProbabilityConfig(operationKey),
 		canExecute: func() (bool, error) {
@@ -67,6 +63,7 @@ func (app *App) getApplyForMembershipOperation() operation {
 
 func (app *App) getSelfDeleteMembershipOperation() operation {
 	operationKey := "selfDeleteMembership"
+	app.setOperationProbabilityConfigDefault(operationKey, 1)
 	return operation{
 		probability: app.getOperationProbabilityConfig(operationKey),
 		canExecute: func() (bool, error) {

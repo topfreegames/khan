@@ -4,13 +4,6 @@ import (
 	"github.com/topfreegames/khan/lib"
 )
 
-func (app *App) setClanConfigurationDefaults() {
-	app.setOperationProbabilityConfigDefault("updateSharedClanScore", 1)
-	app.setOperationProbabilityConfigDefault("createClan", 1)
-	app.setOperationProbabilityConfigDefault("leaveClan", 1)
-	app.setOperationProbabilityConfigDefault("transferClanOwnership", 1)
-}
-
 func (app *App) configureClanOperations() {
 	app.appendOperation(app.getUpdateSharedClanScoreOperation())
 	app.appendOperation(app.getCreateClanOperation())
@@ -20,6 +13,7 @@ func (app *App) configureClanOperations() {
 
 func (app *App) getUpdateSharedClanScoreOperation() operation {
 	operationKey := "updateSharedClanScore"
+	app.setOperationProbabilityConfigDefault(operationKey, 1)
 	return operation{
 		probability: app.getOperationProbabilityConfig(operationKey),
 		canExecute: func() (bool, error) {
@@ -92,6 +86,7 @@ func (app *App) getUpdateSharedClanScoreOperation() operation {
 
 func (app *App) getCreateClanOperation() operation {
 	operationKey := "createClan"
+	app.setOperationProbabilityConfigDefault(operationKey, 1)
 	return operation{
 		probability: app.getOperationProbabilityConfig(operationKey),
 		canExecute: func() (bool, error) {
@@ -130,6 +125,7 @@ func (app *App) getCreateClanOperation() operation {
 
 func (app *App) getLeaveClanOperation() operation {
 	operationKey := "leaveClan"
+	app.setOperationProbabilityConfigDefault(operationKey, 1)
 	return operation{
 		probability: app.getOperationProbabilityConfig(operationKey),
 		canExecute: func() (bool, error) {
@@ -165,6 +161,7 @@ func (app *App) getLeaveClanOperation() operation {
 
 func (app *App) getTransferClanOwnershipOperation() operation {
 	operationKey := "transferClanOwnership"
+	app.setOperationProbabilityConfigDefault(operationKey, 1)
 	return operation{
 		probability: app.getOperationProbabilityConfig(operationKey),
 		canExecute: func() (bool, error) {
