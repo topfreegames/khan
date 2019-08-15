@@ -9,6 +9,7 @@ func (app *App) configureClanOperations() {
 	app.appendOperation(app.getCreateClanOperation())
 	app.appendOperation(app.getLeaveClanOperation())
 	app.appendOperation(app.getTransferClanOwnershipOperation())
+	app.appendOperation(app.getSearchClansOperation())
 }
 
 func (app *App) getUpdateSharedClanScoreOperation() operation {
@@ -187,6 +188,30 @@ func (app *App) getTransferClanOwnershipOperation() operation {
 
 			oldOwnerPublicID := transferOwnershipResult.PreviousOwner.PublicID
 			return app.cache.transferClanOwnership(clanPublicID, oldOwnerPublicID, newOwnerPublicID)
+		},
+	}
+}
+
+func (app *App) getSearchClansOperation() operation {
+	operationKey := "searchClans"
+	app.setOperationProbabilityConfigDefault(operationKey, 1)
+	return operation{
+		probability: app.getOperationProbabilityConfig(operationKey),
+		canExecute: func() (bool, error) {
+			return true, nil
+		},
+		execute: func() error {
+			searchClansResult, err := app.client.SearchClans(nil, getRandomClanName())
+			if err != nil {
+				return err
+			}
+			if searchClansResult == nil {
+				return &GenericError{"NilPayloadError", "Operation searchClans returned no error with nil payload."}
+			}
+			if !searchClansResult.Success {
+				return &GenericError{"FailurePayloadError", "Operation searchClans returned no error with falure payload."}
+			}
+			return nil
 		},
 	}
 }

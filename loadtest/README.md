@@ -58,6 +58,8 @@ loadtest:
       probability: 1
     selfDeleteMembership:
       probability: 1
+    searchClans:
+      probability: 1
 ```
 Or setting the following environment variables:
 ```
@@ -70,6 +72,7 @@ KHAN_LOADTEST_OPERATIONS_LEAVECLAN_PROBABILITY (default: 0.01)
 KHAN_LOADTEST_OPERATIONS_TRANSFERCLANOWNERSHIP_PROBABILITY (default: 0.01)
 KHAN_LOADTEST_OPERATIONS_APPLYFORMEMBERSHIP_PROBABILITY (default: 0.01)
 KHAN_LOADTEST_OPERATIONS_SELFDELETEMEMBERSHIP_PROBABILITY (default: 0.01)
+KHAN_LOADTEST_OPERATIONS_SEARCHCLANS_PROBABILITY (default: 0.01)
 ```
 
 # Operations with clans shared among different load test processes
