@@ -209,7 +209,7 @@ func (app *App) getSearchClansOperation() operation {
 				return &GenericError{"NilPayloadError", "Operation searchClans returned no error with nil payload."}
 			}
 			if !searchClansResult.Success {
-				return &GenericError{"FailurePayloadError", "Operation searchClans returned no error with falure payload."}
+				return &GenericError{"FailurePayloadError", "Operation searchClans returned no error with failure payload."}
 			}
 			return nil
 		},
