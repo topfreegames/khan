@@ -1,15 +1,12 @@
 package loadtest
 
-func (app *App) setPlayerConfigurationDefaults() {
-	app.setOperationProbabilityConfigDefault("createPlayer", 1)
-}
-
 func (app *App) configurePlayerOperations() {
 	app.appendOperation(app.getCreatePlayerOperation())
 }
 
 func (app *App) getCreatePlayerOperation() operation {
 	operationKey := "createPlayer"
+	app.setOperationProbabilityConfigDefault(operationKey, 1)
 	return operation{
 		probability: app.getOperationProbabilityConfig(operationKey),
 		canExecute: func() (bool, error) {

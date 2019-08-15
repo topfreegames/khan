@@ -78,3 +78,5 @@ loadtest:
       probability: 1
     selfDeleteMembership:
       probability: 1
+    searchClans:
+      probability: 1

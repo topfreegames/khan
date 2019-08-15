@@ -4,22 +4,17 @@ import (
 	"github.com/topfreegames/khan/lib"
 )
 
-func (app *App) setClanConfigurationDefaults() {
-	app.setOperationProbabilityConfigDefault("updateSharedClanScore", 1)
-	app.setOperationProbabilityConfigDefault("createClan", 1)
-	app.setOperationProbabilityConfigDefault("leaveClan", 1)
-	app.setOperationProbabilityConfigDefault("transferClanOwnership", 1)
-}
-
 func (app *App) configureClanOperations() {
 	app.appendOperation(app.getUpdateSharedClanScoreOperation())
 	app.appendOperation(app.getCreateClanOperation())
 	app.appendOperation(app.getLeaveClanOperation())
 	app.appendOperation(app.getTransferClanOwnershipOperation())
+	app.appendOperation(app.getSearchClansOperation())
 }
 
 func (app *App) getUpdateSharedClanScoreOperation() operation {
 	operationKey := "updateSharedClanScore"
+	app.setOperationProbabilityConfigDefault(operationKey, 1)
 	return operation{
 		probability: app.getOperationProbabilityConfig(operationKey),
 		canExecute: func() (bool, error) {
@@ -92,6 +87,7 @@ func (app *App) getUpdateSharedClanScoreOperation() operation {
 
 func (app *App) getCreateClanOperation() operation {
 	operationKey := "createClan"
+	app.setOperationProbabilityConfigDefault(operationKey, 1)
 	return operation{
 		probability: app.getOperationProbabilityConfig(operationKey),
 		canExecute: func() (bool, error) {
@@ -130,6 +126,7 @@ func (app *App) getCreateClanOperation() operation {
 
 func (app *App) getLeaveClanOperation() operation {
 	operationKey := "leaveClan"
+	app.setOperationProbabilityConfigDefault(operationKey, 1)
 	return operation{
 		probability: app.getOperationProbabilityConfig(operationKey),
 		canExecute: func() (bool, error) {
@@ -165,6 +162,7 @@ func (app *App) getLeaveClanOperation() operation {
 
 func (app *App) getTransferClanOwnershipOperation() operation {
 	operationKey := "transferClanOwnership"
+	app.setOperationProbabilityConfigDefault(operationKey, 1)
 	return operation{
 		probability: app.getOperationProbabilityConfig(operationKey),
 		canExecute: func() (bool, error) {
@@ -190,6 +188,30 @@ func (app *App) getTransferClanOwnershipOperation() operation {
 
 			oldOwnerPublicID := transferOwnershipResult.PreviousOwner.PublicID
 			return app.cache.transferClanOwnership(clanPublicID, oldOwnerPublicID, newOwnerPublicID)
+		},
+	}
+}
+
+func (app *App) getSearchClansOperation() operation {
+	operationKey := "searchClans"
+	app.setOperationProbabilityConfigDefault(operationKey, 1)
+	return operation{
+		probability: app.getOperationProbabilityConfig(operationKey),
+		canExecute: func() (bool, error) {
+			return true, nil
+		},
+		execute: func() error {
+			searchClansResult, err := app.client.SearchClans(nil, getRandomClanName())
+			if err != nil {
+				return err
+			}
+			if searchClansResult == nil {
+				return &GenericError{"NilPayloadError", "Operation searchClans returned no error with nil payload."}
+			}
+			if !searchClansResult.Success {
+				return &GenericError{"FailurePayloadError", "Operation searchClans returned no error with failure payload."}
+			}
+			return nil
 		},
 	}
 }
