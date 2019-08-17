@@ -36,6 +36,20 @@ KHAN_LOADTEST_CLIENT_MAXIDLECONNS: max keep-alive connections to keep among all 
 KHAN_LOADTEST_CLIENT_MAXIDLECONNSPERHOST: max keep-alive connections to keep per-host (default: 2)
 ```
 
+# Datadog parameters
+Datadog parameters are defined under the key `loadtest.datadog` within `../config/local.yaml`:
+```
+loadtest:
+  datadog:
+    host: "localhost:8125"
+    prefix: "khan_loadtest."
+```
+Or setting the following environment variables:
+```
+KHAN_LOADTEST_DATADOG_HOST: host and port for datadog statsd (default: "localhost:8125")
+KHAN_LOADTEST_DATADOG_PREFIX: prefix for metrics names (default: "khan_loadtest.")
+```
+
 # Operation parameters
 The amount of operations per sequence/goroutine, the time period between two consecutive operations and the probabilities per operation are defined under the key `loadtest.operations` within `../config/local.yaml`:
 ```

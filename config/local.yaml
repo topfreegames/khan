@@ -60,6 +60,9 @@ loadtest:
   client:
     url: "http://localhost:8080"
     gameid: "epiccardgame"
+  datadog:
+    host: "localhost:8125"
+    prefix: "khan_loadtest."
   operations:
     amount: 1
     period:

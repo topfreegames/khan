@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/spf13/viper"
+	"github.com/topfreegames/extensions/dogstatsd"
 	"github.com/topfreegames/khan/lib"
 	"github.com/topfreegames/khan/log"
 	"github.com/uber-go/zap"
@@ -19,6 +20,7 @@ type App struct {
 	logger     zap.Logger
 	cache      cache
 	client     lib.KhanInterface
+	datadog    *dogstatsd.DogStatsD
 	operations []operation
 }
 
@@ -38,16 +40,23 @@ func (app *App) configure(configFile, sharedClansFile string) {
 	app.configureOperations()
 	app.configureCache(sharedClansFile)
 	app.configureClient()
+	app.configureDatadog()
 }
 
 func (app *App) setConfigurationDefaults() {
 	app.setClientConfigurationDefaults()
+	app.setDatadogConfigurationDefaults()
 }
 
 func (app *App) setClientConfigurationDefaults() {
 	app.config.SetDefault("loadtest.client.timeout", 500*time.Millisecond)
 	app.config.SetDefault("loadtest.client.maxIdleConns", 100)
 	app.config.SetDefault("loadtest.client.maxIdleConnsPerHost", http.DefaultMaxIdleConnsPerHost)
+}
+
+func (app *App) setDatadogConfigurationDefaults() {
+	app.config.SetDefault("loadtest.datadog.host", "localhost:8125")
+	app.config.SetDefault("loadtest.datadog.prefix", "khan_loadtest.")
 }
 
 func (app *App) loadConfiguration(configFile string) {
@@ -79,16 +88,18 @@ func (app *App) configureOperations() {
 
 func (app *App) configureCache(sharedClansFile string) {
 	gameMaxMembers := app.config.GetInt("loadtest.game.maxMembers")
+
 	var err error
 	app.cache, err = newCacheImpl(gameMaxMembers, sharedClansFile)
 	if err != nil {
 		l := app.logger.With(
 			zap.String("source", "loadtest/app"),
 			zap.String("operation", "configureCache"),
+			zap.Int("gameMaxMembers", gameMaxMembers),
 			zap.String("sharedClansFile", sharedClansFile),
 			zap.String("error", err.Error()),
 		)
-		log.P(l, "Error reading shared clans config.")
+		log.P(l, "Error configuring cache.")
 	}
 }
 
@@ -104,22 +115,76 @@ func (app *App) configureClient() {
 	})
 }
 
+func (app *App) configureDatadog() {
+	host := app.config.GetString("loadtest.datadog.host")
+	prefix := app.config.GetString("loadtest.datadog.prefix")
+
+	var err error
+	app.datadog, err = dogstatsd.New(host, prefix)
+	if err != nil {
+		app.datadog = nil
+
+		l := app.logger.With(
+			zap.String("source", "loadtest/app"),
+			zap.String("operation", "configureDatadog"),
+			zap.String("host", host),
+			zap.String("prefix", prefix),
+			zap.String("error", err.Error()),
+		)
+		log.E(l, "Error configuring datadog.")
+	}
+}
+
 // Run executes the load test suite
 func (app *App) Run() error {
 	if err := app.cache.loadInitialData(app.client); err != nil {
 		return err
 	}
+
 	nOperations := app.config.GetInt("loadtest.operations.amount")
 	periodMs := app.config.GetInt("loadtest.operations.period.ms")
+	getPercent := func(cur int) int {
+		return int((100 * int64(cur)) / int64(nOperations))
+	}
+
+	l := app.logger.With(
+		zap.String("source", "loadtest/app"),
+		zap.String("operation", "Run"),
+		zap.Int("nOperations", nOperations),
+		zap.Int("periodMs", periodMs),
+	)
+
+	startTime := time.Now()
+	lastMeasureTime := startTime
+	nOperationsSinceLastMeasure := 0
+
 	for i := 0; i < nOperations; i++ {
 		err := app.performOperation()
+		nOperationsSinceLastMeasure++
 		if err != nil {
 			return err
 		}
-		if i+1 < nOperations {
+
+		if i < nOperations-1 {
 			time.Sleep(time.Duration(periodMs) * time.Millisecond)
 		}
+
+		if time.Since(lastMeasureTime) > time.Second {
+			throughput := float64(nOperationsSinceLastMeasure) / time.Since(lastMeasureTime).Seconds()
+			app.datadog.Histogram("throughput", throughput, []string{}, 1)
+			lastMeasureTime, nOperationsSinceLastMeasure = time.Now(), 0
+		}
+
+		if getPercent(i+1) > getPercent(i) {
+			log.I(l, fmt.Sprintf("Goroutine completed %v%%.", getPercent(i+1)))
+		}
 	}
+
+	if app.datadog != nil {
+		avg := float64(nOperations) / time.Since(startTime).Seconds()
+		app.datadog.Histogram("average_throughput", avg, []string{}, 1)
+	}
+
 	return nil
 }
 
