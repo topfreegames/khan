@@ -193,7 +193,7 @@ func (app *App) performOperation() error {
 	if err != nil {
 		return err
 	}
-	err = operation.execute()
+	err = app.executeOperation(operation)
 	if err != nil {
 		return err
 	}
@@ -242,6 +242,24 @@ func getRandomOperationFromSampleSpace(sampleSpace []operation, dice float64) op
 		}
 	}
 	return sampleSpace[0]
+}
+
+func (app *App) executeOperation(op operation) error {
+	if op.wontUpdateCache { // then run async
+		go func() {
+			if err := op.execute(); err != nil {
+				l := app.logger.With(
+					zap.String("source", "loadtest/app"),
+					zap.String("operation", "executeOperation"),
+					zap.String("executedOperationKey", op.key),
+					zap.String("error", err.Error()),
+				)
+				log.E(l, "Async operation returned error.")
+			}
+		}()
+		return nil
+	}
+	return op.execute()
 }
 
 func (app *App) appendOperation(op operation) {

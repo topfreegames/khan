@@ -16,7 +16,9 @@ func (app *App) getUpdateSharedClanScoreOperation() operation {
 	operationKey := "updateSharedClanScore"
 	app.setOperationProbabilityConfigDefault(operationKey, 1)
 	return operation{
-		probability: app.getOperationProbabilityConfig(operationKey),
+		key:             operationKey,
+		wontUpdateCache: true,
+		probability:     app.getOperationProbabilityConfig(operationKey),
 		canExecute: func() (bool, error) {
 			count, err := app.cache.getSharedClansCount()
 			if err != nil {
@@ -89,6 +91,7 @@ func (app *App) getCreateClanOperation() operation {
 	operationKey := "createClan"
 	app.setOperationProbabilityConfigDefault(operationKey, 1)
 	return operation{
+		key:         operationKey,
 		probability: app.getOperationProbabilityConfig(operationKey),
 		canExecute: func() (bool, error) {
 			count, err := app.cache.getFreePlayersCount()
@@ -128,6 +131,7 @@ func (app *App) getLeaveClanOperation() operation {
 	operationKey := "leaveClan"
 	app.setOperationProbabilityConfigDefault(operationKey, 1)
 	return operation{
+		key:         operationKey,
 		probability: app.getOperationProbabilityConfig(operationKey),
 		canExecute: func() (bool, error) {
 			count, err := app.cache.getOwnerPlayersCount()
@@ -164,6 +168,7 @@ func (app *App) getTransferClanOwnershipOperation() operation {
 	operationKey := "transferClanOwnership"
 	app.setOperationProbabilityConfigDefault(operationKey, 1)
 	return operation{
+		key:         operationKey,
 		probability: app.getOperationProbabilityConfig(operationKey),
 		canExecute: func() (bool, error) {
 			count, err := app.cache.getMemberPlayersCount()
@@ -196,7 +201,9 @@ func (app *App) getSearchClansOperation() operation {
 	operationKey := "searchClans"
 	app.setOperationProbabilityConfigDefault(operationKey, 1)
 	return operation{
-		probability: app.getOperationProbabilityConfig(operationKey),
+		key:             operationKey,
+		wontUpdateCache: true,
+		probability:     app.getOperationProbabilityConfig(operationKey),
 		canExecute: func() (bool, error) {
 			return true, nil
 		},

@@ -8,6 +8,7 @@ func (app *App) getCreatePlayerOperation() operation {
 	operationKey := "createPlayer"
 	app.setOperationProbabilityConfigDefault(operationKey, 1)
 	return operation{
+		key:         operationKey,
 		probability: app.getOperationProbabilityConfig(operationKey),
 		canExecute: func() (bool, error) {
 			return true, nil

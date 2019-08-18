@@ -14,6 +14,7 @@ func (app *App) getApplyForMembershipOperation() operation {
 	app.setOperationProbabilityConfigDefault(operationKey, 1)
 	membershipLevel := app.config.GetString("loadtest.game.membershipLevel")
 	return operation{
+		key:         operationKey,
 		probability: app.getOperationProbabilityConfig(operationKey),
 		canExecute: func() (bool, error) {
 			count, err := app.cache.getFreePlayersCount()
@@ -65,6 +66,7 @@ func (app *App) getSelfDeleteMembershipOperation() operation {
 	operationKey := "selfDeleteMembership"
 	app.setOperationProbabilityConfigDefault(operationKey, 1)
 	return operation{
+		key:         operationKey,
 		probability: app.getOperationProbabilityConfig(operationKey),
 		canExecute: func() (bool, error) {
 			count, err := app.cache.getMemberPlayersCount()
