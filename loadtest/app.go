@@ -182,7 +182,7 @@ func (app *App) Run() error {
 			lastMeasureTime, nOperationsSinceLastMeasure = time.Now(), 0
 		}
 
-		if getPercent(i+1) > getPercent(i) {
+		if getPercent(i+1)/10 > getPercent(i)/10 {
 			log.I(l, fmt.Sprintf("Goroutine completed %v%%.", getPercent(i+1)))
 		}
 	}
