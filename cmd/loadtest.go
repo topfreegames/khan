@@ -30,17 +30,21 @@ You can use environment variables to override configuration keys.`,
 				log.E(l, "Goroutine exited with error.", func(cm log.CM) {
 					cm.Write(zap.String("error", err.Error()))
 				})
+				exitChannel <- false
 			} else {
 				log.I(l, "Goroutine exited without errors.")
+				exitChannel <- true
 			}
-
-			exitChannel <- true
 		}
 		for i := 0; i < nGoroutines; i++ {
 			go routine()
 		}
-		for i := 0; i < nGoroutines; i++ {
-			<-exitChannel
+		for i := 0; i < nGoroutines; {
+			if ok := <-exitChannel; ok {
+				i++
+			} else {
+				go routine()
+			}
 		}
 
 		l := logger.With(
