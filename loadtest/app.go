@@ -16,19 +16,23 @@ import (
 
 // App represents a load test application
 type App struct {
-	config     *viper.Viper
-	logger     zap.Logger
-	cache      cache
-	client     lib.KhanInterface
-	datadog    *dogstatsd.DogStatsD
-	operations []operation
+	config        *viper.Viper
+	logger        zap.Logger
+	cache         cache
+	client        lib.KhanInterface
+	datadog       *dogstatsd.DogStatsD
+	poolQueue     chan operation
+	poolExitQueue chan bool
+	operations    []operation
 }
 
 // GetApp returns a new app
 func GetApp(configFile, sharedClansFile string, logger zap.Logger) *App {
 	app := &App{
-		config: viper.New(),
-		logger: logger,
+		config:        viper.New(),
+		logger:        logger,
+		poolQueue:     make(chan operation),
+		poolExitQueue: make(chan bool),
 	}
 	app.configure(configFile, sharedClansFile)
 	return app
@@ -141,6 +145,8 @@ func (app *App) Run() error {
 		return err
 	}
 
+	app.startThreadPool()
+
 	nOperations := app.config.GetInt("loadtest.operations.amount")
 	periodMs := app.config.GetInt("loadtest.operations.period.ms")
 	getPercent := func(cur int) int {
@@ -158,11 +164,12 @@ func (app *App) Run() error {
 	lastMeasureTime := startTime
 	nOperationsSinceLastMeasure := 0
 
+	var err error
 	for i := 0; i < nOperations; i++ {
-		err := app.performOperation()
+		err = app.performOperation()
 		nOperationsSinceLastMeasure++
 		if err != nil {
-			return err
+			break
 		}
 
 		if i < nOperations-1 {
@@ -180,12 +187,55 @@ func (app *App) Run() error {
 		}
 	}
 
+	app.stopThreadPool()
+
+	if err != nil {
+		return err
+	}
+
 	if app.datadog != nil {
 		avg := float64(nOperations) / time.Since(startTime).Seconds()
 		app.datadog.Histogram("average_throughput", avg, []string{}, 1)
 	}
 
 	return nil
+}
+
+const threadPoolSizeConfKey string = "loadtest.threadPool.size"
+
+func (app *App) startThreadPool() {
+	app.config.SetDefault(threadPoolSizeConfKey, 1)
+	poolSize := app.config.GetInt(threadPoolSizeConfKey)
+	for i := 0; i < poolSize; i++ {
+		go func() {
+			for {
+				op := <-app.poolQueue
+				if op.probability == 0 {
+					app.poolExitQueue <- true
+					return
+				}
+				if err := op.execute(); err != nil {
+					l := app.logger.With(
+						zap.String("source", "loadtest/app"),
+						zap.String("operation", "threadPool/executeOperation"),
+						zap.String("executedOperationKey", op.key),
+						zap.String("error", err.Error()),
+					)
+					log.E(l, "Async operation returned error.")
+				}
+			}
+		}()
+	}
+}
+
+func (app *App) stopThreadPool() {
+	poolSize := app.config.GetInt(threadPoolSizeConfKey)
+	for i := 0; i < poolSize; i++ {
+		app.poolQueue <- operation{}
+	}
+	for i := 0; i < poolSize; i++ {
+		<-app.poolExitQueue
+	}
 }
 
 func (app *App) performOperation() error {
@@ -246,17 +296,7 @@ func getRandomOperationFromSampleSpace(sampleSpace []operation, dice float64) op
 
 func (app *App) executeOperation(op operation) error {
 	if op.wontUpdateCache { // then run async
-		go func() {
-			if err := op.execute(); err != nil {
-				l := app.logger.With(
-					zap.String("source", "loadtest/app"),
-					zap.String("operation", "executeOperation"),
-					zap.String("executedOperationKey", op.key),
-					zap.String("error", err.Error()),
-				)
-				log.E(l, "Async operation returned error.")
-			}
-		}()
+		app.poolQueue <- op
 		return nil
 	}
 	return op.execute()

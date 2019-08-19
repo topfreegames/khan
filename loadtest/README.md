@@ -50,6 +50,19 @@ KHAN_LOADTEST_DATADOG_HOST: host and port for datadog statsd (default: "localhos
 KHAN_LOADTEST_DATADOG_PREFIX: prefix for metrics names (default: "khan_loadtest.")
 ```
 
+# Thread pool parameters
+Operations that don't need to perform updates in the goroutine's cache are executed asynchronously in a separated thread pool, because we don't need to wait their completion to trigger new operations. The thread pool parameters are defined under the key `loadtest.threadPool` within `../config/local.yaml`:
+```
+loadtest:
+  threadPool:
+    size: 4
+```
+Or setting the following environment variables:
+```
+KHAN_LOADTEST_THREADPOOL_SIZE: number of threads in the pool (default: 1)
+```
+
+
 # Operation parameters
 The amount of operations per sequence/goroutine, the time period between two consecutive operations and the probabilities per operation are defined under the key `loadtest.operations` within `../config/local.yaml`:
 ```
