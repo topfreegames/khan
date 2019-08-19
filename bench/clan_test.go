@@ -15,6 +15,7 @@ import (
 
 	uuid "github.com/satori/go.uuid"
 	"github.com/topfreegames/khan/models"
+	khanTesting "github.com/topfreegames/khan/testing"
 )
 
 var result *http.Response
@@ -187,6 +188,11 @@ func BenchmarkSearchClan(b *testing.B) {
 	}
 
 	b.ResetTimer()
+
+	err = khanTesting.CreateClanNameTextIndexInMongo(getTestMongo, game.Name)
+	if err != nil {
+		panic(err.Error())
+	}
 
 	for i := 0; i < b.N; i++ {
 		route := getRoute(fmt.Sprintf("/games/%s/clans/search?term=%s", game.Name, clans[0].PublicID))
