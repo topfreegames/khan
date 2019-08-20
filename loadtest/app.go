@@ -113,7 +113,7 @@ func (app *App) Run() error {
 	}
 
 	nOperations := app.config.GetInt("loadtest.operations.amount")
-	periodMs := app.config.GetInt("loadtest.operations.period.ms")
+	intervalDuration := app.config.GetDuration("loadtest.operations.interval.duration")
 	getPercent := func(cur int) int {
 		return int((100 * int64(cur)) / int64(nOperations))
 	}
@@ -122,7 +122,7 @@ func (app *App) Run() error {
 		zap.String("source", "loadtest/app"),
 		zap.String("operation", "Run"),
 		zap.Int("nOperations", nOperations),
-		zap.Int("periodMs", periodMs),
+		zap.Duration("intervalDuration", intervalDuration),
 	)
 
 	for i := 0; i < nOperations; i++ {
@@ -132,7 +132,7 @@ func (app *App) Run() error {
 		}
 
 		if i < nOperations-1 {
-			time.Sleep(time.Duration(periodMs) * time.Millisecond)
+			time.Sleep(intervalDuration)
 		}
 
 		if getPercent(i+1)/10 > getPercent(i)/10 {
