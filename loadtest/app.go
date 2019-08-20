@@ -79,16 +79,18 @@ func (app *App) configureOperations() {
 
 func (app *App) configureCache(sharedClansFile string) {
 	gameMaxMembers := app.config.GetInt("loadtest.game.maxMembers")
+
 	var err error
 	app.cache, err = newCacheImpl(gameMaxMembers, sharedClansFile)
 	if err != nil {
 		l := app.logger.With(
 			zap.String("source", "loadtest/app"),
 			zap.String("operation", "configureCache"),
+			zap.Int("gameMaxMembers", gameMaxMembers),
 			zap.String("sharedClansFile", sharedClansFile),
 			zap.String("error", err.Error()),
 		)
-		log.P(l, "Error reading shared clans config.")
+		log.P(l, "Error configuring cache.")
 	}
 }
 
@@ -109,17 +111,35 @@ func (app *App) Run() error {
 	if err := app.cache.loadInitialData(app.client); err != nil {
 		return err
 	}
+
 	nOperations := app.config.GetInt("loadtest.operations.amount")
-	periodMs := app.config.GetInt("loadtest.operations.period.ms")
+	intervalDuration := app.config.GetDuration("loadtest.operations.interval.duration")
+	getPercent := func(cur int) int {
+		return int((100 * int64(cur)) / int64(nOperations))
+	}
+
+	l := app.logger.With(
+		zap.String("source", "loadtest/app"),
+		zap.String("operation", "Run"),
+		zap.Int("nOperations", nOperations),
+		zap.Duration("intervalDuration", intervalDuration),
+	)
+
 	for i := 0; i < nOperations; i++ {
 		err := app.performOperation()
 		if err != nil {
 			return err
 		}
-		if i+1 < nOperations {
-			time.Sleep(time.Duration(periodMs) * time.Millisecond)
+
+		if i < nOperations-1 {
+			time.Sleep(intervalDuration)
+		}
+
+		if getPercent(i+1)/10 > getPercent(i)/10 {
+			log.I(l, fmt.Sprintf("Goroutine completed %v%%.", getPercent(i+1)))
 		}
 	}
+
 	return nil
 }
 

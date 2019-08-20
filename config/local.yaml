@@ -62,8 +62,8 @@ loadtest:
     gameid: "epiccardgame"
   operations:
     amount: 1
-    period:
-      ms: 1
+    interval:
+      duration: "1s"
     updateSharedClanScore:
       probability: 1
     createPlayer:

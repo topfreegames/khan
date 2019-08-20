@@ -1,7 +1,7 @@
 Load Test for Khan API
 ======================
 
-This application performs a random sequence of a specified amount of operations on a remote Khan API server, with a specified time period between two consecutive operations. It also allows multiple goroutines for local concurrency (multiple concurrent random sequences). Usage: `../khan loadtest --help`
+This application performs a random sequence of a specified amount of operations on a remote Khan API server, with a specified time interval between two consecutive operations. It also allows multiple goroutines for local concurrency (multiple concurrent random sequences). Usage: `../khan loadtest --help`
 
 # Game parameters
 Khan does not offer a route to get game information, so the membership level for application and the maximum number of members per clan are defined under the key `loadtest.game` within `../config/local.yaml`:
@@ -37,13 +37,13 @@ KHAN_LOADTEST_CLIENT_MAXIDLECONNSPERHOST: max keep-alive connections to keep per
 ```
 
 # Operation parameters
-The amount of operations per sequence/goroutine, the time period between two consecutive operations and the probabilities per operation are defined under the key `loadtest.operations` within `../config/local.yaml`:
+The amount of operations per sequence/goroutine, the time interval between two consecutive operations and the probabilities per operation are defined under the key `loadtest.operations` within `../config/local.yaml`:
 ```
 loadtest:
   operations:
     amount: 1
-    period:
-      ms: 1
+    interval:
+      duration: "1s"
     updateSharedClanScore:
       probability: 1
     createPlayer:
@@ -64,7 +64,7 @@ loadtest:
 Or setting the following environment variables:
 ```
 KHAN_LOADTEST_OPERATIONS_AMOUNT (default: 0)
-KHAN_LOADTEST_OPERATIONS_PERIOD_MS (default: 0)
+KHAN_LOADTEST_OPERATIONS_INTERVAL_DURATION (default: 0)
 KHAN_LOADTEST_OPERATIONS_UPDATESHAREDCLANSCORE_PROBABILITY (default: 0.8)
 KHAN_LOADTEST_OPERATIONS_CREATEPLAYER_PROBABILITY (default: 0.01)
 KHAN_LOADTEST_OPERATIONS_CREATECLAN_PROBABILITY (default: 0.01)
