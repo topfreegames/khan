@@ -885,12 +885,13 @@ func SearchClan(
 		return clans, nil
 	}
 
+	textSearchTerm := fmt.Sprintf(`"%s"`, term)
+	projection := bson.M{"textSearchScore": bson.M{"$meta": "textScore"}}
 	cmd := bson.D{
 		{Name: "find", Value: fmt.Sprintf("clans_%s", gameID)},
-		{Name: "filter", Value: bson.M{"name": &bson.RegEx{Pattern: term, Options: "i"}}},
-		{Name: "sort", Value: bson.D{
-			{Name: "_id", Value: 1},
-		}},
+		{Name: "filter", Value: bson.M{"$text": bson.M{"$search": textSearchTerm}}},
+		{Name: "projection", Value: projection},
+		{Name: "sort", Value: projection},
 		{Name: "limit", Value: pageSize},
 		{Name: "batchSize", Value: pageSize},
 		{Name: "singleBatch", Value: true},

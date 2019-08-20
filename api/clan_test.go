@@ -21,7 +21,7 @@ import (
 	"github.com/Pallinder/go-randomdata"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/satori/go.uuid"
+	uuid "github.com/satori/go.uuid"
 	"github.com/topfreegames/khan/api"
 	"github.com/topfreegames/khan/models"
 	"github.com/topfreegames/khan/testing"
@@ -860,6 +860,10 @@ var _ = Describe("Clan API Handler", func() {
 				testDb, gameID, "clan-apisearch-clan", 10,
 			)
 			Expect(err).NotTo(HaveOccurred())
+
+			err = testing.CreateClanNameTextIndexInMongo(GetTestMongo, gameID)
+			Expect(err).NotTo(HaveOccurred())
+
 			status, body := Get(a, GetGameRoute(player.GameID, "clans/search?term=APISEARCH"))
 
 			Expect(status).To(Equal(http.StatusOK))
@@ -915,6 +919,9 @@ var _ = Describe("Clan API Handler", func() {
 			player, expectedClans, err := models.GetTestClans(
 				testDb, gameID, "clan-apisearch-clan", 10,
 			)
+			Expect(err).NotTo(HaveOccurred())
+
+			err = testing.CreateClanNameTextIndexInMongo(GetTestMongo, gameID)
 			Expect(err).NotTo(HaveOccurred())
 
 			url := "clans/search?term=💩clán-clan-APISEARCH"

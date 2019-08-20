@@ -9,6 +9,7 @@ mongodb:
   enabled: true
   url: mongodb://localhost:27017
   databaseName: "khan"
+  database: "khan"
   collectionTemplate: "clans_%s"
 
 search:
