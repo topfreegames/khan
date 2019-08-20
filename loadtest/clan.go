@@ -7,6 +7,7 @@ import (
 func (app *App) configureClanOperations() {
 	app.appendOperation(app.getUpdateSharedClanScoreOperation())
 	app.appendOperation(app.getCreateClanOperation())
+	app.appendOperation(app.getRetrieveClanOperation())
 	app.appendOperation(app.getLeaveClanOperation())
 	app.appendOperation(app.getTransferClanOwnershipOperation())
 	app.appendOperation(app.getSearchClansOperation())
@@ -120,6 +121,40 @@ func (app *App) getCreateClanOperation() operation {
 			}
 
 			return app.cache.createClan(clanPublicID, playerPublicID)
+		},
+	}
+}
+
+func (app *App) getRetrieveClanOperation() operation {
+	operationKey := "retrieveClan"
+	app.setOperationProbabilityConfigDefault(operationKey, 1)
+	return operation{
+		probability: app.getOperationProbabilityConfig(operationKey),
+		canExecute: func() (bool, error) {
+			count, err := app.cache.getOwnerPlayersCount()
+			if err != nil {
+				return false, err
+			}
+			return count > 0, nil
+		},
+		execute: func() error {
+			clanPublicID, err := app.cache.chooseRandomClan()
+			if err != nil {
+				return err
+			}
+
+			clan, err := app.client.RetrieveClan(nil, clanPublicID)
+			if err != nil {
+				return err
+			}
+			if clan == nil {
+				return &GenericError{"NilPayloadError", "Operation retrieveClan returned no error with nil payload."}
+			}
+			if clan.PublicID != clanPublicID {
+				return &GenericError{"WrongPublicIDError", "Operation retrieveClan returned no error with public ID different from requested."}
+			}
+
+			return nil
 		},
 	}
 }
