@@ -70,6 +70,8 @@ loadtest:
       probability: 1
     createClan:
       probability: 1
+    retrieveClan:
+      probability: 1
     leaveClan:
       probability: 1
     transferClanOwnership:
