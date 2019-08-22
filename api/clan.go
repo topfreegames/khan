@@ -8,6 +8,8 @@
 package api
 
 import (
+	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -747,6 +749,44 @@ func RetrieveClanHandler(app *App) func(c echo.Context) error {
 		gameID := c.Param("gameID")
 		publicID := c.Param("clanPublicID")
 		shortID := c.QueryParam("shortID")
+		maxPendingApplications := c.QueryParam("maxPendingApplications")
+		maxPendingInvites := c.QueryParam("maxPendingInvites")
+		pendingApplicationsOrder := c.QueryParam("pendingApplicationsOrder")
+		pendingInvitesOrder := c.QueryParam("pendingInvitesOrder")
+
+		options := models.NewDefaultGetClanDetailsOptions(app.Config)
+		if maxPendingApplications != "" {
+			maxApps, err := strconv.ParseUint(maxPendingApplications, 10, 16)
+			if err != nil {
+				return FailWith(400, err.Error(), c)
+			}
+			if int(maxApps) > options.MaxPendingApplications {
+				return FailWith(400, fmt.Sprintf("Maximum pending applications above allowed (%v).", options.MaxPendingApplications), c)
+			}
+			options.MaxPendingApplications = int(maxApps)
+		}
+		if maxPendingInvites != "" {
+			maxInvs, err := strconv.ParseUint(maxPendingInvites, 10, 16)
+			if err != nil {
+				return FailWith(400, err.Error(), c)
+			}
+			if int(maxInvs) > options.MaxPendingInvites {
+				return FailWith(400, fmt.Sprintf("Maximum pending invites above allowed (%v).", options.MaxPendingInvites), c)
+			}
+			options.MaxPendingInvites = int(maxInvs)
+		}
+		if pendingApplicationsOrder != "" {
+			if !models.IsValidOrder(pendingApplicationsOrder) {
+				return FailWith(400, fmt.Sprintf("Pending applications order is invalid (valid orders are %s or %s).", models.Newest, models.Oldest), c)
+			}
+			options.PendingApplicationsOrder = pendingApplicationsOrder
+		}
+		if pendingInvitesOrder != "" {
+			if !models.IsValidOrder(pendingInvitesOrder) {
+				return FailWith(400, fmt.Sprintf("Pending invites order is invalid (valid orders are %s or %s).", models.Newest, models.Oldest), c)
+			}
+			options.PendingInvitesOrder = pendingInvitesOrder
+		}
 
 		db := app.Db(c.StdContext())
 
@@ -805,6 +845,7 @@ func RetrieveClanHandler(app *App) func(c echo.Context) error {
 				gameID,
 				clan,
 				game.MaxClansPerPlayer,
+				options,
 			)
 
 			if err != nil {

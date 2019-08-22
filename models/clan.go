@@ -16,6 +16,8 @@ import (
 	"os"
 	"strings"
 
+	"github.com/spf13/viper"
+
 	"github.com/globalsign/mgo/bson"
 	"github.com/go-gorp/gorp"
 	workers "github.com/jrallison/go-workers"
@@ -51,6 +53,52 @@ type Clan struct {
 	CreatedAt        int64                  `db:"created_at" json:"createdAt" bson:"createdAt"`
 	UpdatedAt        int64                  `db:"updated_at" json:"updatedAt" bson:"updatedAt"`
 	DeletedAt        int64                  `db:"deleted_at" json:"deletedAt" bson:"deletedAt"`
+}
+
+// Newest is the constant "newest"
+const Newest string = "newest"
+
+// Oldest is the constant "oldest"
+const Oldest string = "oldest"
+
+// IsValidOrder returns whether the input is equal to Newest or Oldest
+func IsValidOrder(order string) bool {
+	return order == Newest || order == Oldest
+}
+
+func getSQLOrderFromSemanticOrder(semantic string) (sql string) {
+	if semantic == Newest {
+		sql = "DESC"
+	} else {
+		sql = "ASC"
+	}
+	return
+}
+
+// GetClanDetailsOptions holds options to change the output of GetClanDetails()
+type GetClanDetailsOptions struct {
+	MaxPendingApplications   int
+	MaxPendingInvites        int
+	PendingApplicationsOrder string
+	PendingInvitesOrder      string
+}
+
+// NewDefaultGetClanDetailsOptions returns a new options structure with default values for GetClanDetails()
+func NewDefaultGetClanDetailsOptions(config *viper.Viper) *GetClanDetailsOptions {
+	maxPendingApplicationsKey := "getClanDetails.defaultOptions.maxPendingApplications"
+	maxPendingInvitesKey := "getClanDetails.defaultOptions.maxPendingInvites"
+	pendingApplicationsOrderKey := "getClanDetails.defaultOptions.pendingApplicationsOrder"
+	pendingInvitesOrderKey := "getClanDetails.defaultOptions.pendingInvitesOrder"
+	config.SetDefault(maxPendingApplicationsKey, 100)
+	config.SetDefault(maxPendingInvitesKey, 100)
+	config.SetDefault(pendingApplicationsOrderKey, Newest)
+	config.SetDefault(pendingInvitesOrderKey, Newest)
+	return &GetClanDetailsOptions{
+		MaxPendingApplications:   config.GetInt(maxPendingApplicationsKey),
+		MaxPendingInvites:        config.GetInt(maxPendingInvitesKey),
+		PendingApplicationsOrder: config.GetString(pendingApplicationsOrderKey),
+		PendingInvitesOrder:      config.GetString(pendingInvitesOrderKey),
+	}
 }
 
 //ToJSON returns the clan as JSON
@@ -688,8 +736,8 @@ func GetClanMembers(db DB, gameID, publicID string) (map[string]interface{}, err
 }
 
 // GetClanDetails returns all details for a given clan by its game id and public id
-func GetClanDetails(db DB, gameID string, clan *Clan, maxClansPerPlayer int) (map[string]interface{}, error) {
-	query := `
+func GetClanDetails(db DB, gameID string, clan *Clan, maxClansPerPlayer int, options *GetClanDetailsOptions) (map[string]interface{}, error) {
+	query := fmt.Sprintf(`
 	SELECT
 		c.game_id GameID,
 		c.public_id ClanPublicID, c.name ClanName, c.metadata ClanMetadata,
@@ -709,9 +757,25 @@ func GetClanDetails(db DB, gameID string, clan *Clan, maxClansPerPlayer int) (ma
 	FROM clans c
 		INNER JOIN players o ON c.owner_id=o.id
 		LEFT OUTER JOIN (
-			SELECT *
-			FROM memberships im
-			WHERE im.clan_id=$2 AND im.deleted_at=0 AND (im.approved=true OR im.denied=true OR im.banned=true)
+			(
+				SELECT *
+				FROM memberships im
+				WHERE im.clan_id=$2 AND im.deleted_at=0 AND im.approved=false AND im.denied=false AND im.banned=false AND im.requestor_id=im.player_id
+				ORDER BY im.id %s
+				LIMIT $3
+			)
+			UNION ALL (
+				SELECT *
+				FROM memberships im
+				WHERE im.clan_id=$2 AND im.deleted_at=0 AND im.approved=false AND im.denied=false AND im.banned=false AND im.requestor_id<>im.player_id
+				ORDER BY im.id %s
+				LIMIT $4
+			)
+			UNION ALL (
+				SELECT *
+				FROM memberships im
+				WHERE im.clan_id=$2 AND im.deleted_at=0 AND (im.approved=true OR im.denied=true OR im.banned=true)
+			)
 		) m ON m.clan_id=c.id
 		LEFT OUTER JOIN players r ON m.requestor_id=r.id
 		LEFT OUTER JOIN players a ON m.approver_id=a.id
@@ -719,9 +783,10 @@ func GetClanDetails(db DB, gameID string, clan *Clan, maxClansPerPlayer int) (ma
 		LEFT OUTER JOIN players y ON m.denier_id=y.id
 	WHERE
 		c.game_id=$1 AND c.id=$2
-	`
+	`, getSQLOrderFromSemanticOrder(options.PendingApplicationsOrder), getSQLOrderFromSemanticOrder(options.PendingInvitesOrder))
+
 	var details []clanDetailsDAO
-	_, err := db.Select(&details, query, gameID, clan.ID)
+	_, err := db.Select(&details, query, gameID, clan.ID, options.MaxPendingApplications, options.MaxPendingInvites)
 	if err != nil {
 		return nil, err
 	}
@@ -838,16 +903,6 @@ func GetClansSummaries(db DB, gameID string, publicIDs []string) ([]map[string]i
 	}
 
 	return resultClans, nil
-}
-
-type mongoResult struct {
-	OK       int `bson:"ok"`
-	WaitedMS int `bson:"waitedMS"`
-	Cursor   struct {
-		ID         interface{} `bson:"id"`
-		NS         string      `bson:"ns"`
-		FirstBatch []bson.Raw  `bson:"firstBatch"`
-	} `bson:"cursor"`
 }
 
 func min(x, y int) int {
