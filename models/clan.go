@@ -737,10 +737,7 @@ func GetClanMembers(db DB, gameID, publicID string) (map[string]interface{}, err
 
 // GetClanDetails returns all details for a given clan by its game id and public id
 func GetClanDetails(db DB, gameID string, clan *Clan, maxClansPerPlayer int, options *GetClanDetailsOptions) (map[string]interface{}, error) {
-	appsOrder := getSQLOrderFromSemanticOrder(options.PendingApplicationsOrder)
-	invsOrder := getSQLOrderFromSemanticOrder(options.PendingInvitesOrder)
-
-	query := `
+	query := fmt.Sprintf(`
 	SELECT
 		c.game_id GameID,
 		c.public_id ClanPublicID, c.name ClanName, c.metadata ClanMetadata,
@@ -764,14 +761,14 @@ func GetClanDetails(db DB, gameID string, clan *Clan, maxClansPerPlayer int, opt
 				SELECT *
 				FROM memberships im
 				WHERE im.clan_id=$2 AND im.deleted_at=0 AND im.approved=false AND im.denied=false AND im.banned=false AND im.requestor_id=im.player_id
-				ORDER BY im.id $5
+				ORDER BY im.id %s
 				LIMIT $3
 			)
 			UNION ALL (
 				SELECT *
 				FROM memberships im
 				WHERE im.clan_id=$2 AND im.deleted_at=0 AND im.approved=false AND im.denied=false AND im.banned=false AND im.requestor_id<>im.player_id
-				ORDER BY im.id $6
+				ORDER BY im.id %s
 				LIMIT $4
 			)
 			UNION ALL (
@@ -786,9 +783,10 @@ func GetClanDetails(db DB, gameID string, clan *Clan, maxClansPerPlayer int, opt
 		LEFT OUTER JOIN players y ON m.denier_id=y.id
 	WHERE
 		c.game_id=$1 AND c.id=$2
-	`
+	`, getSQLOrderFromSemanticOrder(options.PendingApplicationsOrder), getSQLOrderFromSemanticOrder(options.PendingInvitesOrder))
+
 	var details []clanDetailsDAO
-	_, err := db.Select(&details, query, gameID, clan.ID, options.MaxPendingApplications, options.MaxPendingInvites, appsOrder, invsOrder)
+	_, err := db.Select(&details, query, gameID, clan.ID, options.MaxPendingApplications, options.MaxPendingInvites)
 	if err != nil {
 		return nil, err
 	}
