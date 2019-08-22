@@ -8,6 +8,7 @@
 package api
 
 import (
+	"strconv"
 	"strings"
 	"time"
 
@@ -747,6 +748,10 @@ func RetrieveClanHandler(app *App) func(c echo.Context) error {
 		gameID := c.Param("gameID")
 		publicID := c.Param("clanPublicID")
 		shortID := c.QueryParam("shortID")
+		maxPendingApplications := c.QueryParam("maxPendingApplications")
+		maxPendingInvites := c.QueryParam("maxPendingInvites")
+		pendingApplicationsOrder := c.QueryParam("pendingApplicationsOrder")
+		pendingInvitesOrder := c.QueryParam("pendingInvitesOrder")
 
 		db := app.Db(c.StdContext())
 
@@ -799,12 +804,29 @@ func RetrieveClanHandler(app *App) func(c echo.Context) error {
 
 		var clanResult map[string]interface{}
 		err = WithSegment("clan-retrieve", c, func() error {
+			options := models.NewDefaultGetClanDetailsOptions(app.Config)
+			maxApps, err := strconv.ParseUint(maxPendingApplications, 10, 32)
+			if err == nil && int(maxApps) <= options.MaxPendingApplications {
+				options.MaxPendingApplications = int(maxApps)
+			}
+			maxInvs, err := strconv.ParseUint(maxPendingInvites, 10, 32)
+			if err == nil && int(maxInvs) <= options.MaxPendingInvites {
+				options.MaxPendingInvites = int(maxInvs)
+			}
+			if models.IsValidOrder(pendingApplicationsOrder) {
+				options.PendingApplicationsOrder = pendingApplicationsOrder
+			}
+			if models.IsValidOrder(pendingInvitesOrder) {
+				options.PendingInvitesOrder = pendingInvitesOrder
+			}
+
 			log.D(l, "Retrieving clan details...")
 			clanResult, err = models.GetClanDetails(
 				db,
 				gameID,
 				clan,
 				game.MaxClansPerPlayer,
+				options,
 			)
 
 			if err != nil {
