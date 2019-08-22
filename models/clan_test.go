@@ -16,6 +16,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	uuid "github.com/satori/go.uuid"
+	"github.com/spf13/viper"
 	"github.com/topfreegames/extensions/mongo/interfaces"
 	. "github.com/topfreegames/khan/models"
 	"github.com/topfreegames/khan/testing"
@@ -750,7 +751,7 @@ var _ = Describe("Clan Model", func() {
 				_, clan, _, _, _, err := GetClanWithMemberships(
 					testDb, 10, 3, 4, 5, gameID, uuid.NewV4().String(),
 				)
-				clanData, err := GetClanDetails(testDb, clan.GameID, clan, 1)
+				clanData, err := GetClanDetails(testDb, clan.GameID, clan, 1, NewDefaultGetClanDetailsOptions(viper.New()))
 				Expect(err).NotTo(HaveOccurred())
 
 				clanPlayers, err := GetClanMembers(testDb, clan.GameID, clan.PublicID)
@@ -769,7 +770,7 @@ var _ = Describe("Clan Model", func() {
 				_, clan, _, _, _, err := GetClanWithMemberships(
 					testDb, 0, 3, 4, 5, gameID, uuid.NewV4().String(),
 				)
-				clanData, err := GetClanDetails(testDb, clan.GameID, clan, 1)
+				clanData, err := GetClanDetails(testDb, clan.GameID, clan, 1, NewDefaultGetClanDetailsOptions(viper.New()))
 				Expect(err).NotTo(HaveOccurred())
 
 				clanPlayers, err := GetClanMembers(testDb, clan.GameID, clan.PublicID)
@@ -788,7 +789,7 @@ var _ = Describe("Clan Model", func() {
 				)
 				Expect(err).NotTo(HaveOccurred())
 
-				clanData, err := GetClanDetails(testDb, clan.GameID, clan, 1)
+				clanData, err := GetClanDetails(testDb, clan.GameID, clan, 1, NewDefaultGetClanDetailsOptions(viper.New()))
 				Expect(err).NotTo(HaveOccurred())
 				Expect(clanData["name"]).To(Equal(clan.Name))
 				Expect(clanData["metadata"]).To(Equal(clan.Metadata))
@@ -801,9 +802,8 @@ var _ = Describe("Clan Model", func() {
 				pendingApplications := clanData["memberships"].(map[string]interface{})["pendingApplications"].([]map[string]interface{})
 				Expect(len(pendingApplications)).To(Equal(0))
 
-				//We do not return pending invites or applications anymore
 				pendingInvites := clanData["memberships"].(map[string]interface{})["pendingInvites"].([]map[string]interface{})
-				Expect(len(pendingInvites)).To(Equal(0))
+				Expect(len(pendingInvites)).To(Equal(5))
 
 				banned := clanData["memberships"].(map[string]interface{})["banned"].([]map[string]interface{})
 				Expect(len(banned)).To(Equal(4))
@@ -893,7 +893,7 @@ var _ = Describe("Clan Model", func() {
 				_, err = testDb.Update(memberships[9])
 				Expect(err).NotTo(HaveOccurred())
 
-				clanData, err := GetClanDetails(testDb, clan.GameID, clan, 1)
+				clanData, err := GetClanDetails(testDb, clan.GameID, clan, 1, NewDefaultGetClanDetailsOptions(viper.New()))
 				Expect(err).NotTo(HaveOccurred())
 				Expect(clanData["name"]).To(Equal(clan.Name))
 				Expect(clanData["metadata"]).To(Equal(clan.Metadata))
@@ -925,7 +925,7 @@ var _ = Describe("Clan Model", func() {
 				_, err = testDb.Update(clan)
 				Expect(err).NotTo(HaveOccurred())
 
-				clanData, err := GetClanDetails(testDb, clan.GameID, clan, 1)
+				clanData, err := GetClanDetails(testDb, clan.GameID, clan, 1, NewDefaultGetClanDetailsOptions(viper.New()))
 				Expect(err).NotTo(HaveOccurred())
 				Expect(clanData["name"]).To(Equal(clan.Name))
 				Expect(clanData["metadata"]).To(Equal(clan.Metadata))
@@ -937,7 +937,7 @@ var _ = Describe("Clan Model", func() {
 			})
 
 			It("Should fail if clan does not exist", func() {
-				clanData, err := GetClanDetails(testDb, "fake-game-id", &Clan{PublicID: "fake-public-id"}, 1)
+				clanData, err := GetClanDetails(testDb, "fake-game-id", &Clan{PublicID: "fake-public-id"}, 1, NewDefaultGetClanDetailsOptions(viper.New()))
 				Expect(clanData).To(BeNil())
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(Equal("Clan was not found with id: fake-public-id"))
@@ -964,7 +964,7 @@ var _ = Describe("Clan Model", func() {
 			})
 
 			It("Should fail if clan does not exist", func() {
-				clanData, err := GetClanDetails(testDb, "fake-game-id", &Clan{PublicID: "fake-public-id"}, 1)
+				clanData, err := GetClanDetails(testDb, "fake-game-id", &Clan{PublicID: "fake-public-id"}, 1, NewDefaultGetClanDetailsOptions(viper.New()))
 				Expect(clanData).To(BeNil())
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(Equal("Clan was not found with id: fake-public-id"))
