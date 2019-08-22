@@ -55,19 +55,19 @@ type Clan struct {
 	DeletedAt        int64                  `db:"deleted_at" json:"deletedAt" bson:"deletedAt"`
 }
 
-// MostRecentFirst is the constant "mostRecentFirst"
-const MostRecentFirst string = "mostRecentFirst"
+// Newest is the constant "newest"
+const Newest string = "newest"
 
-// OldestFirst is the constant "oldestFirst"
-const OldestFirst string = "oldestFirst"
+// Oldest is the constant "oldest"
+const Oldest string = "oldest"
 
-// IsValidOrder returns whether the input is equal to MostRecentFirst or OldestFirst
+// IsValidOrder returns whether the input is equal to Newest or Oldest
 func IsValidOrder(order string) bool {
-	return order == MostRecentFirst || order == OldestFirst
+	return order == Newest || order == Oldest
 }
 
 func getSQLOrderFromSemanticOrder(semantic string) (sql string) {
-	if semantic == MostRecentFirst {
+	if semantic == Newest {
 		sql = "DESC"
 	} else {
 		sql = "ASC"
@@ -91,8 +91,8 @@ func NewDefaultGetClanDetailsOptions(config *viper.Viper) *GetClanDetailsOptions
 	pendingInvitesOrderKey := "getClanDetails.defaultOptions.pendingInvitesOrder"
 	config.SetDefault(maxPendingApplicationsKey, 100)
 	config.SetDefault(maxPendingInvitesKey, 100)
-	config.SetDefault(pendingApplicationsOrderKey, MostRecentFirst)
-	config.SetDefault(pendingInvitesOrderKey, MostRecentFirst)
+	config.SetDefault(pendingApplicationsOrderKey, Newest)
+	config.SetDefault(pendingInvitesOrderKey, Newest)
 	return &GetClanDetailsOptions{
 		MaxPendingApplications:   config.GetInt(maxPendingApplicationsKey),
 		MaxPendingInvites:        config.GetInt(maxPendingInvitesKey),

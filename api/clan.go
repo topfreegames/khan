@@ -771,19 +771,19 @@ func RetrieveClanHandler(app *App) func(c echo.Context) error {
 				return FailWith(400, err.Error(), c)
 			}
 			if int(maxInvs) > options.MaxPendingInvites {
-				return FailWith(400, fmt.Sprintf("Maximum pending applications above allowed (%v).", options.MaxPendingInvites), c)
+				return FailWith(400, fmt.Sprintf("Maximum pending invites above allowed (%v).", options.MaxPendingInvites), c)
 			}
 			options.MaxPendingInvites = int(maxInvs)
 		}
 		if pendingApplicationsOrder != "" {
 			if !models.IsValidOrder(pendingApplicationsOrder) {
-				return FailWith(400, fmt.Sprintf("Pending applications order is invalid (valid orders are %s or %s).", models.MostRecentFirst, models.OldestFirst), c)
+				return FailWith(400, fmt.Sprintf("Pending applications order is invalid (valid orders are %s or %s).", models.Newest, models.Oldest), c)
 			}
 			options.PendingApplicationsOrder = pendingApplicationsOrder
 		}
 		if pendingInvitesOrder != "" {
 			if !models.IsValidOrder(pendingInvitesOrder) {
-				return FailWith(400, fmt.Sprintf("Pending applications order is invalid (valid orders are %s or %s).", models.MostRecentFirst, models.OldestFirst), c)
+				return FailWith(400, fmt.Sprintf("Pending invites order is invalid (valid orders are %s or %s).", models.Newest, models.Oldest), c)
 			}
 			options.PendingInvitesOrder = pendingInvitesOrder
 		}
