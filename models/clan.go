@@ -840,16 +840,6 @@ func GetClansSummaries(db DB, gameID string, publicIDs []string) ([]map[string]i
 	return resultClans, nil
 }
 
-type mongoResult struct {
-	OK       int `bson:"ok"`
-	WaitedMS int `bson:"waitedMS"`
-	Cursor   struct {
-		ID         interface{} `bson:"id"`
-		NS         string      `bson:"ns"`
-		FirstBatch []bson.Raw  `bson:"firstBatch"`
-	} `bson:"cursor"`
-}
-
 func min(x, y int) int {
 	if x < y {
 		return x
