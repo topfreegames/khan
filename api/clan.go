@@ -8,6 +8,7 @@
 package api
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
@@ -753,6 +754,40 @@ func RetrieveClanHandler(app *App) func(c echo.Context) error {
 		pendingApplicationsOrder := c.QueryParam("pendingApplicationsOrder")
 		pendingInvitesOrder := c.QueryParam("pendingInvitesOrder")
 
+		options := models.NewDefaultGetClanDetailsOptions(app.Config)
+		if maxPendingApplications != "" {
+			maxApps, err := strconv.ParseUint(maxPendingApplications, 10, 16)
+			if err != nil {
+				return FailWith(400, err.Error(), c)
+			}
+			if int(maxApps) > options.MaxPendingApplications {
+				return FailWith(400, fmt.Sprintf("Maximum pending applications above allowed (%v).", options.MaxPendingApplications), c)
+			}
+			options.MaxPendingApplications = int(maxApps)
+		}
+		if maxPendingInvites != "" {
+			maxInvs, err := strconv.ParseUint(maxPendingInvites, 10, 16)
+			if err != nil {
+				return FailWith(400, err.Error(), c)
+			}
+			if int(maxInvs) > options.MaxPendingInvites {
+				return FailWith(400, fmt.Sprintf("Maximum pending applications above allowed (%v).", options.MaxPendingInvites), c)
+			}
+			options.MaxPendingInvites = int(maxInvs)
+		}
+		if pendingApplicationsOrder != "" {
+			if !models.IsValidOrder(pendingApplicationsOrder) {
+				return FailWith(400, fmt.Sprintf("Pending applications order is invalid (valid orders are %s or %s).", models.MostRecentFirst, models.OldestFirst), c)
+			}
+			options.PendingApplicationsOrder = pendingApplicationsOrder
+		}
+		if pendingInvitesOrder != "" {
+			if !models.IsValidOrder(pendingInvitesOrder) {
+				return FailWith(400, fmt.Sprintf("Pending applications order is invalid (valid orders are %s or %s).", models.MostRecentFirst, models.OldestFirst), c)
+			}
+			options.PendingInvitesOrder = pendingInvitesOrder
+		}
+
 		db := app.Db(c.StdContext())
 
 		l := app.Logger.With(
@@ -804,22 +839,6 @@ func RetrieveClanHandler(app *App) func(c echo.Context) error {
 
 		var clanResult map[string]interface{}
 		err = WithSegment("clan-retrieve", c, func() error {
-			options := models.NewDefaultGetClanDetailsOptions(app.Config)
-			maxApps, err := strconv.ParseUint(maxPendingApplications, 10, 32)
-			if err == nil && int(maxApps) <= options.MaxPendingApplications {
-				options.MaxPendingApplications = int(maxApps)
-			}
-			maxInvs, err := strconv.ParseUint(maxPendingInvites, 10, 32)
-			if err == nil && int(maxInvs) <= options.MaxPendingInvites {
-				options.MaxPendingInvites = int(maxInvs)
-			}
-			if models.IsValidOrder(pendingApplicationsOrder) {
-				options.PendingApplicationsOrder = pendingApplicationsOrder
-			}
-			if models.IsValidOrder(pendingInvitesOrder) {
-				options.PendingInvitesOrder = pendingInvitesOrder
-			}
-
 			log.D(l, "Retrieving clan details...")
 			clanResult, err = models.GetClanDetails(
 				db,
