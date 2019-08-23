@@ -16,11 +16,14 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/spf13/viper"
+
 	"github.com/labstack/echo"
 	"github.com/mailru/easyjson/jlexer"
 	"github.com/mailru/easyjson/jwriter"
 	newrelic "github.com/newrelic/go-agent"
 	"github.com/topfreegames/khan/log"
+	"github.com/topfreegames/khan/models"
 	"github.com/uber-go/zap"
 )
 
@@ -173,4 +176,12 @@ func WithSegment(name string, c echo.Context, f func() error) error {
 	segment := newrelic.StartSegment(tx, name)
 	defer segment.End()
 	return f()
+}
+
+// SetRetrieveClanHandlerConfigurationDefaults sets the default configs for RetrieveClanHandler
+func SetRetrieveClanHandlerConfigurationDefaults(config *viper.Viper) {
+	config.SetDefault(models.MaxPendingApplicationsKey, 100)
+	config.SetDefault(models.MaxPendingInvitesKey, 100)
+	config.SetDefault(models.PendingApplicationsOrderKey, models.Newest)
+	config.SetDefault(models.PendingInvitesOrderKey, models.Newest)
 }
