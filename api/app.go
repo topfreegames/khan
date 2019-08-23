@@ -255,10 +255,7 @@ func (app *App) setHandlersConfigurationDefaults() {
 }
 
 func (app *App) setRetrieveClanHandlerConfigurationDefaults() {
-	app.Config.SetDefault(models.MaxPendingApplicationsKey, 100)
-	app.Config.SetDefault(models.MaxPendingInvitesKey, 100)
-	app.Config.SetDefault(models.PendingApplicationsOrderKey, models.Newest)
-	app.Config.SetDefault(models.PendingInvitesOrderKey, models.Newest)
+	SetRetrieveClanHandlerConfigurationDefaults(app.Config)
 }
 
 func (app *App) loadConfiguration() {

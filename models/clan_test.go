@@ -18,6 +18,7 @@ import (
 	uuid "github.com/satori/go.uuid"
 	"github.com/spf13/viper"
 	"github.com/topfreegames/extensions/mongo/interfaces"
+	"github.com/topfreegames/khan/api"
 	. "github.com/topfreegames/khan/models"
 	"github.com/topfreegames/khan/testing"
 	"github.com/topfreegames/khan/util"
@@ -751,7 +752,9 @@ var _ = Describe("Clan Model", func() {
 				_, clan, _, _, _, err := GetClanWithMemberships(
 					testDb, 10, 3, 4, 5, gameID, uuid.NewV4().String(),
 				)
-				clanData, err := GetClanDetails(testDb, clan.GameID, clan, 1, NewDefaultGetClanDetailsOptions(viper.New()))
+				config := viper.New()
+				api.SetRetrieveClanHandlerConfigurationDefaults(config)
+				clanData, err := GetClanDetails(testDb, clan.GameID, clan, 1, NewDefaultGetClanDetailsOptions(config))
 				Expect(err).NotTo(HaveOccurred())
 
 				clanPlayers, err := GetClanMembers(testDb, clan.GameID, clan.PublicID)
@@ -770,7 +773,9 @@ var _ = Describe("Clan Model", func() {
 				_, clan, _, _, _, err := GetClanWithMemberships(
 					testDb, 0, 3, 4, 5, gameID, uuid.NewV4().String(),
 				)
-				clanData, err := GetClanDetails(testDb, clan.GameID, clan, 1, NewDefaultGetClanDetailsOptions(viper.New()))
+				config := viper.New()
+				api.SetRetrieveClanHandlerConfigurationDefaults(config)
+				clanData, err := GetClanDetails(testDb, clan.GameID, clan, 1, NewDefaultGetClanDetailsOptions(config))
 				Expect(err).NotTo(HaveOccurred())
 
 				clanPlayers, err := GetClanMembers(testDb, clan.GameID, clan.PublicID)
@@ -789,7 +794,9 @@ var _ = Describe("Clan Model", func() {
 				)
 				Expect(err).NotTo(HaveOccurred())
 
-				clanData, err := GetClanDetails(testDb, clan.GameID, clan, 1, NewDefaultGetClanDetailsOptions(viper.New()))
+				config := viper.New()
+				api.SetRetrieveClanHandlerConfigurationDefaults(config)
+				clanData, err := GetClanDetails(testDb, clan.GameID, clan, 1, NewDefaultGetClanDetailsOptions(config))
 				Expect(err).NotTo(HaveOccurred())
 				Expect(clanData["name"]).To(Equal(clan.Name))
 				Expect(clanData["metadata"]).To(Equal(clan.Metadata))
@@ -893,7 +900,9 @@ var _ = Describe("Clan Model", func() {
 				_, err = testDb.Update(memberships[9])
 				Expect(err).NotTo(HaveOccurred())
 
-				clanData, err := GetClanDetails(testDb, clan.GameID, clan, 1, NewDefaultGetClanDetailsOptions(viper.New()))
+				config := viper.New()
+				api.SetRetrieveClanHandlerConfigurationDefaults(config)
+				clanData, err := GetClanDetails(testDb, clan.GameID, clan, 1, NewDefaultGetClanDetailsOptions(config))
 				Expect(err).NotTo(HaveOccurred())
 				Expect(clanData["name"]).To(Equal(clan.Name))
 				Expect(clanData["metadata"]).To(Equal(clan.Metadata))
@@ -925,7 +934,9 @@ var _ = Describe("Clan Model", func() {
 				_, err = testDb.Update(clan)
 				Expect(err).NotTo(HaveOccurred())
 
-				clanData, err := GetClanDetails(testDb, clan.GameID, clan, 1, NewDefaultGetClanDetailsOptions(viper.New()))
+				config := viper.New()
+				api.SetRetrieveClanHandlerConfigurationDefaults(config)
+				clanData, err := GetClanDetails(testDb, clan.GameID, clan, 1, NewDefaultGetClanDetailsOptions(config))
 				Expect(err).NotTo(HaveOccurred())
 				Expect(clanData["name"]).To(Equal(clan.Name))
 				Expect(clanData["metadata"]).To(Equal(clan.Metadata))
@@ -937,7 +948,9 @@ var _ = Describe("Clan Model", func() {
 			})
 
 			It("Should fail if clan does not exist", func() {
-				clanData, err := GetClanDetails(testDb, "fake-game-id", &Clan{PublicID: "fake-public-id"}, 1, NewDefaultGetClanDetailsOptions(viper.New()))
+				config := viper.New()
+				api.SetRetrieveClanHandlerConfigurationDefaults(config)
+				clanData, err := GetClanDetails(testDb, "fake-game-id", &Clan{PublicID: "fake-public-id"}, 1, NewDefaultGetClanDetailsOptions(config))
 				Expect(clanData).To(BeNil())
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(Equal("Clan was not found with id: fake-public-id"))
@@ -964,7 +977,9 @@ var _ = Describe("Clan Model", func() {
 			})
 
 			It("Should fail if clan does not exist", func() {
-				clanData, err := GetClanDetails(testDb, "fake-game-id", &Clan{PublicID: "fake-public-id"}, 1, NewDefaultGetClanDetailsOptions(viper.New()))
+				config := viper.New()
+				api.SetRetrieveClanHandlerConfigurationDefaults(config)
+				clanData, err := GetClanDetails(testDb, "fake-game-id", &Clan{PublicID: "fake-public-id"}, 1, NewDefaultGetClanDetailsOptions(config))
 				Expect(clanData).To(BeNil())
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(Equal("Clan was not found with id: fake-public-id"))
