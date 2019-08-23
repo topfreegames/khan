@@ -83,21 +83,25 @@ type GetClanDetailsOptions struct {
 	PendingInvitesOrder      string
 }
 
+// MaxPendingApplicationsKey is string constant
+const MaxPendingApplicationsKey string = "getClanDetails.defaultOptions.maxPendingApplications"
+
+// MaxPendingInvitesKey is string constant
+const MaxPendingInvitesKey string = "getClanDetails.defaultOptions.maxPendingInvites"
+
+// PendingApplicationsOrderKey is string constant
+const PendingApplicationsOrderKey string = "getClanDetails.defaultOptions.pendingApplicationsOrder"
+
+// PendingInvitesOrderKey is string constant
+const PendingInvitesOrderKey string = "getClanDetails.defaultOptions.pendingInvitesOrder"
+
 // NewDefaultGetClanDetailsOptions returns a new options structure with default values for GetClanDetails()
 func NewDefaultGetClanDetailsOptions(config *viper.Viper) *GetClanDetailsOptions {
-	maxPendingApplicationsKey := "getClanDetails.defaultOptions.maxPendingApplications"
-	maxPendingInvitesKey := "getClanDetails.defaultOptions.maxPendingInvites"
-	pendingApplicationsOrderKey := "getClanDetails.defaultOptions.pendingApplicationsOrder"
-	pendingInvitesOrderKey := "getClanDetails.defaultOptions.pendingInvitesOrder"
-	config.SetDefault(maxPendingApplicationsKey, 100)
-	config.SetDefault(maxPendingInvitesKey, 100)
-	config.SetDefault(pendingApplicationsOrderKey, Newest)
-	config.SetDefault(pendingInvitesOrderKey, Newest)
 	return &GetClanDetailsOptions{
-		MaxPendingApplications:   config.GetInt(maxPendingApplicationsKey),
-		MaxPendingInvites:        config.GetInt(maxPendingInvitesKey),
-		PendingApplicationsOrder: config.GetString(pendingApplicationsOrderKey),
-		PendingInvitesOrder:      config.GetString(pendingInvitesOrderKey),
+		MaxPendingApplications:   config.GetInt(MaxPendingApplicationsKey),
+		MaxPendingInvites:        config.GetInt(MaxPendingInvitesKey),
+		PendingApplicationsOrder: config.GetString(PendingApplicationsOrderKey),
+		PendingInvitesOrder:      config.GetString(PendingInvitesOrderKey),
 	}
 }
 

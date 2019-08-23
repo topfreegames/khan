@@ -28,7 +28,7 @@ import (
 	"github.com/labstack/echo/middleware"
 	newrelic "github.com/newrelic/go-agent"
 	"github.com/rcrowley/go-metrics"
-	"github.com/satori/go.uuid"
+	uuid "github.com/satori/go.uuid"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	eecho "github.com/topfreegames/extensions/echo"
@@ -244,7 +244,21 @@ func (app *App) setConfigurationDefaults() {
 	app.Config.SetDefault("khan.defaultCooldownBeforeApply", -1)
 	app.Config.SetDefault("jaeger.disabled", true)
 	app.Config.SetDefault("jaeger.samplingProbability", 0.001)
+
+	app.setHandlersConfigurationDefaults()
+
 	log.D(l, "Configuration defaults set.")
+}
+
+func (app *App) setHandlersConfigurationDefaults() {
+	app.setRetrieveClanHandlerConfigurationDefaults()
+}
+
+func (app *App) setRetrieveClanHandlerConfigurationDefaults() {
+	app.Config.SetDefault(models.MaxPendingApplicationsKey, 100)
+	app.Config.SetDefault(models.MaxPendingInvitesKey, 100)
+	app.Config.SetDefault(models.PendingApplicationsOrderKey, models.Newest)
+	app.Config.SetDefault(models.PendingInvitesOrderKey, models.Newest)
 }
 
 func (app *App) loadConfiguration() {
