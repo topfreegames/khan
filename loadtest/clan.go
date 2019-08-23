@@ -1,6 +1,8 @@
 package loadtest
 
 import (
+	"fmt"
+
 	"github.com/topfreegames/khan/lib"
 )
 
@@ -88,7 +90,12 @@ func (app *App) getUpdateSharedClanScoreOperation() operation {
 
 func (app *App) getCreateClanOperation() operation {
 	operationKey := "createClan"
+
+	// set default configs
 	app.setOperationProbabilityConfigDefault(operationKey, 1)
+	autoJoinKey := fmt.Sprintf("loadtest.operations.%s.autoJoin", operationKey)
+	app.config.SetDefault(autoJoinKey, true)
+	autoJoin := app.config.GetBool(autoJoinKey)
 	return operation{
 		probability: app.getOperationProbabilityConfig(operationKey),
 		canExecute: func() (bool, error) {
@@ -111,7 +118,7 @@ func (app *App) getCreateClanOperation() operation {
 				OwnerPublicID:    playerPublicID,
 				Metadata:         getMetadataWithRandomScore(),
 				AllowApplication: true,
-				AutoJoin:         true,
+				AutoJoin:         autoJoin,
 			})
 			if err != nil {
 				return err

@@ -37,7 +37,7 @@ KHAN_LOADTEST_CLIENT_MAXIDLECONNSPERHOST: max keep-alive connections to keep per
 ```
 
 # Operation parameters
-The amount of operations per sequence/goroutine, the time interval between two consecutive operations and the probabilities per operation are defined under the key `loadtest.operations` within `../config/local.yaml`:
+The amount of operations per sequence/goroutine, the time interval between two consecutive operations and the probabilities (and other configurations) per operation are defined under the key `loadtest.operations` within `../config/local.yaml`:
 ```
 loadtest:
   operations:
@@ -50,6 +50,7 @@ loadtest:
       probability: 1
     createClan:
       probability: 1
+      autoJoin: "false"
     retrieveClan:
       probability: 1
     leaveClan:
@@ -70,6 +71,7 @@ KHAN_LOADTEST_OPERATIONS_INTERVAL_DURATION (default: 0)
 KHAN_LOADTEST_OPERATIONS_UPDATESHAREDCLANSCORE_PROBABILITY (default: 1)
 KHAN_LOADTEST_OPERATIONS_CREATEPLAYER_PROBABILITY (default: 1)
 KHAN_LOADTEST_OPERATIONS_CREATECLAN_PROBABILITY (default: 1)
+KHAN_LOADTEST_OPERATIONS_CREATECLAN_AUTOJOIN (default: true)
 KHAN_LOADTEST_OPERATIONS_RETRIEVECLAN_PROBABILITY (default: 1)
 KHAN_LOADTEST_OPERATIONS_LEAVECLAN_PROBABILITY (default: 1)
 KHAN_LOADTEST_OPERATIONS_TRANSFERCLANOWNERSHIP_PROBABILITY (default: 1)
