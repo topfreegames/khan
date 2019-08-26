@@ -129,11 +129,9 @@ run-prune-docker:
 		-e "KHAN_PRUNING_SLEEP=10" \
 		khan-prune
 
-test: start-test-deps
-	@SKIP_ELASTIC_LOG=true ginkgo -r --cover .
+test: start-test-deps run-test
 
 start-test-deps: schema-update start-deps assets drop-test db-test
-	@echo "test deps started"
 
 run-test:
 	@SKIP_ELASTIC_LOG=true ginkgo -r --cover .
