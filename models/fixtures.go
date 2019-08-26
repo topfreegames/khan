@@ -333,6 +333,16 @@ func GetClanWithMemberships(
 				return nil, nil, nil, nil, nil, err
 			}
 
+			if options != nil && len(options) > 2 && options[2] {
+				player.Metadata = map[string]interface{}{
+					"id": membership.ID,
+				}
+				_, err = db.Update(player)
+				if err != nil {
+					return nil, nil, nil, nil, nil, err
+				}
+			}
+
 			memberships = append(memberships, membership)
 		}
 	}

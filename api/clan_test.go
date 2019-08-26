@@ -655,6 +655,190 @@ var _ = Describe("Clan API Handler", func() {
 
 			Expect(result["roster"] == nil).To(BeFalse())
 		})
+
+		It("Should fail with 400 if maxPendingApplications cannot be parsed as uint", func() {
+			_, clan, _, _, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
+			Expect(err).NotTo(HaveOccurred())
+
+			status, body := Get(a, GetGameRoute(clan.GameID, fmt.Sprintf("/clans/%s?maxPendingApplications=xablau", clan.PublicID)))
+
+			Expect(status).To(Equal(http.StatusBadRequest))
+			Expect(body).To(ContainSubstring("invalid syntax"))
+		})
+
+		It("Should fail with 400 if maxPendingApplications is above allowed", func() {
+			_, clan, _, _, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
+			Expect(err).NotTo(HaveOccurred())
+
+			status, body := Get(a, GetGameRoute(clan.GameID, fmt.Sprintf("/clans/%s?maxPendingApplications=101", clan.PublicID)))
+
+			Expect(status).To(Equal(http.StatusBadRequest))
+			Expect(body).To(ContainSubstring("above allowed"))
+		})
+
+		It("Should fail with 400 if maxPendingInvites cannot be parsed as uint", func() {
+			_, clan, _, _, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
+			Expect(err).NotTo(HaveOccurred())
+
+			status, body := Get(a, GetGameRoute(clan.GameID, fmt.Sprintf("/clans/%s?maxPendingInvites=xablau", clan.PublicID)))
+
+			Expect(status).To(Equal(http.StatusBadRequest))
+			Expect(body).To(ContainSubstring("invalid syntax"))
+		})
+
+		It("Should fail with 400 if maxPendingInvites is above allowed", func() {
+			_, clan, _, _, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
+			Expect(err).NotTo(HaveOccurred())
+
+			status, body := Get(a, GetGameRoute(clan.GameID, fmt.Sprintf("/clans/%s?maxPendingInvites=101", clan.PublicID)))
+
+			Expect(status).To(Equal(http.StatusBadRequest))
+			Expect(body).To(ContainSubstring("above allowed"))
+		})
+
+		It("Should fail with 400 if pendingApplicationsOrder is not a valid order string", func() {
+			_, clan, _, _, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
+			Expect(err).NotTo(HaveOccurred())
+
+			status, body := Get(a, GetGameRoute(clan.GameID, fmt.Sprintf("/clans/%s?pendingApplicationsOrder=xablau", clan.PublicID)))
+
+			Expect(status).To(Equal(http.StatusBadRequest))
+			Expect(body).To(ContainSubstring("order is invalid"))
+		})
+
+		It("Should fail with 400 if pendingInvitesOrder is not a valid order string", func() {
+			_, clan, _, _, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
+			Expect(err).NotTo(HaveOccurred())
+
+			status, body := Get(a, GetGameRoute(clan.GameID, fmt.Sprintf("/clans/%s?pendingInvitesOrder=xablau", clan.PublicID)))
+
+			Expect(status).To(Equal(http.StatusBadRequest))
+			Expect(body).To(ContainSubstring("order is invalid"))
+		})
+
+		type pendingMembershipPayload struct {
+			Player struct {
+				Metadata struct {
+					ID int `json:"id"`
+				} `json:"metadata"`
+			} `json:"player"`
+		}
+		type retrieveClanPayload struct {
+			Success     bool `json:"success"`
+			Memberships struct {
+				PendingApplications []pendingMembershipPayload `json:"pendingApplications"`
+				PendingInvites      []pendingMembershipPayload `json:"pendingInvites"`
+			} `json:"memberships"`
+		}
+
+		It("should get pending applications even if max amount is not set", func() {
+			_, clan, _, _, _, err := models.GetClanWithMemberships(testDb, 10, 0, 0, 10, "", "", false, false, true)
+			Expect(err).NotTo(HaveOccurred())
+
+			status, body := Get(a, GetGameRoute(clan.GameID, fmt.Sprintf("/clans/%s", clan.PublicID)))
+			Expect(status).To(Equal(http.StatusOK))
+
+			var result retrieveClanPayload
+			json.Unmarshal([]byte(body), &result)
+
+			Expect(len(result.Memberships.PendingApplications)).To(BeNumerically(">", 0))
+		})
+
+		It("should get pending invites even if max amount is not set", func() {
+			_, clan, _, _, _, err := models.GetClanWithMemberships(testDb, 10, 0, 0, 10, "", "", false, true, true)
+			Expect(err).NotTo(HaveOccurred())
+
+			status, body := Get(a, GetGameRoute(clan.GameID, fmt.Sprintf("/clans/%s", clan.PublicID)))
+			Expect(status).To(Equal(http.StatusOK))
+
+			var result retrieveClanPayload
+			json.Unmarshal([]byte(body), &result)
+
+			Expect(len(result.Memberships.PendingInvites)).To(BeNumerically(">", 0))
+		})
+
+		validateRetrieveClanResponse := func(memberships []*models.Membership, body, pendingsOrder string, pendingsLength int, pendingsAreInvites bool) {
+			Expect(pendingsLength).To(BeNumerically("<", len(memberships)))
+
+			var result retrieveClanPayload
+			json.Unmarshal([]byte(body), &result)
+
+			Expect(result.Success).To(BeTrue())
+
+			pendings := result.Memberships.PendingApplications
+			if pendingsAreInvites {
+				pendings = result.Memberships.PendingInvites
+			}
+			Expect(len(pendings)).To(Equal(pendingsLength))
+
+			lastOrFirstFromAllPendingMemberships := memberships[len(memberships)-1].ID
+			if pendingsOrder == ">" {
+				lastOrFirstFromAllPendingMemberships = memberships[0].ID
+			}
+			for _, pending := range pendings {
+				Expect(pending.Player.Metadata.ID).To(BeNumerically(pendingsOrder, lastOrFirstFromAllPendingMemberships))
+			}
+		}
+
+		It("Should get newest pending applications if order is not set", func() {
+			maxPending := 7
+			_, clan, _, _, memberships, err := models.GetClanWithMemberships(testDb, 10, 0, 0, 10, "", "", false, false, true)
+			Expect(err).NotTo(HaveOccurred())
+
+			status, body := Get(a, GetGameRoute(clan.GameID, fmt.Sprintf("/clans/%s?maxPendingApplications=%v", clan.PublicID, maxPending)))
+			Expect(status).To(Equal(http.StatusOK))
+			validateRetrieveClanResponse(memberships, body, ">", maxPending, false)
+		})
+
+		It("Should get newest pending applications", func() {
+			maxPending := 7
+			_, clan, _, _, memberships, err := models.GetClanWithMemberships(testDb, 10, 0, 0, 10, "", "", false, false, true)
+			Expect(err).NotTo(HaveOccurred())
+
+			status, body := Get(a, GetGameRoute(clan.GameID, fmt.Sprintf("/clans/%s?maxPendingApplications=%v&pendingApplicationsOrder=newest", clan.PublicID, maxPending)))
+			Expect(status).To(Equal(http.StatusOK))
+			validateRetrieveClanResponse(memberships, body, ">", maxPending, false)
+		})
+
+		It("Should get oldest pending applications", func() {
+			maxPending := 7
+			_, clan, _, _, memberships, err := models.GetClanWithMemberships(testDb, 10, 0, 0, 10, "", "", false, false, true)
+			Expect(err).NotTo(HaveOccurred())
+
+			status, body := Get(a, GetGameRoute(clan.GameID, fmt.Sprintf("/clans/%s?maxPendingApplications=%v&pendingApplicationsOrder=oldest", clan.PublicID, maxPending)))
+			Expect(status).To(Equal(http.StatusOK))
+			validateRetrieveClanResponse(memberships, body, "<", maxPending, false)
+		})
+
+		It("Should get newest pending invites if order is not set", func() {
+			maxPending := 7
+			_, clan, _, _, memberships, err := models.GetClanWithMemberships(testDb, 10, 0, 0, 10, "", "", false, true, true)
+			Expect(err).NotTo(HaveOccurred())
+
+			status, body := Get(a, GetGameRoute(clan.GameID, fmt.Sprintf("/clans/%s?maxPendingInvites=%v", clan.PublicID, maxPending)))
+			Expect(status).To(Equal(http.StatusOK))
+			validateRetrieveClanResponse(memberships, body, ">", maxPending, true)
+		})
+
+		It("Should get newest pending invites", func() {
+			maxPending := 7
+			_, clan, _, _, memberships, err := models.GetClanWithMemberships(testDb, 10, 0, 0, 10, "", "", false, true, true)
+			Expect(err).NotTo(HaveOccurred())
+
+			status, body := Get(a, GetGameRoute(clan.GameID, fmt.Sprintf("/clans/%s?maxPendingInvites=%v&pendingInvitesOrder=newest", clan.PublicID, maxPending)))
+			Expect(status).To(Equal(http.StatusOK))
+			validateRetrieveClanResponse(memberships, body, ">", maxPending, true)
+		})
+
+		It("Should get oldest pending invites", func() {
+			maxPending := 7
+			_, clan, _, _, memberships, err := models.GetClanWithMemberships(testDb, 10, 0, 0, 10, "", "", false, true, true)
+			Expect(err).NotTo(HaveOccurred())
+
+			status, body := Get(a, GetGameRoute(clan.GameID, fmt.Sprintf("/clans/%s?maxPendingInvites=%v&pendingInvitesOrder=oldest", clan.PublicID, maxPending)))
+			Expect(status).To(Equal(http.StatusOK))
+			validateRetrieveClanResponse(memberships, body, "<", maxPending, true)
+		})
 	})
 
 	Describe("Retrieve Clan Members Handler", func() {
