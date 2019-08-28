@@ -115,7 +115,7 @@ func (app *App) Configure() {
 }
 
 func (app *App) configureCache() {
-	cacheTTL := app.Config.GetDuration("cacheTTL")
+	cacheTTL := app.Config.GetDuration("cache.ttl")
 	app.cache = gocache.New(cacheTTL, gocache.DefaultExpiration)
 }
 
