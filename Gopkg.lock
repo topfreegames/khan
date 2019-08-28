@@ -420,6 +420,14 @@
   version = "v1.0.2"
 
 [[projects]]
+  digest = "1:808cdddf087fb64baeae67b8dfaee2069034d9704923a3cb8bd96a995421a625"
+  name = "github.com/patrickmn/go-cache"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "a3647f8e31d79543b2d0f0ae2fe5c379d72cedc0"
+  version = "v2.1.0"
+
+[[projects]]
   digest = "1:c416b52f6afb8f40cd1ca987ca53c38e65bd169d3de6d89d729880ddf91670f0"
   name = "github.com/pelletier/go-buffruneio"
   packages = ["."]
@@ -796,6 +804,7 @@
     "github.com/onsi/ginkgo",
     "github.com/onsi/gomega",
     "github.com/opentracing/opentracing-go",
+    "github.com/patrickmn/go-cache",
     "github.com/rcrowley/go-metrics",
     "github.com/satori/go.uuid",
     "github.com/sirupsen/logrus",

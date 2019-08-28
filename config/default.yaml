@@ -60,3 +60,4 @@ extensions:
     prefix: khan.
     tags_prefix: ""
     rate: 1
+cacheTTL: 1m

@@ -82,3 +82,5 @@ loadtest:
       probability: 1
     searchClans:
       probability: 1
+
+cacheTTL: 1m

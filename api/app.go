@@ -27,6 +27,7 @@ import (
 	"github.com/labstack/echo/engine/standard"
 	"github.com/labstack/echo/middleware"
 	newrelic "github.com/newrelic/go-agent"
+	gocache "github.com/patrickmn/go-cache"
 	"github.com/rcrowley/go-metrics"
 	uuid "github.com/satori/go.uuid"
 	"github.com/sirupsen/logrus"
@@ -71,7 +72,8 @@ type App struct {
 	NewRelic       newrelic.Application
 	DDStatsD       *extnethttpmiddleware.DogStatsD
 
-	db gorp.Database
+	cache *gocache.Cache
+	db    gorp.Database
 }
 
 // GetApp returns a new Khan API Application
@@ -109,6 +111,12 @@ func (app *App) Configure() {
 	app.initESWorker()
 	app.initMongoWorker()
 	app.configureGoWorkers()
+	app.configureCache()
+}
+
+func (app *App) configureCache() {
+	cacheTTL := app.Config.GetDuration("cacheTTL")
+	app.cache = gocache.New(cacheTTL, gocache.DefaultExpiration)
 }
 
 func (app *App) configureSentry() {
@@ -475,6 +483,12 @@ func (app *App) GetGame(ctx context.Context, gameID string) (*models.Game, error
 		zap.String("gameID", gameID),
 	)
 
+	key := fmt.Sprintf("game|%s", gameID)
+	value, present := app.cache.Get(key)
+	if present {
+		return value.(*models.Game), nil
+	}
+
 	start := time.Now()
 	log.D(l, "Retrieving game...")
 
@@ -489,6 +503,7 @@ func (app *App) GetGame(ctx context.Context, gameID string) (*models.Game, error
 	log.D(l, "Game retrieved succesfully.", func(cm log.CM) {
 		cm.Write(zap.Duration("gameRetrievalDuration", time.Now().Sub(start)))
 	})
+	app.cache.Set(key, game, gocache.DefaultExpiration)
 	return game, nil
 }
 
