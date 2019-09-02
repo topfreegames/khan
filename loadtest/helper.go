@@ -3,6 +3,7 @@ package loadtest
 import (
 	"fmt"
 	"math/rand"
+	"strings"
 
 	uuid "github.com/satori/go.uuid"
 )
@@ -15,8 +16,12 @@ func getRandomPlayerName() string {
 	return fmt.Sprintf("PlayerName-%s", uuid.NewV4().String()[:8])
 }
 
-func getRandomClanName() string {
-	return fmt.Sprintf("ClanName-%s", uuid.NewV4().String()[:8])
+func getRandomClanName(numberOfWords int) string {
+	pieces := []string{}
+	for i := 0; i < numberOfWords; i++ {
+		pieces = append(pieces, dictionary[rand.Int()%len(dictionary)])
+	}
+	return strings.Join(pieces, " ")
 }
 
 func getRandomPublicID() string {
