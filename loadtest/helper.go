@@ -2,11 +2,27 @@ package loadtest
 
 import (
 	"fmt"
+	"io/ioutil"
 	"math/rand"
+	"os"
 	"strings"
 
 	uuid "github.com/satori/go.uuid"
 )
+
+var dictionary []string
+
+func init() {
+	file, err := os.Open("/usr/share/dict/words")
+	if err != nil {
+		panic(err)
+	}
+	bytes, err := ioutil.ReadAll(file)
+	if err != nil {
+		panic(err)
+	}
+	dictionary = strings.Split(string(bytes), "\n")
+}
 
 func getRandomScore() int {
 	return rand.Intn(1000)
