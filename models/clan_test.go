@@ -1129,6 +1129,14 @@ var _ = Describe("Clan Model", func() {
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(Equal("A search term was not provided to find a clan."))
 			})
+
+			It("Should return clan by word prefix", func() {
+				err := testing.CreateClanNameTextIndexInMongo(GetTestMongo, player.GameID)
+				dbClan, err := GetTestClanWithName(testDb, player.GameID, "The Largest Clan Name For Prefix Test", player.ID)
+				clans, err := SearchClan(testDb, testMongo, player.GameID, "prefi large", 10)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(dbClan.Name).To(Equal(clans[0].Name))
+			})
 		})
 
 		Describe("Get Clan and Owner", func() {
