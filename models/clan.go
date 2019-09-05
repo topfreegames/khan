@@ -55,6 +55,12 @@ type Clan struct {
 	DeletedAt        int64                  `db:"deleted_at" json:"deletedAt" bson:"deletedAt"`
 }
 
+// ClanWithNamePrefixes extends Clan with a field to help name indexation in MongoDB
+type ClanWithNamePrefixes struct {
+	Clan
+	NamePrefixes []string `json:"namePrefixes"`
+}
+
 // Newest is the constant "newest"
 const Newest string = "newest"
 
@@ -190,6 +196,34 @@ func (c *Clan) IndexClanIntoElasticSearch() error {
 	return nil
 }
 
+// NewClanWithNamePrefixes returns a new extended Clan object with name  prefixes
+func (c *Clan) NewClanWithNamePrefixes() *ClanWithNamePrefixes {
+	minPrefixLength := 4 // TODO: how to bring the app Viper config here?
+	caseSensitiveWords := strings.Fields(c.Name)
+	foundPrefixes := make(map[string]bool)
+	var prefixes []string
+	for _, caseSensitiveWord := range caseSensitiveWords {
+		word := strings.ToLower(caseSensitiveWord)
+		wordLen := len(word)
+		firstPrefixIdx := minPrefixLength
+		if firstPrefixIdx > wordLen {
+			firstPrefixIdx = wordLen
+		}
+		for i := firstPrefixIdx; i <= wordLen; i++ {
+			prefix := word[:i]
+			if !foundPrefixes[prefix] {
+				foundPrefixes[prefix] = true
+				prefixes = append(prefixes, prefix)
+			}
+		}
+	}
+
+	return &ClanWithNamePrefixes{
+		Clan:         *c,
+		NamePrefixes: prefixes,
+	}
+}
+
 // UpdateClanIntoMongoDB after operation in PG
 func (c *Clan) UpdateClanIntoMongoDB() error {
 	mongo := mongo.GetConfiguredMongoClient()
@@ -197,7 +231,7 @@ func (c *Clan) UpdateClanIntoMongoDB() error {
 		workers.Enqueue(queues.KhanMongoQueue, "Add", map[string]interface{}{
 			"game":   c.GameID,
 			"op":     "update",
-			"clan":   c,
+			"clan":   c.NewClanWithNamePrefixes(),
 			"clanID": c.PublicID,
 		})
 	}
@@ -944,11 +978,10 @@ func SearchClan(
 		return clans, nil
 	}
 
-	textSearchTerm := fmt.Sprintf(`"%s"`, term)
 	projection := bson.M{"textSearchScore": bson.M{"$meta": "textScore"}}
 	cmd := bson.D{
 		{Name: "find", Value: fmt.Sprintf("clans_%s", gameID)},
-		{Name: "filter", Value: bson.M{"$text": bson.M{"$search": textSearchTerm}}},
+		{Name: "filter", Value: bson.M{"$text": bson.M{"$search": term}}},
 		{Name: "projection", Value: projection},
 		{Name: "sort", Value: projection},
 		{Name: "limit", Value: pageSize},

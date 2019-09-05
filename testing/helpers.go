@@ -19,9 +19,10 @@ func CreateClanNameTextIndexInMongo(getTestMongo func() (interfaces.MongoDB, err
 		{Name: "indexes", Value: []interface{}{
 			bson.M{
 				"key": bson.M{
-					"name": "text",
+					"name":         "text",
+					"namePrefixes": "text",
 				},
-				"name": fmt.Sprintf("clans_%s_name_text_index", gameID),
+				"name": fmt.Sprintf("clans_%s_name_text_namePrefixes_text_index", gameID),
 			},
 		}},
 	}

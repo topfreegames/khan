@@ -459,6 +459,25 @@ func GetTestClanWithRandomPublicIDAndName(db DB, gameID string, ownerID int64) (
 	return clan, nil
 }
 
+// GetTestClanWithName returns a clan with name for tests
+func GetTestClanWithName(db DB, gameID, name string, ownerID int64) (*Clan, error) {
+	clan := ClanFactory.MustCreateWithOption(map[string]interface{}{
+		"GameID":   gameID,
+		"PublicID": uuid.NewV4().String(),
+		"Name":     name,
+		"OwnerID":  ownerID,
+	}).(*Clan)
+	err := db.Insert(clan)
+	if err != nil {
+		return nil, err
+	}
+	err = clan.UpdateClanIntoMongoDB()
+	if err != nil {
+		return nil, err
+	}
+	return clan, nil
+}
+
 // GetTestClans returns a list of clans for tests
 func GetTestClans(db DB, gameID string, publicIDTemplate string, numberOfClans int) (*Player, []*Clan, error) {
 	if gameID == "" {

@@ -1129,6 +1129,14 @@ var _ = Describe("Clan Model", func() {
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(Equal("A search term was not provided to find a clan."))
 			})
+
+			It("Should return clan by word prefix", func() {
+				err := testing.CreateClanNameTextIndexInMongo(GetTestMongo, player.GameID)
+				dbClan, err := GetTestClanWithName(testDb, player.GameID, "The Largest Clan Name For Prefix Test", player.ID)
+				clans, err := SearchClan(testDb, testMongo, player.GameID, "prefi large", 10)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(dbClan.Name).To(Equal(clans[0].Name))
+			})
 		})
 
 		Describe("Get Clan and Owner", func() {
@@ -1142,6 +1150,65 @@ var _ = Describe("Clan Model", func() {
 				Expect(err).NotTo(HaveOccurred())
 				Expect(dbClan.ID).To(Equal(clan.ID))
 				Expect(dbOwner.ID).To(Equal(owner.ID))
+			})
+		})
+
+		Describe("NewClanWithNamePrefixes()", func() {
+			validateClanNamePrefixes := func(clanWithNamePrefixes *ClanWithNamePrefixes, expectedPrefixes []string) {
+				Expect(len(clanWithNamePrefixes.NamePrefixes)).To(Equal(len(expectedPrefixes)))
+				resultPrefixes := make(map[string]bool)
+				for _, prefix := range clanWithNamePrefixes.NamePrefixes {
+					resultPrefixes[prefix] = true
+				}
+				for _, expectedPrefix := range expectedPrefixes {
+					Expect(resultPrefixes[expectedPrefix]).To(BeTrue())
+				}
+			}
+
+			It("Should return the clan struct extension with name word prefixes", func() {
+				clan := &Clan{Name: "Brazilian Clan Name"}
+				clanWithNamePrefixes := clan.NewClanWithNamePrefixes()
+				expectedPrefixes := []string{
+					"braz",
+					"brazi",
+					"brazil",
+					"brazili",
+					"brazilia",
+					"brazilian",
+					"clan",
+					"name",
+				}
+				validateClanNamePrefixes(clanWithNamePrefixes, expectedPrefixes)
+			})
+
+			It("Should return the clan struct extension with name word prefixes without duplicates", func() {
+				clan := &Clan{Name: "Brazilian Brazilian"}
+				clanWithNamePrefixes := clan.NewClanWithNamePrefixes()
+				expectedPrefixes := []string{
+					"braz",
+					"brazi",
+					"brazil",
+					"brazili",
+					"brazilia",
+					"brazilian",
+				}
+				validateClanNamePrefixes(clanWithNamePrefixes, expectedPrefixes)
+			})
+
+			It("Should return the clan struct extension with name word prefixes even for words shorter than 4 characters", func() {
+				clan := &Clan{Name: "The Big Brazilian"}
+				clanWithNamePrefixes := clan.NewClanWithNamePrefixes()
+				expectedPrefixes := []string{
+					"the",
+					"big",
+					"braz",
+					"brazi",
+					"brazil",
+					"brazili",
+					"brazilia",
+					"brazilian",
+				}
+				validateClanNamePrefixes(clanWithNamePrefixes, expectedPrefixes)
 			})
 		})
 	})
