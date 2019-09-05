@@ -198,7 +198,7 @@ func (c *Clan) IndexClanIntoElasticSearch() error {
 
 // NewClanWithNamePrefixes returns a new extended Clan object with name  prefixes
 func (c *Clan) NewClanWithNamePrefixes() *ClanWithNamePrefixes {
-	minPrefixLength := 4 // how to bring the app Viper config here?
+	minPrefixLength := 4 // TODO: how to bring the app Viper config here?
 	caseSensitiveWords := strings.Fields(c.Name)
 	foundPrefixes := make(map[string]bool)
 	var prefixes []string
