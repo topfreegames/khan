@@ -35,7 +35,7 @@ func getRandomPlayerName() string {
 func getRandomClanName(numberOfWords int) string {
 	pieces := []string{}
 	for i := 0; i < numberOfWords; i++ {
-		pieces = append(pieces, dictionary[rand.Int()%len(dictionary)])
+		pieces = append(pieces, dictionary[rand.Intn(len(dictionary))])
 	}
 	return strings.Join(pieces, " ")
 }
