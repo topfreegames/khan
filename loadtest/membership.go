@@ -52,9 +52,6 @@ func (app *App) getApplyForMembershipOperation() operation {
 			if !clanApplyResult.Success {
 				return &GenericError{"FailurePayloadError", "Operation applyForMembership returned no error with failure payload."}
 			}
-			if !clanApplyResult.Approved {
-				return &GenericError{"NotApprovedError", "Operation applyForMembership returned no error with not approved membership."}
-			}
 
 			return app.cache.applyForMembership(clanPublicID, playerPublicID)
 		},
