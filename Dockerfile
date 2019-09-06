@@ -11,6 +11,7 @@ RUN apk add --update bash
 RUN go get -u github.com/golang/dep/...
 RUN go get -u github.com/topfreegames/goose/cmd/goose
 
+ADD loadtest/words /usr/share/dict/words
 ADD . /go/src/github.com/topfreegames/khan
 
 WORKDIR /go/src/github.com/topfreegames/khan

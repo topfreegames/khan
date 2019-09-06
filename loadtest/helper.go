@@ -2,10 +2,27 @@ package loadtest
 
 import (
 	"fmt"
+	"io/ioutil"
 	"math/rand"
+	"os"
+	"strings"
 
 	uuid "github.com/satori/go.uuid"
 )
+
+var dictionary []string
+
+func init() {
+	file, err := os.Open("/usr/share/dict/words")
+	if err != nil {
+		panic(err)
+	}
+	bytes, err := ioutil.ReadAll(file)
+	if err != nil {
+		panic(err)
+	}
+	dictionary = strings.Split(string(bytes), "\n")
+}
 
 func getRandomScore() int {
 	return rand.Intn(1000)
@@ -15,8 +32,12 @@ func getRandomPlayerName() string {
 	return fmt.Sprintf("PlayerName-%s", uuid.NewV4().String()[:8])
 }
 
-func getRandomClanName() string {
-	return fmt.Sprintf("ClanName-%s", uuid.NewV4().String()[:8])
+func getRandomClanName(numberOfWords int) string {
+	pieces := []string{}
+	for i := 0; i < numberOfWords; i++ {
+		pieces = append(pieces, dictionary[rand.Intn(len(dictionary))])
+	}
+	return strings.Join(pieces, " ")
 }
 
 func getRandomPublicID() string {

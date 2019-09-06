@@ -107,7 +107,7 @@ func (app *App) getCreateClanOperation() operation {
 			clanPublicID := getRandomPublicID()
 			createdPublicID, err := app.client.CreateClan(nil, &lib.ClanPayload{
 				PublicID:         clanPublicID,
-				Name:             getRandomClanName(),
+				Name:             getRandomClanName(10),
 				OwnerPublicID:    playerPublicID,
 				Metadata:         getMetadataWithRandomScore(),
 				AllowApplication: true,
@@ -236,7 +236,7 @@ func (app *App) getSearchClansOperation() operation {
 			return true, nil
 		},
 		execute: func() error {
-			searchClansResult, err := app.client.SearchClans(nil, getRandomClanName())
+			searchClansResult, err := app.client.SearchClans(nil, getRandomClanName(10))
 			if err != nil {
 				return err
 			}
