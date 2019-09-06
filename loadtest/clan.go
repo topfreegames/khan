@@ -13,6 +13,7 @@ func (app *App) configureClanOperations() {
 	app.appendOperation(app.getLeaveClanOperation())
 	app.appendOperation(app.getTransferClanOwnershipOperation())
 	app.appendOperation(app.getSearchClansOperation())
+	app.appendOperation(app.getRetrieveClansSummariesOperation())
 }
 
 func (app *App) getUpdateSharedClanScoreOperation() operation {
@@ -252,6 +253,40 @@ func (app *App) getSearchClansOperation() operation {
 			}
 			if !searchClansResult.Success {
 				return &GenericError{"FailurePayloadError", "Operation searchClans returned no error with failure payload."}
+			}
+			return nil
+		},
+	}
+}
+
+func (app *App) getRetrieveClansSummariesOperation() operation {
+	operationKey := "retrieveClansSummaries"
+	app.setOperationProbabilityConfigDefault(operationKey, 1)
+	return operation{
+		probability: app.getOperationProbabilityConfig(operationKey),
+		canExecute: func() (bool, error) {
+			return true, nil
+		},
+		execute: func() error {
+			sharedClans, err := app.cache.getSharedClansPublicIDs()
+			if err != nil {
+				return err
+			}
+			sharedClansMap := make(map[string]bool)
+			for _, clan := range sharedClans {
+				sharedClansMap[clan] = true
+			}
+			clansSummaries, err := app.client.RetrieveClansSummary(nil, sharedClans)
+			if err != nil {
+				return err
+			}
+			for _, clanSummary := range clansSummaries {
+				if clanSummary == nil {
+					return &GenericError{"NilPayloadError", "Operation retrieveClansSummaries returned no error with nil payload."}
+				}
+				if !sharedClansMap[clanSummary.PublicID] {
+					return &GenericError{"WrongPublicIDError", "Operation retrieveClansSummaries returned no error with public ID different from requested."}
+				}
 			}
 			return nil
 		},

@@ -10,6 +10,7 @@ import (
 type (
 	cache interface {
 		loadInitialData(lib.KhanInterface) error
+		getSharedClansPublicIDs() ([]string, error)
 		getSharedClansCount() (int, error)
 		chooseRandomSharedClanAndPlayer() (string, string, error)
 		getFreePlayersCount() (int, error)
@@ -76,6 +77,14 @@ func (c *cacheImpl) loadInitialData(client lib.KhanInterface) error {
 		return err
 	}
 	return nil
+}
+
+func (c *cacheImpl) getSharedClansPublicIDs() ([]string, error) {
+	var sharedClans []string
+	for _, clan := range c.sharedClans {
+		sharedClans = append(sharedClans, clan.publicID)
+	}
+	return sharedClans, nil
 }
 
 func (c *cacheImpl) loadSharedClansMembers(client lib.KhanInterface) error {

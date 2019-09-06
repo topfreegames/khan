@@ -70,6 +70,7 @@ loadtest:
       probability: 1
     createClan:
       probability: 1
+      autoJoin: "false"
     retrieveClan:
       probability: 1
     leaveClan:
@@ -81,6 +82,8 @@ loadtest:
     selfDeleteMembership:
       probability: 1
     searchClans:
+      probability: 1
+    retrieveClansSummaries:
       probability: 1
 
 cache:
