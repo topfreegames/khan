@@ -12,7 +12,11 @@ import (
 
 var dictionary []string
 
-func init() {
+// LoadRandomWords loads random words into memory for random clan name generation
+func LoadRandomWords() {
+	if dictionary != nil {
+		return
+	}
 	file, err := os.Open("/usr/share/dict/words")
 	if err != nil {
 		panic(err)
@@ -33,6 +37,9 @@ func getRandomPlayerName() string {
 }
 
 func getRandomClanName(numberOfWords int) string {
+	if dictionary == nil {
+		return fmt.Sprintf("ClanName-%s", uuid.NewV4().String()[:8])
+	}
 	pieces := []string{}
 	for i := 0; i < numberOfWords; i++ {
 		pieces = append(pieces, dictionary[rand.Intn(len(dictionary))])
