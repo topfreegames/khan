@@ -1,6 +1,8 @@
 package loadtest
 
 import (
+	"fmt"
+
 	"github.com/topfreegames/khan/lib"
 )
 
@@ -11,6 +13,7 @@ func (app *App) configureClanOperations() {
 	app.appendOperation(app.getLeaveClanOperation())
 	app.appendOperation(app.getTransferClanOwnershipOperation())
 	app.appendOperation(app.getSearchClansOperation())
+	app.appendOperation(app.getRetrieveClansSummariesOperation())
 }
 
 func (app *App) getUpdateSharedClanScoreOperation() operation {
@@ -88,7 +91,12 @@ func (app *App) getUpdateSharedClanScoreOperation() operation {
 
 func (app *App) getCreateClanOperation() operation {
 	operationKey := "createClan"
+
+	// set default configs
 	app.setOperationProbabilityConfigDefault(operationKey, 1)
+	autoJoinKey := fmt.Sprintf("loadtest.operations.%s.autoJoin", operationKey)
+	app.config.SetDefault(autoJoinKey, true)
+	autoJoin := app.config.GetBool(autoJoinKey)
 	return operation{
 		probability: app.getOperationProbabilityConfig(operationKey),
 		canExecute: func() (bool, error) {
@@ -107,11 +115,11 @@ func (app *App) getCreateClanOperation() operation {
 			clanPublicID := getRandomPublicID()
 			createdPublicID, err := app.client.CreateClan(nil, &lib.ClanPayload{
 				PublicID:         clanPublicID,
-				Name:             getRandomClanName(10),
+				Name:             getRandomClanName(),
 				OwnerPublicID:    playerPublicID,
 				Metadata:         getMetadataWithRandomScore(),
 				AllowApplication: true,
-				AutoJoin:         true,
+				AutoJoin:         autoJoin,
 			})
 			if err != nil {
 				return err
@@ -236,7 +244,7 @@ func (app *App) getSearchClansOperation() operation {
 			return true, nil
 		},
 		execute: func() error {
-			searchClansResult, err := app.client.SearchClans(nil, getRandomClanName(10))
+			searchClansResult, err := app.client.SearchClans(nil, getRandomClanName())
 			if err != nil {
 				return err
 			}
@@ -245,6 +253,40 @@ func (app *App) getSearchClansOperation() operation {
 			}
 			if !searchClansResult.Success {
 				return &GenericError{"FailurePayloadError", "Operation searchClans returned no error with failure payload."}
+			}
+			return nil
+		},
+	}
+}
+
+func (app *App) getRetrieveClansSummariesOperation() operation {
+	operationKey := "retrieveClansSummaries"
+	app.setOperationProbabilityConfigDefault(operationKey, 1)
+	return operation{
+		probability: app.getOperationProbabilityConfig(operationKey),
+		canExecute: func() (bool, error) {
+			return true, nil
+		},
+		execute: func() error {
+			sharedClans, err := app.cache.getSharedClansPublicIDs()
+			if err != nil {
+				return err
+			}
+			sharedClansMap := make(map[string]bool)
+			for _, clan := range sharedClans {
+				sharedClansMap[clan] = true
+			}
+			clansSummaries, err := app.client.RetrieveClansSummary(nil, sharedClans)
+			if err != nil {
+				return err
+			}
+			for _, clanSummary := range clansSummaries {
+				if clanSummary == nil {
+					return &GenericError{"NilPayloadError", "Operation retrieveClansSummaries returned no error with nil payload."}
+				}
+				if !sharedClansMap[clanSummary.PublicID] {
+					return &GenericError{"WrongPublicIDError", "Operation retrieveClansSummaries returned no error with public ID different from requested."}
+				}
 			}
 			return nil
 		},

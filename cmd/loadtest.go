@@ -16,6 +16,7 @@ var loadtestCmd = &cobra.Command{
 	Long: `Runs a load test against a remote Khan API with the specified arguments.
 You can use environment variables to override configuration keys.`,
 	Run: func(cmd *cobra.Command, args []string) {
+		loadtest.LoadRandomWords()
 		logger := zap.New(zap.NewJSONEncoder(), zap.InfoLevel)
 
 		exitChannel := make(chan bool)
