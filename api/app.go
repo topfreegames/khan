@@ -115,8 +115,17 @@ func (app *App) Configure() {
 }
 
 func (app *App) configureCache() {
-	cacheTTL := app.Config.GetDuration("cache.ttl")
-	app.cache = gocache.New(cacheTTL, gocache.DefaultExpiration)
+	// TTL
+	ttlKey := "cache.ttl"
+	app.Config.SetDefault(ttlKey, time.Minute)
+	ttl := app.Config.GetDuration(ttlKey)
+
+	// cleanup
+	cleanupIntervalKey := "cache.cleanupInterval"
+	app.Config.SetDefault(cleanupIntervalKey, time.Minute)
+	cleanupInterval := app.Config.GetDuration(cleanupIntervalKey)
+
+	app.cache = gocache.New(ttl, cleanupInterval)
 }
 
 func (app *App) configureSentry() {
