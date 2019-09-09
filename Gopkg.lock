@@ -206,6 +206,14 @@
   version = "v1.0"
 
 [[projects]]
+  digest = "1:8cff1b38298ac6c9f02bce11df3a7b9026bba6540c52adcf3fc8b328bf0fc149"
+  name = "github.com/jarcoal/httpmock"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "ac2099de8d3789d30b99b740d1a9d242097462df"
+  version = "v1.0.4"
+
+[[projects]]
   branch = "master"
   digest = "1:fd97437fbb6b7dce04132cf06775bd258cce305c44add58eb55ca86c6c325160"
   name = "github.com/jinzhu/inflection"
@@ -743,14 +751,6 @@
   version = "v1.0.0"
 
 [[projects]]
-  branch = "v1"
-  digest = "1:4ee26ca9581f50d347bbd449288bb2e19e8078b9d57ff8cfe95c45d985594bb3"
-  name = "gopkg.in/jarcoal/httpmock.v1"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "d805e540cd37b8aa6e2ad7d94f06f6537493e710"
-
-[[projects]]
   digest = "1:14aa12a4a23b14afe5731023e50b7ad98fd61ab4c17e6fcbf1ea62a151b8d02b"
   name = "gopkg.in/olivere/elastic.v5"
   packages = [
@@ -789,6 +789,7 @@
     "github.com/golang/mock/gomock",
     "github.com/gosuri/uiprogress",
     "github.com/gosuri/uiprogress/util/strutil",
+    "github.com/jarcoal/httpmock",
     "github.com/jrallison/go-workers",
     "github.com/labstack/echo",
     "github.com/labstack/echo/engine",
@@ -826,7 +827,6 @@
     "github.com/uber-go/zap",
     "github.com/valyala/fasthttp/fasthttpadaptor",
     "github.com/valyala/fasttemplate",
-    "gopkg.in/jarcoal/httpmock.v1",
     "gopkg.in/olivere/elastic.v5",
   ]
   solver-name = "gps-cdcl"

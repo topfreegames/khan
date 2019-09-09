@@ -1,9 +1,9 @@
 package lib_test
 
 import (
+	"github.com/jarcoal/httpmock"
 	"github.com/spf13/viper"
 	"github.com/topfreegames/khan/lib"
-	httpmock "gopkg.in/jarcoal/httpmock.v1"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
