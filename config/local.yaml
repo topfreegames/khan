@@ -88,3 +88,4 @@ loadtest:
 
 cache:
   ttl: 1m
+  cleanup: 1m
