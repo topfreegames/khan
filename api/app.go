@@ -121,11 +121,11 @@ func (app *App) configureCache() {
 	ttl := app.Config.GetDuration(ttlKey)
 
 	// cleanup
-	cleanupKey := "cache.cleanup"
-	app.Config.SetDefault(cleanupKey, time.Minute)
-	cleanup := app.Config.GetDuration(cleanupKey)
+	cleanupIntervalKey := "cache.cleanupInterval"
+	app.Config.SetDefault(cleanupIntervalKey, time.Minute)
+	cleanupInterval := app.Config.GetDuration(cleanupIntervalKey)
 
-	app.cache = gocache.New(ttl, cleanup)
+	app.cache = gocache.New(ttl, cleanupInterval)
 }
 
 func (app *App) configureSentry() {
