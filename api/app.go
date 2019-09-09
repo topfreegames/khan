@@ -39,6 +39,7 @@ import (
 	extnethttpmiddleware "github.com/topfreegames/extensions/middleware"
 	"github.com/topfreegames/extensions/mongo/interfaces"
 	extworkermiddleware "github.com/topfreegames/extensions/worker/middleware"
+	"github.com/topfreegames/khan/caches"
 	"github.com/topfreegames/khan/es"
 	"github.com/topfreegames/khan/log"
 	"github.com/topfreegames/khan/models"
@@ -72,8 +73,9 @@ type App struct {
 	NewRelic       newrelic.Application
 	DDStatsD       *extnethttpmiddleware.DogStatsD
 
-	cache *gocache.Cache
-	db    gorp.Database
+	cache               *gocache.Cache
+	clansSummariesCache *caches.ClansSummariesCache
+	db                  gorp.Database
 }
 
 // GetApp returns a new Khan API Application
@@ -126,6 +128,21 @@ func (app *App) configureCache() {
 	cleanupInterval := app.Config.GetDuration(cleanupIntervalKey)
 
 	app.cache = gocache.New(ttl, cleanupInterval)
+	app.configureClansSummariesCache(ttl, cleanupInterval)
+}
+
+func (app *App) configureClansSummariesCache(defaultTTL, defaultCleanupInterval time.Duration) {
+	// TTL
+	ttlKey := "cache.clansSummaries.ttl"
+	app.Config.SetDefault(ttlKey, defaultTTL)
+	ttl := app.Config.GetDuration(ttlKey)
+
+	// cleanup
+	cleanupIntervalKey := "cache.clansSummaries.cleanupInterval"
+	app.Config.SetDefault(cleanupIntervalKey, defaultCleanupInterval)
+	cleanupInterval := app.Config.GetDuration(cleanupIntervalKey)
+
+	app.clansSummariesCache = caches.NewClansSummariesCache(gocache.New(ttl, cleanupInterval))
 }
 
 func (app *App) configureSentry() {
