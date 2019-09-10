@@ -21,9 +21,16 @@ type ClansSummariesCache struct {
 func (c *ClansSummariesCache) GetClansSummaries(db models.DB, gameID string, publicIDs []string) ([]map[string]interface{}, error) {
 	resultMap := c.getCachedClansSummaries(gameID, publicIDs)
 	err := c.getAndCacheClansSummaries(db, gameID, resultMap)
+	if err != nil {
+		if _, ok := err.(*models.CouldNotFindAllClansError); !ok {
+			return nil, err
+		}
+	}
 	var result []map[string]interface{}
 	for _, publicID := range publicIDs {
-		result = append(result, resultMap[publicID])
+		if resultMap[publicID] != nil {
+			result = append(result, resultMap[publicID])
+		}
 	}
 	return result, err
 }
