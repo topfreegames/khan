@@ -59,6 +59,9 @@ func (c *ClansSummaries) getClanSummaryCache(gameID, publicID string) map[string
 
 func (c *ClansSummaries) setClanSummaryCache(gameID, publicID string, clanPayload map[string]interface{}) {
 	ttl := c.TTL - c.TTLRandomError
+	if ttl < 0 {
+		ttl = 0
+	}
 	ttl += time.Duration(rand.Intn(int(2*c.TTLRandomError + 1)))
 	c.Cache.Set(c.getClanSummaryCacheKey(gameID, publicID), clanPayload, ttl)
 }
