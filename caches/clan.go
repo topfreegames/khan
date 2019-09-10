@@ -9,11 +9,14 @@ import (
 	"github.com/topfreegames/khan/models"
 )
 
-// ClansSummaries represents a cache for the RetrieveClansSummaries operation
+// ClansSummaries represents a cache for the RetrieveClansSummaries operation.
 type ClansSummaries struct {
-	Cache                 *gocache.Cache
-	TimeToLive            time.Duration
-	TimeToLiveRandomError time.Duration
+	// Cache points to an instance of gocache.Cache used as the backend cache object.
+	Cache *gocache.Cache
+
+	// The cache for one clan will live by a random amount of time within [TTL - TTLRandomError, TTL + TTLRandomError].
+	TTL            time.Duration
+	TTLRandomError time.Duration
 }
 
 // GetClansSummaries returns a summary of the clans details for a given list of clans by their game
@@ -48,8 +51,8 @@ func (c *ClansSummaries) getClanSummaryCache(gameID, publicID string) map[string
 }
 
 func (c *ClansSummaries) setClanSummaryCache(gameID, publicID string, clanPayload map[string]interface{}) {
-	ttl := c.TimeToLive - c.TimeToLiveRandomError
-	ttl += time.Duration(rand.Intn(int(2*c.TimeToLiveRandomError + 1)))
+	ttl := c.TTL - c.TTLRandomError
+	ttl += time.Duration(rand.Intn(int(2*c.TTLRandomError + 1)))
 	c.Cache.Set(c.getClanSummaryCacheKey(gameID, publicID), clanPayload, ttl)
 }
 

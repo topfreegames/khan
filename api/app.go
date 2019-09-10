@@ -150,9 +150,9 @@ func (app *App) configureClansSummariesCache(defaultTTL, defaultCleanupInterval 
 	cleanupInterval := app.Config.GetDuration(cleanupIntervalKey)
 
 	app.clansSummariesCache = &caches.ClansSummaries{
-		Cache:                 gocache.New(ttl, cleanupInterval),
-		TimeToLive:            ttl,
-		TimeToLiveRandomError: ttlRandomError,
+		Cache:          gocache.New(ttl, cleanupInterval),
+		TTL:            ttl,
+		TTLRandomError: ttlRandomError,
 	}
 }
 
