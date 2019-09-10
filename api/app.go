@@ -113,10 +113,10 @@ func (app *App) Configure() {
 	app.initESWorker()
 	app.initMongoWorker()
 	app.configureGoWorkers()
-	app.configureCache()
+	app.configureCaches()
 }
 
-func (app *App) configureCache() {
+func (app *App) configureCaches() {
 	// TTL
 	ttlKey := "cache.ttl"
 	app.Config.SetDefault(ttlKey, time.Minute)
