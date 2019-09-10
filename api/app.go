@@ -74,7 +74,7 @@ type App struct {
 	DDStatsD       *extnethttpmiddleware.DogStatsD
 
 	cache               *gocache.Cache
-	clansSummariesCache *caches.ClansSummariesCache
+	clansSummariesCache *caches.ClansSummaries
 	db                  gorp.Database
 }
 
@@ -149,7 +149,7 @@ func (app *App) configureClansSummariesCache(defaultTTL, defaultCleanupInterval 
 	app.Config.SetDefault(cleanupIntervalKey, defaultCleanupInterval)
 	cleanupInterval := app.Config.GetDuration(cleanupIntervalKey)
 
-	app.clansSummariesCache = &caches.ClansSummariesCache{
+	app.clansSummariesCache = &caches.ClansSummaries{
 		Cache:                 gocache.New(ttl, cleanupInterval),
 		TimeToLive:            ttl,
 		TimeToLiveRandomError: ttlRandomError,
