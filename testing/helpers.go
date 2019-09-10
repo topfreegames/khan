@@ -34,12 +34,12 @@ func CreateClanNameTextIndexInMongo(getTestMongo func() (interfaces.MongoDB, err
 	return mongo.Run(cmd, nil)
 }
 
-// GetTestDB returns a connection to the test database
+// GetTestDB returns a connection to the test database.
 func GetTestDB() (models.DB, error) {
 	return models.GetDB("localhost", "khan_test", 5433, "disable", "khan_test", "")
 }
 
-// GetTestClansSummariesCache returns a test cache for clans summaries
+// GetTestClansSummariesCache returns a test cache for clans summaries.
 func GetTestClansSummariesCache() *caches.ClansSummaries {
 	return &caches.ClansSummaries{
 		Cache:          gocache.New(time.Minute, time.Minute),
