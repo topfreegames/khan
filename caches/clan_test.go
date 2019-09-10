@@ -51,8 +51,7 @@ var _ = Describe("Clan Cache", func() {
 			}
 
 			// update a clan
-			const diffName = "different name"
-			clans[0].Name = diffName
+			clans[0].Name = "different name"
 			_, err = testDb.Update(clans[0])
 			Expect(err).NotTo(HaveOccurred())
 
@@ -105,8 +104,7 @@ var _ = Describe("Clan Cache", func() {
 			}
 
 			// update a clan
-			const diffName = "different name"
-			clans[0].Name = diffName
+			clans[0].Name = "different name"
 			_, err = testDb.Update(clans[0])
 			Expect(err).NotTo(HaveOccurred())
 			time.Sleep(time.Second)

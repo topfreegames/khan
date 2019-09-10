@@ -66,6 +66,7 @@ func (c *ClansSummaries) setClanSummaryCache(gameID, publicID string, clanPayloa
 	c.Cache.Set(c.getClanSummaryCacheKey(gameID, publicID), clanPayload, ttl)
 }
 
+// Return type map[string]map[string]interface{} maps public IDs to cached summaries.
 func (c *ClansSummaries) getCachedClansSummaries(gameID string, publicIDs []string) map[string]map[string]interface{} {
 	result := make(map[string]map[string]interface{})
 	for _, publicID := range publicIDs {
