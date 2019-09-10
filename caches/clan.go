@@ -19,8 +19,15 @@ type ClansSummaries struct {
 	TTLRandomError time.Duration
 }
 
-// GetClansSummaries returns a summary of the clans details for a given list of clans by their game
-// id and public ids
+// GetClansSummaries is a cache in front of models.GetClansSummaries() with the exact same interface.
+// The map[string]interface{} return type represents a summary of one clan with the following keys/values:
+// "membershipCount":  int
+// "publicID":         string
+// "metadata":         map[string]interface{} (user-defined arbitrary JSON object with clan metadata)
+// "name":             string
+// "allowApplication": bool
+// "autoJoin":         bool
+// TODO: replace this map with a richer type
 func (c *ClansSummaries) GetClansSummaries(db models.DB, gameID string, publicIDs []string) ([]map[string]interface{}, error) {
 	resultMap := c.getCachedClansSummaries(gameID, publicIDs)
 	err := c.getAndCacheClansSummaries(db, gameID, resultMap)
@@ -31,8 +38,8 @@ func (c *ClansSummaries) GetClansSummaries(db models.DB, gameID string, publicID
 	}
 	var result []map[string]interface{}
 	for _, publicID := range publicIDs {
-		if resultMap[publicID] != nil {
-			result = append(result, resultMap[publicID])
+		if summary := resultMap[publicID]; summary != nil {
+			result = append(result, summary)
 		}
 	}
 	return result, err
