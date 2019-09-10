@@ -784,6 +784,7 @@
     "github.com/Pallinder/go-randomdata",
     "github.com/bluele/factory-go/factory",
     "github.com/getsentry/raven-go",
+    "github.com/globalsign/mgo",
     "github.com/globalsign/mgo/bson",
     "github.com/go-gorp/gorp",
     "github.com/golang/mock/gomock",
