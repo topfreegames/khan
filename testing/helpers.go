@@ -2,9 +2,14 @@ package testing
 
 import (
 	"fmt"
+	"time"
+
+	"github.com/topfreegames/khan/caches"
 
 	"github.com/globalsign/mgo/bson"
+	gocache "github.com/patrickmn/go-cache"
 	"github.com/topfreegames/extensions/mongo/interfaces"
+	"github.com/topfreegames/khan/models"
 )
 
 // CreateClanNameTextIndexInMongo creates the necessary text index for clan search in mongo
@@ -27,4 +32,18 @@ func CreateClanNameTextIndexInMongo(getTestMongo func() (interfaces.MongoDB, err
 		}},
 	}
 	return mongo.Run(cmd, nil)
+}
+
+// GetTestDB returns a connection to the test database
+func GetTestDB() (models.DB, error) {
+	return models.GetDB("localhost", "khan_test", 5433, "disable", "khan_test", "")
+}
+
+// GetTestClansSummariesCache returns a test cache for clans summaries
+func GetTestClansSummariesCache() *caches.ClansSummariesCache {
+	return &caches.ClansSummariesCache{
+		Cache:                 gocache.New(time.Minute, time.Minute),
+		TimeToLive:            time.Minute,
+		TimeToLiveRandomError: time.Minute / 2,
+	}
 }

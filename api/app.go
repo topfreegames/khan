@@ -128,6 +128,8 @@ func (app *App) configureCache() {
 	cleanupInterval := app.Config.GetDuration(cleanupIntervalKey)
 
 	app.cache = gocache.New(ttl, cleanupInterval)
+
+	// route caches
 	app.configureClansSummariesCache(ttl, cleanupInterval)
 }
 
@@ -137,12 +139,21 @@ func (app *App) configureClansSummariesCache(defaultTTL, defaultCleanupInterval 
 	app.Config.SetDefault(ttlKey, defaultTTL)
 	ttl := app.Config.GetDuration(ttlKey)
 
+	// TTL random error
+	ttlRandomErrorKey := "cache.clansSummaries.ttlRandomError"
+	app.Config.SetDefault(ttlRandomErrorKey, ttl/2)
+	ttlRandomError := app.Config.GetDuration(ttlRandomErrorKey)
+
 	// cleanup
 	cleanupIntervalKey := "cache.clansSummaries.cleanupInterval"
 	app.Config.SetDefault(cleanupIntervalKey, defaultCleanupInterval)
 	cleanupInterval := app.Config.GetDuration(cleanupIntervalKey)
 
-	app.clansSummariesCache = caches.NewClansSummariesCache(gocache.New(ttl, cleanupInterval))
+	app.clansSummariesCache = &caches.ClansSummariesCache{
+		Cache:                 gocache.New(ttl, cleanupInterval),
+		TimeToLive:            ttl,
+		TimeToLiveRandomError: ttlRandomError,
+	}
 }
 
 func (app *App) configureSentry() {

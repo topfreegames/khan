@@ -2,6 +2,8 @@ package caches
 
 import (
 	"fmt"
+	"math/rand"
+	"time"
 
 	gocache "github.com/patrickmn/go-cache"
 	"github.com/topfreegames/khan/models"
@@ -9,14 +11,9 @@ import (
 
 // ClansSummariesCache represents a cache for the RetrieveClansSummaries operation
 type ClansSummariesCache struct {
-	cache *gocache.Cache
-}
-
-// NewClansSummariesCache returns a new instance of ClansSummariesCache
-func NewClansSummariesCache(cache *gocache.Cache) *ClansSummariesCache {
-	return &ClansSummariesCache{
-		cache: cache,
-	}
+	Cache                 *gocache.Cache
+	TimeToLive            time.Duration
+	TimeToLiveRandomError time.Duration
 }
 
 // GetClansSummaries returns a summary of the clans details for a given list of clans by their game
@@ -36,7 +33,7 @@ func (c *ClansSummariesCache) getClanSummaryCacheKey(gameID, publicID string) st
 }
 
 func (c *ClansSummariesCache) getClanSummaryCache(gameID, publicID string) map[string]interface{} {
-	clan, present := c.cache.Get(c.getClanSummaryCacheKey(gameID, publicID))
+	clan, present := c.Cache.Get(c.getClanSummaryCacheKey(gameID, publicID))
 	if !present {
 		return nil
 	}
@@ -44,7 +41,9 @@ func (c *ClansSummariesCache) getClanSummaryCache(gameID, publicID string) map[s
 }
 
 func (c *ClansSummariesCache) setClanSummaryCache(gameID, publicID string, clanPayload map[string]interface{}) {
-	c.cache.Set(c.getClanSummaryCacheKey(gameID, publicID), clanPayload, gocache.DefaultExpiration)
+	ttl := c.TimeToLive - c.TimeToLiveRandomError
+	ttl += time.Duration(rand.Intn(int(2*c.TimeToLiveRandomError + 1)))
+	c.Cache.Set(c.getClanSummaryCacheKey(gameID, publicID), clanPayload, ttl)
 }
 
 func (c *ClansSummariesCache) getCachedClansSummaries(gameID string, publicIDs []string) map[string]map[string]interface{} {
@@ -56,7 +55,11 @@ func (c *ClansSummariesCache) getCachedClansSummaries(gameID string, publicIDs [
 }
 
 func (c *ClansSummariesCache) getAndCacheClansSummaries(db models.DB, gameID string, resultMap map[string]map[string]interface{}) error {
-	clans, err := models.GetClansSummaries(db, gameID, c.getMissingPublicIDsFromResultMap(resultMap))
+	missingPublicIDs := c.getMissingPublicIDsFromResultMap(resultMap)
+	if len(missingPublicIDs) == 0 {
+		return nil
+	}
+	clans, err := models.GetClansSummaries(db, gameID, missingPublicIDs)
 	if err != nil {
 		if _, ok := err.(*models.CouldNotFindAllClansError); !ok {
 			return err
