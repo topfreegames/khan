@@ -65,12 +65,12 @@ var _ = Describe("Clan Cache", func() {
 			Expect(ok).To(BeTrue())
 			secondName, ok := secondPayload["name"].(string)
 			Expect(ok).To(BeTrue())
-			if !shouldBeChanged {
-				Expect(secondName).To(Equal(firstName))
-				Expect(secondName).NotTo(Equal(clans[0].Name))
-			} else {
+			if shouldBeChanged {
 				Expect(secondName).NotTo(Equal(firstName))
 				Expect(secondName).To(Equal(clans[0].Name))
+			} else {
+				Expect(secondName).To(Equal(firstName))
+				Expect(secondName).NotTo(Equal(clans[0].Name))
 			}
 		}
 
