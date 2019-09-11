@@ -44,7 +44,8 @@ func (c *ClansSummaries) GetClansSummaries(db models.DB, gameID string, publicID
 	var err error
 	if len(missingPublicIDs) > 0 {
 		// fetch
-		clans, err := models.GetClansSummaries(db, gameID, missingPublicIDs)
+		var clans []map[string]interface{}
+		clans, err = models.GetClansSummaries(db, gameID, missingPublicIDs)
 		if err != nil {
 			if _, ok := err.(*models.CouldNotFindAllClansError); !ok {
 				return nil, err
