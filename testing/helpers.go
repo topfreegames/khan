@@ -36,7 +36,14 @@ func CreateClanNameTextIndexInMongo(getTestMongo func() (interfaces.MongoDB, err
 
 // GetTestDB returns a connection to the test database.
 func GetTestDB() (models.DB, error) {
-	return models.GetDB("localhost", "khan_test", 5433, "disable", "khan_test", "")
+	return models.GetDB(
+		"localhost", // host
+		"khan_test", // user
+		5433,        // port
+		"disable",   // sslMode
+		"khan_test", // dbName
+		"",          // password
+	)
 }
 
 // GetTestClansSummariesCache returns a test cache for clans summaries.
