@@ -29,16 +29,40 @@ type ClansSummaries struct {
 // "autoJoin":         bool
 // TODO: replace this map with a richer type
 func (c *ClansSummaries) GetClansSummaries(db models.DB, gameID string, publicIDs []string) ([]map[string]interface{}, error) {
-	resultMap := c.getCachedClansSummaries(gameID, publicIDs)
-	err := c.getAndCacheClansSummaries(db, gameID, resultMap)
-	if err != nil {
-		if _, ok := err.(*models.CouldNotFindAllClansError); !ok {
-			return nil, err
+	// first, assemble a result map with cached payloads. also assemble a missingPublicIDs string slice
+	idToPayload := make(map[string]map[string]interface{})
+	var missingPublicIDs []string
+	for _, publicID := range publicIDs {
+		if clanPayload, present := c.Cache.Get(c.getClanSummaryCacheKey(gameID, publicID)); present {
+			idToPayload[publicID] = clanPayload.(map[string]interface{})
+		} else {
+			missingPublicIDs = append(missingPublicIDs, publicID)
 		}
 	}
+
+	// fetch and cache missing clans
+	var err error
+	if len(missingPublicIDs) > 0 {
+		// fetch
+		clans, err := models.GetClansSummaries(db, gameID, missingPublicIDs)
+		if err != nil {
+			if _, ok := err.(*models.CouldNotFindAllClansError); !ok {
+				return nil, err
+			}
+		}
+
+		// cache
+		for _, clanPayload := range clans {
+			publicID := clanPayload["publicID"].(string)
+			idToPayload[publicID] = clanPayload
+			c.storeClanSummaryInCache(gameID, publicID, clanPayload)
+		}
+	}
+
+	// assemble final result with input order
 	var result []map[string]interface{}
 	for _, publicID := range publicIDs {
-		if summary := resultMap[publicID]; summary != nil {
+		if summary, ok := idToPayload[publicID]; ok {
 			result = append(result, summary)
 		}
 	}
@@ -49,57 +73,11 @@ func (c *ClansSummaries) getClanSummaryCacheKey(gameID, publicID string) string 
 	return fmt.Sprintf("%s/%s", gameID, publicID)
 }
 
-func (c *ClansSummaries) getClanSummaryCache(gameID, publicID string) map[string]interface{} {
-	clan, present := c.Cache.Get(c.getClanSummaryCacheKey(gameID, publicID))
-	if !present {
-		return nil
-	}
-	return clan.(map[string]interface{})
-}
-
-func (c *ClansSummaries) setClanSummaryCache(gameID, publicID string, clanPayload map[string]interface{}) {
+func (c *ClansSummaries) storeClanSummaryInCache(gameID, publicID string, clanPayload map[string]interface{}) {
 	cTTL := c.TTL
 	if cTTL <= 0 {
 		cTTL = time.Minute
 	}
 	ttl := cTTL + time.Duration(rand.Int63n(int64(cTTL)))
 	c.Cache.Set(c.getClanSummaryCacheKey(gameID, publicID), clanPayload, ttl)
-}
-
-// Return type map[string]map[string]interface{} maps public IDs to cached summaries.
-func (c *ClansSummaries) getCachedClansSummaries(gameID string, publicIDs []string) map[string]map[string]interface{} {
-	result := make(map[string]map[string]interface{})
-	for _, publicID := range publicIDs {
-		result[publicID] = c.getClanSummaryCache(gameID, publicID)
-	}
-	return result
-}
-
-func (c *ClansSummaries) getAndCacheClansSummaries(db models.DB, gameID string, resultMap map[string]map[string]interface{}) error {
-	missingPublicIDs := c.getMissingPublicIDsFromResultMap(resultMap)
-	if len(missingPublicIDs) == 0 {
-		return nil
-	}
-	clans, err := models.GetClansSummaries(db, gameID, missingPublicIDs)
-	if err != nil {
-		if _, ok := err.(*models.CouldNotFindAllClansError); !ok {
-			return err
-		}
-	}
-	for _, clanPayload := range clans {
-		publicID := clanPayload["publicID"].(string)
-		resultMap[publicID] = clanPayload
-		c.setClanSummaryCache(gameID, publicID, clanPayload)
-	}
-	return err
-}
-
-func (c *ClansSummaries) getMissingPublicIDsFromResultMap(resultMap map[string]map[string]interface{}) []string {
-	var missingPublicIDs []string
-	for publicID, clanPayload := range resultMap {
-		if clanPayload == nil {
-			missingPublicIDs = append(missingPublicIDs, publicID)
-		}
-	}
-	return missingPublicIDs
 }
