@@ -1016,7 +1016,7 @@ func RetrieveClansSummariesHandler(app *App) func(c echo.Context) error {
 		var missingClans []string
 		err = WithSegment("clan-get-summaries", c, func() error {
 			log.D(l, "Retrieving clans summaries...")
-			clans, err = models.GetClansSummaries(
+			clans, err = app.clansSummariesCache.GetClansSummaries(
 				db,
 				gameID,
 				publicIDs,

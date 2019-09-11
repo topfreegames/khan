@@ -39,6 +39,7 @@ import (
 	extnethttpmiddleware "github.com/topfreegames/extensions/middleware"
 	"github.com/topfreegames/extensions/mongo/interfaces"
 	extworkermiddleware "github.com/topfreegames/extensions/worker/middleware"
+	"github.com/topfreegames/khan/caches"
 	"github.com/topfreegames/khan/es"
 	"github.com/topfreegames/khan/log"
 	"github.com/topfreegames/khan/models"
@@ -72,8 +73,9 @@ type App struct {
 	NewRelic       newrelic.Application
 	DDStatsD       *extnethttpmiddleware.DogStatsD
 
-	cache *gocache.Cache
-	db    gorp.Database
+	getGameCache        *gocache.Cache
+	clansSummariesCache *caches.ClansSummaries
+	db                  gorp.Database
 }
 
 // GetApp returns a new Khan API Application
@@ -111,21 +113,48 @@ func (app *App) Configure() {
 	app.initESWorker()
 	app.initMongoWorker()
 	app.configureGoWorkers()
-	app.configureCache()
+	app.configureCaches()
 }
 
-func (app *App) configureCache() {
+func (app *App) configureCaches() {
+	app.configureGetGameCache()
+	app.configureClansSummariesCache()
+}
+
+func (app *App) configureGetGameCache() {
 	// TTL
-	ttlKey := "cache.ttl"
+	ttlKey := "caches.getGame.ttl"
 	app.Config.SetDefault(ttlKey, time.Minute)
 	ttl := app.Config.GetDuration(ttlKey)
+	if ttl <= 0 {
+		ttl = time.Minute
+	}
 
 	// cleanup
-	cleanupIntervalKey := "cache.cleanupInterval"
+	cleanupIntervalKey := "caches.getGame.cleanupInterval"
 	app.Config.SetDefault(cleanupIntervalKey, time.Minute)
 	cleanupInterval := app.Config.GetDuration(cleanupIntervalKey)
 
-	app.cache = gocache.New(ttl, cleanupInterval)
+	app.getGameCache = gocache.New(ttl, cleanupInterval)
+}
+
+func (app *App) configureClansSummariesCache() {
+	// TTL
+	ttlKey := "caches.clansSummaries.ttl"
+	app.Config.SetDefault(ttlKey, time.Minute)
+	ttl := app.Config.GetDuration(ttlKey)
+	if ttl <= 0 {
+		ttl = time.Minute
+	}
+
+	// cleanup
+	cleanupIntervalKey := "caches.clansSummaries.cleanupInterval"
+	app.Config.SetDefault(cleanupIntervalKey, time.Minute)
+	cleanupInterval := app.Config.GetDuration(cleanupIntervalKey)
+
+	app.clansSummariesCache = &caches.ClansSummaries{
+		Cache: gocache.New(ttl, cleanupInterval),
+	}
 }
 
 func (app *App) configureSentry() {
@@ -492,8 +521,8 @@ func (app *App) GetGame(ctx context.Context, gameID string) (*models.Game, error
 		zap.String("gameID", gameID),
 	)
 
-	key := fmt.Sprintf("game|%s", gameID)
-	value, present := app.cache.Get(key)
+	key := gameID
+	value, present := app.getGameCache.Get(key)
 	if present {
 		return value.(*models.Game), nil
 	}
@@ -512,7 +541,7 @@ func (app *App) GetGame(ctx context.Context, gameID string) (*models.Game, error
 	log.D(l, "Game retrieved succesfully.", func(cm log.CM) {
 		cm.Write(zap.Duration("gameRetrievalDuration", time.Now().Sub(start)))
 	})
-	app.cache.Set(key, game, gocache.DefaultExpiration)
+	app.getGameCache.Set(key, game, gocache.DefaultExpiration)
 	return game, nil
 }
 
