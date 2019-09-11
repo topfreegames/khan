@@ -14,9 +14,8 @@ type ClansSummaries struct {
 	// Cache points to an instance of gocache.Cache used as the backend cache object.
 	Cache *gocache.Cache
 
-	// The cache for one clan will live by a random amount of time within [TTL - TTLRandomError, TTL + TTLRandomError].
-	TTL            time.Duration
-	TTLRandomError time.Duration
+	// TTL is used to compute the amount of time that a clan payload will live in the cache: a random integer in [TTL, 2 * TTL).
+	TTL time.Duration
 }
 
 // GetClansSummaries is a cache in front of models.GetClansSummaries() with the exact same interface.
@@ -59,11 +58,11 @@ func (c *ClansSummaries) getClanSummaryCache(gameID, publicID string) map[string
 }
 
 func (c *ClansSummaries) setClanSummaryCache(gameID, publicID string, clanPayload map[string]interface{}) {
-	ttl := c.TTL - c.TTLRandomError
-	if ttl < 0 {
-		ttl = 0
+	cTTL := c.TTL
+	if cTTL <= 0 {
+		cTTL = time.Minute
 	}
-	ttl += time.Duration(rand.Intn(int(2*c.TTLRandomError + 1)))
+	ttl := cTTL + time.Duration(rand.Int63n(int64(cTTL)))
 	c.Cache.Set(c.getClanSummaryCacheKey(gameID, publicID), clanPayload, ttl)
 }
 

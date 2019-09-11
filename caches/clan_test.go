@@ -84,8 +84,7 @@ var _ = Describe("Clan Cache", func() {
 			}
 
 			cache := testing.GetTestClansSummariesCache()
-			cache.TTL = time.Second / 2
-			cache.TTLRandomError = 0
+			cache.TTL = time.Second / 4
 
 			// first call
 			clansSummaries, err := cache.GetClansSummaries(testDb, gameID, publicIDs)

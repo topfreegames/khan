@@ -61,10 +61,10 @@ extensions:
     tags_prefix: ""
     rate: 1
 
-cache:
-  ttl: 1m
-  cleanupInterval: 1m
+caches:
+  getGame:
+    ttl: 1m
+    cleanupInterval: 1m
   clansSummaries:
     ttl: 1m
-    ttlRandomError: 30s
     cleanupInterval: 1m
