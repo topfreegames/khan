@@ -20,6 +20,7 @@ type ClansSummaries struct {
 }
 
 // GetClansSummaries is a cache in front of models.GetClansSummaries() with the exact same interface.
+// Like models.GetClansSummaries(), this function may return partial results + CouldNotFindAllClansError.
 // The map[string]interface{} return type represents a summary of one clan with the following keys/values:
 // "membershipCount":  int
 // "publicID":         string
