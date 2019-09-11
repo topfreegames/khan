@@ -47,9 +47,8 @@ func GetTestDB() (models.DB, error) {
 }
 
 // GetTestClansSummariesCache returns a test cache for clans summaries.
-func GetTestClansSummariesCache() *caches.ClansSummaries {
+func GetTestClansSummariesCache(ttl, cleanupInterval time.Duration) *caches.ClansSummaries {
 	return &caches.ClansSummaries{
-		Cache: gocache.New(time.Minute, time.Minute),
-		TTL:   time.Minute,
+		Cache: gocache.New(ttl, cleanupInterval),
 	}
 }

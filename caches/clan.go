@@ -2,8 +2,6 @@ package caches
 
 import (
 	"fmt"
-	"math/rand"
-	"time"
 
 	gocache "github.com/patrickmn/go-cache"
 	"github.com/topfreegames/khan/models"
@@ -13,9 +11,6 @@ import (
 type ClansSummaries struct {
 	// Cache points to an instance of gocache.Cache used as the backend cache object.
 	Cache *gocache.Cache
-
-	// TTL is used to compute the amount of time that a clan payload will live in the cache: a random integer in [TTL, 2 * TTL).
-	TTL time.Duration
 }
 
 // GetClansSummaries is a cache in front of models.GetClansSummaries() with the exact same interface.
@@ -56,7 +51,7 @@ func (c *ClansSummaries) GetClansSummaries(db models.DB, gameID string, publicID
 		for _, clanPayload := range clans {
 			publicID := clanPayload["publicID"].(string)
 			idToPayload[publicID] = clanPayload
-			c.storeClanSummaryInCache(gameID, publicID, clanPayload)
+			c.Cache.Set(c.getClanSummaryCacheKey(gameID, publicID), clanPayload, gocache.DefaultExpiration)
 		}
 	}
 
@@ -72,13 +67,4 @@ func (c *ClansSummaries) GetClansSummaries(db models.DB, gameID string, publicID
 
 func (c *ClansSummaries) getClanSummaryCacheKey(gameID, publicID string) string {
 	return fmt.Sprintf("%s/%s", gameID, publicID)
-}
-
-func (c *ClansSummaries) storeClanSummaryInCache(gameID, publicID string, clanPayload map[string]interface{}) {
-	cTTL := c.TTL
-	if cTTL <= 0 {
-		cTTL = time.Minute
-	}
-	ttl := cTTL + time.Duration(rand.Int63n(int64(cTTL)))
-	c.Cache.Set(c.getClanSummaryCacheKey(gameID, publicID), clanPayload, ttl)
 }

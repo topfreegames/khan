@@ -81,7 +81,7 @@ var _ = Describe("Clan Cache", func() {
 
 			publicIDs, idToIdx := getPublicIDsAndIDToIndexMap(clans)
 
-			cache := testing.GetTestClansSummariesCache()
+			cache := testing.GetTestClansSummariesCache(time.Minute, time.Minute)
 
 			// first call
 			clansSummaries, err := cache.GetClansSummaries(testDb, gameID, publicIDs)
@@ -104,8 +104,7 @@ var _ = Describe("Clan Cache", func() {
 
 			publicIDs, idToIdx := getPublicIDsAndIDToIndexMap(clans)
 
-			cache := testing.GetTestClansSummariesCache()
-			cache.TTL = time.Second / 4
+			cache := testing.GetTestClansSummariesCache(time.Second/4, time.Minute)
 
 			// first call
 			clansSummaries, err := cache.GetClansSummaries(testDb, gameID, publicIDs)
@@ -114,7 +113,7 @@ var _ = Describe("Clan Cache", func() {
 
 			// update a clan
 			updateClan(testDb, clans[0])
-			time.Sleep(time.Second)
+			time.Sleep(time.Second / 2)
 
 			// second call
 			secondClansSummaries, err := cache.GetClansSummaries(testDb, gameID, publicIDs)

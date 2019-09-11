@@ -126,6 +126,9 @@ func (app *App) configureGetGameCache() {
 	ttlKey := "caches.getGame.ttl"
 	app.Config.SetDefault(ttlKey, time.Minute)
 	ttl := app.Config.GetDuration(ttlKey)
+	if ttl <= 0 {
+		ttl = time.Minute
+	}
 
 	// cleanup
 	cleanupIntervalKey := "caches.getGame.cleanupInterval"
@@ -140,6 +143,9 @@ func (app *App) configureClansSummariesCache() {
 	ttlKey := "caches.clansSummaries.ttl"
 	app.Config.SetDefault(ttlKey, time.Minute)
 	ttl := app.Config.GetDuration(ttlKey)
+	if ttl <= 0 {
+		ttl = time.Minute
+	}
 
 	// cleanup
 	cleanupIntervalKey := "caches.clansSummaries.cleanupInterval"
@@ -148,7 +154,6 @@ func (app *App) configureClansSummariesCache() {
 
 	app.clansSummariesCache = &caches.ClansSummaries{
 		Cache: gocache.New(ttl, cleanupInterval),
-		TTL:   ttl,
 	}
 }
 
