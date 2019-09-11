@@ -22,7 +22,7 @@ type ClansSummaries struct {
 // "name":             string
 // "allowApplication": bool
 // "autoJoin":         bool
-// TODO: replace this map with a richer type
+// TODO(matheuscscp): replace this map with a richer type
 func (c *ClansSummaries) GetClansSummaries(db models.DB, gameID string, publicIDs []string) ([]map[string]interface{}, error) {
 	// first, assemble a result map with cached payloads. also assemble a missingPublicIDs string slice
 	idToPayload := make(map[string]map[string]interface{})
