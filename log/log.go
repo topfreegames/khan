@@ -33,6 +33,11 @@ func P(logger zap.Logger, message string, callback ...func(l CM)) {
 	log(logger, zap.PanicLevel, message, callback...)
 }
 
+//F is a fatal logger
+func F(logger zap.Logger, message string, callback ...func(l CM)) {
+	log(logger, zap.FatalLevel, message, callback...)
+}
+
 func defaultWrite(l CM) {
 	l.Write()
 }

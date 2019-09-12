@@ -1,37 +1,23 @@
 package testing
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/topfreegames/khan/caches"
 
-	"github.com/globalsign/mgo/bson"
 	gocache "github.com/patrickmn/go-cache"
 	"github.com/topfreegames/extensions/mongo/interfaces"
 	"github.com/topfreegames/khan/models"
+	"github.com/topfreegames/khan/mongo"
 )
 
 // CreateClanNameTextIndexInMongo creates the necessary text index for clan search in mongo
 func CreateClanNameTextIndexInMongo(getTestMongo func() (interfaces.MongoDB, error), gameID string) error {
-	mongo, err := getTestMongo()
+	db, err := getTestMongo()
 	if err != nil {
 		return err
 	}
-
-	cmd := bson.D{
-		{Name: "createIndexes", Value: fmt.Sprintf("clans_%s", gameID)},
-		{Name: "indexes", Value: []interface{}{
-			bson.M{
-				"key": bson.M{
-					"name":         "text",
-					"namePrefixes": "text",
-				},
-				"name": fmt.Sprintf("clans_%s_name_text_namePrefixes_text_index", gameID),
-			},
-		}},
-	}
-	return mongo.Run(cmd, nil)
+	return db.Run(mongo.GetClanNameTextIndexCommand(gameID, false), nil)
 }
 
 // GetTestDB returns a connection to the test database.
