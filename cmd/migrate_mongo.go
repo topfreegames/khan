@@ -74,6 +74,7 @@ func newConfig() (*viper.Viper, error) {
 	config.SetConfigType("yaml")
 	config.SetConfigFile(ConfigFile)
 	config.AddConfigPath(".")
+	config.SetEnvPrefix("khan")
 	config.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	config.AutomaticEnv()
 	return config, config.ReadInConfig()
