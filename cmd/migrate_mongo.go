@@ -34,15 +34,9 @@ If the game do not exists in the main Postgres database, no actions take place.`
 		if err != nil {
 			exitWithError(err)
 		}
-		game, err := models.GetGameByPublicID(db, gameID)
+		_, err = models.GetGameByPublicID(db, gameID)
 		if err != nil {
 			exitWithError(err)
-		}
-		if game == nil || game.PublicID != gameID {
-			exitWithError(&models.ModelNotFoundError{
-				Type: "Game",
-				ID:   gameID,
-			})
 		}
 
 		// connect to mongo and run migrations
