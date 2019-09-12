@@ -2,8 +2,9 @@ package cmd
 
 import (
 	"fmt"
-	"os"
 	"strings"
+
+	"github.com/uber-go/zap"
 
 	"github.com/globalsign/mgo/bson"
 	"github.com/spf13/cobra"
@@ -11,6 +12,7 @@ import (
 	idb "github.com/topfreegames/extensions/gorp/interfaces"
 	mongoext "github.com/topfreegames/extensions/mongo"
 	imongo "github.com/topfreegames/extensions/mongo/interfaces"
+	"github.com/topfreegames/khan/log"
 	"github.com/topfreegames/khan/models"
 	"github.com/topfreegames/khan/mongo"
 )
@@ -23,30 +25,48 @@ var migrateMongoCmd = &cobra.Command{
 	Long: `Creates all indexes used by Khan for one game into a remote MongoDB instance.
 If the game do not exists in the main Postgres database, no actions take place.`,
 	Run: func(cmd *cobra.Command, args []string) {
+		// create logger
+		logger := zap.New(zap.NewJSONEncoder(), zap.InfoLevel)
+		l := logger.With(
+			zap.String("source", "cmd/migrate_mongo.go"),
+			zap.String("operation", "migrateMongoCmd.Run"),
+			zap.String("game", gameID),
+		)
+
 		// read config
 		config, err := newConfig()
 		if err != nil {
-			exitWithError(err)
+			log.F(l, "Error reading config.", func(cm log.CM) {
+				cm.Write(zap.String("error", err.Error()))
+			})
 		}
 
 		// connect to main db and check if game exists
 		db, err := newDatabase(config)
 		if err != nil {
-			exitWithError(err)
+			log.F(l, "Error connecting to postgres.", func(cm log.CM) {
+				cm.Write(zap.String("error", err.Error()))
+			})
 		}
 		_, err = models.GetGameByPublicID(db, gameID)
 		if err != nil {
-			exitWithError(err)
+			log.F(l, "Error fetching game from postgres.", func(cm log.CM) {
+				cm.Write(zap.String("error", err.Error()))
+			})
 		}
 
 		// connect to mongo and run migrations
 		mongoDB, err := newMongo(config)
 		if err != nil {
-			exitWithError(err)
+			log.F(l, "Error connecting to mongo.", func(cm log.CM) {
+				cm.Write(zap.String("error", err.Error()))
+			})
 		}
-		err = runMigrations(mongoDB)
+		err = runMigrations(mongoDB, logger)
 		if err != nil {
-			exitWithError(err)
+			log.F(l, "Error running mongo migrations.", func(cm log.CM) {
+				cm.Write(zap.String("error", err.Error()))
+			})
 		}
 	},
 }
@@ -93,17 +113,38 @@ func newMongo(config *viper.Viper) (imongo.MongoDB, error) {
 	return mongoDB.MongoDB, nil
 }
 
-func runMigrations(mongoDB imongo.MongoDB) error {
-	fmt.Printf(">>>> Running migrations for %s...\n", gameID)
-	err := createClanNameTextIndex(mongoDB)
-	if err != nil {
-		return err
+func runMigrations(mongoDB imongo.MongoDB, logger zap.Logger) error {
+	l := logger.With(
+		zap.String("source", "cmd/migrate_mongo.go"),
+		zap.String("operation", "runMigrations"),
+		zap.String("game", gameID),
+	)
+
+	log.I(l, "Running mongo migrations for game...")
+
+	// migrations
+	type Migration func(imongo.MongoDB, zap.Logger) error
+	migrations := []Migration{
+		createClanNameTextIndex,
 	}
-	fmt.Println(">>>> Done.")
+	for _, migration := range migrations {
+		if err := migration(mongoDB, logger); err != nil {
+			return err
+		}
+	}
+
+	log.I(l, "Migrated.")
+
 	return nil
 }
 
-func createClanNameTextIndex(mongoDB imongo.MongoDB) error {
+func createClanNameTextIndex(mongoDB imongo.MongoDB, logger zap.Logger) error {
+	l := logger.With(
+		zap.String("source", "cmd/migrate_mongo.go"),
+		zap.String("operation", "createClanNameTextIndex"),
+		zap.String("game", gameID),
+	)
+
 	cmd := mongo.GetClanNameTextIndexCommand(gameID, false)
 	var res struct {
 		OK               int `bson:"ok"`
@@ -118,7 +159,7 @@ func createClanNameTextIndex(mongoDB imongo.MongoDB) error {
 		return &MongoCommandError{cmd: cmd}
 	}
 	if res.NumIndexesAfter == res.NumIndexesBefore {
-		fmt.Println(">>>> Clan name text index already exists.")
+		log.W(l, "Clan name text index already exists for this game.")
 	}
 	return nil
 }
@@ -129,10 +170,5 @@ type MongoCommandError struct {
 }
 
 func (e *MongoCommandError) Error() string {
-	return fmt.Sprintf("Error in mongo command: %v", e.cmd)
-}
-
-func exitWithError(err error) {
-	fmt.Println("panic:", err.Error())
-	os.Exit(1)
+	return fmt.Sprintf("Error in mongo command: %v.", e.cmd)
 }
