@@ -9,6 +9,7 @@ package models_test
 
 import (
 	"fmt"
+	"github.com/topfreegames/khan/lib"
 	"sort"
 	"strings"
 	"time"
@@ -1087,35 +1088,35 @@ var _ = Describe("Clan Model", func() {
 			It("Should return clan by search term", func() {
 				err := testing.CreateClanNameTextIndexInMongo(GetTestMongo, player.GameID)
 				Expect(err).NotTo(HaveOccurred())
-				Eventually(func() ([]Clan, error) { return SearchClan(testDb, testMongo, player.GameID, "SEARCH", 10) }).Should(HaveLen(10))
+				Eventually(func() ([]Clan, error) { return SearchClan(testDb, testMongo, player.GameID, "SEARCH", 10, lib.SearchMethodText) }).Should(HaveLen(10))
 			})
 
 			It("Should return clan by unicode search term", func() {
 				err := testing.CreateClanNameTextIndexInMongo(GetTestMongo, player.GameID)
 				Expect(err).NotTo(HaveOccurred())
-				Eventually(func() ([]Clan, error) { return SearchClan(testDb, testMongo, player.GameID, "💩clán", 10) }).Should(HaveLen(10))
+				Eventually(func() ([]Clan, error) { return SearchClan(testDb, testMongo, player.GameID, "💩clán", 10, lib.SearchMethodText) }).Should(HaveLen(10))
 			})
 
 			It("Should return clan by full public ID as search term", func() {
 				searchClanID := realClans[0].PublicID
-				Eventually(func() ([]Clan, error) { return SearchClan(testDb, testMongo, player.GameID, searchClanID, 10) }).Should(HaveLen(1))
+				Eventually(func() ([]Clan, error) { return SearchClan(testDb, testMongo, player.GameID, searchClanID, 10, lib.SearchMethodText) }).Should(HaveLen(1))
 			})
 
 			It("Should return clan by short public ID as search term", func() {
 				dbClan, err := GetTestClanWithRandomPublicIDAndName(testDb, player.GameID, player.ID)
 				Expect(err).NotTo(HaveOccurred())
 				searchClanID := dbClan.PublicID[:8]
-				Eventually(func() ([]Clan, error) { return SearchClan(testDb, testMongo, player.GameID, searchClanID, 10) }).Should(HaveLen(1))
+				Eventually(func() ([]Clan, error) { return SearchClan(testDb, testMongo, player.GameID, searchClanID, 10, lib.SearchMethodText) }).Should(HaveLen(1))
 			})
 
 			It("Should return empty list if search term is not found", func() {
 				err := testing.CreateClanNameTextIndexInMongo(GetTestMongo, player.GameID)
 				Expect(err).NotTo(HaveOccurred())
-				Eventually(func() ([]Clan, error) { return SearchClan(testDb, testMongo, player.GameID, "qwfjur", 10) }).Should(HaveLen(0))
+				Eventually(func() ([]Clan, error) { return SearchClan(testDb, testMongo, player.GameID, "qwfjur", 10, lib.SearchMethodText) }).Should(HaveLen(0))
 			})
 
 			It("Should return invalid response if empty term", func() {
-				_, err := SearchClan(testDb, testMongo, "some-game-id", "", 10)
+				_, err := SearchClan(testDb, testMongo, "some-game-id", "", 10, lib.SearchMethodText)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(Equal("A search term was not provided to find a clan."))
 			})
@@ -1124,8 +1125,26 @@ var _ = Describe("Clan Model", func() {
 				err := testing.CreateClanNameTextIndexInMongo(GetTestMongo, player.GameID)
 				Expect(err).NotTo(HaveOccurred())
 				dbClan, err := GetTestClanWithName(testDb, player.GameID, "The Largest Clan Name For Prefix Test", player.ID)
+				Expect(err).NotTo(HaveOccurred())
 				Eventually(func() (string, error) {
-					clans, err := SearchClan(testDb, testMongo, player.GameID, "prefi large", 10)
+					clans, err := SearchClan(testDb, testMongo, player.GameID, "prefi large", 10, lib.SearchMethodText)
+					if err != nil {
+						return "", err
+					}
+					if len(clans) == 0 {
+						return "", fmt.Errorf("No clans retrieved")
+					}
+					return clans[0].Name, nil
+				}).Should(Equal(dbClan.Name))
+			})
+
+			It("Should return clan by search term with punctuation symbols", func() {
+				err := testing.CreateClanNameRegularIndexInMongo(GetTestMongo, player.GameID)
+				Expect(err).NotTo(HaveOccurred())
+				dbClan, err := GetTestClanWithName(testDb, player.GameID, "@$!?&&¨", player.ID)
+				Expect(err).NotTo(HaveOccurred())
+				Eventually(func() (string, error) {
+					clans, err := SearchClan(testDb, testMongo, player.GameID, "@", 10, lib.SearchMethodRegex)
 					if err != nil {
 						return "", err
 					}

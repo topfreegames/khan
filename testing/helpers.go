@@ -20,6 +20,15 @@ func CreateClanNameTextIndexInMongo(getTestMongo func() (interfaces.MongoDB, err
 	return db.Run(mongo.GetClanNameTextIndexCommand(gameID, false), nil)
 }
 
+// CreateClanNameRegularIndexInMongo creates the regular index for clan search in mongo
+func CreateClanNameRegularIndexInMongo(getTestMongo func() (interfaces.MongoDB, error), gameID string) error {
+	db, err := getTestMongo()
+	if err != nil {
+		return err
+	}
+	return db.Run(mongo.GetClanNameRegularIndexCommand(gameID, false), nil)
+}
+
 // GetTestDB returns a connection to the test database.
 func GetTestDB() (models.DB, error) {
 	return models.GetDB(

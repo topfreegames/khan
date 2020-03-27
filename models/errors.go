@@ -143,6 +143,17 @@ func (e *EmptySearchTermError) Error() string {
 	return "A search term was not provided to find a clan."
 }
 
+// InvalidArgumentError identifies that an invalid argument was provided
+type InvalidArgumentError struct {
+	Param    string
+	Expected string
+	Got      string
+}
+
+func (e *InvalidArgumentError) Error() string {
+	return fmt.Sprintf("Invalid argument for parameter '%s': expected %s, got '%s'", e.Param, e.Expected, e.Got)
+}
+
 // AlreadyHasValidMembershipError identifies that a player already has a valid membership for the given clan
 type AlreadyHasValidMembershipError struct {
 	PlayerID string

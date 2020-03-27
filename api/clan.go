@@ -15,6 +15,7 @@ import (
 
 	"github.com/labstack/echo"
 	"github.com/topfreegames/extensions/gorp/interfaces"
+	"github.com/topfreegames/khan/lib"
 	"github.com/topfreegames/khan/log"
 	"github.com/topfreegames/khan/models"
 	"github.com/uber-go/zap"
@@ -678,6 +679,7 @@ func SearchClansHandler(app *App) func(c echo.Context) error {
 		start := time.Now()
 		gameID := c.Param("gameID")
 		term := c.QueryParam("term")
+		useRegexSearchStr := c.QueryParam("useRegexSearch")
 		pageSize := app.Config.GetInt64("search.pageSize")
 
 		l := app.Logger.With(
@@ -690,6 +692,25 @@ func SearchClansHandler(app *App) func(c echo.Context) error {
 		if term == "" {
 			log.W(l, "Clan search failed due to empty term.")
 			return FailWith(400, (&models.EmptySearchTermError{}).Error(), c)
+		}
+
+		searchMethod := lib.SearchMethodText
+		if useRegexSearchStr != "" {
+			useRegexSearch, err := strconv.ParseBool(useRegexSearchStr)
+			if err != nil {
+				log.W(l, "Clan search failed due to invalid 'useRegexSearch' param", func(cm log.CM) {
+					cm.Write(zap.Error(err))
+				})
+				queryParamErr := &models.InvalidArgumentError{
+					Param:    "useRegexSearch",
+					Expected: "'true' or 'false'",
+					Got:      useRegexSearchStr,
+				}
+				return FailWith(400, queryParamErr.Error(), c)
+			}
+			if useRegexSearch {
+				searchMethod = lib.SearchMethodRegex
+			}
 		}
 
 		log.D(l, "Getting DB connection...")
@@ -711,6 +732,7 @@ func SearchClansHandler(app *App) func(c echo.Context) error {
 				gameID,
 				term,
 				pageSize,
+				searchMethod,
 			)
 
 			if err != nil {
