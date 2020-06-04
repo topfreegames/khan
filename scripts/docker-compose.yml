@@ -2,12 +2,14 @@ version: '2'
 
 services:
   postgres:
+    container_name: khan_postgres_1
     image: postgres:9.5
     ports:
       - "5433:5432"
     environment:
       - POSTGRES_HOST_AUTH_METHOD=trust
   elasticsearch:
+    container_name: khan_elasticsearch_1
     image: docker.elastic.co/elasticsearch/elasticsearch:5.4.1
     ports:
       - "9200:9200"
@@ -16,10 +18,12 @@ services:
       - transport.host=127.0.0.1
       - xpack.security.enabled=false
   redis:
+    container_name: khan_redis_1
     image: redis
     ports:
       - "50505:6379"
   mongo:
+    container_name: khan_mongo_1
     image: mongo
     ports:
       - "27017:27017"
