@@ -5,6 +5,8 @@ services:
     image: postgres:9.5
     ports:
       - "5433:5432"
+    environment:
+      - POSTGRES_HOST_AUTH_METHOD=trust
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:5.4.1
     ports:
