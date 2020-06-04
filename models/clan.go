@@ -805,7 +805,7 @@ func GetClanDetails(db DB, gameID string, clan *Clan, maxClansPerPlayer int, opt
 			UNION ALL (
 				SELECT *
 				FROM memberships im
-				WHERE im.clan_id=$2 AND im.deleted_at=0 AND im.approved=false AND im.denied=false AND im.banned=false AND im.requestor_id<>im.player_id
+				WHERE im.clan_id=$2 AND im.deleted_at=0 AND im.approved=false AND im.denied=false AND im.banned=false AND (im.requestor_id>im.player_id OR im.requestor_id<im.player_id)
 				ORDER BY im.id %s
 				LIMIT $4
 			)
