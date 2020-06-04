@@ -1087,41 +1087,31 @@ var _ = Describe("Clan Model", func() {
 			It("Should return clan by search term", func() {
 				err := testing.CreateClanNameTextIndexInMongo(GetTestMongo, player.GameID)
 				Expect(err).NotTo(HaveOccurred())
-				clans, err := SearchClan(testDb, testMongo, player.GameID, "SEARCH", 10)
-				Expect(err).NotTo(HaveOccurred())
-				Expect(len(clans)).To(Equal(10))
+				Eventually(func() ([]Clan, error) { return SearchClan(testDb, testMongo, player.GameID, "SEARCH", 10) }).Should(HaveLen(10))
 			})
 
 			It("Should return clan by unicode search term", func() {
 				err := testing.CreateClanNameTextIndexInMongo(GetTestMongo, player.GameID)
 				Expect(err).NotTo(HaveOccurred())
-				clans, err := SearchClan(testDb, testMongo, player.GameID, "💩clán", 10)
-				Expect(err).NotTo(HaveOccurred())
-				Expect(len(clans)).To(Equal(10))
+				Eventually(func() ([]Clan, error) { return SearchClan(testDb, testMongo, player.GameID, "💩clán", 10) }).Should(HaveLen(10))
 			})
 
 			It("Should return clan by full public ID as search term", func() {
 				searchClanID := realClans[0].PublicID
-				clans, err := SearchClan(testDb, testMongo, player.GameID, searchClanID, 10)
-				Expect(err).NotTo(HaveOccurred())
-				Expect(len(clans)).To(Equal(1))
+				Eventually(func() ([]Clan, error) { return SearchClan(testDb, testMongo, player.GameID, searchClanID, 10) }).Should(HaveLen(1))
 			})
 
 			It("Should return clan by short public ID as search term", func() {
 				dbClan, err := GetTestClanWithRandomPublicIDAndName(testDb, player.GameID, player.ID)
 				Expect(err).NotTo(HaveOccurred())
 				searchClanID := dbClan.PublicID[:8]
-				clans, err := SearchClan(testDb, testMongo, player.GameID, searchClanID, 10)
-				Expect(err).NotTo(HaveOccurred())
-				Expect(len(clans)).To(Equal(1))
+				Eventually(func() ([]Clan, error) { return SearchClan(testDb, testMongo, player.GameID, searchClanID, 10) }).Should(HaveLen(1))
 			})
 
 			It("Should return empty list if search term is not found", func() {
 				err := testing.CreateClanNameTextIndexInMongo(GetTestMongo, player.GameID)
 				Expect(err).NotTo(HaveOccurred())
-				clans, err := SearchClan(testDb, testMongo, player.GameID, "qwfjur", 10)
-				Expect(err).NotTo(HaveOccurred())
-				Expect(len(clans)).To(Equal(0))
+				Eventually(func() ([]Clan, error) { return SearchClan(testDb, testMongo, player.GameID, "qwfjur", 10) }).Should(HaveLen(0))
 			})
 
 			It("Should return invalid response if empty term", func() {
@@ -1132,10 +1122,18 @@ var _ = Describe("Clan Model", func() {
 
 			It("Should return clan by word prefix", func() {
 				err := testing.CreateClanNameTextIndexInMongo(GetTestMongo, player.GameID)
-				dbClan, err := GetTestClanWithName(testDb, player.GameID, "The Largest Clan Name For Prefix Test", player.ID)
-				clans, err := SearchClan(testDb, testMongo, player.GameID, "prefi large", 10)
 				Expect(err).NotTo(HaveOccurred())
-				Expect(dbClan.Name).To(Equal(clans[0].Name))
+				dbClan, err := GetTestClanWithName(testDb, player.GameID, "The Largest Clan Name For Prefix Test", player.ID)
+				Eventually(func() (string, error) {
+					clans, err := SearchClan(testDb, testMongo, player.GameID, "prefi large", 10)
+					if err != nil {
+						return "", err
+					}
+					if len(clans) == 0 {
+						return "", fmt.Errorf("No clans retrieved")
+					}
+					return clans[0].Name, nil
+				}).Should(Equal(dbClan.Name))
 			})
 		})
 
