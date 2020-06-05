@@ -776,6 +776,11 @@ func GetClanMembers(db DB, gameID, publicID string) (map[string]interface{}, err
 // GetClanDetails returns all details for a given clan by its game id and public id
 func GetClanDetails(db DB, gameID string, clan *Clan, maxClansPerPlayer int, options *GetClanDetailsOptions) (map[string]interface{}, error) {
 	query := fmt.Sprintf(`
+	WITH memberships_pending AS (
+		SELECT *
+		FROM memberships im
+		WHERE im.clan_id=$2 AND im.deleted_at=0 AND im.approved=false AND im.denied=false AND im.banned=false
+	)
 	SELECT
 		c.game_id GameID,
 		c.public_id ClanPublicID, c.name ClanName, c.metadata ClanMetadata,
@@ -797,15 +802,15 @@ func GetClanDetails(db DB, gameID string, clan *Clan, maxClansPerPlayer int, opt
 		LEFT OUTER JOIN (
 			(
 				SELECT *
-				FROM memberships im
-				WHERE im.clan_id=$2 AND im.deleted_at=0 AND im.approved=false AND im.denied=false AND im.banned=false AND im.requestor_id=im.player_id
+				FROM memberships_pending im
+				WHERE im.requestor_id=im.player_id
 				ORDER BY im.id %s
 				LIMIT $3
 			)
 			UNION ALL (
 				SELECT *
-				FROM memberships im
-				WHERE im.clan_id=$2 AND im.deleted_at=0 AND im.approved=false AND im.denied=false AND im.banned=false AND (im.requestor_id>im.player_id OR im.requestor_id<im.player_id)
+				FROM memberships_pending im
+				WHERE im.requestor_id>im.player_id OR im.requestor_id<im.player_id
 				ORDER BY im.id %s
 				LIMIT $4
 			)
