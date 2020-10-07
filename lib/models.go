@@ -234,8 +234,12 @@ const (
 	SearchMethodRegex
 )
 
+type OptionalInt struct {
+	Value int
+}
+
 type SearchOptions struct {
 	Method SearchMethod
-	Limit  int
+	Limit  *OptionalInt
 	From   int
 }

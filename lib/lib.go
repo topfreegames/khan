@@ -265,9 +265,15 @@ func (k *Khan) buildSearchClansURL(clanName string) string {
 	return k.buildURL(pathname)
 }
 
-func (k *Khan) buildSearchClansWithOptionsURL(clanName string, searchMethod SearchMethod, from, limit int) string {
+func (k *Khan) buildSearchClansWithOptionsURL(clanName string, searchMethod SearchMethod, from int, limit *OptionalInt) string {
+	var pathname string
 	useRegexSearch := searchMethod == SearchMethodRegex
-	pathname := fmt.Sprintf("clans/search?term=%s&useRegexSearch=%t&from=%d&limit=%d", clanName, useRegexSearch, from, limit)
+	if limit == nil {
+		pathname = fmt.Sprintf("clans/search?term=%s&useRegexSearch=%t&from=%d", clanName, useRegexSearch, from)
+	} else {
+		pathname = fmt.Sprintf("clans/search?term=%s&useRegexSearch=%t&from=%d&limit=%d", clanName, useRegexSearch, from, limit.Value)
+	}
+
 	return k.buildURL(pathname)
 }
 
