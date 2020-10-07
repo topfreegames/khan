@@ -672,6 +672,42 @@ func ListClansHandler(app *App) func(c echo.Context) error {
 	}
 }
 
+func parseLimitString(c echo.Context, limitStr string) (int, error) {
+	limit, err := strconv.Atoi(limitStr)
+	if err != nil {
+		queryParamErr := &models.InvalidArgumentError{
+			Param:    "limit",
+			Expected: "an integer",
+			Got:      limitStr,
+		}
+		return 0, FailWith(400, queryParamErr.Error(), c)
+	}
+
+	if limit < 0 {
+		limit = 0
+	}
+
+	return limit, nil
+}
+
+func parseFromIndexString(c echo.Context, fromIndexString string) (int, error) {
+	parsedFromIndex, err := strconv.Atoi(fromIndexString)
+	if err != nil {
+		queryParamErr := &models.InvalidArgumentError{
+			Param:    "from",
+			Expected: "an integer",
+			Got:      fromIndexString,
+		}
+		return 0, FailWith(400, queryParamErr.Error(), c)
+	}
+
+	if parsedFromIndex < 0 {
+		parsedFromIndex = 0
+	}
+
+	return parsedFromIndex, nil
+}
+
 // SearchClansHandler is the handler responsible for searching for clans
 func SearchClansHandler(app *App) func(c echo.Context) error {
 	return func(c echo.Context) error {
@@ -680,7 +716,30 @@ func SearchClansHandler(app *App) func(c echo.Context) error {
 		gameID := c.Param("gameID")
 		term := c.QueryParam("term")
 		useRegexSearchStr := c.QueryParam("useRegexSearch")
+		fromIndexStr := c.QueryParam("from")
+		limitStr := c.QueryParam("limit")
 		pageSize := app.Config.GetInt64("search.pageSize")
+
+		limit := pageSize
+		var err error
+		if limitStr != "" {
+			parsedLimit, err := parseLimitString(c, limitStr)
+			if err != nil {
+				return err
+			}
+
+			limit = int64(parsedLimit)
+		}
+
+		fromIndex := 0
+		if fromIndexStr != "" {
+			parsedFromIndex, err := parseFromIndexString(c, fromIndexStr)
+			if err != nil {
+				return err
+			}
+
+			fromIndex = parsedFromIndex
+		}
 
 		l := app.Logger.With(
 			zap.String("source", "clanHandler"),
@@ -731,7 +790,8 @@ func SearchClansHandler(app *App) func(c echo.Context) error {
 				app.MongoDB.WithContext(c.StdContext()),
 				gameID,
 				term,
-				pageSize,
+				fromIndex,
+				limit,
 				searchMethod,
 			)
 

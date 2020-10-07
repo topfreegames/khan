@@ -13,9 +13,10 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/topfreegames/khan/lib"
 	"os"
 	"strings"
+
+	"github.com/topfreegames/khan/lib"
 
 	"github.com/spf13/viper"
 
@@ -973,7 +974,7 @@ func searchClanByID(db DB, gameID, publicID string) []Clan {
 
 // SearchClan returns a list of clans for a given term (by name or publicID)
 func SearchClan(
-	db DB, mongo interfaces.MongoDB, gameID, term string, pageSize int64, searchMethod lib.SearchMethod,
+	db DB, mongo interfaces.MongoDB, gameID, term string, from int, pageSize int64, searchMethod lib.SearchMethod,
 ) ([]Clan, error) {
 	if term == "" {
 		return nil, &EmptySearchTermError{}
@@ -999,6 +1000,7 @@ func SearchClan(
 		{Name: "projection", Value: projection},
 		{Name: "sort", Value: projection},
 		{Name: "limit", Value: pageSize},
+		{Name: "skip", Value: from},
 		{Name: "batchSize", Value: pageSize},
 		{Name: "singleBatch", Value: true},
 	}

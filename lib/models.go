@@ -236,4 +236,6 @@ const (
 
 type SearchOptions struct {
 	Method SearchMethod
+	Limit  int
+	From   int
 }
