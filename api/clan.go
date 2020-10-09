@@ -15,6 +15,7 @@ import (
 
 	"github.com/labstack/echo"
 	"github.com/topfreegames/extensions/gorp/interfaces"
+	"github.com/topfreegames/khan/lib"
 	"github.com/topfreegames/khan/log"
 	"github.com/topfreegames/khan/models"
 	"github.com/uber-go/zap"
@@ -671,6 +672,42 @@ func ListClansHandler(app *App) func(c echo.Context) error {
 	}
 }
 
+func parseLimitString(c echo.Context, limitStr string) (int, error) {
+	limit, err := strconv.Atoi(limitStr)
+	if err != nil {
+		queryParamErr := &models.InvalidArgumentError{
+			Param:    "limit",
+			Expected: "an integer",
+			Got:      limitStr,
+		}
+		return 0, FailWith(400, queryParamErr.Error(), c)
+	}
+
+	if limit < 0 {
+		limit = 0
+	}
+
+	return limit, nil
+}
+
+func parseFromIndexString(c echo.Context, fromIndexString string) (int, error) {
+	parsedFromIndex, err := strconv.Atoi(fromIndexString)
+	if err != nil {
+		queryParamErr := &models.InvalidArgumentError{
+			Param:    "from",
+			Expected: "an integer",
+			Got:      fromIndexString,
+		}
+		return 0, FailWith(400, queryParamErr.Error(), c)
+	}
+
+	if parsedFromIndex < 0 {
+		parsedFromIndex = 0
+	}
+
+	return parsedFromIndex, nil
+}
+
 // SearchClansHandler is the handler responsible for searching for clans
 func SearchClansHandler(app *App) func(c echo.Context) error {
 	return func(c echo.Context) error {
@@ -678,7 +715,31 @@ func SearchClansHandler(app *App) func(c echo.Context) error {
 		start := time.Now()
 		gameID := c.Param("gameID")
 		term := c.QueryParam("term")
+		useRegexSearchStr := c.QueryParam("useRegexSearch")
+		fromIndexStr := c.QueryParam("from")
+		limitStr := c.QueryParam("limit")
 		pageSize := app.Config.GetInt64("search.pageSize")
+
+		limit := pageSize
+		var err error
+		if limitStr != "" {
+			parsedLimit, err := parseLimitString(c, limitStr)
+			if err != nil {
+				return err
+			}
+
+			limit = int64(parsedLimit)
+		}
+
+		fromIndex := 0
+		if fromIndexStr != "" {
+			parsedFromIndex, err := parseFromIndexString(c, fromIndexStr)
+			if err != nil {
+				return err
+			}
+
+			fromIndex = parsedFromIndex
+		}
 
 		l := app.Logger.With(
 			zap.String("source", "clanHandler"),
@@ -690,6 +751,25 @@ func SearchClansHandler(app *App) func(c echo.Context) error {
 		if term == "" {
 			log.W(l, "Clan search failed due to empty term.")
 			return FailWith(400, (&models.EmptySearchTermError{}).Error(), c)
+		}
+
+		searchMethod := lib.SearchMethodText
+		if useRegexSearchStr != "" {
+			useRegexSearch, err := strconv.ParseBool(useRegexSearchStr)
+			if err != nil {
+				log.W(l, "Clan search failed due to invalid 'useRegexSearch' param", func(cm log.CM) {
+					cm.Write(zap.Error(err))
+				})
+				queryParamErr := &models.InvalidArgumentError{
+					Param:    "useRegexSearch",
+					Expected: "'true' or 'false'",
+					Got:      useRegexSearchStr,
+				}
+				return FailWith(400, queryParamErr.Error(), c)
+			}
+			if useRegexSearch {
+				searchMethod = lib.SearchMethodRegex
+			}
 		}
 
 		log.D(l, "Getting DB connection...")
@@ -710,7 +790,9 @@ func SearchClansHandler(app *App) func(c echo.Context) error {
 				app.MongoDB.WithContext(c.StdContext()),
 				gameID,
 				term,
-				pageSize,
+				fromIndex,
+				limit,
+				searchMethod,
 			)
 
 			if err != nil {

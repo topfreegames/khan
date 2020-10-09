@@ -22,4 +22,5 @@ type KhanInterface interface {
 	UpdateClan(context.Context, *ClanPayload) (*Result, error)
 	UpdatePlayer(context.Context, string, string, interface{}) (*Result, error)
 	SearchClans(context.Context, string) (*SearchClansResult, error)
+	SearchClansWithOptions(context.Context, string, *SearchOptions) (*SearchClansResult, error)
 }

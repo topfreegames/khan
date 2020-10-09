@@ -23,3 +23,19 @@ func GetClanNameTextIndexCommand(gameID string, background bool) bson.D {
 		}},
 	}
 }
+
+// GetClanNameRegularIndexCommand returns a mongo command to create the clan names regular index.
+func GetClanNameRegularIndexCommand(gameID string, background bool) bson.D {
+	return bson.D{
+		{Name: "createIndexes", Value: fmt.Sprintf("clans_%s", gameID)},
+		{Name: "indexes", Value: []interface{}{
+			bson.M{
+				"key": bson.M{
+					"name": 1,
+				},
+				"name":       fmt.Sprintf("clans_%s_name_regular_index", gameID),
+				"background": background,
+			},
+		}},
+	}
+}

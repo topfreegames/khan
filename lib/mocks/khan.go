@@ -184,6 +184,21 @@ func (mr *MockKhanInterfaceMockRecorder) RetrieveClan(arg0, arg1 interface{}) *g
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RetrieveClan", reflect.TypeOf((*MockKhanInterface)(nil).RetrieveClan), arg0, arg1)
 }
 
+// RetrieveClanMembers mocks base method
+func (m *MockKhanInterface) RetrieveClanMembers(arg0 context.Context, arg1 string) (*lib.ClanMembers, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RetrieveClanMembers", arg0, arg1)
+	ret0, _ := ret[0].(*lib.ClanMembers)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// RetrieveClanMembers indicates an expected call of RetrieveClanMembers
+func (mr *MockKhanInterfaceMockRecorder) RetrieveClanMembers(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RetrieveClanMembers", reflect.TypeOf((*MockKhanInterface)(nil).RetrieveClanMembers), arg0, arg1)
+}
+
 // RetrieveClanSummary mocks base method
 func (m *MockKhanInterface) RetrieveClanSummary(arg0 context.Context, arg1 string) (*lib.ClanSummary, error) {
 	m.ctrl.T.Helper()
@@ -242,6 +257,21 @@ func (m *MockKhanInterface) SearchClans(arg0 context.Context, arg1 string) (*lib
 func (mr *MockKhanInterfaceMockRecorder) SearchClans(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SearchClans", reflect.TypeOf((*MockKhanInterface)(nil).SearchClans), arg0, arg1)
+}
+
+// SearchClansWithOptions mocks base method
+func (m *MockKhanInterface) SearchClansWithOptions(arg0 context.Context, arg1 string, arg2 *lib.SearchOptions) (*lib.SearchClansResult, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SearchClansWithOptions", arg0, arg1, arg2)
+	ret0, _ := ret[0].(*lib.SearchClansResult)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SearchClansWithOptions indicates an expected call of SearchClansWithOptions
+func (mr *MockKhanInterfaceMockRecorder) SearchClansWithOptions(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SearchClansWithOptions", reflect.TypeOf((*MockKhanInterface)(nil).SearchClansWithOptions), arg0, arg1, arg2)
 }
 
 // TransferOwnership mocks base method

@@ -900,10 +900,14 @@ Khan API
 
   Results are limited by "search.pageSize" set via config YAML or environment variable KHAN\_SEARCH\_PAGESIZE
 
+  The `limit` parameter can be used as a custom pageSize
+
   * URL Parameters
 
     ```
       term=[string]
+      from=[int]
+      limit=[int]
     ```
 
   * Success Response

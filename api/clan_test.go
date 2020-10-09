@@ -12,6 +12,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 	"sort"
 	"strings"
 	"time"
@@ -1109,6 +1110,43 @@ var _ = Describe("Clan API Handler", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			url := "clans/search?term=💩clán-clan-APISEARCH"
+			status, body := Get(a, GetGameRoute(player.GameID, url))
+			Expect(status).To(Equal(http.StatusOK))
+			var result map[string]interface{}
+			json.Unmarshal([]byte(body), &result)
+
+			Expect(result["success"]).To(BeTrue())
+
+			clans := result["clans"].([]interface{})
+			Expect(len(clans)).To(Equal(10))
+
+			clansDict := map[string]map[string]interface{}{}
+			for _, cl := range clans {
+				clan := cl.(map[string]interface{})
+				clansDict[clan["publicID"].(string)] = clan
+			}
+
+			for _, expectedClan := range expectedClans {
+				clan := clansDict[expectedClan.PublicID]
+				Expect(clan["name"]).To(Equal(expectedClan.Name))
+				Expect(clan["membershipCount"].(float64)).To(BeEquivalentTo(expectedClan.MembershipCount))
+				Expect(clan["autoJoin"]).To(Equal(expectedClan.AutoJoin))
+				Expect(clan["allowApplication"]).To(Equal(expectedClan.AllowApplication))
+			}
+		})
+
+		It("Should search for a clan with punctuation symbols in name", func() {
+			gameID := uuid.NewV4().String()
+			player, expectedClans, err := models.GetTestClans(
+				testDb, gameID, "$#+-", 10,
+			)
+			Expect(err).NotTo(HaveOccurred())
+
+			err = testing.CreateClanNameRegularIndexInMongo(GetTestMongo, gameID)
+			Expect(err).NotTo(HaveOccurred())
+
+			escapedTerm := url.QueryEscape("💩clán-$")
+			url := fmt.Sprintf("clans/search?term=%s&useRegexSearch=true", escapedTerm)
 			status, body := Get(a, GetGameRoute(player.GameID, url))
 			Expect(status).To(Equal(http.StatusOK))
 			var result map[string]interface{}

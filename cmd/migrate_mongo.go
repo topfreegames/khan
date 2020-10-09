@@ -126,6 +126,7 @@ func runMigrations(mongoDB imongo.MongoDB, logger zap.Logger) error {
 	type Migration func(imongo.MongoDB, zap.Logger) error
 	migrations := []Migration{
 		createClanNameTextIndex,
+		createClanNameRegularIndex,
 	}
 	for _, migration := range migrations {
 		if err := migration(mongoDB, logger); err != nil {
@@ -160,6 +161,32 @@ func createClanNameTextIndex(mongoDB imongo.MongoDB, logger zap.Logger) error {
 	}
 	if res.NumIndexesAfter == res.NumIndexesBefore {
 		log.W(l, "Clan name text index already exists for this game.")
+	}
+	return nil
+}
+
+func createClanNameRegularIndex(mongoDB imongo.MongoDB, logger zap.Logger) error {
+	l := logger.With(
+		zap.String("source", "cmd/migrate_mongo.go"),
+		zap.String("operation", "createClanNameRegularIndex"),
+		zap.String("game", gameID),
+	)
+
+	cmd := mongo.GetClanNameRegularIndexCommand(gameID, false)
+	var res struct {
+		OK               int `bson:"ok"`
+		NumIndexesBefore int `bson:"numIndexesBefore"`
+		NumIndexesAfter  int `bson:"numIndexesAfter"`
+	}
+	err := mongoDB.Run(cmd, &res)
+	if err != nil {
+		return err
+	}
+	if res.OK != 1 {
+		return &MongoCommandError{cmd: cmd}
+	}
+	if res.NumIndexesAfter == res.NumIndexesBefore {
+		log.W(l, "Clan name regular index already exists for this game.")
 	}
 	return nil
 }

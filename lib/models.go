@@ -226,3 +226,20 @@ type SearchClansResult struct {
 	Success bool
 	Clans   []*ClanSummary
 }
+
+type SearchMethod int
+
+const (
+	SearchMethodText SearchMethod = iota
+	SearchMethodRegex
+)
+
+type OptionalInt struct {
+	Value int
+}
+
+type SearchOptions struct {
+	Method SearchMethod
+	Limit  *OptionalInt
+	From   int
+}

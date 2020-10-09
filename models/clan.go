@@ -16,6 +16,8 @@ import (
 	"os"
 	"strings"
 
+	"github.com/topfreegames/khan/lib"
+
 	"github.com/spf13/viper"
 
 	"github.com/globalsign/mgo/bson"
@@ -972,7 +974,7 @@ func searchClanByID(db DB, gameID, publicID string) []Clan {
 
 // SearchClan returns a list of clans for a given term (by name or publicID)
 func SearchClan(
-	db DB, mongo interfaces.MongoDB, gameID, term string, pageSize int64,
+	db DB, mongo interfaces.MongoDB, gameID, term string, from int, pageSize int64, searchMethod lib.SearchMethod,
 ) ([]Clan, error) {
 	if term == "" {
 		return nil, &EmptySearchTermError{}
@@ -983,13 +985,22 @@ func SearchClan(
 		return clans, nil
 	}
 
+	var filter interface{}
+	if searchMethod == lib.SearchMethodRegex {
+		escapedTerm := fmt.Sprintf(`^\Q%s\E`, term)
+		filter = bson.M{"name": bson.M{"$regex": escapedTerm}}
+	} else {
+		filter = bson.M{"$text": bson.M{"$search": term}}
+	}
+
 	projection := bson.M{"textSearchScore": bson.M{"$meta": "textScore"}}
 	cmd := bson.D{
 		{Name: "find", Value: fmt.Sprintf("clans_%s", gameID)},
-		{Name: "filter", Value: bson.M{"$text": bson.M{"$search": term}}},
+		{Name: "filter", Value: filter},
 		{Name: "projection", Value: projection},
 		{Name: "sort", Value: projection},
 		{Name: "limit", Value: pageSize},
+		{Name: "skip", Value: from},
 		{Name: "batchSize", Value: pageSize},
 		{Name: "singleBatch", Value: true},
 	}
