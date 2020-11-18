@@ -6,7 +6,7 @@ WORKDIR /go/src/github.com/topfreegames/khan
 EXPOSE 80
 
 RUN apk update
-RUN apk add git make g++ apache2-utils
+RUN apk add git make g++ apache2-utils curl
 RUN apk add --update bash
 
 RUN go get -u github.com/golang/dep/...
