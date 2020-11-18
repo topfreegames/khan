@@ -56,18 +56,13 @@ To run a new khan instance, run:
 
 ### Running with docker-compose
 
-We already provide a docker-compose.yml as well with all dependencies configured for you to run.
-Before you can run the project, you need to execute the migrations in the database. You can achieve that executing:
+We already provide a docker-compose.yml as well with all dependencies configured for you to run. To run Khan and all its dependencies, run:
 
 ```sh
-    $ docker-compose up migrate
+    $ docker-compose up
 ```
 
-After executing the migration, you can execute the project by running:
-
-```sh
-    $ docker-compose up khan
-```
+**Note** If you are running it on MacOS, you will need to update the amount of RAM docker has access to. Docker, by default, can use 2GB of RAM, however, Khan uses an instance of ElasticSearch and it needs at least 2GB of RAM to work properly. So, if you are experiencing problems while connecting to the elastic search, this might be the root cause of the problem.
 
 ### Tests
 

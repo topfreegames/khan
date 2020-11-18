@@ -5,6 +5,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    command: "make start-on-docker"
     depends_on:
       postgres:
         condition: service_healthy
@@ -19,29 +20,12 @@ services:
     ports:
       - "80:80"
     networks:
-      - khan
+      - wildlife-services
     environment:
       - KHAN_POSTGRES_HOST=postgres
       - KHAN_POSTGRES_USER=postgres
       - KHAN_POSTGRES_PASSWORD=123456
       - KHAN_ELASTICSEARCH_HOST=elasticsearch
-
-  migrate:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    command: "make migrate"
-    depends_on:
-      postgres:
-        condition: service_healthy
-    links:
-      - postgres
-    networks:
-      - khan
-    environment:
-      - KHAN_POSTGRES_HOST=postgres
-      - KHAN_POSTGRES_USER=postgres
-      - KHAN_POSTGRES_PASSWORD=123456
   
   postgres:
     image: postgres:9.6
@@ -55,7 +39,7 @@ services:
     volumes:
       - ./docker-data/postgres:/var/lib/postgresql/data
     networks:
-      - khan
+      - wildlife-services
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s
@@ -68,7 +52,7 @@ services:
     ports: 
       - "6379:6379"
     networks:
-      - khan
+      - wildlife-services
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 1s
@@ -81,7 +65,7 @@ services:
       - '9200:9200'
       - '9300:9300'
     networks:
-      - khan
+      - wildlife-services
     volumes:
       - ./docker-data/elasticsearch:/usr/share/elasticsearch/data
     environment:
@@ -94,4 +78,4 @@ services:
         retries: 3
 
 networks:
-  khan:
+  wildlife-services:

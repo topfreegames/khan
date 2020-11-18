@@ -29,7 +29,6 @@ setup-ci:
 	@go get github.com/topfreegames/goose/cmd/goose
 	@go get github.com/mattn/goveralls
 	@go get github.com/onsi/ginkgo/ginkgo
-	@dep ensure
 
 build:
 	@go build -o ./bin/khan main.go
@@ -87,6 +86,9 @@ run-fast:
 
 build-docker:
 	@docker build -t khan .
+
+start-on-docker: migrate
+	@bash ./docker/start-khan.sh
 
 build-dev-docker:
 	@cp ./config/default.yaml ./dev
