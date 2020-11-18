@@ -54,6 +54,21 @@ To run a new khan instance, run:
 
     $ make run-docker
 
+### Running with docker-compose
+
+We already provide a docker-compose.yml as well with all dependencies configured for you to run.
+Before you can run the project, you need to execute the migrations in the database. You can achieve that executing:
+
+```sh
+    $ docker-compose up migrate
+```
+
+After executing the migration, you can execute the project by running:
+
+```sh
+    $ docker-compose up khan
+```
+
 ### Tests
 
 Running tests can be done with `make test`, while creating the test database can be accomplished with `make drop-test` and `make db-test`.
