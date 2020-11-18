@@ -1,0 +1,97 @@
+version: "3.8"
+
+services:
+  khan:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+    links:
+      - postgres
+      - redis
+      - elasticsearch
+    ports:
+      - "80:80"
+    networks:
+      - khan
+    environment:
+      - KHAN_POSTGRES_HOST=postgres
+      - KHAN_POSTGRES_USER=postgres
+      - KHAN_POSTGRES_PASSWORD=123456
+      - KHAN_ELASTICSEARCH_HOST=elasticsearch
+
+  migrate:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: "make migrate"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    links:
+      - postgres
+    networks:
+      - khan
+    environment:
+      - KHAN_POSTGRES_HOST=postgres
+      - KHAN_POSTGRES_USER=postgres
+      - KHAN_POSTGRES_PASSWORD=123456
+  
+  postgres:
+    image: postgres:9.6
+    restart: always
+    environment:
+      - POSTGRES_PASSWORD=123456
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=khan
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./docker-data/postgres:/var/lib/postgresql/data
+    networks:
+      - khan
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+  
+  redis:
+    image: redis
+    restart: always
+    ports: 
+      - "6379:6379"
+    networks:
+      - khan
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 1s
+      timeout: 3s
+      retries: 30
+
+  elasticsearch:
+    image: elasticsearch:5.6.12
+    ports:
+      - '9200:9200'
+      - '9300:9300'
+    networks:
+      - khan
+    volumes:
+      - ./docker-data/elasticsearch:/usr/share/elasticsearch/data
+    environment:
+      - xpack.security.enabled=false
+      - discovery.type=single-node
+    healthcheck:
+        test: ["CMD-SHELL", "curl --silent --fail localhost:9200/_cluster/health || exit 1"]
+        interval: 30s
+        timeout: 30s
+        retries: 3
+
+networks:
+  khan:
