@@ -1,7 +1,6 @@
 name: Khan
 
-# on:
-#   push:
+on: push
 #     branches: [ master ]
 #   pull_request:
 #     branches: [ master ]
