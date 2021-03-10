@@ -23,9 +23,11 @@ setup-docs:
 	@pip install -q --log /tmp/pip.log --no-cache-dir sphinx recommonmark sphinx_rtd_theme
 
 setup-ci:
-	@go clean -modcache
+	@go get -u github.com/golang/dep
 	@go get -u github.com/golang/dep/...
+	@go get github.com/mailru/easyjson
 	@go get github.com/mailru/easyjson/...
+	@go get -u github.com/jteeuwen/go-bindata
 	@go get -u github.com/jteeuwen/go-bindata/...
 	@go get github.com/topfreegames/goose/cmd/goose
 	@go get github.com/mattn/goveralls
