@@ -7,7 +7,7 @@ import (
 
 	"github.com/jrallison/go-workers"
 	opentracing "github.com/opentracing/opentracing-go"
-	"github.com/topfreegames/extensions/tracing"
+	"github.com/topfreegames/extensions/v9/tracing"
 	"github.com/topfreegames/khan/es"
 	"github.com/uber-go/zap"
 )

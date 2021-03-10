@@ -10,7 +10,7 @@ services:
       - POSTGRES_HOST_AUTH_METHOD=trust
   elasticsearch:
     container_name: khan_elasticsearch_1
-    image: docker.elastic.co/elasticsearch/elasticsearch:5.4.1
+    image: elasticsearch:6.8.14
     ports:
       - "9200:9200"
     environment:

@@ -17,7 +17,7 @@ import (
 	. "github.com/onsi/gomega"
 	uuid "github.com/satori/go.uuid"
 	"github.com/spf13/viper"
-	"github.com/topfreegames/extensions/mongo/interfaces"
+	"github.com/topfreegames/extensions/v9/mongo/interfaces"
 	"github.com/topfreegames/khan/api"
 	. "github.com/topfreegames/khan/models"
 	"github.com/topfreegames/khan/testing"

@@ -7,8 +7,8 @@ import (
 	"github.com/jrallison/go-workers"
 	opentracing "github.com/opentracing/opentracing-go"
 	"github.com/spf13/viper"
-	"github.com/topfreegames/extensions/mongo/interfaces"
-	"github.com/topfreegames/extensions/tracing"
+	"github.com/topfreegames/extensions/v9/mongo/interfaces"
+	"github.com/topfreegames/extensions/v9/tracing"
 	"github.com/topfreegames/khan/mongo"
 	"github.com/uber-go/zap"
 )
