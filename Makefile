@@ -28,6 +28,7 @@ setup-ci:
 	@go get -u github.com/jteeuwen/go-bindata/...
 	@go get github.com/topfreegames/goose/cmd/goose
 	@go get github.com/mattn/goveralls
+	@export GO111MODULE=on
 	@go get github.com/onsi/ginkgo/ginkgo@v1.2.0
 	@dep ensure
 
