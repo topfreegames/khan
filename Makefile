@@ -158,7 +158,6 @@ db migrate:
 	@go run main.go migrate -c ./config/local.yaml
 
 db-test migrate-test:
-	@psql -h localhost -p 5433 -U postgres -d postgres -c "SHOW SERVER_VERSION"
 	@go run main.go migrate -c ./config/test.yaml
 	@go run main.go migrate -t 0 -c ./config/test.yaml
 	@go run main.go migrate -c ./config/test.yaml
