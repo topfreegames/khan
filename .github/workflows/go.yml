@@ -9,6 +9,8 @@ jobs:
         image: postgres:latest
         env:
           POSTGRES_HOST_AUTH_METHOD: trust
+          POSTGRES_USER: khan_test
+          POSTGRES_DB: khan_test
         ports:
           - '5433:5432'
         options: '--health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5'
