@@ -138,7 +138,7 @@ test: start-test-deps run-test
 start-test-deps: schema-update start-deps assets drop-test db-test
 
 run-test:
-	@SKIP_ELASTIC_LOG=true ginkgo -r --cover .
+	@SKIP_ELASTIC_LOG=true ginkgo -nodes=1 -r --cover .
 
 test-coverage coverage: test
 	@echo "mode: count" > coverage-all.out
@@ -167,7 +167,7 @@ drop-test:
 	@psql -d postgres -h localhost -p 5433 -U postgres -f db/drop-test.sql > /dev/null
 	@echo "Test database created successfully!"
 
-run-test-khan: build kill-test-khan
+run-test-khan: build
 	@rm -rf /tmp/khan-bench.log
 	@./bin/khan start -p 8888 -q --fast -c ./config/perf.yaml 2>&1 > /tmp/khan-bench.log &
 
