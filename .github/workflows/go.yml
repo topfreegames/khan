@@ -80,3 +80,110 @@ jobs:
           discovery type: single-node
       - name: Performance test
         run: make ci-perf
+  # build_and_deploy_khan:
+  #   needs:
+  #     - tests
+  #     - performance
+  #   build:
+  #     runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Set env
+  #       run: echo "VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+  #     - name: Generate executable
+  #       run: make setup-ci cross
+  #     - name: Login to Docker Hub
+  #       uses: docker/login-action@v1
+  #       with:
+  #         username: ${{ secrets.DOCKERHUB_USERNAME }}
+  #         password: ${{ secrets.DOCKERHUB_TOKEN }}
+  #     - name: Set up Docker Buildx
+  #       id: buildx
+  #       uses: docker/setup-buildx-action@v1
+  #     - name: Build and push tag
+  #       id: docker_build
+  #       uses: docker/build-push-action@v2
+  #       with:
+  #         context: ./
+  #         file: ./Dockerfile
+  #         push: true
+  #         tags: tfgco/khan:${{ VERSION }}
+  #     - name: Build and push latest
+  #       id: docker_build
+  #       uses: docker/build-push-action@v2
+  #       with:
+  #         context: ./
+  #         file: ./Dockerfile
+  #         push: true
+  #         tags: tfgco/khan:latest
+  build_and_deploy_khan_dev:
+    needs:
+      - tests
+      - performance
+    build:
+      runs-on: ubuntu-latest
+    steps:
+      - name: Set env
+        run: echo "VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+      - name: Generate executable
+        run: make setup-ci cross
+      - name: Login to Docker Hub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Copy necessary files
+        run: cp ./config/default.yaml ./dev
+      - name: Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v1
+      - name: Build and push tag
+        id: docker_build
+        uses: docker/build-push-action@v2
+        with:
+          context: ./
+          file: ./Dockerfile
+          push: true
+          tags: tfgco/khan-dev:${{ VERSION }}
+      - name: Build and push latest
+        id: docker_build
+        uses: docker/build-push-action@v2
+        with:
+          context: ./
+          file: ./Dockerfile
+          push: true
+          tags: tfgco/khan-dev:latest
+  # build_and_deploy_khan_prune:
+  #   needs:
+  #     - tests
+  #     - performance
+  #   build:
+  #     runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Set env
+  #       run: echo "VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+  #     - name: Generate executable
+  #       run: make setup-ci cross
+  #     - name: Login to Docker Hub
+  #       uses: docker/login-action@v1
+  #       with:
+  #         username: ${{ secrets.DOCKERHUB_USERNAME }}
+  #         password: ${{ secrets.DOCKERHUB_TOKEN }}
+  #     - name: Set up Docker Buildx
+  #       id: buildx
+  #       uses: docker/setup-buildx-action@v1
+  #     - name: Build and push tag
+  #       id: docker_build
+  #       uses: docker/build-push-action@v2
+  #       with:
+  #         context: ./
+  #         file: ./PruneDockerfile
+  #         push: true
+  #         tags: tfgco/khan-prune:${{ VERSION }}
+  #     - name: Build and push latest
+  #       id: docker_build
+  #       uses: docker/build-push-action@v2
+  #       with:
+  #         context: ./
+  #         file: ./PruneDockerfile
+  #         push: true
+  #         tags: tfgco/khan-prune:latest
