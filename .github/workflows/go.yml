@@ -40,4 +40,4 @@ jobs:
           node port: 9300
           discovery type: single-node
       - name: Test
-        run: make assets migrate-test run-test
+        run: make schema-update assets migrate-test run-test
