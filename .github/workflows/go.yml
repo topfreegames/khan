@@ -116,11 +116,10 @@ jobs:
   #         push: true
   #         tags: tfgco/khan:latest
   build_and_deploy_khan_dev:
+    runs-on: ubuntu-latest
     needs:
       - tests
       - performance
-    build:
-      runs-on: ubuntu-latest
     steps:
       - name: Set env
         run: echo "VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
