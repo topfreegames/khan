@@ -66,8 +66,6 @@ cross: assets
 	@env GOOS=linux GOARCH=386 go build -o ./bin/khan-linux-i386
 	@echo "Building for linux-x86_64..."
 	@env GOOS=linux GOARCH=amd64 go build -o ./bin/khan-linux-x86_64
-	@echo "Building for darwin-i386..."
-	@env GOOS=darwin GOARCH=386 go build -o ./bin/khan-darwin-i386
 	@echo "Building for darwin-x86_64..."
 	@env GOOS=darwin GOARCH=amd64 go build -o ./bin/khan-darwin-x86_64
 	@chmod +x bin/*
