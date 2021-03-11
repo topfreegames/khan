@@ -23,7 +23,7 @@ import (
 
 	"github.com/labstack/echo/engine/standard"
 	. "github.com/onsi/gomega"
-	"github.com/topfreegames/extensions/mongo/interfaces"
+	"github.com/topfreegames/extensions/v9/mongo/interfaces"
 	"github.com/topfreegames/khan/api"
 	"github.com/topfreegames/khan/es"
 	"github.com/topfreegames/khan/models"
@@ -31,8 +31,14 @@ import (
 	kt "github.com/topfreegames/khan/testing"
 )
 
+var testES *es.Client
+
 func GetTestES() *es.Client {
-	return es.GetTestClient("localhost", 9200, "", false, zap.New(zap.NewJSONEncoder(), zap.ErrorLevel), false)
+	if testES != nil {
+		return testES
+	}
+	testES = es.GetTestClient("localhost", 9200, "", false, zap.New(zap.NewJSONEncoder(), zap.ErrorLevel), false)
+	return testES
 }
 
 func GetTestMongo() (interfaces.MongoDB, error) {

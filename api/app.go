@@ -30,15 +30,14 @@ import (
 	gocache "github.com/patrickmn/go-cache"
 	"github.com/rcrowley/go-metrics"
 	uuid "github.com/satori/go.uuid"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
-	eecho "github.com/topfreegames/extensions/echo"
-	extechomiddleware "github.com/topfreegames/extensions/echo/middleware"
-	gorp "github.com/topfreegames/extensions/gorp/interfaces"
-	"github.com/topfreegames/extensions/jaeger"
-	extnethttpmiddleware "github.com/topfreegames/extensions/middleware"
-	"github.com/topfreegames/extensions/mongo/interfaces"
-	extworkermiddleware "github.com/topfreegames/extensions/worker/middleware"
+	eecho "github.com/topfreegames/extensions/v9/echo"
+	extechomiddleware "github.com/topfreegames/extensions/v9/echo/middleware"
+	gorp "github.com/topfreegames/extensions/v9/gorp/interfaces"
+	"github.com/topfreegames/extensions/v9/jaeger"
+	extnethttpmiddleware "github.com/topfreegames/extensions/v9/middleware"
+	"github.com/topfreegames/extensions/v9/mongo/interfaces"
+	extworkermiddleware "github.com/topfreegames/extensions/v9/worker/middleware"
 	"github.com/topfreegames/khan/caches"
 	"github.com/topfreegames/khan/es"
 	"github.com/topfreegames/khan/log"
@@ -585,18 +584,6 @@ func (app *App) configureGoWorkers() {
 	}
 	l.Debug("Configuring workers...")
 	workers.Configure(opts)
-
-	// TODO: replace zap with logrus so we don't need two loggers
-	wl := logrus.New()
-	wl.Formatter = new(logrus.JSONFormatter)
-	if app.Test {
-		wl.Level = logrus.FatalLevel
-	} else if app.Debug {
-		wl.Level = logrus.DebugLevel
-	} else {
-		wl.Level = logrus.InfoLevel
-	}
-	workers.SetLogger(wl)
 
 	workers.Middleware.Append(extworkermiddleware.NewResponseTimeMetricsMiddleware(app.DDStatsD))
 	workers.Process(queues.KhanQueue, app.Dispatcher.PerformDispatchHook, workerCount)

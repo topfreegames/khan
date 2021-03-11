@@ -14,25 +14,26 @@ MYIP=`ifconfig | grep --color=none -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep
 setup-hooks:
 	@cd .git/hooks && ln -sf ../../hooks/pre-commit.sh pre-commit
 
-setup: setup-ci 
-	@go get -v github.com/spf13/cobra/cobra
-	@go get github.com/fzipp/gocyclo
-	@go get github.com/gordonklaus/ineffassign
+setup:
+	@go get -u github.com/onsi/ginkgo/ginkgo
+	@go get -u github.com/jteeuwen/go-bindata/...
+	@go get github.com/mailru/easyjson/...
+	@go mod tidy
+
+mod-tidy:
+	@go mod tidy
 
 setup-docs:
 	@pip install -q --log /tmp/pip.log --no-cache-dir sphinx recommonmark sphinx_rtd_theme
 
 setup-ci:
-	@go get -u github.com/golang/dep
-	@go get -u github.com/golang/dep/...
-	@go get github.com/mailru/easyjson
 	@go get github.com/mailru/easyjson/...
 	@go get -u github.com/jteeuwen/go-bindata
 	@go get -u github.com/jteeuwen/go-bindata/...
 	@go get github.com/topfreegames/goose/cmd/goose
 	@go get github.com/mattn/goveralls
-	@go get github.com/onsi/ginkgo/ginkgo@v1.2.0
-	@dep ensure
+	@go get github.com/onsi/ginkgo/ginkgo
+	@go mod tidy
 
 build:
 	@go build -o ./bin/khan main.go

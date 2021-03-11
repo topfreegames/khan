@@ -23,7 +23,7 @@ import (
 	workers "github.com/jrallison/go-workers"
 	"github.com/mailru/easyjson/jlexer"
 	"github.com/mailru/easyjson/jwriter"
-	"github.com/topfreegames/extensions/mongo/interfaces"
+	"github.com/topfreegames/extensions/v9/mongo/interfaces"
 	"github.com/topfreegames/khan/es"
 	"github.com/topfreegames/khan/mongo"
 	"github.com/topfreegames/khan/queues"

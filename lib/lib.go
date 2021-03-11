@@ -13,7 +13,7 @@ import (
 	"time"
 
 	"github.com/spf13/viper"
-	ehttp "github.com/topfreegames/extensions/http"
+	ehttp "github.com/topfreegames/extensions/v9/http"
 )
 
 // Khan is a struct that represents a khan API application

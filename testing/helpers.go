@@ -6,7 +6,7 @@ import (
 	"github.com/topfreegames/khan/caches"
 
 	gocache "github.com/patrickmn/go-cache"
-	"github.com/topfreegames/extensions/mongo/interfaces"
+	"github.com/topfreegames/extensions/v9/mongo/interfaces"
 	"github.com/topfreegames/khan/models"
 	"github.com/topfreegames/khan/mongo"
 )
@@ -20,9 +20,14 @@ func CreateClanNameTextIndexInMongo(getTestMongo func() (interfaces.MongoDB, err
 	return db.Run(mongo.GetClanNameTextIndexCommand(gameID, false), nil)
 }
 
+var testDB models.DB
+
 // GetTestDB returns a connection to the test database.
 func GetTestDB() (models.DB, error) {
-	return models.GetDB(
+	if testDB != nil {
+		return testDB, nil
+	}
+	db, err := models.GetDB(
 		"localhost", // host
 		"khan_test", // user
 		5433,        // port
@@ -30,6 +35,14 @@ func GetTestDB() (models.DB, error) {
 		"khan_test", // dbName
 		"",          // password
 	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	testDB = db
+
+	return testDB, nil
 }
 
 // GetTestClansSummariesCache returns a test cache for clans summaries.

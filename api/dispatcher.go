@@ -24,9 +24,9 @@ import (
 
 	workers "github.com/jrallison/go-workers"
 	opentracing "github.com/opentracing/opentracing-go"
-	"github.com/satori/go.uuid"
-	ehttp "github.com/topfreegames/extensions/http"
-	"github.com/topfreegames/extensions/tracing"
+	uuid "github.com/satori/go.uuid"
+	ehttp "github.com/topfreegames/extensions/v9/http"
+	"github.com/topfreegames/extensions/v9/tracing"
 	"github.com/topfreegames/khan/log"
 	"github.com/topfreegames/khan/queues"
 	"github.com/uber-go/zap"
