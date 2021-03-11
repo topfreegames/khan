@@ -15,7 +15,8 @@ jobs:
       redis:
         image: redis:5
         options: '--health-cmd "redis-cli ping" --health-interval 10s --health-timeout 5s --health-retries 5'
-        ports: '50505:6379'
+        ports:
+          - '50505:6379'
     steps:
       - uses: actions/checkout@v2
       - name: Set up Go
