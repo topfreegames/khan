@@ -174,7 +174,7 @@ run-test-khan: build kill-test-khan
 kill-test-khan:
 	@-ps aux | egrep './bin/khan.+perf.yaml' | egrep -v grep | awk ' { print $$2 } ' | xargs kill -9
 
-ci-perf: drop-perf migrate-perf run-test-khan run-perf
+ci-perf: migrate-perf run-test-khan run-perf
 
 run-perf:
 	@go test -bench . -benchtime 3s ./bench/...
