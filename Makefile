@@ -14,10 +14,11 @@ MYIP=`ifconfig | grep --color=none -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep
 setup-hooks:
 	@cd .git/hooks && ln -sf ../../hooks/pre-commit.sh pre-commit
 
-setup: mod-tidy
+setup:
 	@go get -u github.com/onsi/ginkgo/ginkgo
 	@go get -u github.com/jteeuwen/go-bindata/...
 	@go get github.com/mailru/easyjson/...
+	@go mod tidy
 
 mod-tidy:
 	@go mod tidy
@@ -26,7 +27,6 @@ setup-docs:
 	@pip install -q --log /tmp/pip.log --no-cache-dir sphinx recommonmark sphinx_rtd_theme
 
 setup-ci:
-	@go get -u github.com/golang/dep/...
 	@go get github.com/mailru/easyjson/...
 	@go get -u github.com/jteeuwen/go-bindata/...
 	@go get github.com/topfreegames/goose/cmd/goose

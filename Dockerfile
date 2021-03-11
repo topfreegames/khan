@@ -1,4 +1,4 @@
-FROM golang:1.11-alpine
+FROM golang:1.15.2-alpine
 
 MAINTAINER TFG Co <backend@tfgco.com>
 
@@ -8,14 +8,13 @@ RUN apk update
 RUN apk add git make g++ apache2-utils
 RUN apk add --update bash
 
-RUN go get -u github.com/golang/dep/...
 RUN go get -u github.com/topfreegames/goose/cmd/goose
 
 ADD loadtest/words /usr/share/dict/words
 ADD . /go/src/github.com/topfreegames/khan
 
 WORKDIR /go/src/github.com/topfreegames/khan
-RUN dep ensure
+RUN go mod tidy
 RUN go install github.com/topfreegames/khan
 
 ENV KHAN_POSTGRES_HOST 0.0.0.0
