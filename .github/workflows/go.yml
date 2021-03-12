@@ -181,7 +181,7 @@ jobs:
           context: ./
           file: ./PruneDockerfile
           push: true
-          tags: tfgco/khan-prune:${{ VERSION }}
+          tags: tfgco/khan-prune:${{ env.VERSION }}
       - name: Build and push latest
         id: docker_build
         uses: docker/build-push-action@v2
