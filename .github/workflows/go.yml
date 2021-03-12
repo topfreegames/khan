@@ -129,13 +129,19 @@ jobs:
           tags: tfgco/khan:latest
   build_and_deploy_khan_dev:
     runs-on: ubuntu-latest
-    needs:
-      - tests
-      - performance
+    # needs:
+    #   - tests
+    #   - performance
     steps:
       - uses: actions/checkout@v2
       - name: Set env
         run: echo "VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+      - uses: actions/cache@v2
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
       - name: Set up Go
         uses: actions/setup-go@v2
         with:
