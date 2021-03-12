@@ -11,7 +11,7 @@ RUN go get -u github.com/golang/dep/...
 ADD . /go/src/github.com/topfreegames/khan
 
 WORKDIR /go/src/github.com/topfreegames/khan
-RUN dep ensure
+RUN go mod tidy
 RUN go install github.com/topfreegames/khan
 
 ENV KHAN_POSTGRES_HOST 0.0.0.0
