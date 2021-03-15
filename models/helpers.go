@@ -13,8 +13,8 @@ import (
 
 	"github.com/go-gorp/gorp"
 	_ "github.com/lib/pq" //This is required to use postgres with database/sql
-	egorp "github.com/topfreegames/extensions/gorp"
-	"github.com/topfreegames/extensions/gorp/interfaces"
+	egorp "github.com/topfreegames/extensions/v9/gorp"
+	"github.com/topfreegames/extensions/v9/gorp/interfaces"
 	"github.com/topfreegames/khan/util"
 )
 

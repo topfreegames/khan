@@ -16,7 +16,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/topfreegames/extensions/gorp"
+	"github.com/topfreegames/extensions/v9/gorp"
 	"github.com/topfreegames/goose/lib/goose"
 	"github.com/topfreegames/khan/db"
 	"github.com/topfreegames/khan/models"

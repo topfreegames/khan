@@ -14,7 +14,7 @@ import (
 	"time"
 
 	"github.com/labstack/echo"
-	"github.com/topfreegames/extensions/gorp/interfaces"
+	"github.com/topfreegames/extensions/v9/gorp/interfaces"
 	"github.com/topfreegames/khan/log"
 	"github.com/topfreegames/khan/models"
 	"github.com/uber-go/zap"

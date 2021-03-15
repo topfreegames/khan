@@ -16,8 +16,8 @@ import (
 
 	uuid "github.com/satori/go.uuid"
 	"github.com/spf13/viper"
-	"github.com/topfreegames/extensions/mongo"
-	"github.com/topfreegames/extensions/mongo/interfaces"
+	"github.com/topfreegames/extensions/v9/mongo"
+	"github.com/topfreegames/extensions/v9/mongo/interfaces"
 	"github.com/topfreegames/khan/models"
 )
 

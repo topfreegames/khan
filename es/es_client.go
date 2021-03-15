@@ -6,7 +6,7 @@ import (
 	"sync"
 
 	newrelic "github.com/newrelic/go-agent"
-	eelastic "github.com/topfreegames/extensions/elastic"
+	eelastic "github.com/topfreegames/extensions/v9/elastic"
 	"github.com/topfreegames/khan/log"
 	"github.com/uber-go/zap"
 	"gopkg.in/olivere/elastic.v5"
