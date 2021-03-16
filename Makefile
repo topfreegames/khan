@@ -133,7 +133,7 @@ run-prune-docker:
 
 test: start-test-deps run-test
 
-start-test-deps: schema-update start-deps assets drop-test db-test
+start-test-deps: schema-update start-deps assets drop-test criate-test-db migrate-test
 
 run-test:
 	@SKIP_ELASTIC_LOG=true ginkgo -nodes=1 -r --cover .
@@ -150,12 +150,12 @@ random-data:
 
 drop:
 	@psql -d postgres -U postgres -p 5433 -h ${MYIP} -f db/drop.sql > /dev/null
-	@echo "Database created successfully!"
+	@echo "Database dropped successfully!"
 
 db migrate:
 	@go run main.go migrate -c ./config/local.yaml
 
-db-test migrate-test: create-test-db
+db-test migrate-test:
 	@go run main.go migrate -c ./config/test.yaml
 	@go run main.go migrate -t 0 -c ./config/test.yaml
 	@go run main.go migrate -c ./config/test.yaml
