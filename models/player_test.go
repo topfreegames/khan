@@ -109,6 +109,25 @@ var _ = Describe("Player Model", func() {
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(Equal("Player was not found with id: invalid-player"))
 			})
+
+			It("Should decrypt Player.Name", func() {
+				_, player, err := CreatePlayerFactory(testDb, "")
+				Expect(err).NotTo(HaveOccurred())
+
+				encryptedName, err := util.EncryptData(player.Name, GetEncryptionKey())
+				Expect(err).NotTo(HaveOccurred())
+
+				name := player.Name
+				player.Name = encryptedName
+				count, err := testDb.Update(player)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(int(count)).To(Equal(1))
+
+				dbPlayer, err := GetPlayerByPublicID(testDb, GetEncryptionKey(), player.GameID, player.PublicID)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(dbPlayer.ID).To(Equal(player.ID))
+				Expect(dbPlayer.Name).To(Equal(name))
+			})
 		})
 
 		Describe("Create Player", func() {
