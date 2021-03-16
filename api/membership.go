@@ -383,7 +383,7 @@ func ApproveOrDenyMembershipApplicationHandler(app *App) func(c echo.Context) er
 			return WithSegment("player-retrieve", c, func() error {
 				log.D(l, "Retrieving requestor details.")
 				var gErr error
-				requestor, gErr = models.GetPlayerByPublicID(tx, gameID, payload.RequestorPublicID)
+				requestor, gErr = models.GetPlayerByPublicID(tx, app.EncryptionKey, gameID, payload.RequestorPublicID)
 				if gErr != nil {
 					msg := "Requestor details retrieval failed."
 					txErr := rb(gErr)
@@ -756,7 +756,7 @@ func PromoteOrDemoteMembershipHandler(app *App, action string) func(c echo.Conte
 
 			err = WithSegment("player-retrieve", c, func() error {
 				log.D(l, "Retrieving promoter/demoter member...")
-				requestor, err = models.GetPlayerByPublicID(db, membership.GameID, payload.RequestorPublicID)
+				requestor, err = models.GetPlayerByPublicID(db, app.EncryptionKey, membership.GameID, payload.RequestorPublicID)
 				if err != nil {
 					log.E(l, "Promoter/Demoter member retrieval failed.", func(cm log.CM) {
 						cm.Write(zap.Error(err))

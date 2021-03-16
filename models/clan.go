@@ -487,8 +487,8 @@ func GetClanByPublicIDAndOwnerPublicID(db DB, gameID, publicID, ownerPublicID st
 }
 
 // CreateClan creates a new clan
-func CreateClan(db DB, gameID, publicID, name, ownerPublicID string, metadata map[string]interface{}, allowApplication, autoJoin bool, maxClansPerPlayer int) (*Clan, error) {
-	player, err := GetPlayerByPublicID(db, gameID, ownerPublicID)
+func CreateClan(db DB, encryptionKey []byte, gameID, publicID, name, ownerPublicID string, metadata map[string]interface{}, allowApplication, autoJoin bool, maxClansPerPlayer int) (*Clan, error) {
+	player, err := GetPlayerByPublicID(db, encryptionKey, gameID, ownerPublicID)
 	if err != nil {
 		return nil, err
 	}

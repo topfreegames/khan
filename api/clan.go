@@ -126,6 +126,7 @@ func CreateClanHandler(app *App) func(c echo.Context) error {
 			log.D(l, "Creating clan...")
 			clan, err = models.CreateClan(
 				tx,
+				app.EncryptionKey,
 				gameID,
 				payload.PublicID,
 				payload.Name,

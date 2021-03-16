@@ -99,13 +99,13 @@ var _ = Describe("Player Model", func() {
 				_, player, err := CreatePlayerFactory(testDb, "")
 				Expect(err).NotTo(HaveOccurred())
 
-				dbPlayer, err := GetPlayerByPublicID(testDb, player.GameID, player.PublicID)
+				dbPlayer, err := GetPlayerByPublicID(testDb, GetEncryptionKey(), player.GameID, player.PublicID)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(dbPlayer.ID).To(Equal(player.ID))
 			})
 
 			It("Should not get non-existing Player by Game and Player", func() {
-				_, err := GetPlayerByPublicID(testDb, "invalid-game", "invalid-player")
+				_, err := GetPlayerByPublicID(testDb, GetEncryptionKey(), "invalid-game", "invalid-player")
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(Equal("Player was not found with id: invalid-player"))
 			})
@@ -175,7 +175,7 @@ var _ = Describe("Player Model", func() {
 				Expect(err).NotTo(HaveOccurred())
 				Expect(updPlayer.ID).To(Equal(player.ID))
 
-				dbPlayer, err := GetPlayerByPublicID(testDb, player.GameID, player.PublicID)
+				dbPlayer, err := GetPlayerByPublicID(testDb, GetEncryptionKey(), player.GameID, player.PublicID)
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(dbPlayer.Metadata["x"]).To(BeEquivalentTo(metadata["x"]))
@@ -202,7 +202,7 @@ var _ = Describe("Player Model", func() {
 				Expect(err).NotTo(HaveOccurred())
 				Expect(updPlayer.ID).To(BeNumerically(">", 0))
 
-				dbPlayer, err := GetPlayerByPublicID(testDb, updPlayer.GameID, updPlayer.PublicID)
+				dbPlayer, err := GetPlayerByPublicID(testDb, GetEncryptionKey(), updPlayer.GameID, updPlayer.PublicID)
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(dbPlayer.Metadata).To(Equal(metadata))
@@ -230,6 +230,7 @@ var _ = Describe("Player Model", func() {
 
 				playerDetails, err := GetPlayerDetails(
 					testDb,
+					GetEncryptionKey(),
 					player.GameID,
 					player.PublicID,
 				)
@@ -311,6 +312,7 @@ var _ = Describe("Player Model", func() {
 
 				playerDetails, err := GetPlayerDetails(
 					testDb,
+					GetEncryptionKey(),
 					players[0].GameID,
 					players[0].PublicID,
 				)
@@ -357,6 +359,7 @@ var _ = Describe("Player Model", func() {
 
 				c, err := CreateClan(
 					testDb,
+					GetEncryptionKey(),
 					game.PublicID,
 					"johns-bug-clan",
 					"johns-bug-clan",
@@ -371,6 +374,7 @@ var _ = Describe("Player Model", func() {
 
 				playerDetails, err := GetPlayerDetails(
 					testDb,
+					GetEncryptionKey(),
 					players[0].GameID,
 					players[0].PublicID,
 				)
@@ -423,6 +427,7 @@ var _ = Describe("Player Model", func() {
 
 				playerDetails, err := GetPlayerDetails(
 					testDb,
+					GetEncryptionKey(),
 					players[0].GameID,
 					players[0].PublicID,
 				)
@@ -474,6 +479,7 @@ var _ = Describe("Player Model", func() {
 
 				playerDetails, err := GetPlayerDetails(
 					testDb,
+					GetEncryptionKey(),
 					player.GameID,
 					player.PublicID,
 				)
@@ -507,6 +513,7 @@ var _ = Describe("Player Model", func() {
 			It("Should return error if Player does not exist", func() {
 				playerDetails, err := GetPlayerDetails(
 					testDb,
+					GetEncryptionKey(),
 					"game-id",
 					"invalid-player-id",
 				)

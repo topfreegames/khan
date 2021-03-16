@@ -260,7 +260,7 @@ func ApproveOrDenyMembershipApplication(db DB, encryptionKey []byte, game *Game,
 		return nil, &PlayerCannotPerformMembershipActionError{action, playerPublicID, clanPublicID, requestorPublicID}
 	}
 
-	requestor, err := GetPlayerByPublicID(db, gameID, requestorPublicID)
+	requestor, err := GetPlayerByPublicID(db, encryptionKey, gameID, requestorPublicID)
 	if err != nil {
 		return nil, err
 	}
@@ -391,7 +391,7 @@ func validateMembership(db DB, encryptionKey []byte, game *Game, membership *Mem
 			return -1, false, err
 		}
 	} else {
-		player, err := GetPlayerByPublicID(db, game.PublicID, playerPublicID)
+		player, err := GetPlayerByPublicID(db, encryptionKey, game.PublicID, playerPublicID)
 		if err != nil {
 			return -1, false, err
 		}
@@ -423,7 +423,7 @@ func applyForMembership(db DB, game *Game, membership *Membership, level string,
 func inviteMember(db DB, encryptionKey []byte, game *Game, membership *Membership, level string, clan *Clan, playerID int64, requestorPublicID, message string, previousMembership bool) (*Membership, error) {
 	reqMembership, _ := GetValidMembershipByClanAndPlayerPublicID(db, game.PublicID, clan.PublicID, requestorPublicID)
 	if reqMembership == nil {
-		requestor, err := GetPlayerByPublicID(db, game.PublicID, requestorPublicID)
+		requestor, err := GetPlayerByPublicID(db, encryptionKey, game.PublicID, requestorPublicID)
 		if err != nil {
 			return nil, err
 		}

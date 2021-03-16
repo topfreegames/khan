@@ -130,7 +130,7 @@ func GetPlayerByID(db DB, encryptionKey []byte, id int64) (*Player, error) {
 }
 
 // GetPlayerByPublicID returns a player by their public id
-func GetPlayerByPublicID(db DB, gameID string, publicID string) (*Player, error) {
+func GetPlayerByPublicID(db DB, encryptionKey []byte, gameID string, publicID string) (*Player, error) {
 	var players []*Player
 	_, err := db.Select(&players, "SELECT * FROM players WHERE game_id=$1 AND public_id=$2", gameID, publicID)
 	if err != nil {
@@ -139,7 +139,15 @@ func GetPlayerByPublicID(db DB, gameID string, publicID string) (*Player, error)
 	if players == nil || len(players) < 1 {
 		return nil, &ModelNotFoundError{"Player", publicID}
 	}
-	return players[0], nil
+
+	player := players[0]
+	name, err := util.DecryptData(player.Name, encryptionKey)
+	if err != nil {
+		return player, nil
+	}
+
+	player.Name = name
+	return player, nil
 }
 
 // CreatePlayer creates a new player
@@ -238,8 +246,8 @@ func GetPlayerOwnershipDetails(db DB, gameID, publicID string) (map[string]inter
 }
 
 // GetPlayerMembershipDetails returns detailed information about a player and their memberships
-func GetPlayerMembershipDetails(db DB, gameID, publicID string) (map[string]interface{}, error) {
-	player, err := GetPlayerByPublicID(db, gameID, publicID)
+func GetPlayerMembershipDetails(db DB, encryptionKey []byte, gameID, publicID string) (map[string]interface{}, error) {
+	player, err := GetPlayerByPublicID(db, encryptionKey, gameID, publicID)
 	if err != nil {
 		return nil, err
 	}
@@ -363,8 +371,8 @@ func GetPlayerMembershipDetails(db DB, gameID, publicID string) (map[string]inte
 }
 
 // GetPlayerDetails returns detailed information about a player and their memberships
-func GetPlayerDetails(db DB, gameID, publicID string) (map[string]interface{}, error) {
-	result, err := GetPlayerMembershipDetails(db, gameID, publicID)
+func GetPlayerDetails(db DB, encryptionKey []byte, gameID, publicID string) (map[string]interface{}, error) {
+	result, err := GetPlayerMembershipDetails(db, encryptionKey, gameID, publicID)
 	if err != nil {
 		return nil, err
 	}

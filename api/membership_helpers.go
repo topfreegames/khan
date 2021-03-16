@@ -50,14 +50,14 @@ func dispatchMembershipHookByPublicID(app *App, db models.DB, hookType int, game
 		return err
 	}
 
-	player, err := models.GetPlayerByPublicID(db, gameID, playerID)
+	player, err := models.GetPlayerByPublicID(db, app.EncryptionKey, gameID, playerID)
 	if err != nil {
 		return err
 	}
 
 	requestor := player
 	if requestorID != playerID {
-		requestor, err = models.GetPlayerByPublicID(db, gameID, requestorID)
+		requestor, err = models.GetPlayerByPublicID(db, app.EncryptionKey, gameID, requestorID)
 		if err != nil {
 			return err
 		}

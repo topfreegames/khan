@@ -298,6 +298,7 @@ var _ = Describe("Clan Model", func() {
 
 				clan, err := CreateClan(
 					testDb,
+					GetEncryptionKey(),
 					player.GameID,
 					"create-1",
 					randomdata.FullName(randomdata.RandomGender),
@@ -329,6 +330,7 @@ var _ = Describe("Clan Model", func() {
 
 				_, err = CreateClan(
 					testDb,
+					GetEncryptionKey(),
 					player.GameID,
 					strings.Repeat("a", 256),
 					"clan-name",
@@ -349,6 +351,7 @@ var _ = Describe("Clan Model", func() {
 
 				_, err = CreateClan(
 					testDb,
+					GetEncryptionKey(),
 					owner.GameID,
 					"create-1",
 					randomdata.FullName(randomdata.RandomGender),
@@ -369,6 +372,7 @@ var _ = Describe("Clan Model", func() {
 
 				_, err = CreateClan(
 					testDb,
+					GetEncryptionKey(),
 					game.PublicID,
 					"create-1",
 					randomdata.FullName(randomdata.RandomGender),
@@ -388,6 +392,7 @@ var _ = Describe("Clan Model", func() {
 				playerPublicID := randomdata.FullName(randomdata.RandomGender)
 				_, err = CreateClan(
 					testDb,
+					GetEncryptionKey(),
 					"create-1",
 					randomdata.FullName(randomdata.RandomGender),
 					"clan-name",

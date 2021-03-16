@@ -143,7 +143,7 @@ func UpdatePlayerHandler(app *App) func(c echo.Context) error {
 
 		err = WithSegment("player-retrieve", c, func() error {
 			log.D(l, "Retrieving player...")
-			beforeUpdatePlayer, err = models.GetPlayerByPublicID(db, gameID, playerPublicID)
+			beforeUpdatePlayer, err = models.GetPlayerByPublicID(db, app.EncryptionKey, gameID, playerPublicID)
 			if err != nil && err.Error() != (&models.ModelNotFoundError{Type: "Player", ID: playerPublicID}).Error() {
 				return err
 			}
@@ -235,6 +235,7 @@ func RetrievePlayerHandler(app *App) func(c echo.Context) error {
 			log.D(l, "Retrieving player details...")
 			player, err = models.GetPlayerDetails(
 				db,
+				app.EncryptionKey,
 				gameID,
 				publicID,
 			)

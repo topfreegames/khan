@@ -117,11 +117,11 @@ func configureFactory(fct *factory.Factory) *factory.Factory {
 	})
 }
 
-var encryptionKey []byte = []byte("00000000000000000000000000000000")
+var testKey []byte = []byte("00000000000000000000000000000000")
 
 //GetEncryptionKey returns the models test encryptionKey
 func GetEncryptionKey() []byte {
-	return encryptionKey
+	return testKey
 }
 
 // PlayerFactory is responsible for constructing test player instances
