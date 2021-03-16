@@ -15,7 +15,7 @@ import (
 	. "github.com/topfreegames/khan/models"
 	"github.com/topfreegames/khan/util"
 
-	"github.com/satori/go.uuid"
+	uuid "github.com/satori/go.uuid"
 )
 
 var _ = Describe("Player Model", func() {
@@ -70,6 +70,25 @@ var _ = Describe("Player Model", func() {
 				_, err := GetPlayerByID(testDb, -1)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(Equal("Player was not found with id: -1"))
+			})
+
+			It("Should decrypt Player.Name", func() {
+				_, player, err := CreatePlayerFactory(testDb, "")
+				Expect(err).NotTo(HaveOccurred())
+
+				encryptedName, err := util.EncryptData(player.Name, GetEncryptionKey())
+				Expect(err).NotTo(HaveOccurred())
+
+				name := player.Name
+				player.Name = encryptedName
+				count, err := testDb.Update(player)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(int(count)).To(Equal(1))
+
+				dbPlayer, err := GetPlayerByID(testDb, GetEncryptionKey(), player.ID)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(dbPlayer.ID).To(Equal(player.ID))
+				Expect(dbPlayer.Name).To(Equal(name))
 			})
 		})
 
