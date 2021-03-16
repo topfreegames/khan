@@ -318,7 +318,7 @@ var _ = Describe("Clan Model", func() {
 				Expect(dbClan.PublicID).To(Equal(clan.PublicID))
 				Expect(dbClan.MembershipCount).To(Equal(1))
 
-				dbPlayer, err := GetPlayerByID(testDb, player.ID)
+				dbPlayer, err := GetPlayerByID(testDb, GetEncryptionKey(), player.ID)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(dbPlayer.OwnershipCount).To(Equal(1))
 			})
@@ -517,7 +517,7 @@ var _ = Describe("Clan Model", func() {
 					_, clan, owner, players, memberships, err := GetClanWithMemberships(testDb, 1, 0, 0, 0, "", "")
 					Expect(err).NotTo(HaveOccurred())
 
-					clan, previousOwner, newOwner, err := LeaveClan(testDb, clan.GameID, clan.PublicID)
+					clan, previousOwner, newOwner, err := LeaveClan(testDb, GetEncryptionKey(), clan.GameID, clan.PublicID)
 					Expect(err).NotTo(HaveOccurred())
 
 					Expect(previousOwner.ID).To(Equal(owner.ID))
@@ -531,11 +531,11 @@ var _ = Describe("Clan Model", func() {
 					Expect(dbDeletedMembership.DeletedBy).To(Equal(memberships[0].PlayerID))
 					Expect(dbDeletedMembership.DeletedAt).To(BeNumerically(">", util.NowMilli()-1000))
 
-					dbPlayer, err := GetPlayerByID(testDb, owner.ID)
+					dbPlayer, err := GetPlayerByID(testDb, GetEncryptionKey(), owner.ID)
 					Expect(err).NotTo(HaveOccurred())
 					Expect(dbPlayer.OwnershipCount).To(Equal(0))
 
-					dbPlayer, err = GetPlayerByID(testDb, memberships[0].PlayerID)
+					dbPlayer, err = GetPlayerByID(testDb, GetEncryptionKey(), memberships[0].PlayerID)
 					Expect(err).NotTo(HaveOccurred())
 					Expect(dbPlayer.OwnershipCount).To(Equal(1))
 					Expect(dbPlayer.MembershipCount).To(Equal(0))
@@ -549,7 +549,7 @@ var _ = Describe("Clan Model", func() {
 					_, clan, owner, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
 					Expect(err).NotTo(HaveOccurred())
 
-					clan, previousOwner, newOwner, err := LeaveClan(testDb, clan.GameID, clan.PublicID)
+					clan, previousOwner, newOwner, err := LeaveClan(testDb, GetEncryptionKey(), clan.GameID, clan.PublicID)
 					Expect(err).NotTo(HaveOccurred())
 					Expect(previousOwner.ID).To(Equal(owner.ID))
 					Expect(newOwner).To(BeNil())
@@ -558,7 +558,7 @@ var _ = Describe("Clan Model", func() {
 					Expect(err).To(HaveOccurred())
 					Expect(err.Error()).To(Equal(fmt.Sprintf("Clan was not found with id: %s", clan.PublicID)))
 
-					dbPlayer, err := GetPlayerByID(testDb, owner.ID)
+					dbPlayer, err := GetPlayerByID(testDb, GetEncryptionKey(), owner.ID)
 					Expect(err).NotTo(HaveOccurred())
 					Expect(dbPlayer.OwnershipCount).To(Equal(0))
 				})
@@ -570,7 +570,7 @@ var _ = Describe("Clan Model", func() {
 					_, clan, _, _, _, err := GetClanWithMemberships(testDb, 1, 0, 0, 0, "", "")
 					Expect(err).NotTo(HaveOccurred())
 
-					_, _, _, err = LeaveClan(testDb, clan.GameID, "-1")
+					_, _, _, err = LeaveClan(testDb, GetEncryptionKey(), clan.GameID, "-1")
 					Expect(err).To(HaveOccurred())
 					Expect(err.Error()).To(Equal("Clan was not found with id: -1"))
 				})
@@ -584,6 +584,7 @@ var _ = Describe("Clan Model", func() {
 					Expect(err).NotTo(HaveOccurred())
 					clan, previousOwner, newOwner, err := TransferClanOwnership(
 						testDb,
+						GetEncryptionKey(),
 						clan.GameID,
 						clan.PublicID,
 						players[0].PublicID,
@@ -610,12 +611,12 @@ var _ = Describe("Clan Model", func() {
 					Expect(newOwnerMembership.DeletedBy).To(Equal(newOwnerMembership.PlayerID))
 					Expect(newOwnerMembership.DeletedAt).To(BeNumerically(">", util.NowMilli()-1000))
 
-					dbPlayer, err := GetPlayerByID(testDb, owner.ID)
+					dbPlayer, err := GetPlayerByID(testDb, GetEncryptionKey(), owner.ID)
 					Expect(err).NotTo(HaveOccurred())
 					Expect(dbPlayer.OwnershipCount).To(Equal(0))
 					Expect(dbPlayer.MembershipCount).To(Equal(1))
 
-					dbPlayer, err = GetPlayerByID(testDb, newOwnerMembership.PlayerID)
+					dbPlayer, err = GetPlayerByID(testDb, GetEncryptionKey(), newOwnerMembership.PlayerID)
 					Expect(err).NotTo(HaveOccurred())
 					Expect(dbPlayer.OwnershipCount).To(Equal(1))
 					Expect(dbPlayer.MembershipCount).To(Equal(0))
@@ -627,6 +628,7 @@ var _ = Describe("Clan Model", func() {
 
 					clan, previousOwner, newOwner, err := TransferClanOwnership(
 						testDb,
+						GetEncryptionKey(),
 						clan.GameID,
 						clan.PublicID,
 						players[0].PublicID,
@@ -639,6 +641,7 @@ var _ = Describe("Clan Model", func() {
 
 					clan, previousOwner, newOwner, err = TransferClanOwnership(
 						testDb,
+						GetEncryptionKey(),
 						clan.GameID,
 						clan.PublicID,
 						players[1].PublicID,
@@ -669,17 +672,17 @@ var _ = Describe("Clan Model", func() {
 					Expect(newOwnerMembership.DeletedBy).To(Equal(newOwnerMembership.PlayerID))
 					Expect(newOwnerMembership.DeletedAt).To(BeNumerically(">", util.NowMilli()-1000))
 
-					dbPlayer, err := GetPlayerByID(testDb, firstOwnerMembership.PlayerID)
+					dbPlayer, err := GetPlayerByID(testDb, GetEncryptionKey(), firstOwnerMembership.PlayerID)
 					Expect(err).NotTo(HaveOccurred())
 					Expect(dbPlayer.OwnershipCount).To(Equal(0))
 					Expect(dbPlayer.MembershipCount).To(Equal(1))
 
-					dbPlayer, err = GetPlayerByID(testDb, previousOwnerMembership.PlayerID)
+					dbPlayer, err = GetPlayerByID(testDb, GetEncryptionKey(), previousOwnerMembership.PlayerID)
 					Expect(err).NotTo(HaveOccurred())
 					Expect(dbPlayer.OwnershipCount).To(Equal(0))
 					Expect(dbPlayer.MembershipCount).To(Equal(1))
 
-					dbPlayer, err = GetPlayerByID(testDb, newOwnerMembership.PlayerID)
+					dbPlayer, err = GetPlayerByID(testDb, GetEncryptionKey(), newOwnerMembership.PlayerID)
 					Expect(err).NotTo(HaveOccurred())
 					Expect(dbPlayer.OwnershipCount).To(Equal(1))
 					Expect(dbPlayer.MembershipCount).To(Equal(0))
@@ -693,6 +696,7 @@ var _ = Describe("Clan Model", func() {
 
 					_, _, _, err = TransferClanOwnership(
 						testDb,
+						GetEncryptionKey(),
 						clan.GameID,
 						"-1",
 						players[0].PublicID,
@@ -709,6 +713,7 @@ var _ = Describe("Clan Model", func() {
 
 					_, _, _, err = TransferClanOwnership(
 						testDb,
+						GetEncryptionKey(),
 						clan.GameID,
 						clan.PublicID,
 						"some-random-player",
@@ -1144,7 +1149,7 @@ var _ = Describe("Clan Model", func() {
 				)
 				Expect(err).NotTo(HaveOccurred())
 
-				dbClan, dbOwner, err := GetClanAndOwnerByPublicID(testDb, clan.GameID, clan.PublicID)
+				dbClan, dbOwner, err := GetClanAndOwnerByPublicID(testDb, GetEncryptionKey(), clan.GameID, clan.PublicID)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(dbClan.ID).To(Equal(clan.ID))
 				Expect(dbOwner.ID).To(Equal(owner.ID))

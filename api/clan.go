@@ -381,6 +381,7 @@ func LeaveClanHandler(app *App) func(c echo.Context) error {
 				log.D(l, "Leaving clan...")
 				clan, previousOwner, newOwner, err = models.LeaveClan(
 					tx,
+					app.EncryptionKey,
 					gameID,
 					publicID,
 				)
@@ -538,6 +539,7 @@ func TransferOwnershipHandler(app *App) func(c echo.Context) error {
 				log.D(l, "Transferring clan ownership...")
 				clan, previousOwner, newOwner, err = models.TransferClanOwnership(
 					tx,
+					app.EncryptionKey,
 					gameID,
 					publicID,
 					payload.PlayerPublicID,

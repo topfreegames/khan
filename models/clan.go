@@ -522,14 +522,14 @@ func CreateClan(db DB, gameID, publicID, name, ownerPublicID string, metadata ma
 }
 
 // LeaveClan allows the clan owner to leave the clan and transfer the clan ownership to the next player in line
-func LeaveClan(db DB, gameID, publicID string) (*Clan, *Player, *Player, error) {
+func LeaveClan(db DB, encryptionKey []byte, gameID, publicID string) (*Clan, *Player, *Player, error) {
 	clan, err := GetClanByPublicID(db, gameID, publicID)
 	if err != nil {
 		return nil, nil, nil, err
 	}
 
 	oldOwnerID := clan.OwnerID
-	oldOwner, err := GetPlayerByID(db, oldOwnerID)
+	oldOwner, err := GetPlayerByID(db, encryptionKey, oldOwnerID)
 	if err != nil {
 		return nil, nil, nil, err
 	}
@@ -556,7 +556,7 @@ func LeaveClan(db DB, gameID, publicID string) (*Clan, *Player, *Player, error) 
 		return nil, nil, nil, err
 	}
 
-	newOwner, err := GetPlayerByID(db, newOwnerMembership.PlayerID)
+	newOwner, err := GetPlayerByID(db, encryptionKey, newOwnerMembership.PlayerID)
 	if err != nil {
 		return nil, nil, nil, err
 	}
@@ -593,7 +593,7 @@ func LeaveClan(db DB, gameID, publicID string) (*Clan, *Player, *Player, error) 
 }
 
 // TransferClanOwnership allows the clan owner to transfer the clan ownership to a clan member
-func TransferClanOwnership(db DB, gameID, clanPublicID, playerPublicID string, levels map[string]interface{}, maxLevel int) (*Clan, *Player, *Player, error) {
+func TransferClanOwnership(db DB, encryptionKey []byte, gameID, clanPublicID, playerPublicID string, levels map[string]interface{}, maxLevel int) (*Clan, *Player, *Player, error) {
 	clan, err := GetClanByPublicID(db, gameID, clanPublicID)
 	if err != nil {
 		return nil, nil, nil, err
@@ -657,7 +657,7 @@ func TransferClanOwnership(db DB, gameID, clanPublicID, playerPublicID string, l
 		return nil, nil, nil, err
 	}
 
-	newOwner, err := GetPlayerByID(db, newOwnerMembership.PlayerID)
+	newOwner, err := GetPlayerByID(db, encryptionKey, newOwnerMembership.PlayerID)
 	if err != nil {
 		return nil, nil, nil, err
 	}
@@ -672,7 +672,7 @@ func TransferClanOwnership(db DB, gameID, clanPublicID, playerPublicID string, l
 		return nil, nil, nil, err
 	}
 
-	oldOwner, err := GetPlayerByID(db, oldOwnerID)
+	oldOwner, err := GetPlayerByID(db, encryptionKey, oldOwnerID)
 	if err != nil {
 		return nil, nil, nil, err
 	}
@@ -1018,12 +1018,12 @@ func SearchClan(
 }
 
 // GetClanAndOwnerByPublicID returns the clan as well as the owner of a clan by clan's public id
-func GetClanAndOwnerByPublicID(db DB, gameID, publicID string) (*Clan, *Player, error) {
+func GetClanAndOwnerByPublicID(db DB, encryptionKey []byte, gameID, publicID string) (*Clan, *Player, error) {
 	clan, err := GetClanByPublicID(db, gameID, publicID)
 	if err != nil {
 		return nil, nil, err
 	}
-	newOwner, err := GetPlayerByID(db, clan.OwnerID)
+	newOwner, err := GetPlayerByID(db, encryptionKey, clan.OwnerID)
 	if err != nil {
 		return nil, nil, err
 	}

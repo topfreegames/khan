@@ -34,7 +34,7 @@ var _ = Describe("Player Model", func() {
 				Expect(err).NotTo(HaveOccurred())
 				Expect(player.ID).NotTo(Equal(0))
 
-				dbPlayer, err := GetPlayerByID(testDb, player.ID)
+				dbPlayer, err := GetPlayerByID(testDb, GetEncryptionKey(), player.ID)
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(dbPlayer.GameID).To(Equal(player.GameID))
@@ -61,13 +61,15 @@ var _ = Describe("Player Model", func() {
 				_, player, err := CreatePlayerFactory(testDb, "")
 				Expect(err).NotTo(HaveOccurred())
 
-				dbPlayer, err := GetPlayerByID(testDb, player.ID)
+				dbPlayer, err := GetPlayerByID(testDb, GetEncryptionKey(), player.ID)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(dbPlayer.ID).To(Equal(player.ID))
+				Expect(dbPlayer.Name).To(Equal(player.Name))
 			})
 
 			It("Should not get non-existing Player", func() {
-				_, err := GetPlayerByID(testDb, -1)
+				_, err := GetPlayerByID(testDb, GetEncryptionKey(), -1)
+
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(Equal("Player was not found with id: -1"))
 			})
@@ -118,6 +120,7 @@ var _ = Describe("Player Model", func() {
 				playerID := uuid.NewV4().String()
 				player, err := CreatePlayer(
 					testDb,
+					GetEncryptionKey(),
 					game.PublicID,
 					playerID,
 					"player-name",
@@ -127,7 +130,7 @@ var _ = Describe("Player Model", func() {
 				Expect(err).NotTo(HaveOccurred())
 				Expect(player.ID).NotTo(BeEquivalentTo(0))
 
-				dbPlayer, err := GetPlayerByID(testDb, player.ID)
+				dbPlayer, err := GetPlayerByID(testDb, GetEncryptionKey(), player.ID)
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(dbPlayer.GameID).To(Equal(player.GameID))
@@ -143,6 +146,7 @@ var _ = Describe("Player Model", func() {
 				metadata := map[string]interface{}{"x": "a"}
 				updPlayer, err := UpdatePlayer(
 					testDb,
+					GetEncryptionKey(),
 					player.GameID,
 					player.PublicID,
 					player.Name,
@@ -169,6 +173,7 @@ var _ = Describe("Player Model", func() {
 				metadata := map[string]interface{}{"x": "1"}
 				updPlayer, err := UpdatePlayer(
 					testDb,
+					GetEncryptionKey(),
 					gameID,
 					publicID,
 					publicID,
@@ -187,6 +192,7 @@ var _ = Describe("Player Model", func() {
 			It("Should not update a Player with Invalid Data with UpdatePlayer", func() {
 				_, err := UpdatePlayer(
 					testDb,
+					GetEncryptionKey(),
 					"-1",
 					"qwe",
 					"some player name",
@@ -524,7 +530,7 @@ var _ = Describe("Player Model", func() {
 				err = UpdatePlayerMembershipCount(testDb, player.ID)
 				Expect(err).NotTo(HaveOccurred())
 
-				dbPlayer, err := GetPlayerByID(testDb, player.ID)
+				dbPlayer, err := GetPlayerByID(testDb, GetEncryptionKey(), player.ID)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(dbPlayer.MembershipCount).To(Equal(prevMemberships + 1))
 			})
@@ -544,7 +550,7 @@ var _ = Describe("Player Model", func() {
 				err = UpdatePlayerMembershipCount(testDb, player.ID)
 				Expect(err).NotTo(HaveOccurred())
 
-				dbPlayer, err := GetPlayerByID(testDb, player.ID)
+				dbPlayer, err := GetPlayerByID(testDb, GetEncryptionKey(), player.ID)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(dbPlayer.MembershipCount).To(Equal(prevMemberships - 1))
 			})
@@ -576,7 +582,7 @@ var _ = Describe("Player Model", func() {
 
 				err = UpdatePlayerOwnershipCount(testDb, player.ID)
 				Expect(err).NotTo(HaveOccurred())
-				dbPlayer, err := GetPlayerByID(testDb, player.ID)
+				dbPlayer, err := GetPlayerByID(testDb, GetEncryptionKey(), player.ID)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(dbPlayer.OwnershipCount).To(Equal(1))
 			})
@@ -612,7 +618,7 @@ var _ = Describe("Player Model", func() {
 
 				err = UpdatePlayerOwnershipCount(testDb, player.ID)
 				Expect(err).NotTo(HaveOccurred())
-				dbPlayer, err := GetPlayerByID(testDb, player.ID)
+				dbPlayer, err := GetPlayerByID(testDb, GetEncryptionKey(), player.ID)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(dbPlayer.OwnershipCount).To(Equal(1))
 			})

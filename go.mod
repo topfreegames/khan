@@ -53,6 +53,7 @@ require (
 	github.com/uber-go/zap v0.0.0-20160809182253-d11d2851fcab
 	github.com/valyala/fasthttp v0.0.0-20160818100357-834fb48f1040
 	github.com/valyala/fasttemplate v0.0.0-20170224212429-dcecefd839c4
+	github.com/wildlife-studios/crypto v1.1.0
 	github.com/yuin/goldmark v1.3.2 // indirect
 	github.com/ziutek/mymysql v1.5.5-0.20160909221029-df6241f6355c // indirect
 	golang.org/x/crypto v0.0.0-20210220033148-5ea612d1eb83 // indirect

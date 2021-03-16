@@ -109,17 +109,24 @@ func UpdatePlayerOwnershipCount(db DB, id int64) error {
 }
 
 // GetPlayerByID returns a player by id
-func GetPlayerByID(db DB, id int64) (*Player, error) {
-	obj, err := db.Get(Player{}, id)
+func GetPlayerByID(db DB, encryptionKey []byte, id int64) (*Player, error) {
+	playerInterface, err := db.Get(Player{}, id)
 	if err != nil {
 		return nil, err
 	}
-	if obj == nil {
+	if playerInterface == nil {
 		return nil, &ModelNotFoundError{"Player", id}
 	}
 
-	player := obj.(*Player)
+	player := playerInterface.(*Player)
+	name, err := util.DecryptData(player.Name, encryptionKey)
+	if err != nil {
+		return player, nil
+	}
+
+	player.Name = name
 	return player, nil
+
 }
 
 // GetPlayerByPublicID returns a player by their public id
@@ -136,7 +143,8 @@ func GetPlayerByPublicID(db DB, gameID string, publicID string) (*Player, error)
 }
 
 // CreatePlayer creates a new player
-func CreatePlayer(db DB, gameID, publicID, name string, metadata map[string]interface{}, upsert bool) (*Player, error) {
+// TODO: encryption not implemented in CreatePlayer
+func CreatePlayer(db DB, encryptionKey []byte, gameID, publicID, name string, metadata map[string]interface{}, upsert bool) (*Player, error) {
 	metadataJSON, err := json.Marshal(metadata)
 	if err != nil {
 		return nil, err
@@ -161,12 +169,12 @@ func CreatePlayer(db DB, gameID, publicID, name string, metadata map[string]inte
 	if err != nil {
 		return nil, err
 	}
-	return GetPlayerByID(db, lastID)
+	return GetPlayerByID(db, encryptionKey, lastID)
 }
 
 // UpdatePlayer updates an existing player
-func UpdatePlayer(db DB, gameID, publicID, name string, metadata map[string]interface{}) (*Player, error) {
-	return CreatePlayer(db, gameID, publicID, name, metadata, true)
+func UpdatePlayer(db DB, encryptionKey []byte, gameID, publicID, name string, metadata map[string]interface{}) (*Player, error) {
+	return CreatePlayer(db, encryptionKey, gameID, publicID, name, metadata, true)
 }
 
 // GetPlayerOwnershipDetails returns detailed information about a player owned clans

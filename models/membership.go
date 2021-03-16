@@ -170,8 +170,8 @@ func clanReachedMaxMemberships(db DB, game *Game, clan *Clan, clanID int64) erro
 	return nil
 }
 
-func playerReachedMaxInvites(db DB, game *Game, playerID int64) error {
-	player, err := GetPlayerByID(db, playerID)
+func playerReachedMaxInvites(db DB, encryptionKey []byte, game *Game, playerID int64) error {
+	player, err := GetPlayerByID(db, encryptionKey, playerID)
 	if err != nil {
 		return err
 	}
@@ -188,14 +188,14 @@ func playerReachedMaxInvites(db DB, game *Game, playerID int64) error {
 	return nil
 }
 
-func playerReachedMaxClans(db DB, game *Game, player *Player) error {
+func playerReachedMaxClans(db DB, encryptionKey []byte, game *Game, player *Player) error {
 	playerID := player.ID
 	if player.MembershipCount+player.OwnershipCount >= game.MaxClansPerPlayer {
 		err := UpdatePlayerMembershipCount(db, playerID)
 		if err != nil {
 			return err
 		}
-		player, err = GetPlayerByID(db, playerID)
+		player, err = GetPlayerByID(db, encryptionKey, playerID)
 		if err != nil {
 			return err
 		}
@@ -222,7 +222,7 @@ func GetNumberOfPendingInvites(db DB, player *Player) (int, error) {
 }
 
 // ApproveOrDenyMembershipInvitation sets Membership.Approved to true or Membership.Denied to true
-func ApproveOrDenyMembershipInvitation(db DB, game *Game, gameID, playerPublicID, clanPublicID, action string) (*Membership, error) {
+func ApproveOrDenyMembershipInvitation(db DB, encryptionKey []byte, game *Game, gameID, playerPublicID, clanPublicID, action string) (*Membership, error) {
 	membership, err := GetValidMembershipByClanAndPlayerPublicID(db, gameID, clanPublicID, playerPublicID)
 	if err != nil {
 		return nil, err
@@ -237,12 +237,12 @@ func ApproveOrDenyMembershipInvitation(db DB, game *Game, gameID, playerPublicID
 		return nil, &PlayerCannotPerformMembershipActionError{action, playerPublicID, clanPublicID, playerPublicID}
 	}
 
-	player, err := GetPlayerByID(db, membership.PlayerID)
+	player, err := GetPlayerByID(db, encryptionKey, membership.PlayerID)
 	if err != nil {
 		return nil, err
 	}
 	if action == approveString {
-		err = playerReachedMaxClans(db, game, player)
+		err = playerReachedMaxClans(db, encryptionKey, game, player)
 		if err != nil {
 			return nil, err
 		}
@@ -255,7 +255,7 @@ func ApproveOrDenyMembershipInvitation(db DB, game *Game, gameID, playerPublicID
 }
 
 // ApproveOrDenyMembershipApplication sets Membership.Approved to true or Membership.Denied to true
-func ApproveOrDenyMembershipApplication(db DB, game *Game, gameID, playerPublicID, clanPublicID, requestorPublicID, action string) (*Membership, error) {
+func ApproveOrDenyMembershipApplication(db DB, encryptionKey []byte, game *Game, gameID, playerPublicID, clanPublicID, requestorPublicID, action string) (*Membership, error) {
 	if playerPublicID == requestorPublicID {
 		return nil, &PlayerCannotPerformMembershipActionError{action, playerPublicID, clanPublicID, requestorPublicID}
 	}
@@ -279,11 +279,11 @@ func ApproveOrDenyMembershipApplication(db DB, game *Game, gameID, playerPublicI
 	}
 
 	if action == approveString {
-		player, err := GetPlayerByID(db, membership.PlayerID)
+		player, err := GetPlayerByID(db, encryptionKey, membership.PlayerID)
 		if err != nil {
 			return nil, err
 		}
-		err = playerReachedMaxClans(db, game, player)
+		err = playerReachedMaxClans(db, encryptionKey, game, player)
 		if err != nil {
 			return nil, err
 		}
@@ -310,7 +310,7 @@ func ApproveOrDenyMembershipApplication(db DB, game *Game, gameID, playerPublicI
 }
 
 // CreateMembership creates a new membership
-func CreateMembership(db DB, game *Game, gameID, level, playerPublicID, clanPublicID, requestorPublicID, message string) (*Membership, error) {
+func CreateMembership(db DB, encryptionKey []byte, game *Game, gameID, level, playerPublicID, clanPublicID, requestorPublicID, message string) (*Membership, error) {
 	if _, levelValid := game.MembershipLevels[level]; !levelValid {
 		return nil, &InvalidLevelForGameError{gameID, level}
 	}
@@ -321,7 +321,7 @@ func CreateMembership(db DB, game *Game, gameID, level, playerPublicID, clanPubl
 	}
 
 	membership, _ := GetMembershipByClanAndPlayerPublicID(db, gameID, clan.PublicID, playerPublicID)
-	playerID, previousMembership, err := validateMembership(db, game, membership, clan, playerPublicID, requestorPublicID)
+	playerID, previousMembership, err := validateMembership(db, encryptionKey, game, membership, clan, playerPublicID, requestorPublicID)
 	if err != nil {
 		return nil, err
 	}
@@ -334,10 +334,10 @@ func CreateMembership(db DB, game *Game, gameID, level, playerPublicID, clanPubl
 		return applyForMembership(db, game, membership, level, clan, playerID, requestorPublicID, message, previousMembership)
 	}
 
-	return inviteMember(db, game, membership, level, clan, playerID, requestorPublicID, message, previousMembership)
+	return inviteMember(db, encryptionKey, game, membership, level, clan, playerID, requestorPublicID, message, previousMembership)
 }
 
-func validateMembership(db DB, game *Game, membership *Membership, clan *Clan, playerPublicID, requestorPublicID string) (int64, bool, error) {
+func validateMembership(db DB, encryptionKey []byte, game *Game, membership *Membership, clan *Clan, playerPublicID, requestorPublicID string) (int64, bool, error) {
 	playerID := int64(-1)
 	previousMembership := false
 	if membership != nil {
@@ -382,11 +382,11 @@ func validateMembership(db DB, game *Game, membership *Membership, clan *Clan, p
 		}
 
 		playerID = membership.PlayerID
-		player, err := GetPlayerByID(db, playerID)
+		player, err := GetPlayerByID(db, encryptionKey, playerID)
 		if err != nil {
 			return -1, false, err
 		}
-		err = playerReachedMaxClans(db, game, player)
+		err = playerReachedMaxClans(db, encryptionKey, game, player)
 		if err != nil {
 			return -1, false, err
 		}
@@ -396,7 +396,7 @@ func validateMembership(db DB, game *Game, membership *Membership, clan *Clan, p
 			return -1, false, err
 		}
 		playerID = player.ID
-		err = playerReachedMaxClans(db, game, player)
+		err = playerReachedMaxClans(db, encryptionKey, game, player)
 		if err != nil {
 			return -1, false, err
 		}
@@ -420,7 +420,7 @@ func applyForMembership(db DB, game *Game, membership *Membership, level string,
 	return createMembershipHelper(db, game.PublicID, level, playerID, clan.ID, playerID, message, clan.AutoJoin)
 }
 
-func inviteMember(db DB, game *Game, membership *Membership, level string, clan *Clan, playerID int64, requestorPublicID, message string, previousMembership bool) (*Membership, error) {
+func inviteMember(db DB, encryptionKey []byte, game *Game, membership *Membership, level string, clan *Clan, playerID int64, requestorPublicID, message string, previousMembership bool) (*Membership, error) {
 	reqMembership, _ := GetValidMembershipByClanAndPlayerPublicID(db, game.PublicID, clan.PublicID, requestorPublicID)
 	if reqMembership == nil {
 		requestor, err := GetPlayerByPublicID(db, game.PublicID, requestorPublicID)
@@ -431,7 +431,7 @@ func inviteMember(db DB, game *Game, membership *Membership, level string, clan 
 		if requestor.ID != clan.OwnerID {
 			return nil, &PlayerCannotCreateMembershipError{requestorPublicID, clan.PublicID}
 		}
-		reachedMaxInvitesError := playerReachedMaxInvites(db, game, playerID)
+		reachedMaxInvitesError := playerReachedMaxInvites(db, encryptionKey, game, playerID)
 		if reachedMaxInvitesError != nil {
 			return nil, reachedMaxInvitesError
 		}

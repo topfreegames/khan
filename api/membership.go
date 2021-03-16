@@ -87,6 +87,7 @@ func ApplyForMembershipHandler(app *App) func(c echo.Context) error {
 				log.D(l, "Applying for membership...")
 				membership, err = models.CreateMembership(
 					tx,
+					app.EncryptionKey,
 					game,
 					gameID,
 					payload.Level,
@@ -221,6 +222,7 @@ func InviteForMembershipHandler(app *App) func(c echo.Context) error {
 				log.D(l, "Inviting for membership...")
 				membership, err = models.CreateMembership(
 					tx,
+					app.EncryptionKey,
 					game,
 					gameID,
 					payload.Level,
@@ -354,6 +356,7 @@ func ApproveOrDenyMembershipApplicationHandler(app *App) func(c echo.Context) er
 				var mErr error
 				membership, mErr = models.ApproveOrDenyMembershipApplication(
 					tx,
+					app.EncryptionKey,
 					game,
 					gameID,
 					payload.PlayerPublicID,
@@ -507,6 +510,7 @@ func ApproveOrDenyMembershipInvitationHandler(app *App) func(c echo.Context) err
 				log.D(l, "Approving/Denying membership invitation...")
 				membership, err = models.ApproveOrDenyMembershipInvitation(
 					tx,
+					app.EncryptionKey,
 					game,
 					gameID,
 					payload.PlayerPublicID,
