@@ -72,14 +72,14 @@ func dispatchMembershipHookByID(app *App, db models.DB, hookType int, gameID str
 		return err
 	}
 
-	player, err := models.GetPlayerByID(db, playerID)
+	player, err := models.GetPlayerByID(db, app.EncryptionKey, playerID)
 	if err != nil {
 		return err
 	}
 
 	requestor := player
 	if requestorID != playerID {
-		requestor, err = models.GetPlayerByID(db, requestorID)
+		requestor, err = models.GetPlayerByID(db, app.EncryptionKey, requestorID)
 		if err != nil {
 			return err
 		}
@@ -94,14 +94,14 @@ func dispatchApproveDenyMembershipHookByID(app *App, db models.DB, hookType int,
 		return err
 	}
 
-	player, err := models.GetPlayerByID(db, playerID)
+	player, err := models.GetPlayerByID(db, app.EncryptionKey, playerID)
 	if err != nil {
 		return err
 	}
 
 	requestor := player
 	if requestorID != playerID {
-		requestor, err = models.GetPlayerByID(db, requestorID)
+		requestor, err = models.GetPlayerByID(db, app.EncryptionKey, requestorID)
 		if err != nil {
 			return err
 		}
@@ -111,7 +111,7 @@ func dispatchApproveDenyMembershipHookByID(app *App, db models.DB, hookType int,
 	if creatorID != playerID {
 		creator = requestor
 		if creatorID != requestorID {
-			creator, err = models.GetPlayerByID(db, creatorID)
+			creator, err = models.GetPlayerByID(db, app.EncryptionKey, creatorID)
 			if err != nil {
 				return err
 			}

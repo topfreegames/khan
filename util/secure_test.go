@@ -73,7 +73,7 @@ var _ = Describe("Security package", func() {
 			_, err := DecryptData(data, encryptionKey[:31])
 			Expect(err).To(HaveOccurred())
 
-			if _, ok := err.(*errors.TokenSizeError); !ok {
+			if _, ok := err.(*TokenSizeError); !ok {
 				Fail("Error is not TokenSizeError")
 			}
 
@@ -82,7 +82,7 @@ var _ = Describe("Security package", func() {
 			_, err = DecryptData(data, encryptionKey[:33])
 			Expect(err).To(HaveOccurred())
 
-			if _, ok := err.(*errors.TokenSizeError); !ok {
+			if _, ok := err.(*TokenSizeError); !ok {
 				Fail("Error is not TokenSizeError")
 			}
 
