@@ -17,7 +17,7 @@ import (
 	"github.com/Pallinder/go-randomdata"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/satori/go.uuid"
+	uuid "github.com/satori/go.uuid"
 	"github.com/topfreegames/khan/api"
 	"github.com/topfreegames/khan/models"
 )
@@ -56,7 +56,7 @@ var _ = Describe("Player API Handler", func() {
 			Expect(result["publicID"]).To(Equal(payload["publicID"].(string)))
 
 			dbPlayer, err := models.GetPlayerByPublicID(
-				db, game.PublicID, payload["publicID"].(string),
+				db, a.EncryptionKey, game.PublicID, payload["publicID"].(string),
 			)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(dbPlayer.GameID).To(Equal(game.PublicID))
@@ -125,7 +125,7 @@ var _ = Describe("Player API Handler", func() {
 			json.Unmarshal([]byte(body), &result)
 			Expect(result["success"]).To(BeTrue())
 
-			dbPlayer, err := models.GetPlayerByPublicID(db, player.GameID, player.PublicID)
+			dbPlayer, err := models.GetPlayerByPublicID(db, a.EncryptionKey, player.GameID, player.PublicID)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(dbPlayer.GameID).To(Equal(player.GameID))
 			Expect(dbPlayer.PublicID).To(Equal(player.PublicID))
