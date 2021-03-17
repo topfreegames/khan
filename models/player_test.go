@@ -510,6 +510,36 @@ var _ = Describe("Player Model", func() {
 				Expect(len(pendingInvites)).To(Equal(0))
 			})
 
+			It("Should get Player Details decrypting player.Name", func() {
+				_, player, err := CreatePlayerFactory(testDb, "")
+				Expect(err).NotTo(HaveOccurred())
+
+				encryptedName, err := util.EncryptData(player.Name, GetEncryptionKey())
+				Expect(err).NotTo(HaveOccurred())
+
+				name := player.Name
+				player.Name = encryptedName
+				count, err := testDb.Update(player)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(int(count)).To(Equal(1))
+
+				playerDetails, err := GetPlayerDetails(
+					testDb,
+					GetEncryptionKey(),
+					player.GameID,
+					player.PublicID,
+				)
+
+				Expect(err).NotTo(HaveOccurred())
+
+				// Player Details
+				Expect(playerDetails["publicID"]).To(Equal(player.PublicID))
+				Expect(playerDetails["name"]).To(Equal(name))
+				Expect(playerDetails["createdAt"]).To(Equal(player.CreatedAt))
+				Expect(playerDetails["updatedAt"]).To(Equal(player.UpdatedAt))
+
+			})
+
 			It("Should return error if Player does not exist", func() {
 				playerDetails, err := GetPlayerDetails(
 					testDb,
