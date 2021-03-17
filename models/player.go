@@ -297,7 +297,10 @@ func GetPlayerMembershipDetails(db DB, encryptionKey []byte, gameID, publicID st
 
 	result := make(map[string]interface{})
 
-	result["name"] = details[0].PlayerName
+	result["name"], err = util.DecryptData(details[0].PlayerName, encryptionKey)
+	if err != nil {
+		result["name"] = details[0].PlayerName
+	}
 	result["metadata"] = details[0].PlayerMetadata
 	result["publicID"] = details[0].PlayerPublicID
 	result["createdAt"] = details[0].PlayerCreatedAt
