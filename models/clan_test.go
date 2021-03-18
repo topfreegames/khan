@@ -19,6 +19,7 @@ import (
 	"github.com/spf13/viper"
 	"github.com/topfreegames/extensions/v9/mongo/interfaces"
 	"github.com/topfreegames/khan/api"
+	"github.com/topfreegames/khan/models"
 	. "github.com/topfreegames/khan/models"
 	"github.com/topfreegames/khan/testing"
 	"github.com/topfreegames/khan/util"
@@ -829,13 +830,13 @@ var _ = Describe("Clan Model", func() {
 				Expect(len(denied)).To(Equal(3))
 
 				playerDict := map[string]*Player{}
-				for i := 0; i < 22; i++ {
-					playerDict[players[i].PublicID] = players[i]
+				for _, player := range players {
+					playerDict[player.PublicID] = player
 				}
 
 				membershipDict := map[int64]*Membership{}
-				for i := 0; i < 22; i++ {
-					membershipDict[memberships[i].PlayerID] = memberships[i]
+				for _, membership := range memberships {
+					membershipDict[membership.PlayerID] = membership
 				}
 
 				for _, playerData := range roster {
@@ -955,6 +956,91 @@ var _ = Describe("Clan Model", func() {
 				Expect(clanData["membershipCount"]).To(Equal(1))
 				roster := clanData["roster"].([]map[string]interface{})
 				Expect(len(roster)).To(Equal(0))
+			})
+
+			It("Should get clan members decrypting player name", func() {
+				gameID := uuid.NewV4().String()
+				_, clan, owner, players, _, err := GetClanWithMemberships(
+					testDb, 10, 3, 4, 5, gameID, uuid.NewV4().String(),
+				)
+				Expect(err).NotTo(HaveOccurred())
+
+				updateEncryptingTestPlayer(testDb, owner)
+				for _, player := range players {
+					updateEncryptingTestPlayer(testDb, player)
+				}
+
+				config := viper.New()
+				api.SetRetrieveClanHandlerConfigurationDefaults(config)
+				clanData, err := GetClanDetails(testDb, GetEncryptionKey(), clan.GameID, clan, 1, NewDefaultGetClanDetailsOptions(config))
+				Expect(err).NotTo(HaveOccurred())
+
+				name, err := util.DecryptData(owner.Name, GetEncryptionKey())
+				Expect(err).NotTo(HaveOccurred())
+				Expect(clanData["owner"].(map[string]interface{})["name"]).To(Equal(name))
+
+				roster := clanData["roster"].([]map[string]interface{})
+				Expect(len(roster)).To(Equal(10))
+
+				pendingApplications := clanData["memberships"].(map[string]interface{})["pendingApplications"].([]map[string]interface{})
+				Expect(len(pendingApplications)).To(Equal(0))
+
+				pendingInvites := clanData["memberships"].(map[string]interface{})["pendingInvites"].([]map[string]interface{})
+				Expect(len(pendingInvites)).To(Equal(5))
+
+				banned := clanData["memberships"].(map[string]interface{})["banned"].([]map[string]interface{})
+				Expect(len(banned)).To(Equal(4))
+
+				denied := clanData["memberships"].(map[string]interface{})["denied"].([]map[string]interface{})
+				Expect(len(denied)).To(Equal(3))
+
+				playerDict := map[string]*Player{}
+				for _, player := range players {
+					playerDict[player.PublicID] = decryptTestPlayer(player)
+				}
+
+				for _, playerData := range roster {
+					player := playerData["player"].(map[string]interface{})
+					pid := player["publicID"].(string)
+					name := player["name"].(string)
+					Expect(name).To(Equal(playerDict[pid].Name))
+
+					//Approval
+					approver := player["approver"].(map[string]interface{})
+					Expect(approver["name"]).To(Equal(playerDict[pid].Name))
+				}
+
+				for _, playerData := range pendingInvites {
+					player := playerData["player"].(map[string]interface{})
+					pid := player["publicID"].(string)
+					name := player["name"].(string)
+					Expect(name).To(Equal(playerDict[pid].Name))
+				}
+
+				for _, playerData := range pendingApplications {
+					player := playerData["player"].(map[string]interface{})
+					pid := player["publicID"].(string)
+					name := player["name"].(string)
+					Expect(name).To(Equal(playerDict[pid].Name))
+				}
+
+				for _, playerData := range banned {
+					player := playerData["player"].(map[string]interface{})
+					pid := player["publicID"].(string)
+					name := player["name"].(string)
+					Expect(name).To(Equal(playerDict[pid].Name))
+				}
+
+				for _, playerData := range denied {
+					player := playerData["player"].(map[string]interface{})
+					pid := player["publicID"].(string)
+					name := player["name"].(string)
+					Expect(name).To(Equal(playerDict[pid].Name))
+
+					//Approval
+					denier := player["denier"].(map[string]interface{})
+					Expect(denier["name"]).To(Equal(playerDict[pid].Name))
+				}
 			})
 
 			It("Should fail if clan does not exist", func() {
@@ -1221,3 +1307,20 @@ var _ = Describe("Clan Model", func() {
 		})
 	})
 })
+
+func decryptTestPlayer(player *models.Player) *Player {
+	name, err := util.DecryptData(player.Name, GetEncryptionKey())
+	Expect(err).NotTo(HaveOccurred())
+	player.Name = name
+	return player
+}
+
+func updateEncryptingTestPlayer(db DB, player *models.Player) {
+	name, err := util.EncryptData(player.Name, GetEncryptionKey())
+	Expect(err).NotTo(HaveOccurred())
+	player.Name = name
+	rows, err := db.Update(player)
+	Expect(err).NotTo(HaveOccurred())
+	Expect(rows).To(BeEquivalentTo(1))
+
+}
