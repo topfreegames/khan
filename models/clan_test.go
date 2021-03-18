@@ -765,7 +765,7 @@ var _ = Describe("Clan Model", func() {
 				)
 				config := viper.New()
 				api.SetRetrieveClanHandlerConfigurationDefaults(config)
-				clanData, err := GetClanDetails(testDb, clan.GameID, clan, 1, NewDefaultGetClanDetailsOptions(config))
+				clanData, err := GetClanDetails(testDb, GetEncryptionKey(), clan.GameID, clan, 1, NewDefaultGetClanDetailsOptions(config))
 				Expect(err).NotTo(HaveOccurred())
 
 				clanPlayers, err := GetClanMembers(testDb, clan.GameID, clan.PublicID)
@@ -786,7 +786,7 @@ var _ = Describe("Clan Model", func() {
 				)
 				config := viper.New()
 				api.SetRetrieveClanHandlerConfigurationDefaults(config)
-				clanData, err := GetClanDetails(testDb, clan.GameID, clan, 1, NewDefaultGetClanDetailsOptions(config))
+				clanData, err := GetClanDetails(testDb, GetEncryptionKey(), clan.GameID, clan, 1, NewDefaultGetClanDetailsOptions(config))
 				Expect(err).NotTo(HaveOccurred())
 
 				clanPlayers, err := GetClanMembers(testDb, clan.GameID, clan.PublicID)
@@ -807,7 +807,7 @@ var _ = Describe("Clan Model", func() {
 
 				config := viper.New()
 				api.SetRetrieveClanHandlerConfigurationDefaults(config)
-				clanData, err := GetClanDetails(testDb, clan.GameID, clan, 1, NewDefaultGetClanDetailsOptions(config))
+				clanData, err := GetClanDetails(testDb, GetEncryptionKey(), clan.GameID, clan, 1, NewDefaultGetClanDetailsOptions(config))
 				Expect(err).NotTo(HaveOccurred())
 				Expect(clanData["name"]).To(Equal(clan.Name))
 				Expect(clanData["metadata"]).To(Equal(clan.Metadata))
@@ -913,7 +913,7 @@ var _ = Describe("Clan Model", func() {
 
 				config := viper.New()
 				api.SetRetrieveClanHandlerConfigurationDefaults(config)
-				clanData, err := GetClanDetails(testDb, clan.GameID, clan, 1, NewDefaultGetClanDetailsOptions(config))
+				clanData, err := GetClanDetails(testDb, GetEncryptionKey(), clan.GameID, clan, 1, NewDefaultGetClanDetailsOptions(config))
 				Expect(err).NotTo(HaveOccurred())
 				Expect(clanData["name"]).To(Equal(clan.Name))
 				Expect(clanData["metadata"]).To(Equal(clan.Metadata))
@@ -947,7 +947,7 @@ var _ = Describe("Clan Model", func() {
 
 				config := viper.New()
 				api.SetRetrieveClanHandlerConfigurationDefaults(config)
-				clanData, err := GetClanDetails(testDb, clan.GameID, clan, 1, NewDefaultGetClanDetailsOptions(config))
+				clanData, err := GetClanDetails(testDb, GetEncryptionKey(), clan.GameID, clan, 1, NewDefaultGetClanDetailsOptions(config))
 				Expect(err).NotTo(HaveOccurred())
 				Expect(clanData["name"]).To(Equal(clan.Name))
 				Expect(clanData["metadata"]).To(Equal(clan.Metadata))
@@ -1046,7 +1046,7 @@ var _ = Describe("Clan Model", func() {
 			It("Should fail if clan does not exist", func() {
 				config := viper.New()
 				api.SetRetrieveClanHandlerConfigurationDefaults(config)
-				clanData, err := GetClanDetails(testDb, "fake-game-id", &Clan{PublicID: "fake-public-id"}, 1, NewDefaultGetClanDetailsOptions(config))
+				clanData, err := GetClanDetails(testDb, GetEncryptionKey(), "fake-game-id", &Clan{PublicID: "fake-public-id"}, 1, NewDefaultGetClanDetailsOptions(config))
 				Expect(clanData).To(BeNil())
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(Equal("Clan was not found with id: fake-public-id"))
@@ -1075,7 +1075,7 @@ var _ = Describe("Clan Model", func() {
 			It("Should fail if clan does not exist", func() {
 				config := viper.New()
 				api.SetRetrieveClanHandlerConfigurationDefaults(config)
-				clanData, err := GetClanDetails(testDb, "fake-game-id", &Clan{PublicID: "fake-public-id"}, 1, NewDefaultGetClanDetailsOptions(config))
+				clanData, err := GetClanDetails(testDb, GetEncryptionKey(), "fake-game-id", &Clan{PublicID: "fake-public-id"}, 1, NewDefaultGetClanDetailsOptions(config))
 				Expect(clanData).To(BeNil())
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(Equal("Clan was not found with id: fake-public-id"))

@@ -43,15 +43,51 @@ func (p *Player) PreUpdate(s gorp.SqlExecutor) error {
 }
 
 //Serialize the player information to JSON
-func (p *Player) Serialize() map[string]interface{} {
-	return map[string]interface{}{
+func (p *Player) Serialize(encryptionKey []byte) map[string]interface{} {
+	return decryptPlayerName(map[string]interface{}{
 		"gameID":          p.GameID,
 		"publicID":        p.PublicID,
 		"name":            p.Name,
 		"metadata":        p.Metadata,
 		"membershipCount": p.MembershipCount,
 		"ownershipCount":  p.OwnershipCount,
+	}, encryptionKey)
+}
+
+//SerializeClanParticipant the player information to JSON
+func (p *Player) SerializeClanParticipant(encryptionKey []byte) map[string]interface{} {
+	return decryptPlayerName(map[string]interface{}{
+		"publicID": p.PublicID,
+		"name":     p.Name,
+		"metadata": p.Metadata,
+	}, encryptionKey)
+}
+
+//SerializeClanActor the player information to JSON
+func (p *Player) SerializeClanActor(encryptionKey []byte) map[string]interface{} {
+	return decryptPlayerName(map[string]interface{}{
+		"publicID": p.PublicID,
+		"name":     p.Name,
+	}, encryptionKey)
+}
+
+//SerializeWithLevel serialize player fields: PublicID and Name with MembershipCount passed by param
+func (p *Player) SerializeWithLevel(encryptionKey []byte, level string) map[string]interface{} {
+	return decryptPlayerName(map[string]interface{}{
+		"publicID": p.PublicID,
+		"name":     p.Name,
+		"level":    level,
+	}, encryptionKey)
+}
+
+func decryptPlayerName(payload map[string]interface{}, encryptionKey []byte) map[string]interface{} {
+	name, err := util.DecryptData(fmt.Sprint(payload["name"]), encryptionKey)
+	if err != nil {
+		return payload
 	}
+
+	payload["name"] = name
+	return payload
 }
 
 // UpdatePlayerMembershipCount updates the player membership count
@@ -330,7 +366,7 @@ func GetPlayerMembershipDetails(db DB, encryptionKey []byte, gameID, publicID st
 			mdel := !mb && detail.MembershipDeletedAt.Valid && detail.MembershipDeletedAt.Int64 > 0
 
 			if !mdel {
-				m := detail.Serialize()
+				m := detail.Serialize(encryptionKey)
 				memberships = append(memberships, m)
 
 				clanDetail := clanFromDetail(detail)

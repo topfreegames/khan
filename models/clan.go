@@ -774,7 +774,7 @@ func GetClanMembers(db DB, gameID, publicID string) (map[string]interface{}, err
 }
 
 // GetClanDetails returns all details for a given clan by its game id and public id
-func GetClanDetails(db DB, gameID string, clan *Clan, maxClansPerPlayer int, options *GetClanDetailsOptions) (map[string]interface{}, error) {
+func GetClanDetails(db DB, encryptionKey []byte, gameID string, clan *Clan, maxClansPerPlayer int, options *GetClanDetailsOptions) (map[string]interface{}, error) {
 	query := fmt.Sprintf(`
 	WITH memberships_pending AS (
 		SELECT *
@@ -846,11 +846,13 @@ func GetClanDetails(db DB, gameID string, clan *Clan, maxClansPerPlayer int, opt
 	result["autoJoin"] = details[0].ClanAutoJoin
 	result["membershipCount"] = details[0].ClanMembershipCount
 
-	result["owner"] = map[string]interface{}{
-		"publicID": details[0].OwnerPublicID,
-		"name":     details[0].OwnerName,
-		"metadata": details[0].OwnerMetadata,
+	owner := &Player{
+		PublicID: details[0].OwnerPublicID,
+		Name:     details[0].OwnerName,
+		Metadata: details[0].OwnerMetadata,
 	}
+
+	result["owner"] = owner.SerializeClanParticipant(encryptionKey)
 
 	// First row player public id is not null, meaning we found players!
 	if details[0].PlayerPublicID.Valid {
@@ -872,7 +874,7 @@ func GetClanDetails(db DB, gameID string, clan *Clan, maxClansPerPlayer int, opt
 
 			switch {
 			case pending:
-				memberData := member.Serialize(true)
+				memberData := member.Serialize(encryptionKey, true)
 				if member.MembershipCount+member.OwnershipCount < maxClansPerPlayer {
 					if member.PlayerPublicID == member.RequestorPublicID {
 						memberData["message"] = nullOrString(member.MembershipMessage)
@@ -882,13 +884,13 @@ func GetClanDetails(db DB, gameID string, clan *Clan, maxClansPerPlayer int, opt
 					}
 				}
 			case banned:
-				memberData := member.Serialize(false)
+				memberData := member.Serialize(encryptionKey, false)
 				memberships["banned"] = append(memberships["banned"].([]map[string]interface{}), memberData)
 			case denied:
-				memberData := member.Serialize(false)
+				memberData := member.Serialize(encryptionKey, false)
 				memberships["denied"] = append(memberships["denied"].([]map[string]interface{}), memberData)
 			case approved:
-				memberData := member.Serialize(true)
+				memberData := member.Serialize(encryptionKey, true)
 				result["roster"] = append(result["roster"].([]map[string]interface{}), memberData)
 			}
 		}

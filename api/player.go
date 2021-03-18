@@ -78,7 +78,11 @@ func CreatePlayerHandler(app *App) func(c echo.Context) error {
 		}
 
 		err = WithSegment("hook-dispatch", c, func() error {
-			err = app.DispatchHooks(gameID, models.PlayerCreatedHook, player.Serialize())
+			err = app.DispatchHooks(
+				gameID,
+				models.PlayerCreatedHook,
+				player.Serialize(app.EncryptionKey),
+			)
 			if err != nil {
 				log.E(l, "Player creation hook dispatch failed.", func(cm log.CM) {
 					cm.Write(zap.Error(err))
@@ -184,7 +188,11 @@ func UpdatePlayerHandler(app *App) func(c echo.Context) error {
 			shouldDispatch := validateUpdatePlayerDispatch(game, beforeUpdatePlayer, player, payload.Metadata, l)
 			if shouldDispatch {
 				log.D(l, "Dispatching player update hooks...")
-				err = app.DispatchHooks(gameID, models.PlayerUpdatedHook, player.Serialize())
+				err = app.DispatchHooks(
+					gameID,
+					models.PlayerUpdatedHook,
+					player.Serialize(app.EncryptionKey),
+				)
 				if err != nil {
 					log.E(l, "Update player hook dispatch failed.", func(cm log.CM) {
 						cm.Write(zap.Error(err))

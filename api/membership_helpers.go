@@ -125,11 +125,11 @@ func dispatchMembershipHook(app *App, db models.DB, hookType int, gameID string,
 	clanJSON := clan.Serialize()
 	delete(clanJSON, "gameID")
 
-	playerJSON := player.Serialize()
+	playerJSON := player.Serialize(app.EncryptionKey)
 	playerJSON["membershipLevel"] = membershipLevel
 	delete(playerJSON, "gameID")
 
-	requestorJSON := requestor.Serialize()
+	requestorJSON := requestor.Serialize(app.EncryptionKey)
 	delete(requestorJSON, "gameID")
 
 	result := map[string]interface{}{
@@ -151,14 +151,14 @@ func dispatchApproveDenyMembershipHook(app *App, db models.DB, hookType int, gam
 	clanJSON := clan.Serialize()
 	delete(clanJSON, "gameID")
 
-	playerJSON := player.Serialize()
+	playerJSON := player.Serialize(app.EncryptionKey)
 	playerJSON["membershipLevel"] = playerMembershipLevel
 	delete(playerJSON, "gameID")
 
-	requestorJSON := requestor.Serialize()
+	requestorJSON := requestor.Serialize(app.EncryptionKey)
 	delete(requestorJSON, "gameID")
 
-	creatorJSON := creator.Serialize()
+	creatorJSON := creator.Serialize(app.EncryptionKey)
 	delete(creatorJSON, "gameID")
 
 	result := map[string]interface{}{
