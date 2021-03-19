@@ -84,7 +84,7 @@ func BenchmarkRetrievePlayer(b *testing.B) {
 	}
 
 	gameID := uuid.NewV4().String()
-	player, err := models.GetTestPlayerWithMemberships(db, gameID, 50, 20, 30, 80)
+	_, player, err := models.GetTestPlayerWithMemberships(db, gameID, 50, 20, 30, 80)
 	if err != nil {
 		panic(err.Error())
 	}
