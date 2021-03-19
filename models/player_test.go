@@ -510,18 +510,13 @@ var _ = Describe("Player Model", func() {
 				Expect(len(pendingInvites)).To(Equal(0))
 			})
 
-			It("Should get Player Details decrypting player.Name", func() {
-				_, player, err := CreatePlayerFactory(testDb, "")
+			It("Should decrypt Player.Name in Details", func() {
+				gameID := uuid.NewV4().String()
+				owner, player, err := GetTestPlayerWithMemberships(testDb, gameID, 5, 2, 3, 8)
 				Expect(err).NotTo(HaveOccurred())
 
-				encryptedName, err := util.EncryptData(player.Name, GetEncryptionKey())
-				Expect(err).NotTo(HaveOccurred())
-
-				name := player.Name
-				player.Name = encryptedName
-				count, err := testDb.Update(player)
-				Expect(err).NotTo(HaveOccurred())
-				Expect(int(count)).To(Equal(1))
+				updateEncryptingTestPlayer(testDb, owner)
+				updateEncryptingTestPlayer(testDb, player)
 
 				playerDetails, err := GetPlayerDetails(
 					testDb,
@@ -532,12 +527,27 @@ var _ = Describe("Player Model", func() {
 
 				Expect(err).NotTo(HaveOccurred())
 
-				// Player Details
-				Expect(playerDetails["publicID"]).To(Equal(player.PublicID))
-				Expect(playerDetails["name"]).To(Equal(name))
-				Expect(playerDetails["createdAt"]).To(Equal(player.CreatedAt))
-				Expect(playerDetails["updatedAt"]).To(Equal(player.UpdatedAt))
+				player = decryptTestPlayer(player)
 
+				Expect(playerDetails["name"]).To(Equal(player.Name))
+
+				approvedMembership := playerDetails["memberships"].([]map[string]interface{})[0]
+
+				Expect(approvedMembership["approver"]).NotTo(BeEquivalentTo(nil))
+				approver := approvedMembership["approver"].(map[string]interface{})
+				Expect(approver["name"]).To(Equal(player.Name))
+
+				deniedMembership := playerDetails["memberships"].([]map[string]interface{})[6]
+				Expect(deniedMembership["denier"]).NotTo(BeEquivalentTo(nil))
+				denier := deniedMembership["denier"].(map[string]interface{})
+				Expect(denier["name"]).To(Equal(player.Name))
+
+				owner = decryptTestPlayer(owner)
+
+				pendingInvite := playerDetails["memberships"].([]map[string]interface{})[14]
+				Expect(pendingInvite["requestor"]).NotTo(BeEquivalentTo(nil))
+				requestor := pendingInvite["requestor"].(map[string]interface{})
+				Expect(requestor["name"]).To(Equal(owner.Name))
 			})
 
 			It("Should return error if Player does not exist", func() {
