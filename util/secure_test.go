@@ -1,4 +1,4 @@
-package util
+package util_test
 
 import (
 	"encoding/base64"
@@ -7,6 +7,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	. "github.com/topfreegames/khan/util"
 	"github.com/wildlife-studios/crypto"
 )
 
@@ -17,14 +18,16 @@ var _ = Describe("Security package", func() {
 	Describe("EncryptData", func() {
 		It("Should encrypt with XChacha and encode to base64", func() {
 			xChacha := crypto.NewXChacha()
-			encrypted, err := xChacha.Encrypt([]byte(data), encryptionKey[:32])
-			Expect(err).NotTo(HaveOccurred())
 
 			encryptedData, err := EncryptData(data, encryptionKey[:32])
 			Expect(err).NotTo(HaveOccurred())
 
-			encoded := base64.StdEncoding.EncodeToString(encrypted)
-			Expect(encryptedData).To(Equal(encoded))
+			decoded, err := base64.StdEncoding.DecodeString(encryptedData)
+			Expect(err).NotTo(HaveOccurred())
+
+			decryptedData, err := xChacha.Decrypt([]byte(decoded), encryptionKey[:32])
+
+			Expect(data).To(Equal(string(decryptedData)))
 
 		})
 
@@ -51,7 +54,7 @@ var _ = Describe("Security package", func() {
 
 	Describe("DecryptData", func() {
 		It("Should decode with base64 after decrypt with XChacha", func() {
-			encryptedData, err := EncryptData(data, encryptionKey)
+			encryptedData, err := EncryptData(data, encryptionKey[:32])
 			Expect(err).NotTo(HaveOccurred())
 
 			cipheredData, err := base64.StdEncoding.DecodeString(encryptedData)
