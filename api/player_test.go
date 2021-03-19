@@ -20,6 +20,7 @@ import (
 	uuid "github.com/satori/go.uuid"
 	"github.com/topfreegames/khan/api"
 	"github.com/topfreegames/khan/models"
+	"github.com/topfreegames/khan/testing"
 )
 
 var _ = Describe("Player API Handler", func() {
@@ -213,6 +214,49 @@ var _ = Describe("Player API Handler", func() {
 			//Should return 5 since max memberships pending returned are now 5
 			Expect(len(pendingInvites)).To(Equal(5))
 		})
+
+		It("Should retrieve player decrypting player.Name", func() {
+			gameID := uuid.NewV4().String()
+			owner, player, err := models.GetTestPlayerWithMemberships(testDb, gameID, 5, 2, 3, 8)
+			Expect(err).NotTo(HaveOccurred())
+
+			testing.UpdateEncryptingTestPlayer(testDb, a.EncryptionKey, owner)
+			testing.UpdateEncryptingTestPlayer(testDb, a.EncryptionKey, player)
+
+			route := GetGameRoute(player.GameID, fmt.Sprintf("/players/%s", player.PublicID))
+			status, body := Get(a, route)
+
+			Expect(status).To(Equal(http.StatusOK))
+			var playerDetails map[string]interface{}
+			json.Unmarshal([]byte(body), &playerDetails)
+			Expect(playerDetails["success"]).To(BeTrue())
+
+			testing.DecryptTestPlayer(a.EncryptionKey, player)
+
+			Expect(playerDetails["name"]).To(Equal(player.Name))
+
+			approvedInterface := playerDetails["memberships"].([]interface{})[0]
+			approvedMembership := approvedInterface.(map[string]interface{})
+
+			Expect(approvedMembership["approver"]).NotTo(BeEquivalentTo(nil))
+			approver := approvedMembership["approver"].(map[string]interface{})
+			Expect(approver["name"]).To(Equal(player.Name))
+
+			deniedInterface := playerDetails["memberships"].([]interface{})[6]
+			deniedMembership := deniedInterface.(map[string]interface{})
+			Expect(deniedMembership["denier"]).NotTo(BeEquivalentTo(nil))
+			denier := deniedMembership["denier"].(map[string]interface{})
+			Expect(denier["name"]).To(Equal(player.Name))
+
+			testing.DecryptTestPlayer(a.EncryptionKey, owner)
+
+			pendingInviteInterface := playerDetails["memberships"].([]interface{})[14]
+			pendingInvite := pendingInviteInterface.(map[string]interface{})
+			Expect(pendingInvite["requestor"]).NotTo(BeEquivalentTo(nil))
+			requestor := pendingInvite["requestor"].(map[string]interface{})
+			Expect(requestor["name"]).To(Equal(owner.Name))
+		})
+
 		It("Should return 404 for invalid player", func() {
 			route := GetGameRoute("some-game", "/players/invalid-player")
 			status, body := Get(a, route)
