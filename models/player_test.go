@@ -225,7 +225,7 @@ var _ = Describe("Player Model", func() {
 		Describe("Get Player Details", func() {
 			It("Should get Player Details", func() {
 				gameID := uuid.NewV4().String()
-				player, err := GetTestPlayerWithMemberships(testDb, gameID, 5, 2, 3, 8)
+				_, player, err := GetTestPlayerWithMemberships(testDb, gameID, 5, 2, 3, 8)
 				Expect(err).NotTo(HaveOccurred())
 
 				playerDetails, err := GetPlayerDetails(
@@ -567,7 +567,7 @@ var _ = Describe("Player Model", func() {
 		Describe("Update Player Membership Count", func() {
 			It("Should work if membership is created", func() {
 				prevMemberships := 5
-				player, err := GetTestPlayerWithMemberships(testDb, "", prevMemberships, 2, 3, 4)
+				_, player, err := GetTestPlayerWithMemberships(testDb, "", prevMemberships, 2, 3, 4)
 				Expect(err).NotTo(HaveOccurred())
 
 				clan := ClanFactory.MustCreateWithOption(map[string]interface{}{
@@ -603,7 +603,7 @@ var _ = Describe("Player Model", func() {
 
 			It("Should work if membership is deleted", func() {
 				prevMemberships := 5
-				player, err := GetTestPlayerWithMemberships(testDb, "", prevMemberships, 2, 3, 4)
+				_, player, err := GetTestPlayerWithMemberships(testDb, "", prevMemberships, 2, 3, 4)
 				Expect(err).NotTo(HaveOccurred())
 
 				var membership *Membership

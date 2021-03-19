@@ -19,7 +19,6 @@ import (
 	"github.com/spf13/viper"
 	"github.com/topfreegames/extensions/v9/mongo/interfaces"
 	"github.com/topfreegames/khan/api"
-	"github.com/topfreegames/khan/models"
 	. "github.com/topfreegames/khan/models"
 	"github.com/topfreegames/khan/testing"
 	"github.com/topfreegames/khan/util"
@@ -1307,20 +1306,3 @@ var _ = Describe("Clan Model", func() {
 		})
 	})
 })
-
-func decryptTestPlayer(player *models.Player) *Player {
-	name, err := util.DecryptData(player.Name, GetEncryptionKey())
-	Expect(err).NotTo(HaveOccurred())
-	player.Name = name
-	return player
-}
-
-func updateEncryptingTestPlayer(db DB, player *models.Player) {
-	name, err := util.EncryptData(player.Name, GetEncryptionKey())
-	Expect(err).NotTo(HaveOccurred())
-	player.Name = name
-	rows, err := db.Update(player)
-	Expect(err).NotTo(HaveOccurred())
-	Expect(rows).To(BeEquivalentTo(1))
-
-}

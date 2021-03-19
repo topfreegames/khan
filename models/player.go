@@ -80,16 +80,6 @@ func (p *Player) SerializeWithLevel(encryptionKey []byte, level string) map[stri
 	}, encryptionKey)
 }
 
-func decryptPlayerName(payload map[string]interface{}, encryptionKey []byte) map[string]interface{} {
-	name, err := util.DecryptData(fmt.Sprint(payload["name"]), encryptionKey)
-	if err != nil {
-		return payload
-	}
-
-	payload["name"] = name
-	return payload
-}
-
 // UpdatePlayerMembershipCount updates the player membership count
 func UpdatePlayerMembershipCount(db DB, id int64) error {
 	query := `
@@ -281,8 +271,23 @@ func GetPlayerOwnershipDetails(db DB, gameID, publicID string) (map[string]inter
 	return result, nil
 }
 
-// GetPlayerMembershipDetails returns detailed information about a player and their memberships
-func GetPlayerMembershipDetails(db DB, encryptionKey []byte, gameID, publicID string) (map[string]interface{}, error) {
+// GetPlayerDetails returns detailed information about a player and their memberships
+func GetPlayerDetails(db DB, encryptionKey []byte, gameID, publicID string) (map[string]interface{}, error) {
+	result, err := getPlayerMembershipDetails(db, encryptionKey, gameID, publicID)
+	if err != nil {
+		return nil, err
+	}
+	ownerships, err := GetPlayerOwnershipDetails(db, gameID, publicID)
+	if err != nil {
+		return nil, err
+	}
+	result["clans"].(map[string]interface{})["owned"] = ownerships["clans"]
+	result["memberships"] = append(result["memberships"].([]map[string]interface{}), ownerships["memberships"].([]map[string]interface{})...)
+	return result, nil
+}
+
+// getPlayerMembershipDetails returns detailed information about a player and their memberships
+func getPlayerMembershipDetails(db DB, encryptionKey []byte, gameID, publicID string) (map[string]interface{}, error) {
 	player, err := GetPlayerByPublicID(db, encryptionKey, gameID, publicID)
 	if err != nil {
 		return nil, err
@@ -360,28 +365,28 @@ func GetPlayerMembershipDetails(db DB, encryptionKey []byte, gameID, publicID st
 		}
 
 		for _, detail := range details {
-			ma := nullOrBool(detail.MembershipApproved)
-			md := nullOrBool(detail.MembershipDenied)
-			mb := nullOrBool(detail.MembershipBanned)
-			mdel := !mb && detail.MembershipDeletedAt.Valid && detail.MembershipDeletedAt.Int64 > 0
+			membershipApproved := nullOrBool(detail.MembershipApproved)
+			membershipDenied := nullOrBool(detail.MembershipDenied)
+			membershipBanned := nullOrBool(detail.MembershipBanned)
+			membershipDeleted := !membershipBanned && detail.MembershipDeletedAt.Valid && detail.MembershipDeletedAt.Int64 > 0
 
-			if !mdel {
-				m := detail.Serialize(encryptionKey)
-				memberships = append(memberships, m)
+			if !membershipDeleted {
+				membership := detail.Serialize(encryptionKey)
+				memberships = append(memberships, membership)
 
 				clanDetail := clanFromDetail(detail)
 				switch {
-				case !ma && !md && !mb:
+				case !membershipApproved && !membershipDenied && !membershipBanned:
 					if detail.RequestorPublicID.Valid && detail.RequestorPublicID.String == detail.PlayerPublicID {
 						pendingApplications = append(pendingApplications, clanDetail)
 					} else {
 						pendingInvites = append(pendingInvites, clanDetail)
 					}
-				case ma:
+				case membershipApproved:
 					approved = append(approved, clanDetail)
-				case md:
+				case membershipDenied:
 					denied = append(denied, clanDetail)
-				case mb:
+				case membershipBanned:
 					banned = append(banned, clanDetail)
 				}
 			}
@@ -409,17 +414,12 @@ func GetPlayerMembershipDetails(db DB, encryptionKey []byte, gameID, publicID st
 	return result, nil
 }
 
-// GetPlayerDetails returns detailed information about a player and their memberships
-func GetPlayerDetails(db DB, encryptionKey []byte, gameID, publicID string) (map[string]interface{}, error) {
-	result, err := GetPlayerMembershipDetails(db, encryptionKey, gameID, publicID)
+func decryptPlayerName(payload map[string]interface{}, encryptionKey []byte) map[string]interface{} {
+	name, err := util.DecryptData(fmt.Sprint(payload["name"]), encryptionKey)
 	if err != nil {
-		return nil, err
+		return payload
 	}
-	ownerships, err := GetPlayerOwnershipDetails(db, gameID, publicID)
-	if err != nil {
-		return nil, err
-	}
-	result["clans"].(map[string]interface{})["owned"] = ownerships["clans"]
-	result["memberships"] = append(result["memberships"].([]map[string]interface{}), ownerships["memberships"].([]map[string]interface{})...)
-	return result, nil
+
+	payload["name"] = name
+	return payload
 }

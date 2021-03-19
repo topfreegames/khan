@@ -12,6 +12,7 @@ import (
 	"strconv"
 
 	workers "github.com/jrallison/go-workers"
+	. "github.com/onsi/gomega"
 	uuid "github.com/satori/go.uuid"
 	"github.com/spf13/viper"
 	"github.com/topfreegames/extensions/v9/mongo/interfaces"
@@ -19,6 +20,7 @@ import (
 	"github.com/topfreegames/khan/mongo"
 	"github.com/topfreegames/khan/queues"
 	kt "github.com/topfreegames/khan/testing"
+	"github.com/topfreegames/khan/util"
 )
 
 // GetTestDB returns a connection to the test database
@@ -87,4 +89,21 @@ func ConfigureAndStartGoWorkers() error {
 	workers.Process(queues.KhanMongoQueue, mongoWorker.PerformUpdateMongo, workerCount)
 	workers.Start()
 	return nil
+}
+
+func decryptTestPlayer(player *models.Player) *models.Player {
+	name, err := util.DecryptData(player.Name, models.GetEncryptionKey())
+	Expect(err).NotTo(HaveOccurred())
+	player.Name = name
+	return player
+}
+
+func updateEncryptingTestPlayer(db models.DB, player *models.Player) {
+	name, err := util.EncryptData(player.Name, models.GetEncryptionKey())
+	Expect(err).NotTo(HaveOccurred())
+	player.Name = name
+	rows, err := db.Update(player)
+	Expect(err).NotTo(HaveOccurred())
+	Expect(rows).To(BeEquivalentTo(1))
+
 }

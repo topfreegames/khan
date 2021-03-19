@@ -31,7 +31,7 @@ var _ = Describe("Membership Model", func() {
 	Describe("Membership Model", func() {
 		Describe("Get Number of Pending Invites", func() {
 			It("Should get number of pending invites", func() {
-				player, err := GetTestPlayerWithMemberships(testDb, uuid.NewV4().String(), 0, 0, 0, 20)
+				_, player, err := GetTestPlayerWithMemberships(testDb, uuid.NewV4().String(), 0, 0, 0, 20)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(player).NotTo(BeEquivalentTo(nil))
 
@@ -59,7 +59,7 @@ var _ = Describe("Membership Model", func() {
 
 			It("Should not create a new membership for a member with max number of invitations", func() {
 				gameID := uuid.NewV4().String()
-				player, err := GetTestPlayerWithMemberships(testDb, gameID, 0, 0, 0, 20)
+				_, player, err := GetTestPlayerWithMemberships(testDb, gameID, 0, 0, 0, 20)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(player).NotTo(BeEquivalentTo(nil))
 
@@ -124,7 +124,7 @@ var _ = Describe("Membership Model", func() {
 
 			It("Should create a new membership for a member when game MaxPendingInvites is -1", func() {
 				gameID := uuid.NewV4().String()
-				player, err := GetTestPlayerWithMemberships(testDb, gameID, 0, 0, 0, 20)
+				_, player, err := GetTestPlayerWithMemberships(testDb, gameID, 0, 0, 0, 20)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(player).NotTo(BeEquivalentTo(nil))
 

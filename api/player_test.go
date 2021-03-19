@@ -178,7 +178,7 @@ var _ = Describe("Player API Handler", func() {
 	Describe("Retrieve Player", func() {
 		It("Should retrieve player", func() {
 			gameID := uuid.NewV4().String()
-			player, err := models.GetTestPlayerWithMemberships(testDb, gameID, 5, 2, 3, 8)
+			_, player, err := models.GetTestPlayerWithMemberships(testDb, gameID, 5, 2, 3, 8)
 			Expect(err).NotTo(HaveOccurred())
 
 			route := GetGameRoute(player.GameID, fmt.Sprintf("/players/%s", player.PublicID))
