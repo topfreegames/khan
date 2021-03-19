@@ -964,9 +964,9 @@ var _ = Describe("Clan Model", func() {
 				)
 				Expect(err).NotTo(HaveOccurred())
 
-				updateEncryptingTestPlayer(testDb, owner)
+				testing.UpdateEncryptingTestPlayer(testDb, GetEncryptionKey(), owner)
 				for _, player := range players {
-					updateEncryptingTestPlayer(testDb, player)
+					testing.UpdateEncryptingTestPlayer(testDb, GetEncryptionKey(), player)
 				}
 
 				config := viper.New()
@@ -995,7 +995,8 @@ var _ = Describe("Clan Model", func() {
 
 				playerDict := map[string]*Player{}
 				for _, player := range players {
-					playerDict[player.PublicID] = decryptTestPlayer(player)
+					testing.DecryptTestPlayer(GetEncryptionKey(), player)
+					playerDict[player.PublicID] = player
 				}
 
 				for _, playerData := range roster {

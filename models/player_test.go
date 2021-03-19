@@ -13,6 +13,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	. "github.com/topfreegames/khan/models"
+	"github.com/topfreegames/khan/testing"
 	"github.com/topfreegames/khan/util"
 
 	uuid "github.com/satori/go.uuid"
@@ -515,8 +516,8 @@ var _ = Describe("Player Model", func() {
 				owner, player, err := GetTestPlayerWithMemberships(testDb, gameID, 5, 2, 3, 8)
 				Expect(err).NotTo(HaveOccurred())
 
-				updateEncryptingTestPlayer(testDb, owner)
-				updateEncryptingTestPlayer(testDb, player)
+				testing.UpdateEncryptingTestPlayer(testDb, GetEncryptionKey(), owner)
+				testing.UpdateEncryptingTestPlayer(testDb, GetEncryptionKey(), player)
 
 				playerDetails, err := GetPlayerDetails(
 					testDb,
@@ -527,7 +528,7 @@ var _ = Describe("Player Model", func() {
 
 				Expect(err).NotTo(HaveOccurred())
 
-				player = decryptTestPlayer(player)
+				testing.DecryptTestPlayer(GetEncryptionKey(), player)
 
 				Expect(playerDetails["name"]).To(Equal(player.Name))
 
@@ -542,7 +543,7 @@ var _ = Describe("Player Model", func() {
 				denier := deniedMembership["denier"].(map[string]interface{})
 				Expect(denier["name"]).To(Equal(player.Name))
 
-				owner = decryptTestPlayer(owner)
+				testing.DecryptTestPlayer(GetEncryptionKey(), owner)
 
 				pendingInvite := playerDetails["memberships"].([]map[string]interface{})[14]
 				Expect(pendingInvite["requestor"]).NotTo(BeEquivalentTo(nil))
