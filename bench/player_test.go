@@ -12,7 +12,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/satori/go.uuid"
+	uuid "github.com/satori/go.uuid"
 	"github.com/topfreegames/khan/models"
 )
 
