@@ -13,7 +13,7 @@ elasticsearch:
   index: "khan"
 
 mongodb:
-  enabled: false
+  enabled: true
   url: mongodb://localhost:27017
   databaseName: "khan"
   collectionTemplate: "clans_%s"
