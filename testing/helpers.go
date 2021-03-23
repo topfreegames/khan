@@ -54,7 +54,7 @@ func GetTestClansSummariesCache(ttl, cleanupInterval time.Duration) *caches.Clan
 	}
 }
 
-// DecryptTestPlayer decrypt player name and return the player decrypted
+// DecryptTestPlayer replaces the encrypted name by the plain text name in the player object
 func DecryptTestPlayer(encryptionKey []byte, player *models.Player) {
 	name, err := util.DecryptData(player.Name, encryptionKey)
 	Expect(err).NotTo(HaveOccurred())
