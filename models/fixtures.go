@@ -564,7 +564,7 @@ func GetTestHooks(db DB, gameID string, numberOfHooks int) ([]*Hook, error) {
 	return hooks, nil
 }
 
-//GetTestPlayerWithMemberships returns a player with approved, rejected and banned memberships
+//GetTestPlayerWithMemberships returns the clan owner, a player with approved, rejected, and banned memberships
 func GetTestPlayerWithMemberships(db DB, gameID string, approvedMemberships, rejectedMemberships, bannedMemberships, pendingMemberships int) (*Player, *Player, error) {
 	if gameID == "" {
 		gameID = uuid.NewV4().String()
