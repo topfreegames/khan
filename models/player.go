@@ -365,28 +365,28 @@ func getPlayerMembershipDetails(db DB, encryptionKey []byte, gameID, publicID st
 		}
 
 		for _, detail := range details {
-			membershipApproved := nullOrBool(detail.MembershipApproved)
-			membershipDenied := nullOrBool(detail.MembershipDenied)
-			membershipBanned := nullOrBool(detail.MembershipBanned)
-			membershipDeleted := !membershipBanned && detail.MembershipDeletedAt.Valid && detail.MembershipDeletedAt.Int64 > 0
+			approvedMembership := nullOrBool(detail.MembershipApproved)
+			deniedMembership := nullOrBool(detail.MembershipDenied)
+			bannedMembership := nullOrBool(detail.MembershipBanned)
+			deletedMembership := !bannedMembership && detail.MembershipDeletedAt.Valid && detail.MembershipDeletedAt.Int64 > 0
 
-			if !membershipDeleted {
+			if !deletedMembership {
 				membership := detail.Serialize(encryptionKey)
 				memberships = append(memberships, membership)
 
 				clanDetail := clanFromDetail(detail)
 				switch {
-				case !membershipApproved && !membershipDenied && !membershipBanned:
+				case !approvedMembership && !deniedMembership && !bannedMembership:
 					if detail.RequestorPublicID.Valid && detail.RequestorPublicID.String == detail.PlayerPublicID {
 						pendingApplications = append(pendingApplications, clanDetail)
 					} else {
 						pendingInvites = append(pendingInvites, clanDetail)
 					}
-				case membershipApproved:
+				case approvedMembership:
 					approved = append(approved, clanDetail)
-				case membershipDenied:
+				case deniedMembership:
 					denied = append(denied, clanDetail)
-				case membershipBanned:
+				case bannedMembership:
 					banned = append(banned, clanDetail)
 				}
 			}
