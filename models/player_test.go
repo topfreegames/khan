@@ -15,31 +15,42 @@ import (
 	. "github.com/topfreegames/khan/models"
 	"github.com/topfreegames/khan/testing"
 	"github.com/topfreegames/khan/util"
+	"github.com/uber-go/zap"
 
 	uuid "github.com/satori/go.uuid"
 )
 
 var _ = Describe("Player Model", func() {
 	var testDb DB
+	var logger zap.Logger
 
 	BeforeEach(func() {
 		var err error
 		testDb, err = GetTestDB()
+		logger = testing.NewMockLogger()
 		Expect(err).NotTo(HaveOccurred())
 	})
 	Describe("Player Model", func() {
 
 		Describe("Model Basic Tests", func() {
-			It("Should create a new Player", func() {
-				_, player, err := CreatePlayerFactory(testDb, "")
+			It("Should set CreatedAt and UpdatedAt as same value on creating a new player", func() {
+				gameID := uuid.NewV4().String()
+				game := GameFactory.MustCreateWithOption(map[string]interface{}{
+					"PublicID": gameID,
+				}).(*Game)
+				err := testDb.Insert(game)
+				Expect(err).NotTo(HaveOccurred())
+
+				player := &Player{
+					GameID:   game.PublicID,
+					PublicID: "publicID",
+				}
+				err = testDb.Insert(player)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(player.ID).NotTo(Equal(0))
 
-				dbPlayer, err := GetPlayerByID(testDb, GetEncryptionKey(), player.ID)
-				Expect(err).NotTo(HaveOccurred())
-
-				Expect(dbPlayer.GameID).To(Equal(player.GameID))
-				Expect(dbPlayer.PublicID).To(Equal(player.PublicID))
+				Expect(player.CreatedAt).Should(BeNumerically(">", 0))
+				Expect(player.UpdatedAt).To(Equal(player.CreatedAt))
 			})
 
 			It("Should update a new Player", func() {
@@ -140,12 +151,12 @@ var _ = Describe("Player Model", func() {
 				playerID := uuid.NewV4().String()
 				player, err := CreatePlayer(
 					testDb,
+					logger,
 					GetEncryptionKey(),
 					game.PublicID,
 					playerID,
 					"player-name",
 					map[string]interface{}{},
-					false,
 				)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(player.ID).NotTo(BeEquivalentTo(0))
@@ -156,6 +167,62 @@ var _ = Describe("Player Model", func() {
 				Expect(dbPlayer.GameID).To(Equal(player.GameID))
 				Expect(dbPlayer.PublicID).To(Equal(player.PublicID))
 			})
+
+			It("Should create a new Player encrypting the Player.Name", func() {
+				game := GameFactory.MustCreate().(*Game)
+				err := testDb.Insert(game)
+				Expect(err).NotTo(HaveOccurred())
+
+				playerName := uuid.NewV4().String()
+				playerPublicID := uuid.NewV4().String()
+				player, err := CreatePlayer(
+					testDb,
+					logger,
+					GetEncryptionKey(),
+					game.PublicID,
+					playerPublicID,
+					playerName,
+					map[string]interface{}{},
+				)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(player.Name).To(Equal(playerName))
+
+				var dbPlayer *Player
+				err = testDb.SelectOne(&dbPlayer, "select * from players where public_id = $1", player.PublicID)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(dbPlayer.Name).NotTo(Equal(playerName))
+
+				decryptedName, err := util.DecryptData(dbPlayer.Name, GetEncryptionKey())
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(decryptedName).To(Equal(player.Name))
+			})
+
+			It("Should create a PlayerEncrypted to trace players encryption process", func() {
+				game := GameFactory.MustCreate().(*Game)
+				err := testDb.Insert(game)
+				Expect(err).NotTo(HaveOccurred())
+
+				playerPublicID := uuid.NewV4().String()
+				playerName := uuid.NewV4().String()
+				player, err := CreatePlayer(
+					testDb,
+					logger,
+					GetEncryptionKey(),
+					game.PublicID,
+					playerPublicID,
+					playerName,
+					map[string]interface{}{},
+				)
+				Expect(err).NotTo(HaveOccurred())
+
+				var playerEncrypted *PlayerEncrypted
+				err = testDb.SelectOne(&playerEncrypted, "select * from players_encrypteds where id = $1", player.ID)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(playerEncrypted.ID).To(Equal(player.ID))
+
+			})
 		})
 
 		Describe("Update Player", func() {
@@ -164,8 +231,9 @@ var _ = Describe("Player Model", func() {
 				Expect(err).NotTo(HaveOccurred())
 
 				metadata := map[string]interface{}{"x": "a"}
-				updPlayer, err := UpdatePlayer(
+				updatedPlayer, err := UpdatePlayer(
 					testDb,
+					logger,
 					GetEncryptionKey(),
 					player.GameID,
 					player.PublicID,
@@ -174,12 +242,67 @@ var _ = Describe("Player Model", func() {
 				)
 
 				Expect(err).NotTo(HaveOccurred())
-				Expect(updPlayer.ID).To(Equal(player.ID))
+				Expect(updatedPlayer.ID).To(Equal(player.ID))
 
 				dbPlayer, err := GetPlayerByPublicID(testDb, GetEncryptionKey(), player.GameID, player.PublicID)
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(dbPlayer.Metadata["x"]).To(BeEquivalentTo(metadata["x"]))
+			})
+
+			It("Should update a Player encrypting the Player.Name", func() {
+				_, player, err := CreatePlayerFactory(testDb, "")
+				Expect(err).NotTo(HaveOccurred())
+
+				playerName := uuid.NewV4().String()
+
+				updatedPlayer, err := UpdatePlayer(
+					testDb,
+					logger,
+					GetEncryptionKey(),
+					player.GameID,
+					player.PublicID,
+					playerName,
+					player.Metadata,
+				)
+
+				Expect(updatedPlayer.Name).To(Equal(playerName))
+
+				var dbPlayer *Player
+				err = testDb.SelectOne(&dbPlayer, "select * from players where id = $1", updatedPlayer.ID)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(dbPlayer.Name).NotTo(Equal(updatedPlayer.Name))
+
+				decryptedPlayerName, err := util.DecryptData(dbPlayer.Name, GetEncryptionKey())
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(decryptedPlayerName).To(Equal(playerName))
+
+			})
+
+			It("Should create a PlayerEncrypted to trace players encryption process when updating a player", func() {
+				_, player, err := CreatePlayerFactory(testDb, "")
+				Expect(err).NotTo(HaveOccurred())
+
+				playerName := uuid.NewV4().String()
+				metadata := map[string]interface{}{"x": "1"}
+				_, err = UpdatePlayer(
+					testDb,
+					logger,
+					GetEncryptionKey(),
+					player.GameID,
+					player.PublicID,
+					playerName,
+					metadata,
+				)
+				Expect(err).NotTo(HaveOccurred())
+
+				var playerEncrypted *PlayerEncrypted
+				err = testDb.SelectOne(&playerEncrypted, "select * from players_encrypteds where id = $1", player.ID)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(playerEncrypted.ID).To(Equal(player.ID))
+
 			})
 
 			It("Should create Player with UpdatePlayer if player does not exist", func() {
@@ -193,6 +316,7 @@ var _ = Describe("Player Model", func() {
 				metadata := map[string]interface{}{"x": "1"}
 				updPlayer, err := UpdatePlayer(
 					testDb,
+					logger,
 					GetEncryptionKey(),
 					gameID,
 					publicID,
@@ -209,9 +333,72 @@ var _ = Describe("Player Model", func() {
 				Expect(dbPlayer.Metadata).To(Equal(metadata))
 			})
 
+			It("Should create Player with UpdatePlayer if player does not exist and encrypt player.Name", func() {
+				game := GameFactory.MustCreate().(*Game)
+				err := testDb.Insert(game)
+				Expect(err).NotTo(HaveOccurred())
+
+				gameID := game.PublicID
+				publicID := uuid.NewV4().String()
+				playerName := uuid.NewV4().String()
+
+				metadata := map[string]interface{}{"x": "1"}
+				createdPlayer, err := UpdatePlayer(
+					testDb,
+					logger,
+					GetEncryptionKey(),
+					gameID,
+					publicID,
+					playerName,
+					metadata,
+				)
+
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(createdPlayer.Name).To(Equal(playerName))
+
+				var dbPlayer *Player
+				err = testDb.SelectOne(&dbPlayer, "select * from players where id = $1", createdPlayer.ID)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(dbPlayer.Name).NotTo(Equal(createdPlayer.Name))
+
+				decryptedPlayerName, err := util.DecryptData(dbPlayer.Name, GetEncryptionKey())
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(decryptedPlayerName).To(Equal(playerName))
+			})
+
+			It("Should create a PlayerEncrypted to trace players encryption process when creating a player", func() {
+				game := GameFactory.MustCreate().(*Game)
+				err := testDb.Insert(game)
+				Expect(err).NotTo(HaveOccurred())
+
+				playerPublicID := uuid.NewV4().String()
+				playerName := uuid.NewV4().String()
+				metadata := map[string]interface{}{"x": "1"}
+				player, err := UpdatePlayer(
+					testDb,
+					logger,
+					GetEncryptionKey(),
+					game.PublicID,
+					playerPublicID,
+					playerName,
+					metadata,
+				)
+				Expect(err).NotTo(HaveOccurred())
+
+				var playerEncrypted *PlayerEncrypted
+				err = testDb.SelectOne(&playerEncrypted, "select * from players_encrypteds where id = $1", player.ID)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(playerEncrypted.ID).To(Equal(player.ID))
+
+			})
+
 			It("Should not update a Player with Invalid Data with UpdatePlayer", func() {
 				_, err := UpdatePlayer(
 					testDb,
+					logger,
 					GetEncryptionKey(),
 					"-1",
 					"qwe",
