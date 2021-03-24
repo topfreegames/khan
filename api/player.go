@@ -49,12 +49,12 @@ func CreatePlayerHandler(app *App) func(c echo.Context) error {
 			log.D(l, "Creating player...")
 			player, err = models.CreatePlayer(
 				db,
+				l,
 				app.EncryptionKey,
 				gameID,
 				payload.PublicID,
 				payload.Name,
 				payload.Metadata,
-				false,
 			)
 
 			if err != nil {
@@ -163,6 +163,7 @@ func UpdatePlayerHandler(app *App) func(c echo.Context) error {
 				log.D(l, "Updating player...")
 				player, err = models.UpdatePlayer(
 					db,
+					l,
 					app.EncryptionKey,
 					gameID,
 					playerPublicID,

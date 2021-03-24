@@ -8,10 +8,11 @@
 package models
 
 import (
-	"encoding/json"
+	"database/sql"
 	"fmt"
 
 	"github.com/topfreegames/khan/util"
+	"github.com/uber-go/zap"
 
 	"github.com/go-gorp/gorp"
 )
@@ -177,38 +178,81 @@ func GetPlayerByPublicID(db DB, encryptionKey []byte, gameID string, publicID st
 }
 
 // CreatePlayer creates a new player
-// TODO: encryption not implemented in CreatePlayer
-func CreatePlayer(db DB, encryptionKey []byte, gameID, publicID, name string, metadata map[string]interface{}, upsert bool) (*Player, error) {
-	metadataJSON, err := json.Marshal(metadata)
+func CreatePlayer(db DB, logger zap.Logger, encryptionKey []byte, gameID, publicID, name string, metadata map[string]interface{}) (*Player, error) {
+	encryptedName, err := util.EncryptData(name, encryptionKey)
 	if err != nil {
 		return nil, err
 	}
 
-	query := `
-			INSERT INTO players(game_id, public_id, name, metadata, created_at, updated_at)
-						VALUES($1, $2, $3, $4, $5, $5)%s RETURNING id`
-	onConflict := ` ON CONFLICT (game_id, public_id)
-			DO UPDATE set name=$3, metadata=$4, updated_at=$5
-			WHERE players.game_id=$1 and players.public_id=$2`
-
-	if upsert {
-		query = fmt.Sprintf(query, onConflict)
-	} else {
-		query = fmt.Sprintf(query, "")
+	player := &Player{
+		GameID:   gameID,
+		PublicID: publicID,
+		Name:     encryptedName,
+		Metadata: metadata,
 	}
-
-	var lastID int64
-	lastID, err = db.SelectInt(query,
-		gameID, publicID, name, metadataJSON, util.NowMilli())
+	err = db.Insert(player)
 	if err != nil {
 		return nil, err
 	}
-	return GetPlayerByID(db, encryptionKey, lastID)
+
+	err = db.Insert(&PlayerEncrypted{ID: player.ID})
+	if err != nil {
+		logger.Error("Error on insert PlayerEncrypted", zap.Error(err))
+	}
+
+	return GetPlayerByID(db, encryptionKey, player.ID)
 }
 
 // UpdatePlayer updates an existing player
-func UpdatePlayer(db DB, encryptionKey []byte, gameID, publicID, name string, metadata map[string]interface{}) (*Player, error) {
-	return CreatePlayer(db, encryptionKey, gameID, publicID, name, metadata, true)
+func UpdatePlayer(db DB, logger zap.Logger, encryptionKey []byte, gameID, publicID, name string, metadata map[string]interface{}) (*Player, error) {
+	encryptedName, err := util.EncryptData(name, encryptionKey)
+	if err != nil {
+		return nil, err
+	}
+
+	var player *Player = &Player{}
+	err = db.SelectOne(player, "select * from players where public_id = $1", publicID)
+	if err != nil {
+		if err != sql.ErrNoRows {
+			return nil, err
+		}
+
+		player.Name = encryptedName
+		player.GameID = gameID
+		player.Metadata = metadata
+
+		err = db.Insert(player)
+		if err != nil {
+			return nil, err
+		}
+
+		err = db.Insert(&PlayerEncrypted{ID: player.ID})
+		if err != nil {
+			logger.Error("Error on insert PlayerEncrypted", zap.Error(err))
+		}
+
+		return GetPlayerByID(db, encryptionKey, player.ID)
+	}
+
+	player.Name = encryptedName
+	player.GameID = gameID
+	player.Metadata = metadata
+
+	count, err := db.Update(player)
+	if err != nil {
+		return nil, err
+	}
+
+	if count > 1 {
+		return nil, fmt.Errorf("Multiple players was updated whenever just one is expected to be done")
+	}
+
+	err = db.Insert(&PlayerEncrypted{ID: player.ID})
+	if err != nil {
+		logger.Error("Error on insert PlayerEncrypted", zap.Error(err))
+	}
+
+	return GetPlayerByID(db, encryptionKey, player.ID)
 }
 
 // GetPlayerOwnershipDetails returns detailed information about a player owned clans
