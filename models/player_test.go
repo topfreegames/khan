@@ -13,9 +13,10 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	. "github.com/topfreegames/khan/models"
+	"github.com/topfreegames/khan/testing"
 	"github.com/topfreegames/khan/util"
 
-	"github.com/satori/go.uuid"
+	uuid "github.com/satori/go.uuid"
 )
 
 var _ = Describe("Player Model", func() {
@@ -34,7 +35,7 @@ var _ = Describe("Player Model", func() {
 				Expect(err).NotTo(HaveOccurred())
 				Expect(player.ID).NotTo(Equal(0))
 
-				dbPlayer, err := GetPlayerByID(testDb, player.ID)
+				dbPlayer, err := GetPlayerByID(testDb, GetEncryptionKey(), player.ID)
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(dbPlayer.GameID).To(Equal(player.GameID))
@@ -61,15 +62,36 @@ var _ = Describe("Player Model", func() {
 				_, player, err := CreatePlayerFactory(testDb, "")
 				Expect(err).NotTo(HaveOccurred())
 
-				dbPlayer, err := GetPlayerByID(testDb, player.ID)
+				dbPlayer, err := GetPlayerByID(testDb, GetEncryptionKey(), player.ID)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(dbPlayer.ID).To(Equal(player.ID))
+				Expect(dbPlayer.Name).To(Equal(player.Name))
 			})
 
 			It("Should not get non-existing Player", func() {
-				_, err := GetPlayerByID(testDb, -1)
+				_, err := GetPlayerByID(testDb, GetEncryptionKey(), -1)
+
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(Equal("Player was not found with id: -1"))
+			})
+
+			It("Should decrypt Player.Name", func() {
+				_, player, err := CreatePlayerFactory(testDb, "")
+				Expect(err).NotTo(HaveOccurred())
+
+				encryptedName, err := util.EncryptData(player.Name, GetEncryptionKey())
+				Expect(err).NotTo(HaveOccurred())
+
+				name := player.Name
+				player.Name = encryptedName
+				count, err := testDb.Update(player)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(int(count)).To(Equal(1))
+
+				dbPlayer, err := GetPlayerByID(testDb, GetEncryptionKey(), player.ID)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(dbPlayer.ID).To(Equal(player.ID))
+				Expect(dbPlayer.Name).To(Equal(name))
 			})
 		})
 
@@ -78,15 +100,34 @@ var _ = Describe("Player Model", func() {
 				_, player, err := CreatePlayerFactory(testDb, "")
 				Expect(err).NotTo(HaveOccurred())
 
-				dbPlayer, err := GetPlayerByPublicID(testDb, player.GameID, player.PublicID)
+				dbPlayer, err := GetPlayerByPublicID(testDb, GetEncryptionKey(), player.GameID, player.PublicID)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(dbPlayer.ID).To(Equal(player.ID))
 			})
 
 			It("Should not get non-existing Player by Game and Player", func() {
-				_, err := GetPlayerByPublicID(testDb, "invalid-game", "invalid-player")
+				_, err := GetPlayerByPublicID(testDb, GetEncryptionKey(), "invalid-game", "invalid-player")
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(Equal("Player was not found with id: invalid-player"))
+			})
+
+			It("Should decrypt Player.Name", func() {
+				_, player, err := CreatePlayerFactory(testDb, "")
+				Expect(err).NotTo(HaveOccurred())
+
+				encryptedName, err := util.EncryptData(player.Name, GetEncryptionKey())
+				Expect(err).NotTo(HaveOccurred())
+
+				name := player.Name
+				player.Name = encryptedName
+				count, err := testDb.Update(player)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(int(count)).To(Equal(1))
+
+				dbPlayer, err := GetPlayerByPublicID(testDb, GetEncryptionKey(), player.GameID, player.PublicID)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(dbPlayer.ID).To(Equal(player.ID))
+				Expect(dbPlayer.Name).To(Equal(name))
 			})
 		})
 
@@ -99,6 +140,7 @@ var _ = Describe("Player Model", func() {
 				playerID := uuid.NewV4().String()
 				player, err := CreatePlayer(
 					testDb,
+					GetEncryptionKey(),
 					game.PublicID,
 					playerID,
 					"player-name",
@@ -108,7 +150,7 @@ var _ = Describe("Player Model", func() {
 				Expect(err).NotTo(HaveOccurred())
 				Expect(player.ID).NotTo(BeEquivalentTo(0))
 
-				dbPlayer, err := GetPlayerByID(testDb, player.ID)
+				dbPlayer, err := GetPlayerByID(testDb, GetEncryptionKey(), player.ID)
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(dbPlayer.GameID).To(Equal(player.GameID))
@@ -124,6 +166,7 @@ var _ = Describe("Player Model", func() {
 				metadata := map[string]interface{}{"x": "a"}
 				updPlayer, err := UpdatePlayer(
 					testDb,
+					GetEncryptionKey(),
 					player.GameID,
 					player.PublicID,
 					player.Name,
@@ -133,7 +176,7 @@ var _ = Describe("Player Model", func() {
 				Expect(err).NotTo(HaveOccurred())
 				Expect(updPlayer.ID).To(Equal(player.ID))
 
-				dbPlayer, err := GetPlayerByPublicID(testDb, player.GameID, player.PublicID)
+				dbPlayer, err := GetPlayerByPublicID(testDb, GetEncryptionKey(), player.GameID, player.PublicID)
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(dbPlayer.Metadata["x"]).To(BeEquivalentTo(metadata["x"]))
@@ -150,6 +193,7 @@ var _ = Describe("Player Model", func() {
 				metadata := map[string]interface{}{"x": "1"}
 				updPlayer, err := UpdatePlayer(
 					testDb,
+					GetEncryptionKey(),
 					gameID,
 					publicID,
 					publicID,
@@ -159,7 +203,7 @@ var _ = Describe("Player Model", func() {
 				Expect(err).NotTo(HaveOccurred())
 				Expect(updPlayer.ID).To(BeNumerically(">", 0))
 
-				dbPlayer, err := GetPlayerByPublicID(testDb, updPlayer.GameID, updPlayer.PublicID)
+				dbPlayer, err := GetPlayerByPublicID(testDb, GetEncryptionKey(), updPlayer.GameID, updPlayer.PublicID)
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(dbPlayer.Metadata).To(Equal(metadata))
@@ -168,6 +212,7 @@ var _ = Describe("Player Model", func() {
 			It("Should not update a Player with Invalid Data with UpdatePlayer", func() {
 				_, err := UpdatePlayer(
 					testDb,
+					GetEncryptionKey(),
 					"-1",
 					"qwe",
 					"some player name",
@@ -181,11 +226,12 @@ var _ = Describe("Player Model", func() {
 		Describe("Get Player Details", func() {
 			It("Should get Player Details", func() {
 				gameID := uuid.NewV4().String()
-				player, err := GetTestPlayerWithMemberships(testDb, gameID, 5, 2, 3, 8)
+				_, player, err := GetTestPlayerWithMemberships(testDb, gameID, 5, 2, 3, 8)
 				Expect(err).NotTo(HaveOccurred())
 
 				playerDetails, err := GetPlayerDetails(
 					testDb,
+					GetEncryptionKey(),
 					player.GameID,
 					player.PublicID,
 				)
@@ -267,6 +313,7 @@ var _ = Describe("Player Model", func() {
 
 				playerDetails, err := GetPlayerDetails(
 					testDb,
+					GetEncryptionKey(),
 					players[0].GameID,
 					players[0].PublicID,
 				)
@@ -313,6 +360,7 @@ var _ = Describe("Player Model", func() {
 
 				c, err := CreateClan(
 					testDb,
+					GetEncryptionKey(),
 					game.PublicID,
 					"johns-bug-clan",
 					"johns-bug-clan",
@@ -327,6 +375,7 @@ var _ = Describe("Player Model", func() {
 
 				playerDetails, err := GetPlayerDetails(
 					testDb,
+					GetEncryptionKey(),
 					players[0].GameID,
 					players[0].PublicID,
 				)
@@ -379,6 +428,7 @@ var _ = Describe("Player Model", func() {
 
 				playerDetails, err := GetPlayerDetails(
 					testDb,
+					GetEncryptionKey(),
 					players[0].GameID,
 					players[0].PublicID,
 				)
@@ -430,6 +480,7 @@ var _ = Describe("Player Model", func() {
 
 				playerDetails, err := GetPlayerDetails(
 					testDb,
+					GetEncryptionKey(),
 					player.GameID,
 					player.PublicID,
 				)
@@ -460,9 +511,50 @@ var _ = Describe("Player Model", func() {
 				Expect(len(pendingInvites)).To(Equal(0))
 			})
 
+			It("Should decrypt Player.Name in Details", func() {
+				gameID := uuid.NewV4().String()
+				owner, player, err := GetTestPlayerWithMemberships(testDb, gameID, 5, 2, 3, 8)
+				Expect(err).NotTo(HaveOccurred())
+
+				testing.UpdateEncryptingTestPlayer(testDb, GetEncryptionKey(), owner)
+				testing.UpdateEncryptingTestPlayer(testDb, GetEncryptionKey(), player)
+
+				playerDetails, err := GetPlayerDetails(
+					testDb,
+					GetEncryptionKey(),
+					player.GameID,
+					player.PublicID,
+				)
+
+				Expect(err).NotTo(HaveOccurred())
+
+				testing.DecryptTestPlayer(GetEncryptionKey(), player)
+
+				Expect(playerDetails["name"]).To(Equal(player.Name))
+
+				approvedMembership := playerDetails["memberships"].([]map[string]interface{})[0]
+
+				Expect(approvedMembership["approver"]).NotTo(BeEquivalentTo(nil))
+				approver := approvedMembership["approver"].(map[string]interface{})
+				Expect(approver["name"]).To(Equal(player.Name))
+
+				deniedMembership := playerDetails["memberships"].([]map[string]interface{})[6]
+				Expect(deniedMembership["denier"]).NotTo(BeEquivalentTo(nil))
+				denier := deniedMembership["denier"].(map[string]interface{})
+				Expect(denier["name"]).To(Equal(player.Name))
+
+				testing.DecryptTestPlayer(GetEncryptionKey(), owner)
+
+				pendingInvite := playerDetails["memberships"].([]map[string]interface{})[14]
+				Expect(pendingInvite["requestor"]).NotTo(BeEquivalentTo(nil))
+				requestor := pendingInvite["requestor"].(map[string]interface{})
+				Expect(requestor["name"]).To(Equal(owner.Name))
+			})
+
 			It("Should return error if Player does not exist", func() {
 				playerDetails, err := GetPlayerDetails(
 					testDb,
+					GetEncryptionKey(),
 					"game-id",
 					"invalid-player-id",
 				)
@@ -476,7 +568,7 @@ var _ = Describe("Player Model", func() {
 		Describe("Update Player Membership Count", func() {
 			It("Should work if membership is created", func() {
 				prevMemberships := 5
-				player, err := GetTestPlayerWithMemberships(testDb, "", prevMemberships, 2, 3, 4)
+				_, player, err := GetTestPlayerWithMemberships(testDb, "", prevMemberships, 2, 3, 4)
 				Expect(err).NotTo(HaveOccurred())
 
 				clan := ClanFactory.MustCreateWithOption(map[string]interface{}{
@@ -505,14 +597,14 @@ var _ = Describe("Player Model", func() {
 				err = UpdatePlayerMembershipCount(testDb, player.ID)
 				Expect(err).NotTo(HaveOccurred())
 
-				dbPlayer, err := GetPlayerByID(testDb, player.ID)
+				dbPlayer, err := GetPlayerByID(testDb, GetEncryptionKey(), player.ID)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(dbPlayer.MembershipCount).To(Equal(prevMemberships + 1))
 			})
 
 			It("Should work if membership is deleted", func() {
 				prevMemberships := 5
-				player, err := GetTestPlayerWithMemberships(testDb, "", prevMemberships, 2, 3, 4)
+				_, player, err := GetTestPlayerWithMemberships(testDb, "", prevMemberships, 2, 3, 4)
 				Expect(err).NotTo(HaveOccurred())
 
 				var membership *Membership
@@ -525,7 +617,7 @@ var _ = Describe("Player Model", func() {
 				err = UpdatePlayerMembershipCount(testDb, player.ID)
 				Expect(err).NotTo(HaveOccurred())
 
-				dbPlayer, err := GetPlayerByID(testDb, player.ID)
+				dbPlayer, err := GetPlayerByID(testDb, GetEncryptionKey(), player.ID)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(dbPlayer.MembershipCount).To(Equal(prevMemberships - 1))
 			})
@@ -557,7 +649,7 @@ var _ = Describe("Player Model", func() {
 
 				err = UpdatePlayerOwnershipCount(testDb, player.ID)
 				Expect(err).NotTo(HaveOccurred())
-				dbPlayer, err := GetPlayerByID(testDb, player.ID)
+				dbPlayer, err := GetPlayerByID(testDb, GetEncryptionKey(), player.ID)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(dbPlayer.OwnershipCount).To(Equal(1))
 			})
@@ -593,7 +685,7 @@ var _ = Describe("Player Model", func() {
 
 				err = UpdatePlayerOwnershipCount(testDb, player.ID)
 				Expect(err).NotTo(HaveOccurred())
-				dbPlayer, err := GetPlayerByID(testDb, player.ID)
+				dbPlayer, err := GetPlayerByID(testDb, GetEncryptionKey(), player.ID)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(dbPlayer.OwnershipCount).To(Equal(1))
 			})

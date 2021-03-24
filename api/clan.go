@@ -126,6 +126,7 @@ func CreateClanHandler(app *App) func(c echo.Context) error {
 			log.D(l, "Creating clan...")
 			clan, err = models.CreateClan(
 				tx,
+				app.EncryptionKey,
 				gameID,
 				payload.PublicID,
 				payload.Name,
@@ -381,6 +382,7 @@ func LeaveClanHandler(app *App) func(c echo.Context) error {
 				log.D(l, "Leaving clan...")
 				clan, previousOwner, newOwner, err = models.LeaveClan(
 					tx,
+					app.EncryptionKey,
 					gameID,
 					publicID,
 				)
@@ -429,7 +431,7 @@ func LeaveClanHandler(app *App) func(c echo.Context) error {
 		fields := []zap.Field{}
 
 		WithSegment("response-serialize", c, func() error {
-			pOwnerJSON := previousOwner.Serialize()
+			pOwnerJSON := previousOwner.Serialize(app.EncryptionKey)
 			delete(pOwnerJSON, "gameID")
 
 			res["previousOwner"] = pOwnerJSON
@@ -437,7 +439,7 @@ func LeaveClanHandler(app *App) func(c echo.Context) error {
 			res["isDeleted"] = true
 
 			if newOwner != nil {
-				nOwnerJSON := newOwner.Serialize()
+				nOwnerJSON := newOwner.Serialize(app.EncryptionKey)
 				delete(nOwnerJSON, "gameID")
 				res["newOwner"] = nOwnerJSON
 				res["isDeleted"] = false
@@ -538,6 +540,7 @@ func TransferOwnershipHandler(app *App) func(c echo.Context) error {
 				log.D(l, "Transferring clan ownership...")
 				clan, previousOwner, newOwner, err = models.TransferClanOwnership(
 					tx,
+					app.EncryptionKey,
 					gameID,
 					publicID,
 					payload.PlayerPublicID,
@@ -584,10 +587,10 @@ func TransferOwnershipHandler(app *App) func(c echo.Context) error {
 
 		var pOwnerJSON, nOwnerJSON map[string]interface{}
 		err = WithSegment("response-serialize", c, func() error {
-			pOwnerJSON = previousOwner.Serialize()
+			pOwnerJSON = previousOwner.Serialize(app.EncryptionKey)
 			delete(pOwnerJSON, "gameID")
 
-			nOwnerJSON = newOwner.Serialize()
+			nOwnerJSON = newOwner.Serialize(app.EncryptionKey)
 			delete(nOwnerJSON, "gameID")
 
 			return nil
@@ -842,6 +845,7 @@ func RetrieveClanHandler(app *App) func(c echo.Context) error {
 			log.D(l, "Retrieving clan details...")
 			clanResult, err = models.GetClanDetails(
 				db,
+				app.EncryptionKey,
 				gameID,
 				clan,
 				game.MaxClansPerPlayer,

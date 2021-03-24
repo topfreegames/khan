@@ -31,7 +31,7 @@ func dispatchClanOwnershipChangeHook(app *App, hookType int, clan *models.Clan, 
 		zap.String("previousOwnerPublicID", previousOwner.PublicID),
 	)
 
-	previousOwnerJSON := previousOwner.Serialize()
+	previousOwnerJSON := previousOwner.Serialize(app.EncryptionKey)
 	delete(previousOwnerJSON, "gameID")
 
 	clanJSON := clan.Serialize()
@@ -46,7 +46,7 @@ func dispatchClanOwnershipChangeHook(app *App, hookType int, clan *models.Clan, 
 	}
 
 	if newOwner != nil {
-		newOwnerJSON := newOwner.Serialize()
+		newOwnerJSON := newOwner.Serialize(app.EncryptionKey)
 		delete(newOwnerJSON, "gameID")
 		result["newOwner"] = newOwnerJSON
 		result["isDeleted"] = false

@@ -298,6 +298,7 @@ var _ = Describe("Clan Model", func() {
 
 				clan, err := CreateClan(
 					testDb,
+					GetEncryptionKey(),
 					player.GameID,
 					"create-1",
 					randomdata.FullName(randomdata.RandomGender),
@@ -318,7 +319,7 @@ var _ = Describe("Clan Model", func() {
 				Expect(dbClan.PublicID).To(Equal(clan.PublicID))
 				Expect(dbClan.MembershipCount).To(Equal(1))
 
-				dbPlayer, err := GetPlayerByID(testDb, player.ID)
+				dbPlayer, err := GetPlayerByID(testDb, GetEncryptionKey(), player.ID)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(dbPlayer.OwnershipCount).To(Equal(1))
 			})
@@ -329,6 +330,7 @@ var _ = Describe("Clan Model", func() {
 
 				_, err = CreateClan(
 					testDb,
+					GetEncryptionKey(),
 					player.GameID,
 					strings.Repeat("a", 256),
 					"clan-name",
@@ -349,6 +351,7 @@ var _ = Describe("Clan Model", func() {
 
 				_, err = CreateClan(
 					testDb,
+					GetEncryptionKey(),
 					owner.GameID,
 					"create-1",
 					randomdata.FullName(randomdata.RandomGender),
@@ -369,6 +372,7 @@ var _ = Describe("Clan Model", func() {
 
 				_, err = CreateClan(
 					testDb,
+					GetEncryptionKey(),
 					game.PublicID,
 					"create-1",
 					randomdata.FullName(randomdata.RandomGender),
@@ -388,6 +392,7 @@ var _ = Describe("Clan Model", func() {
 				playerPublicID := randomdata.FullName(randomdata.RandomGender)
 				_, err = CreateClan(
 					testDb,
+					GetEncryptionKey(),
 					"create-1",
 					randomdata.FullName(randomdata.RandomGender),
 					"clan-name",
@@ -517,7 +522,7 @@ var _ = Describe("Clan Model", func() {
 					_, clan, owner, players, memberships, err := GetClanWithMemberships(testDb, 1, 0, 0, 0, "", "")
 					Expect(err).NotTo(HaveOccurred())
 
-					clan, previousOwner, newOwner, err := LeaveClan(testDb, clan.GameID, clan.PublicID)
+					clan, previousOwner, newOwner, err := LeaveClan(testDb, GetEncryptionKey(), clan.GameID, clan.PublicID)
 					Expect(err).NotTo(HaveOccurred())
 
 					Expect(previousOwner.ID).To(Equal(owner.ID))
@@ -531,11 +536,11 @@ var _ = Describe("Clan Model", func() {
 					Expect(dbDeletedMembership.DeletedBy).To(Equal(memberships[0].PlayerID))
 					Expect(dbDeletedMembership.DeletedAt).To(BeNumerically(">", util.NowMilli()-1000))
 
-					dbPlayer, err := GetPlayerByID(testDb, owner.ID)
+					dbPlayer, err := GetPlayerByID(testDb, GetEncryptionKey(), owner.ID)
 					Expect(err).NotTo(HaveOccurred())
 					Expect(dbPlayer.OwnershipCount).To(Equal(0))
 
-					dbPlayer, err = GetPlayerByID(testDb, memberships[0].PlayerID)
+					dbPlayer, err = GetPlayerByID(testDb, GetEncryptionKey(), memberships[0].PlayerID)
 					Expect(err).NotTo(HaveOccurred())
 					Expect(dbPlayer.OwnershipCount).To(Equal(1))
 					Expect(dbPlayer.MembershipCount).To(Equal(0))
@@ -549,7 +554,7 @@ var _ = Describe("Clan Model", func() {
 					_, clan, owner, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
 					Expect(err).NotTo(HaveOccurred())
 
-					clan, previousOwner, newOwner, err := LeaveClan(testDb, clan.GameID, clan.PublicID)
+					clan, previousOwner, newOwner, err := LeaveClan(testDb, GetEncryptionKey(), clan.GameID, clan.PublicID)
 					Expect(err).NotTo(HaveOccurred())
 					Expect(previousOwner.ID).To(Equal(owner.ID))
 					Expect(newOwner).To(BeNil())
@@ -558,7 +563,7 @@ var _ = Describe("Clan Model", func() {
 					Expect(err).To(HaveOccurred())
 					Expect(err.Error()).To(Equal(fmt.Sprintf("Clan was not found with id: %s", clan.PublicID)))
 
-					dbPlayer, err := GetPlayerByID(testDb, owner.ID)
+					dbPlayer, err := GetPlayerByID(testDb, GetEncryptionKey(), owner.ID)
 					Expect(err).NotTo(HaveOccurred())
 					Expect(dbPlayer.OwnershipCount).To(Equal(0))
 				})
@@ -570,7 +575,7 @@ var _ = Describe("Clan Model", func() {
 					_, clan, _, _, _, err := GetClanWithMemberships(testDb, 1, 0, 0, 0, "", "")
 					Expect(err).NotTo(HaveOccurred())
 
-					_, _, _, err = LeaveClan(testDb, clan.GameID, "-1")
+					_, _, _, err = LeaveClan(testDb, GetEncryptionKey(), clan.GameID, "-1")
 					Expect(err).To(HaveOccurred())
 					Expect(err.Error()).To(Equal("Clan was not found with id: -1"))
 				})
@@ -584,6 +589,7 @@ var _ = Describe("Clan Model", func() {
 					Expect(err).NotTo(HaveOccurred())
 					clan, previousOwner, newOwner, err := TransferClanOwnership(
 						testDb,
+						GetEncryptionKey(),
 						clan.GameID,
 						clan.PublicID,
 						players[0].PublicID,
@@ -610,12 +616,12 @@ var _ = Describe("Clan Model", func() {
 					Expect(newOwnerMembership.DeletedBy).To(Equal(newOwnerMembership.PlayerID))
 					Expect(newOwnerMembership.DeletedAt).To(BeNumerically(">", util.NowMilli()-1000))
 
-					dbPlayer, err := GetPlayerByID(testDb, owner.ID)
+					dbPlayer, err := GetPlayerByID(testDb, GetEncryptionKey(), owner.ID)
 					Expect(err).NotTo(HaveOccurred())
 					Expect(dbPlayer.OwnershipCount).To(Equal(0))
 					Expect(dbPlayer.MembershipCount).To(Equal(1))
 
-					dbPlayer, err = GetPlayerByID(testDb, newOwnerMembership.PlayerID)
+					dbPlayer, err = GetPlayerByID(testDb, GetEncryptionKey(), newOwnerMembership.PlayerID)
 					Expect(err).NotTo(HaveOccurred())
 					Expect(dbPlayer.OwnershipCount).To(Equal(1))
 					Expect(dbPlayer.MembershipCount).To(Equal(0))
@@ -627,6 +633,7 @@ var _ = Describe("Clan Model", func() {
 
 					clan, previousOwner, newOwner, err := TransferClanOwnership(
 						testDb,
+						GetEncryptionKey(),
 						clan.GameID,
 						clan.PublicID,
 						players[0].PublicID,
@@ -639,6 +646,7 @@ var _ = Describe("Clan Model", func() {
 
 					clan, previousOwner, newOwner, err = TransferClanOwnership(
 						testDb,
+						GetEncryptionKey(),
 						clan.GameID,
 						clan.PublicID,
 						players[1].PublicID,
@@ -669,17 +677,17 @@ var _ = Describe("Clan Model", func() {
 					Expect(newOwnerMembership.DeletedBy).To(Equal(newOwnerMembership.PlayerID))
 					Expect(newOwnerMembership.DeletedAt).To(BeNumerically(">", util.NowMilli()-1000))
 
-					dbPlayer, err := GetPlayerByID(testDb, firstOwnerMembership.PlayerID)
+					dbPlayer, err := GetPlayerByID(testDb, GetEncryptionKey(), firstOwnerMembership.PlayerID)
 					Expect(err).NotTo(HaveOccurred())
 					Expect(dbPlayer.OwnershipCount).To(Equal(0))
 					Expect(dbPlayer.MembershipCount).To(Equal(1))
 
-					dbPlayer, err = GetPlayerByID(testDb, previousOwnerMembership.PlayerID)
+					dbPlayer, err = GetPlayerByID(testDb, GetEncryptionKey(), previousOwnerMembership.PlayerID)
 					Expect(err).NotTo(HaveOccurred())
 					Expect(dbPlayer.OwnershipCount).To(Equal(0))
 					Expect(dbPlayer.MembershipCount).To(Equal(1))
 
-					dbPlayer, err = GetPlayerByID(testDb, newOwnerMembership.PlayerID)
+					dbPlayer, err = GetPlayerByID(testDb, GetEncryptionKey(), newOwnerMembership.PlayerID)
 					Expect(err).NotTo(HaveOccurred())
 					Expect(dbPlayer.OwnershipCount).To(Equal(1))
 					Expect(dbPlayer.MembershipCount).To(Equal(0))
@@ -693,6 +701,7 @@ var _ = Describe("Clan Model", func() {
 
 					_, _, _, err = TransferClanOwnership(
 						testDb,
+						GetEncryptionKey(),
 						clan.GameID,
 						"-1",
 						players[0].PublicID,
@@ -709,6 +718,7 @@ var _ = Describe("Clan Model", func() {
 
 					_, _, _, err = TransferClanOwnership(
 						testDb,
+						GetEncryptionKey(),
 						clan.GameID,
 						clan.PublicID,
 						"some-random-player",
@@ -754,7 +764,7 @@ var _ = Describe("Clan Model", func() {
 				)
 				config := viper.New()
 				api.SetRetrieveClanHandlerConfigurationDefaults(config)
-				clanData, err := GetClanDetails(testDb, clan.GameID, clan, 1, NewDefaultGetClanDetailsOptions(config))
+				clanData, err := GetClanDetails(testDb, GetEncryptionKey(), clan.GameID, clan, 1, NewDefaultGetClanDetailsOptions(config))
 				Expect(err).NotTo(HaveOccurred())
 
 				clanPlayers, err := GetClanMembers(testDb, clan.GameID, clan.PublicID)
@@ -775,7 +785,7 @@ var _ = Describe("Clan Model", func() {
 				)
 				config := viper.New()
 				api.SetRetrieveClanHandlerConfigurationDefaults(config)
-				clanData, err := GetClanDetails(testDb, clan.GameID, clan, 1, NewDefaultGetClanDetailsOptions(config))
+				clanData, err := GetClanDetails(testDb, GetEncryptionKey(), clan.GameID, clan, 1, NewDefaultGetClanDetailsOptions(config))
 				Expect(err).NotTo(HaveOccurred())
 
 				clanPlayers, err := GetClanMembers(testDb, clan.GameID, clan.PublicID)
@@ -796,7 +806,7 @@ var _ = Describe("Clan Model", func() {
 
 				config := viper.New()
 				api.SetRetrieveClanHandlerConfigurationDefaults(config)
-				clanData, err := GetClanDetails(testDb, clan.GameID, clan, 1, NewDefaultGetClanDetailsOptions(config))
+				clanData, err := GetClanDetails(testDb, GetEncryptionKey(), clan.GameID, clan, 1, NewDefaultGetClanDetailsOptions(config))
 				Expect(err).NotTo(HaveOccurred())
 				Expect(clanData["name"]).To(Equal(clan.Name))
 				Expect(clanData["metadata"]).To(Equal(clan.Metadata))
@@ -819,13 +829,13 @@ var _ = Describe("Clan Model", func() {
 				Expect(len(denied)).To(Equal(3))
 
 				playerDict := map[string]*Player{}
-				for i := 0; i < 22; i++ {
-					playerDict[players[i].PublicID] = players[i]
+				for _, player := range players {
+					playerDict[player.PublicID] = player
 				}
 
 				membershipDict := map[int64]*Membership{}
-				for i := 0; i < 22; i++ {
-					membershipDict[memberships[i].PlayerID] = memberships[i]
+				for _, membership := range memberships {
+					membershipDict[membership.PlayerID] = membership
 				}
 
 				for _, playerData := range roster {
@@ -902,7 +912,7 @@ var _ = Describe("Clan Model", func() {
 
 				config := viper.New()
 				api.SetRetrieveClanHandlerConfigurationDefaults(config)
-				clanData, err := GetClanDetails(testDb, clan.GameID, clan, 1, NewDefaultGetClanDetailsOptions(config))
+				clanData, err := GetClanDetails(testDb, GetEncryptionKey(), clan.GameID, clan, 1, NewDefaultGetClanDetailsOptions(config))
 				Expect(err).NotTo(HaveOccurred())
 				Expect(clanData["name"]).To(Equal(clan.Name))
 				Expect(clanData["metadata"]).To(Equal(clan.Metadata))
@@ -936,7 +946,7 @@ var _ = Describe("Clan Model", func() {
 
 				config := viper.New()
 				api.SetRetrieveClanHandlerConfigurationDefaults(config)
-				clanData, err := GetClanDetails(testDb, clan.GameID, clan, 1, NewDefaultGetClanDetailsOptions(config))
+				clanData, err := GetClanDetails(testDb, GetEncryptionKey(), clan.GameID, clan, 1, NewDefaultGetClanDetailsOptions(config))
 				Expect(err).NotTo(HaveOccurred())
 				Expect(clanData["name"]).To(Equal(clan.Name))
 				Expect(clanData["metadata"]).To(Equal(clan.Metadata))
@@ -947,10 +957,96 @@ var _ = Describe("Clan Model", func() {
 				Expect(len(roster)).To(Equal(0))
 			})
 
+			It("Should get clan members decrypting player name", func() {
+				gameID := uuid.NewV4().String()
+				_, clan, owner, players, _, err := GetClanWithMemberships(
+					testDb, 10, 3, 4, 5, gameID, uuid.NewV4().String(),
+				)
+				Expect(err).NotTo(HaveOccurred())
+
+				testing.UpdateEncryptingTestPlayer(testDb, GetEncryptionKey(), owner)
+				for _, player := range players {
+					testing.UpdateEncryptingTestPlayer(testDb, GetEncryptionKey(), player)
+				}
+
+				config := viper.New()
+				api.SetRetrieveClanHandlerConfigurationDefaults(config)
+				clanData, err := GetClanDetails(testDb, GetEncryptionKey(), clan.GameID, clan, 1, NewDefaultGetClanDetailsOptions(config))
+				Expect(err).NotTo(HaveOccurred())
+
+				name, err := util.DecryptData(owner.Name, GetEncryptionKey())
+				Expect(err).NotTo(HaveOccurred())
+				Expect(clanData["owner"].(map[string]interface{})["name"]).To(Equal(name))
+
+				roster := clanData["roster"].([]map[string]interface{})
+				Expect(len(roster)).To(Equal(10))
+
+				pendingApplications := clanData["memberships"].(map[string]interface{})["pendingApplications"].([]map[string]interface{})
+				Expect(len(pendingApplications)).To(Equal(0))
+
+				pendingInvites := clanData["memberships"].(map[string]interface{})["pendingInvites"].([]map[string]interface{})
+				Expect(len(pendingInvites)).To(Equal(5))
+
+				banned := clanData["memberships"].(map[string]interface{})["banned"].([]map[string]interface{})
+				Expect(len(banned)).To(Equal(4))
+
+				denied := clanData["memberships"].(map[string]interface{})["denied"].([]map[string]interface{})
+				Expect(len(denied)).To(Equal(3))
+
+				playerDict := map[string]*Player{}
+				for _, player := range players {
+					testing.DecryptTestPlayer(GetEncryptionKey(), player)
+					playerDict[player.PublicID] = player
+				}
+
+				for _, playerData := range roster {
+					player := playerData["player"].(map[string]interface{})
+					pid := player["publicID"].(string)
+					name := player["name"].(string)
+					Expect(name).To(Equal(playerDict[pid].Name))
+
+					//Approval
+					approver := player["approver"].(map[string]interface{})
+					Expect(approver["name"]).To(Equal(playerDict[pid].Name))
+				}
+
+				for _, playerData := range pendingInvites {
+					player := playerData["player"].(map[string]interface{})
+					pid := player["publicID"].(string)
+					name := player["name"].(string)
+					Expect(name).To(Equal(playerDict[pid].Name))
+				}
+
+				for _, playerData := range pendingApplications {
+					player := playerData["player"].(map[string]interface{})
+					pid := player["publicID"].(string)
+					name := player["name"].(string)
+					Expect(name).To(Equal(playerDict[pid].Name))
+				}
+
+				for _, playerData := range banned {
+					player := playerData["player"].(map[string]interface{})
+					pid := player["publicID"].(string)
+					name := player["name"].(string)
+					Expect(name).To(Equal(playerDict[pid].Name))
+				}
+
+				for _, playerData := range denied {
+					player := playerData["player"].(map[string]interface{})
+					pid := player["publicID"].(string)
+					name := player["name"].(string)
+					Expect(name).To(Equal(playerDict[pid].Name))
+
+					//Approval
+					denier := player["denier"].(map[string]interface{})
+					Expect(denier["name"]).To(Equal(playerDict[pid].Name))
+				}
+			})
+
 			It("Should fail if clan does not exist", func() {
 				config := viper.New()
 				api.SetRetrieveClanHandlerConfigurationDefaults(config)
-				clanData, err := GetClanDetails(testDb, "fake-game-id", &Clan{PublicID: "fake-public-id"}, 1, NewDefaultGetClanDetailsOptions(config))
+				clanData, err := GetClanDetails(testDb, GetEncryptionKey(), "fake-game-id", &Clan{PublicID: "fake-public-id"}, 1, NewDefaultGetClanDetailsOptions(config))
 				Expect(clanData).To(BeNil())
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(Equal("Clan was not found with id: fake-public-id"))
@@ -979,7 +1075,7 @@ var _ = Describe("Clan Model", func() {
 			It("Should fail if clan does not exist", func() {
 				config := viper.New()
 				api.SetRetrieveClanHandlerConfigurationDefaults(config)
-				clanData, err := GetClanDetails(testDb, "fake-game-id", &Clan{PublicID: "fake-public-id"}, 1, NewDefaultGetClanDetailsOptions(config))
+				clanData, err := GetClanDetails(testDb, GetEncryptionKey(), "fake-game-id", &Clan{PublicID: "fake-public-id"}, 1, NewDefaultGetClanDetailsOptions(config))
 				Expect(clanData).To(BeNil())
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(Equal("Clan was not found with id: fake-public-id"))
@@ -1144,7 +1240,7 @@ var _ = Describe("Clan Model", func() {
 				)
 				Expect(err).NotTo(HaveOccurred())
 
-				dbClan, dbOwner, err := GetClanAndOwnerByPublicID(testDb, clan.GameID, clan.PublicID)
+				dbClan, dbOwner, err := GetClanAndOwnerByPublicID(testDb, GetEncryptionKey(), clan.GameID, clan.PublicID)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(dbClan.ID).To(Equal(clan.ID))
 				Expect(dbOwner.ID).To(Equal(owner.ID))

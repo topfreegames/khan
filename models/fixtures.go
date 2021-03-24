@@ -117,6 +117,13 @@ func configureFactory(fct *factory.Factory) *factory.Factory {
 	})
 }
 
+var testKey []byte = []byte("00000000000000000000000000000000")
+
+//GetEncryptionKey returns the models test encryptionKey
+func GetEncryptionKey() []byte {
+	return testKey
+}
+
 // PlayerFactory is responsible for constructing test player instances
 var PlayerFactory = configureFactory(factory.NewFactory(
 	&Player{},
@@ -557,8 +564,8 @@ func GetTestHooks(db DB, gameID string, numberOfHooks int) ([]*Hook, error) {
 	return hooks, nil
 }
 
-//GetTestPlayerWithMemberships returns a player with approved, rejected and banned memberships
-func GetTestPlayerWithMemberships(db DB, gameID string, approvedMemberships, rejectedMemberships, bannedMemberships, pendingMemberships int) (*Player, error) {
+//GetTestPlayerWithMemberships returns the clan owner, a player with approved, rejected, and banned memberships
+func GetTestPlayerWithMemberships(db DB, gameID string, approvedMemberships, rejectedMemberships, bannedMemberships, pendingMemberships int) (*Player, *Player, error) {
 	if gameID == "" {
 		gameID = uuid.NewV4().String()
 	}
@@ -567,7 +574,7 @@ func GetTestPlayerWithMemberships(db DB, gameID string, approvedMemberships, rej
 	}).(*Game)
 	err := db.Insert(game)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	owner := PlayerFactory.MustCreateWithOption(map[string]interface{}{
@@ -576,7 +583,7 @@ func GetTestPlayerWithMemberships(db DB, gameID string, approvedMemberships, rej
 	}).(*Player)
 	err = db.Insert(owner)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	player := PlayerFactory.MustCreateWithOption(map[string]interface{}{
@@ -585,7 +592,7 @@ func GetTestPlayerWithMemberships(db DB, gameID string, approvedMemberships, rej
 	}).(*Player)
 	err = db.Insert(player)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	createClan := func() (*Clan, error) {
@@ -645,29 +652,29 @@ func GetTestPlayerWithMemberships(db DB, gameID string, approvedMemberships, rej
 	for i := 0; i < approvedMemberships; i++ {
 		_, err := createMembership(true, false, false)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 	}
 	for i := 0; i < rejectedMemberships; i++ {
 		_, err := createMembership(false, true, false)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 	}
 	for i := 0; i < bannedMemberships; i++ {
 		_, err := createMembership(false, false, true)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 	}
 	for i := 0; i < pendingMemberships; i++ {
 		_, err := createMembership(false, false, false)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 	}
 
-	return player, nil
+	return owner, player, nil
 }
 
 //GetTestClanWithStaleData returns a player with approved, rejected and banned memberships

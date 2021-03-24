@@ -14,7 +14,7 @@ import (
 	"github.com/Pallinder/go-randomdata"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/satori/go.uuid"
+	uuid "github.com/satori/go.uuid"
 	. "github.com/topfreegames/khan/models"
 	"github.com/topfreegames/khan/util"
 )
@@ -31,7 +31,7 @@ var _ = Describe("Membership Model", func() {
 	Describe("Membership Model", func() {
 		Describe("Get Number of Pending Invites", func() {
 			It("Should get number of pending invites", func() {
-				player, err := GetTestPlayerWithMemberships(testDb, uuid.NewV4().String(), 0, 0, 0, 20)
+				_, player, err := GetTestPlayerWithMemberships(testDb, uuid.NewV4().String(), 0, 0, 0, 20)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(player).NotTo(BeEquivalentTo(nil))
 
@@ -59,7 +59,7 @@ var _ = Describe("Membership Model", func() {
 
 			It("Should not create a new membership for a member with max number of invitations", func() {
 				gameID := uuid.NewV4().String()
-				player, err := GetTestPlayerWithMemberships(testDb, gameID, 0, 0, 0, 20)
+				_, player, err := GetTestPlayerWithMemberships(testDb, gameID, 0, 0, 0, 20)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(player).NotTo(BeEquivalentTo(nil))
 
@@ -73,6 +73,7 @@ var _ = Describe("Membership Model", func() {
 
 				_, err = CreateMembership(
 					testDb,
+					GetEncryptionKey(),
 					game,
 					game.PublicID,
 					"Member",
@@ -102,6 +103,7 @@ var _ = Describe("Membership Model", func() {
 
 				_, err = CreateMembership(
 					testDb,
+					GetEncryptionKey(),
 					game,
 					game.PublicID,
 					"Member",
@@ -122,7 +124,7 @@ var _ = Describe("Membership Model", func() {
 
 			It("Should create a new membership for a member when game MaxPendingInvites is -1", func() {
 				gameID := uuid.NewV4().String()
-				player, err := GetTestPlayerWithMemberships(testDb, gameID, 0, 0, 0, 20)
+				_, player, err := GetTestPlayerWithMemberships(testDb, gameID, 0, 0, 0, 20)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(player).NotTo(BeEquivalentTo(nil))
 
@@ -139,6 +141,7 @@ var _ = Describe("Membership Model", func() {
 
 				membership, err := CreateMembership(
 					testDb,
+					GetEncryptionKey(),
 					game,
 					game.PublicID,
 					"Member",
@@ -162,6 +165,7 @@ var _ = Describe("Membership Model", func() {
 
 				updMembership, err := CreateMembership(
 					testDb,
+					GetEncryptionKey(),
 					game, game.PublicID,
 					"Member",
 					players[0].PublicID,
@@ -192,6 +196,7 @@ var _ = Describe("Membership Model", func() {
 
 				_, err = CreateMembership(
 					testDb,
+					GetEncryptionKey(),
 					game, game.PublicID,
 					"Member",
 					player.PublicID,
@@ -203,6 +208,7 @@ var _ = Describe("Membership Model", func() {
 
 				updMembership, err := CreateMembership(
 					testDb,
+					GetEncryptionKey(),
 					game, game.PublicID,
 					"Member",
 					player.PublicID,
@@ -229,6 +235,7 @@ var _ = Describe("Membership Model", func() {
 
 				_, err = CreateMembership(
 					testDb,
+					GetEncryptionKey(),
 					game, game.PublicID,
 					"Member",
 					player.PublicID,
@@ -240,6 +247,7 @@ var _ = Describe("Membership Model", func() {
 
 				_, err = CreateMembership(
 					testDb,
+					GetEncryptionKey(),
 					game, game.PublicID,
 					"Member",
 					player.PublicID,
@@ -260,6 +268,7 @@ var _ = Describe("Membership Model", func() {
 
 				_, err = CreateMembership(
 					testDb,
+					GetEncryptionKey(),
 					game, game.PublicID,
 					"Member",
 					player.PublicID,
@@ -271,6 +280,7 @@ var _ = Describe("Membership Model", func() {
 
 				updMembership, err := CreateMembership(
 					testDb,
+					GetEncryptionKey(),
 					game, game.PublicID,
 					"Member",
 					player.PublicID,
@@ -301,6 +311,7 @@ var _ = Describe("Membership Model", func() {
 
 				_, err = CreateMembership(
 					testDb,
+					GetEncryptionKey(),
 					game, game.PublicID,
 					"Member",
 					player.PublicID,
@@ -312,6 +323,7 @@ var _ = Describe("Membership Model", func() {
 
 				_, err = CreateMembership(
 					testDb,
+					GetEncryptionKey(),
 					game, game.PublicID,
 					"Member",
 					player.PublicID,
@@ -337,6 +349,7 @@ var _ = Describe("Membership Model", func() {
 
 				_, err = CreateMembership(
 					testDb,
+					GetEncryptionKey(),
 					game, game.PublicID,
 					"Member",
 					player.PublicID,
@@ -348,6 +361,7 @@ var _ = Describe("Membership Model", func() {
 
 				updMembership, err := CreateMembership(
 					testDb,
+					GetEncryptionKey(),
 					game, game.PublicID,
 					"Member",
 					player.PublicID,
@@ -379,6 +393,7 @@ var _ = Describe("Membership Model", func() {
 
 				_, err = CreateMembership(
 					testDb,
+					GetEncryptionKey(),
 					game, game.PublicID,
 					"Member",
 					player.PublicID,
@@ -390,6 +405,7 @@ var _ = Describe("Membership Model", func() {
 
 				updMembership, err := CreateMembership(
 					testDb,
+					GetEncryptionKey(),
 					game, game.PublicID,
 					"Member",
 					player.PublicID,
@@ -426,6 +442,7 @@ var _ = Describe("Membership Model", func() {
 
 				_, err = CreateMembership(
 					testDb,
+					GetEncryptionKey(),
 					game, game.PublicID,
 					"Member",
 					player.PublicID,
@@ -437,6 +454,7 @@ var _ = Describe("Membership Model", func() {
 
 				updMembership, err := CreateMembership(
 					testDb,
+					GetEncryptionKey(),
 					game, game.PublicID,
 					"Member",
 					player.PublicID,
@@ -470,6 +488,7 @@ var _ = Describe("Membership Model", func() {
 
 				_, err = CreateMembership(
 					testDb,
+					GetEncryptionKey(),
 					game, game.PublicID,
 					"Member",
 					player.PublicID,
@@ -481,6 +500,7 @@ var _ = Describe("Membership Model", func() {
 
 				updMembership, err := CreateMembership(
 					testDb,
+					GetEncryptionKey(),
 					game, game.PublicID,
 					"Member",
 					player.PublicID,
@@ -676,6 +696,7 @@ var _ = Describe("Membership Model", func() {
 
 				membership, err := CreateMembership(
 					testDb,
+					GetEncryptionKey(),
 					game,
 					player.GameID,
 					"Member",
@@ -699,7 +720,7 @@ var _ = Describe("Membership Model", func() {
 				Expect(dbMembership.Denied).To(Equal(false))
 				Expect(dbMembership.Message).To(Equal("Please accept me"))
 
-				dbPlayer, err := GetPlayerByID(testDb, player.ID)
+				dbPlayer, err := GetPlayerByID(testDb, GetEncryptionKey(), player.ID)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(dbPlayer.MembershipCount).To(Equal(0))
 
@@ -733,6 +754,7 @@ var _ = Describe("Membership Model", func() {
 
 				membership, err := CreateMembership(
 					testDb,
+					GetEncryptionKey(),
 					game,
 					players[0].GameID,
 					"Member",
@@ -756,7 +778,7 @@ var _ = Describe("Membership Model", func() {
 				Expect(dbMembership.DeletedAt).To(Equal(int64(0)))
 				Expect(dbMembership.Message).To(Equal("Please accept me"))
 
-				dbPlayer, err := GetPlayerByID(testDb, players[0].ID)
+				dbPlayer, err := GetPlayerByID(testDb, GetEncryptionKey(), players[0].ID)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(dbPlayer.MembershipCount).To(Equal(0))
 
@@ -782,6 +804,7 @@ var _ = Describe("Membership Model", func() {
 
 				membership, err := CreateMembership(
 					testDb,
+					GetEncryptionKey(),
 					game,
 					player.GameID,
 					"Member",
@@ -805,7 +828,7 @@ var _ = Describe("Membership Model", func() {
 				Expect(dbMembership.Denied).To(Equal(false))
 				Expect(dbMembership.Message).To(Equal("Please accept me"))
 
-				dbPlayer, err := GetPlayerByID(testDb, player.ID)
+				dbPlayer, err := GetPlayerByID(testDb, GetEncryptionKey(), player.ID)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(dbPlayer.MembershipCount).To(Equal(1))
 
@@ -826,6 +849,7 @@ var _ = Describe("Membership Model", func() {
 
 				membership, err := CreateMembership(
 					testDb,
+					GetEncryptionKey(),
 					game,
 					player.GameID,
 					"Member",
@@ -868,6 +892,7 @@ var _ = Describe("Membership Model", func() {
 
 				membership, err := CreateMembership(
 					testDb,
+					GetEncryptionKey(),
 					game,
 					player.GameID,
 					"Member",
@@ -905,6 +930,7 @@ var _ = Describe("Membership Model", func() {
 
 				membership, err := CreateMembership(
 					testDb,
+					GetEncryptionKey(),
 					game,
 					players[0].GameID,
 					"Member",
@@ -928,7 +954,7 @@ var _ = Describe("Membership Model", func() {
 				Expect(dbMembership.Denied).To(Equal(false))
 				Expect(dbMembership.Message).To(Equal("Please accept me"))
 
-				dbPlayer, err := GetPlayerByID(testDb, dbMembership.PlayerID)
+				dbPlayer, err := GetPlayerByID(testDb, GetEncryptionKey(), dbMembership.PlayerID)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(dbPlayer.MembershipCount).To(Equal(0))
 
@@ -955,6 +981,7 @@ var _ = Describe("Membership Model", func() {
 				time.Sleep(time.Second)
 				membership, err := CreateMembership(
 					testDb,
+					GetEncryptionKey(),
 					game,
 					players[0].GameID,
 					"Member",
@@ -978,7 +1005,7 @@ var _ = Describe("Membership Model", func() {
 				Expect(dbMembership.Denied).To(Equal(false))
 				Expect(dbMembership.Message).To(Equal("Please accept me"))
 
-				dbPlayer, err := GetPlayerByID(testDb, dbMembership.PlayerID)
+				dbPlayer, err := GetPlayerByID(testDb, GetEncryptionKey(), dbMembership.PlayerID)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(dbPlayer.MembershipCount).To(Equal(0))
 
@@ -1004,6 +1031,7 @@ var _ = Describe("Membership Model", func() {
 
 				membership, err := CreateMembership(
 					testDb,
+					GetEncryptionKey(),
 					game,
 					players[0].GameID,
 					"Member",
@@ -1039,6 +1067,7 @@ var _ = Describe("Membership Model", func() {
 
 				_, err = CreateMembership(
 					testDb,
+					GetEncryptionKey(),
 					game,
 					players[0].GameID,
 					"Member",
@@ -1062,6 +1091,7 @@ var _ = Describe("Membership Model", func() {
 				time.Sleep(time.Second)
 				membership, err := CreateMembership(
 					testDb,
+					GetEncryptionKey(),
 					game,
 					players[0].GameID,
 					"Member",
@@ -1084,7 +1114,7 @@ var _ = Describe("Membership Model", func() {
 				Expect(dbMembership.Denied).To(Equal(false))
 				Expect(dbMembership.Message).To(Equal("Please accept me"))
 
-				dbPlayer, err := GetPlayerByID(testDb, dbMembership.PlayerID)
+				dbPlayer, err := GetPlayerByID(testDb, GetEncryptionKey(), dbMembership.PlayerID)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(dbPlayer.MembershipCount).To(Equal(0))
 
@@ -1110,6 +1140,7 @@ var _ = Describe("Membership Model", func() {
 
 				membership, err := CreateMembership(
 					testDb,
+					GetEncryptionKey(),
 					game,
 					players[0].GameID,
 					"Member",
@@ -1133,7 +1164,7 @@ var _ = Describe("Membership Model", func() {
 				Expect(dbMembership.Denied).To(Equal(false))
 				Expect(dbMembership.Message).To(Equal("Please accept me"))
 
-				dbPlayer, err := GetPlayerByID(testDb, dbMembership.PlayerID)
+				dbPlayer, err := GetPlayerByID(testDb, GetEncryptionKey(), dbMembership.PlayerID)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(dbPlayer.MembershipCount).To(Equal(0))
 
@@ -1150,6 +1181,7 @@ var _ = Describe("Membership Model", func() {
 				// deny application
 				_, err = ApproveOrDenyMembershipApplication(
 					testDb,
+					GetEncryptionKey(),
 					game,
 					players[0].GameID,
 					players[0].PublicID,
@@ -1172,6 +1204,7 @@ var _ = Describe("Membership Model", func() {
 				// apply for membership again
 				membership, err := CreateMembership(
 					testDb,
+					GetEncryptionKey(),
 					game,
 					players[0].GameID,
 					"Member",
@@ -1189,7 +1222,7 @@ var _ = Describe("Membership Model", func() {
 				Expect(dbMembership.Approved).To(BeTrue())
 				Expect(dbMembership.Denied).To(Equal(false))
 
-				dbPlayer, err := GetPlayerByID(testDb, dbMembership.PlayerID)
+				dbPlayer, err := GetPlayerByID(testDb, GetEncryptionKey(), dbMembership.PlayerID)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(dbPlayer.MembershipCount).To(Equal(1))
 
@@ -1217,6 +1250,7 @@ var _ = Describe("Membership Model", func() {
 
 				_, err = CreateMembership(
 					testDb,
+					GetEncryptionKey(),
 					game,
 					players[0].GameID,
 					"Member",
@@ -1244,6 +1278,7 @@ var _ = Describe("Membership Model", func() {
 
 				_, err = CreateMembership(
 					testDb,
+					GetEncryptionKey(),
 					game,
 					players[0].GameID,
 					"Member",
@@ -1269,6 +1304,7 @@ var _ = Describe("Membership Model", func() {
 
 				_, err = CreateMembership(
 					testDb,
+					GetEncryptionKey(),
 					game,
 					player.GameID,
 					"Member",
@@ -1297,6 +1333,7 @@ var _ = Describe("Membership Model", func() {
 
 				_, err = CreateMembership(
 					testDb,
+					GetEncryptionKey(),
 					game,
 					game.PublicID,
 					"Member",
@@ -1325,6 +1362,7 @@ var _ = Describe("Membership Model", func() {
 
 				_, err = CreateMembership(
 					testDb,
+					GetEncryptionKey(),
 					game,
 					game.PublicID,
 					"Member",
@@ -1354,6 +1392,7 @@ var _ = Describe("Membership Model", func() {
 
 				_, err = CreateMembership(
 					testDb,
+					GetEncryptionKey(),
 					game,
 					player.GameID,
 					"Member",
@@ -1376,6 +1415,7 @@ var _ = Describe("Membership Model", func() {
 
 				_, err = CreateMembership(
 					testDb,
+					GetEncryptionKey(),
 					game,
 					owner.GameID,
 					"Member",
@@ -1396,6 +1436,7 @@ var _ = Describe("Membership Model", func() {
 				clanPublicID := randomdata.FullName(randomdata.RandomGender)
 				_, err = CreateMembership(
 					testDb,
+					GetEncryptionKey(),
 					game,
 					player.GameID,
 					"Member",
@@ -1423,6 +1464,7 @@ var _ = Describe("Membership Model", func() {
 				requestorPublicID := randomdata.FullName(randomdata.RandomGender)
 				_, err = CreateMembership(
 					testDb,
+					GetEncryptionKey(),
 					game,
 					player.GameID,
 					"Member",
@@ -1454,6 +1496,7 @@ var _ = Describe("Membership Model", func() {
 
 				_, err = CreateMembership(
 					testDb,
+					GetEncryptionKey(),
 					game,
 					player.GameID,
 					"Member",
@@ -1480,6 +1523,7 @@ var _ = Describe("Membership Model", func() {
 
 				_, err = CreateMembership(
 					testDb,
+					GetEncryptionKey(),
 					game,
 					player.GameID,
 					"Member",
@@ -1499,6 +1543,7 @@ var _ = Describe("Membership Model", func() {
 
 				membership, err := CreateMembership(
 					testDb,
+					GetEncryptionKey(),
 					game,
 					clan.GameID,
 					"Member",
@@ -1522,6 +1567,7 @@ var _ = Describe("Membership Model", func() {
 
 				updatedMembership, err := ApproveOrDenyMembershipInvitation(
 					testDb,
+					GetEncryptionKey(),
 					game,
 					players[0].GameID,
 					players[0].PublicID,
@@ -1542,7 +1588,7 @@ var _ = Describe("Membership Model", func() {
 				Expect(dbMembership.ApproverID.Valid).To(BeTrue())
 				Expect(dbMembership.ApproverID.Int64).To(Equal(int64(players[0].ID)))
 
-				dbPlayer, err := GetPlayerByID(testDb, players[0].ID)
+				dbPlayer, err := GetPlayerByID(testDb, GetEncryptionKey(), players[0].ID)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(dbPlayer.MembershipCount).To(Equal(1))
 
@@ -1560,6 +1606,7 @@ var _ = Describe("Membership Model", func() {
 
 				_, err = ApproveOrDenyMembershipInvitation(
 					testDb,
+					GetEncryptionKey(),
 					game,
 					players[1].GameID,
 					players[1].PublicID,
@@ -1598,6 +1645,7 @@ var _ = Describe("Membership Model", func() {
 
 				_, err = ApproveOrDenyMembershipInvitation(
 					testDb,
+					GetEncryptionKey(),
 					game,
 					players[0].GameID,
 					players[0].PublicID,
@@ -1620,6 +1668,7 @@ var _ = Describe("Membership Model", func() {
 
 				_, err = ApproveOrDenyMembershipInvitation(
 					testDb,
+					GetEncryptionKey(),
 					game,
 					players[0].GameID,
 					players[0].PublicID,
@@ -1644,6 +1693,7 @@ var _ = Describe("Membership Model", func() {
 
 				_, err = ApproveOrDenyMembershipInvitation(
 					testDb,
+					GetEncryptionKey(),
 					game,
 					player.GameID,
 					player.PublicID,
@@ -1667,6 +1717,7 @@ var _ = Describe("Membership Model", func() {
 
 				_, err = ApproveOrDenyMembershipInvitation(
 					testDb,
+					GetEncryptionKey(),
 					game,
 					players[0].GameID,
 					players[0].PublicID,
@@ -1689,6 +1740,7 @@ var _ = Describe("Membership Model", func() {
 
 				_, err = ApproveOrDenyMembershipInvitation(
 					testDb,
+					GetEncryptionKey(),
 					game,
 					players[0].GameID,
 					players[0].PublicID,
@@ -1711,6 +1763,7 @@ var _ = Describe("Membership Model", func() {
 
 				_, err = ApproveOrDenyMembershipInvitation(
 					testDb,
+					GetEncryptionKey(),
 					game,
 					players[0].GameID,
 					players[0].PublicID,
@@ -1731,6 +1784,7 @@ var _ = Describe("Membership Model", func() {
 
 				updatedMembership, err := ApproveOrDenyMembershipInvitation(
 					testDb,
+					GetEncryptionKey(),
 					game,
 					players[0].GameID,
 					players[0].PublicID,
@@ -1760,6 +1814,7 @@ var _ = Describe("Membership Model", func() {
 
 				_, err = ApproveOrDenyMembershipInvitation(
 					testDb,
+					GetEncryptionKey(),
 					game,
 					players[0].GameID,
 					players[0].PublicID,
@@ -1783,6 +1838,7 @@ var _ = Describe("Membership Model", func() {
 
 				updatedMembership, err := ApproveOrDenyMembershipApplication(
 					testDb,
+					GetEncryptionKey(),
 					game,
 					players[0].GameID,
 					players[0].PublicID,
@@ -1803,7 +1859,7 @@ var _ = Describe("Membership Model", func() {
 				Expect(dbMembership.ApproverID.Valid).To(BeTrue())
 				Expect(dbMembership.ApproverID.Int64).To(Equal(int64(owner.ID)))
 
-				dbPlayer, err := GetPlayerByID(testDb, players[0].ID)
+				dbPlayer, err := GetPlayerByID(testDb, GetEncryptionKey(), players[0].ID)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(dbPlayer.MembershipCount).To(Equal(1))
 
@@ -1827,6 +1883,7 @@ var _ = Describe("Membership Model", func() {
 
 				updatedMembership, err := ApproveOrDenyMembershipApplication(
 					testDb,
+					GetEncryptionKey(),
 					game,
 					players[1].GameID,
 					players[1].PublicID,
@@ -1848,7 +1905,7 @@ var _ = Describe("Membership Model", func() {
 				Expect(dbMembership.Approved).To(Equal(true))
 				Expect(dbMembership.Denied).To(Equal(false))
 
-				dbPlayer, err := GetPlayerByID(testDb, players[1].ID)
+				dbPlayer, err := GetPlayerByID(testDb, GetEncryptionKey(), players[1].ID)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(dbPlayer.MembershipCount).To(Equal(1))
 
@@ -1870,6 +1927,7 @@ var _ = Describe("Membership Model", func() {
 
 				_, err = ApproveOrDenyMembershipApplication(
 					testDb,
+					GetEncryptionKey(),
 					game,
 					players[1].GameID,
 					players[1].PublicID,
@@ -1909,6 +1967,7 @@ var _ = Describe("Membership Model", func() {
 
 				_, err = ApproveOrDenyMembershipApplication(
 					testDb,
+					GetEncryptionKey(),
 					game,
 					players[0].GameID,
 					players[0].PublicID,
@@ -1937,6 +1996,7 @@ var _ = Describe("Membership Model", func() {
 
 				_, err = ApproveOrDenyMembershipApplication(
 					testDb,
+					GetEncryptionKey(),
 					game,
 					players[0].GameID,
 					players[0].PublicID,
@@ -1965,6 +2025,7 @@ var _ = Describe("Membership Model", func() {
 
 				_, err = ApproveOrDenyMembershipApplication(
 					testDb,
+					GetEncryptionKey(),
 					game,
 					players[0].GameID,
 					players[0].PublicID,
@@ -1994,6 +2055,7 @@ var _ = Describe("Membership Model", func() {
 
 				_, err = ApproveOrDenyMembershipApplication(
 					testDb,
+					GetEncryptionKey(),
 					game,
 					clan.GameID,
 					players[0].PublicID,
@@ -2022,6 +2084,7 @@ var _ = Describe("Membership Model", func() {
 
 				_, err = ApproveOrDenyMembershipApplication(
 					testDb,
+					GetEncryptionKey(),
 					game,
 					clan.GameID,
 					players[0].PublicID,
@@ -2045,6 +2108,7 @@ var _ = Describe("Membership Model", func() {
 
 				_, err = ApproveOrDenyMembershipApplication(
 					testDb,
+					GetEncryptionKey(),
 					game,
 					clan.GameID,
 					players[0].PublicID,
@@ -2064,6 +2128,7 @@ var _ = Describe("Membership Model", func() {
 
 				_, err = ApproveOrDenyMembershipApplication(
 					testDb,
+					GetEncryptionKey(),
 					game,
 					clan.GameID,
 					players[0].PublicID,
@@ -2089,6 +2154,7 @@ var _ = Describe("Membership Model", func() {
 
 				_, err = ApproveOrDenyMembershipApplication(
 					testDb,
+					GetEncryptionKey(),
 					game,
 					clan.GameID,
 					player.PublicID,
@@ -2113,6 +2179,7 @@ var _ = Describe("Membership Model", func() {
 
 				_, err = ApproveOrDenyMembershipApplication(
 					testDb,
+					GetEncryptionKey(),
 					game,
 					clan.GameID,
 					players[0].PublicID,
@@ -2137,6 +2204,7 @@ var _ = Describe("Membership Model", func() {
 
 				_, err = ApproveOrDenyMembershipApplication(
 					testDb,
+					GetEncryptionKey(),
 					game,
 					clan.GameID,
 					players[0].PublicID,
@@ -2162,6 +2230,7 @@ var _ = Describe("Membership Model", func() {
 
 				updatedMembership, err := ApproveOrDenyMembershipApplication(
 					testDb,
+					GetEncryptionKey(),
 					game,
 					players[0].GameID,
 					players[0].PublicID,
@@ -2196,6 +2265,7 @@ var _ = Describe("Membership Model", func() {
 
 				_, err = ApproveOrDenyMembershipApplication(
 					testDb,
+					GetEncryptionKey(),
 					game,
 					players[0].GameID,
 					players[0].PublicID,
@@ -2592,7 +2662,7 @@ var _ = Describe("Membership Model", func() {
 				Expect(dbMembership.Denied).To(Equal(false))
 				Expect(dbMembership.DeletedAt).To(BeNumerically(">", util.NowMilli()-1000))
 
-				dbPlayer, err := GetPlayerByID(testDb, memberships[0].PlayerID)
+				dbPlayer, err := GetPlayerByID(testDb, GetEncryptionKey(), memberships[0].PlayerID)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(dbPlayer.MembershipCount).To(Equal(0))
 
@@ -2623,7 +2693,7 @@ var _ = Describe("Membership Model", func() {
 				Expect(dbMembership.Denied).To(Equal(false))
 				Expect(dbMembership.DeletedAt).To(BeNumerically(">", util.NowMilli()-1000))
 
-				dbPlayer, err := GetPlayerByID(testDb, memberships[0].PlayerID)
+				dbPlayer, err := GetPlayerByID(testDb, GetEncryptionKey(), memberships[0].PlayerID)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(dbPlayer.MembershipCount).To(Equal(0))
 
@@ -2657,7 +2727,7 @@ var _ = Describe("Membership Model", func() {
 				Expect(dbMembership.Denied).To(Equal(false))
 				Expect(dbMembership.DeletedAt).To(BeNumerically(">", util.NowMilli()-1000))
 
-				dbPlayer, err := GetPlayerByID(testDb, memberships[0].PlayerID)
+				dbPlayer, err := GetPlayerByID(testDb, GetEncryptionKey(), memberships[0].PlayerID)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(dbPlayer.MembershipCount).To(Equal(0))
 

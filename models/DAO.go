@@ -59,33 +59,38 @@ type clanDetailsDAO struct {
 	DenierName     sql.NullString
 }
 
-func (member *clanDetailsDAO) Serialize(includeMembershipLevel bool) map[string]interface{} {
-	result := map[string]interface{}{
-		"player": map[string]interface{}{
-			"publicID": nullOrString(member.PlayerPublicID),
-			"name":     nullOrString(member.PlayerName),
-		},
+func (member *clanDetailsDAO) Serialize(encryptionKey []byte, includeMembershipLevel bool) map[string]interface{} {
+	player := &Player{
+		PublicID: nullOrString(member.PlayerPublicID),
+		Name:     nullOrString(member.PlayerName),
 	}
+
 	if member.DBPlayerMetadata.Valid {
 		json.Unmarshal([]byte(nullOrString(member.DBPlayerMetadata)), &member.PlayerMetadata)
 	} else {
 		member.PlayerMetadata = map[string]interface{}{}
 	}
+	player.Metadata = member.PlayerMetadata
+	result := map[string]interface{}{
+		"player": player.SerializeClanParticipant(encryptionKey),
+	}
+
 	if includeMembershipLevel {
 		result["level"] = nullOrString(member.MembershipLevel)
 	}
-	result["player"].(map[string]interface{})["metadata"] = member.PlayerMetadata
 
 	if member.ApproverName.Valid {
-		result["player"].(map[string]interface{})["approver"] = map[string]interface{}{
-			"name":     member.ApproverName.String,
-			"publicID": member.ApproverPublicID.String,
+		approver := &Player{
+			PublicID: member.ApproverPublicID.String,
+			Name:     member.ApproverName.String,
 		}
+		result["player"].(map[string]interface{})["approver"] = approver.SerializeClanActor(encryptionKey)
 	} else if member.DenierName.Valid {
-		result["player"].(map[string]interface{})["denier"] = map[string]interface{}{
-			"name":     member.DenierName.String,
-			"publicID": member.DenierPublicID.String,
+		denier := &Player{
+			PublicID: member.DenierPublicID.String,
+			Name:     member.DenierName.String,
 		}
+		result["player"].(map[string]interface{})["denier"] = denier.SerializeClanActor(encryptionKey)
 	}
 	return result
 }
@@ -143,7 +148,11 @@ type playerDetailsDAO struct {
 	DeletedByPublicID sql.NullString
 }
 
-func (p *playerDetailsDAO) Serialize() map[string]interface{} {
+func (p *playerDetailsDAO) Serialize(encryptionKey []byte) map[string]interface{} {
+	requestor := &Player{
+		PublicID: nullOrString(p.RequestorPublicID),
+		Name:     nullOrString(p.RequestorName),
+	}
 	result := map[string]interface{}{
 		"level":      nullOrString(p.MembershipLevel),
 		"approved":   nullOrBool(p.MembershipApproved),
@@ -160,11 +169,7 @@ func (p *playerDetailsDAO) Serialize() map[string]interface{} {
 			"name":            nullOrString(p.ClanName),
 			"membershipCount": nullOrInt(p.ClanMembershipCount),
 		},
-		"requestor": map[string]interface{}{
-			"publicID": nullOrString(p.RequestorPublicID),
-			"name":     nullOrString(p.RequestorName),
-			"level":    nullOrString(p.RequestorMembershipLevel),
-		},
+		"requestor": requestor.SerializeWithLevel(encryptionKey, nullOrString(p.RequestorMembershipLevel)),
 	}
 
 	if p.DBClanMetadata.Valid {
@@ -182,10 +187,11 @@ func (p *playerDetailsDAO) Serialize() map[string]interface{} {
 	result["requestor"].(map[string]interface{})["metadata"] = p.RequestorMetadata
 
 	if p.DeletedByPublicID.Valid {
-		result["deletedBy"] = map[string]interface{}{
-			"publicID": nullOrString(p.DeletedByPublicID),
-			"name":     nullOrString(p.DeletedByName),
+		deleter := &Player{
+			PublicID: nullOrString(p.DeletedByPublicID),
+			Name:     nullOrString(p.DeletedByName),
 		}
+		result["deletedBy"] = deleter.SerializeClanActor(encryptionKey)
 	}
 
 	if p.ApproverPublicID.Valid {
@@ -195,11 +201,12 @@ func (p *playerDetailsDAO) Serialize() map[string]interface{} {
 			p.ApproverMetadata = map[string]interface{}{}
 		}
 
-		result["approver"] = map[string]interface{}{
-			"publicID": nullOrString(p.ApproverPublicID),
-			"name":     nullOrString(p.ApproverName),
-			"metadata": p.ApproverMetadata,
+		approver := &Player{
+			PublicID: nullOrString(p.ApproverPublicID),
+			Name:     nullOrString(p.ApproverName),
+			Metadata: p.ApproverMetadata,
 		}
+		result["approver"] = approver.SerializeClanParticipant(encryptionKey)
 	}
 
 	if p.DenierPublicID.Valid {
@@ -209,11 +216,12 @@ func (p *playerDetailsDAO) Serialize() map[string]interface{} {
 			p.DenierMetadata = map[string]interface{}{}
 		}
 
-		result["denier"] = map[string]interface{}{
-			"publicID": nullOrString(p.DenierPublicID),
-			"name":     nullOrString(p.DenierName),
-			"metadata": p.DenierMetadata,
+		denier := &Player{
+			PublicID: nullOrString(p.DenierPublicID),
+			Name:     nullOrString(p.DenierName),
+			Metadata: p.DenierMetadata,
 		}
+		result["denier"] = denier.SerializeClanParticipant(encryptionKey)
 	}
 	return result
 }

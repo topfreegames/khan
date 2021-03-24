@@ -50,14 +50,14 @@ func dispatchMembershipHookByPublicID(app *App, db models.DB, hookType int, game
 		return err
 	}
 
-	player, err := models.GetPlayerByPublicID(db, gameID, playerID)
+	player, err := models.GetPlayerByPublicID(db, app.EncryptionKey, gameID, playerID)
 	if err != nil {
 		return err
 	}
 
 	requestor := player
 	if requestorID != playerID {
-		requestor, err = models.GetPlayerByPublicID(db, gameID, requestorID)
+		requestor, err = models.GetPlayerByPublicID(db, app.EncryptionKey, gameID, requestorID)
 		if err != nil {
 			return err
 		}
@@ -72,14 +72,14 @@ func dispatchMembershipHookByID(app *App, db models.DB, hookType int, gameID str
 		return err
 	}
 
-	player, err := models.GetPlayerByID(db, playerID)
+	player, err := models.GetPlayerByID(db, app.EncryptionKey, playerID)
 	if err != nil {
 		return err
 	}
 
 	requestor := player
 	if requestorID != playerID {
-		requestor, err = models.GetPlayerByID(db, requestorID)
+		requestor, err = models.GetPlayerByID(db, app.EncryptionKey, requestorID)
 		if err != nil {
 			return err
 		}
@@ -94,14 +94,14 @@ func dispatchApproveDenyMembershipHookByID(app *App, db models.DB, hookType int,
 		return err
 	}
 
-	player, err := models.GetPlayerByID(db, playerID)
+	player, err := models.GetPlayerByID(db, app.EncryptionKey, playerID)
 	if err != nil {
 		return err
 	}
 
 	requestor := player
 	if requestorID != playerID {
-		requestor, err = models.GetPlayerByID(db, requestorID)
+		requestor, err = models.GetPlayerByID(db, app.EncryptionKey, requestorID)
 		if err != nil {
 			return err
 		}
@@ -111,7 +111,7 @@ func dispatchApproveDenyMembershipHookByID(app *App, db models.DB, hookType int,
 	if creatorID != playerID {
 		creator = requestor
 		if creatorID != requestorID {
-			creator, err = models.GetPlayerByID(db, creatorID)
+			creator, err = models.GetPlayerByID(db, app.EncryptionKey, creatorID)
 			if err != nil {
 				return err
 			}
@@ -125,11 +125,11 @@ func dispatchMembershipHook(app *App, db models.DB, hookType int, gameID string,
 	clanJSON := clan.Serialize()
 	delete(clanJSON, "gameID")
 
-	playerJSON := player.Serialize()
+	playerJSON := player.Serialize(app.EncryptionKey)
 	playerJSON["membershipLevel"] = membershipLevel
 	delete(playerJSON, "gameID")
 
-	requestorJSON := requestor.Serialize()
+	requestorJSON := requestor.Serialize(app.EncryptionKey)
 	delete(requestorJSON, "gameID")
 
 	result := map[string]interface{}{
@@ -151,14 +151,14 @@ func dispatchApproveDenyMembershipHook(app *App, db models.DB, hookType int, gam
 	clanJSON := clan.Serialize()
 	delete(clanJSON, "gameID")
 
-	playerJSON := player.Serialize()
+	playerJSON := player.Serialize(app.EncryptionKey)
 	playerJSON["membershipLevel"] = playerMembershipLevel
 	delete(playerJSON, "gameID")
 
-	requestorJSON := requestor.Serialize()
+	requestorJSON := requestor.Serialize(app.EncryptionKey)
 	delete(requestorJSON, "gameID")
 
-	creatorJSON := creator.Serialize()
+	creatorJSON := creator.Serialize(app.EncryptionKey)
 	delete(creatorJSON, "gameID")
 
 	result := map[string]interface{}{

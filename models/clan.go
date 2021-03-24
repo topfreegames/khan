@@ -487,8 +487,8 @@ func GetClanByPublicIDAndOwnerPublicID(db DB, gameID, publicID, ownerPublicID st
 }
 
 // CreateClan creates a new clan
-func CreateClan(db DB, gameID, publicID, name, ownerPublicID string, metadata map[string]interface{}, allowApplication, autoJoin bool, maxClansPerPlayer int) (*Clan, error) {
-	player, err := GetPlayerByPublicID(db, gameID, ownerPublicID)
+func CreateClan(db DB, encryptionKey []byte, gameID, publicID, name, ownerPublicID string, metadata map[string]interface{}, allowApplication, autoJoin bool, maxClansPerPlayer int) (*Clan, error) {
+	player, err := GetPlayerByPublicID(db, encryptionKey, gameID, ownerPublicID)
 	if err != nil {
 		return nil, err
 	}
@@ -522,14 +522,14 @@ func CreateClan(db DB, gameID, publicID, name, ownerPublicID string, metadata ma
 }
 
 // LeaveClan allows the clan owner to leave the clan and transfer the clan ownership to the next player in line
-func LeaveClan(db DB, gameID, publicID string) (*Clan, *Player, *Player, error) {
+func LeaveClan(db DB, encryptionKey []byte, gameID, publicID string) (*Clan, *Player, *Player, error) {
 	clan, err := GetClanByPublicID(db, gameID, publicID)
 	if err != nil {
 		return nil, nil, nil, err
 	}
 
 	oldOwnerID := clan.OwnerID
-	oldOwner, err := GetPlayerByID(db, oldOwnerID)
+	oldOwner, err := GetPlayerByID(db, encryptionKey, oldOwnerID)
 	if err != nil {
 		return nil, nil, nil, err
 	}
@@ -556,7 +556,7 @@ func LeaveClan(db DB, gameID, publicID string) (*Clan, *Player, *Player, error) 
 		return nil, nil, nil, err
 	}
 
-	newOwner, err := GetPlayerByID(db, newOwnerMembership.PlayerID)
+	newOwner, err := GetPlayerByID(db, encryptionKey, newOwnerMembership.PlayerID)
 	if err != nil {
 		return nil, nil, nil, err
 	}
@@ -593,7 +593,7 @@ func LeaveClan(db DB, gameID, publicID string) (*Clan, *Player, *Player, error) 
 }
 
 // TransferClanOwnership allows the clan owner to transfer the clan ownership to a clan member
-func TransferClanOwnership(db DB, gameID, clanPublicID, playerPublicID string, levels map[string]interface{}, maxLevel int) (*Clan, *Player, *Player, error) {
+func TransferClanOwnership(db DB, encryptionKey []byte, gameID, clanPublicID, playerPublicID string, levels map[string]interface{}, maxLevel int) (*Clan, *Player, *Player, error) {
 	clan, err := GetClanByPublicID(db, gameID, clanPublicID)
 	if err != nil {
 		return nil, nil, nil, err
@@ -657,7 +657,7 @@ func TransferClanOwnership(db DB, gameID, clanPublicID, playerPublicID string, l
 		return nil, nil, nil, err
 	}
 
-	newOwner, err := GetPlayerByID(db, newOwnerMembership.PlayerID)
+	newOwner, err := GetPlayerByID(db, encryptionKey, newOwnerMembership.PlayerID)
 	if err != nil {
 		return nil, nil, nil, err
 	}
@@ -672,7 +672,7 @@ func TransferClanOwnership(db DB, gameID, clanPublicID, playerPublicID string, l
 		return nil, nil, nil, err
 	}
 
-	oldOwner, err := GetPlayerByID(db, oldOwnerID)
+	oldOwner, err := GetPlayerByID(db, encryptionKey, oldOwnerID)
 	if err != nil {
 		return nil, nil, nil, err
 	}
@@ -774,7 +774,7 @@ func GetClanMembers(db DB, gameID, publicID string) (map[string]interface{}, err
 }
 
 // GetClanDetails returns all details for a given clan by its game id and public id
-func GetClanDetails(db DB, gameID string, clan *Clan, maxClansPerPlayer int, options *GetClanDetailsOptions) (map[string]interface{}, error) {
+func GetClanDetails(db DB, encryptionKey []byte, gameID string, clan *Clan, maxClansPerPlayer int, options *GetClanDetailsOptions) (map[string]interface{}, error) {
 	query := fmt.Sprintf(`
 	WITH memberships_pending AS (
 		SELECT *
@@ -846,11 +846,13 @@ func GetClanDetails(db DB, gameID string, clan *Clan, maxClansPerPlayer int, opt
 	result["autoJoin"] = details[0].ClanAutoJoin
 	result["membershipCount"] = details[0].ClanMembershipCount
 
-	result["owner"] = map[string]interface{}{
-		"publicID": details[0].OwnerPublicID,
-		"name":     details[0].OwnerName,
-		"metadata": details[0].OwnerMetadata,
+	owner := &Player{
+		PublicID: details[0].OwnerPublicID,
+		Name:     details[0].OwnerName,
+		Metadata: details[0].OwnerMetadata,
 	}
+
+	result["owner"] = owner.SerializeClanParticipant(encryptionKey)
 
 	// First row player public id is not null, meaning we found players!
 	if details[0].PlayerPublicID.Valid {
@@ -872,7 +874,7 @@ func GetClanDetails(db DB, gameID string, clan *Clan, maxClansPerPlayer int, opt
 
 			switch {
 			case pending:
-				memberData := member.Serialize(true)
+				memberData := member.Serialize(encryptionKey, true)
 				if member.MembershipCount+member.OwnershipCount < maxClansPerPlayer {
 					if member.PlayerPublicID == member.RequestorPublicID {
 						memberData["message"] = nullOrString(member.MembershipMessage)
@@ -882,13 +884,13 @@ func GetClanDetails(db DB, gameID string, clan *Clan, maxClansPerPlayer int, opt
 					}
 				}
 			case banned:
-				memberData := member.Serialize(false)
+				memberData := member.Serialize(encryptionKey, false)
 				memberships["banned"] = append(memberships["banned"].([]map[string]interface{}), memberData)
 			case denied:
-				memberData := member.Serialize(false)
+				memberData := member.Serialize(encryptionKey, false)
 				memberships["denied"] = append(memberships["denied"].([]map[string]interface{}), memberData)
 			case approved:
-				memberData := member.Serialize(true)
+				memberData := member.Serialize(encryptionKey, true)
 				result["roster"] = append(result["roster"].([]map[string]interface{}), memberData)
 			}
 		}
@@ -1018,12 +1020,12 @@ func SearchClan(
 }
 
 // GetClanAndOwnerByPublicID returns the clan as well as the owner of a clan by clan's public id
-func GetClanAndOwnerByPublicID(db DB, gameID, publicID string) (*Clan, *Player, error) {
+func GetClanAndOwnerByPublicID(db DB, encryptionKey []byte, gameID, publicID string) (*Clan, *Player, error) {
 	clan, err := GetClanByPublicID(db, gameID, publicID)
 	if err != nil {
 		return nil, nil, err
 	}
-	newOwner, err := GetPlayerByID(db, clan.OwnerID)
+	newOwner, err := GetPlayerByID(db, encryptionKey, clan.OwnerID)
 	if err != nil {
 		return nil, nil, err
 	}

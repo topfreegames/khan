@@ -71,6 +71,7 @@ type App struct {
 	Fast           bool
 	NewRelic       newrelic.Application
 	DDStatsD       *extnethttpmiddleware.DogStatsD
+	EncryptionKey  []byte
 
 	getGameCache        *gocache.Cache
 	clansSummariesCache *caches.ClansSummaries
@@ -289,6 +290,7 @@ func (app *App) setConfigurationDefaults() {
 	app.Config.SetDefault("khan.defaultCooldownBeforeApply", -1)
 	app.Config.SetDefault("jaeger.disabled", true)
 	app.Config.SetDefault("jaeger.samplingProbability", 0.001)
+	app.Config.SetDefault("security.encryptionKey", "00000000000000000000000000000000")
 
 	app.setHandlersConfigurationDefaults()
 
@@ -323,6 +325,8 @@ func (app *App) loadConfiguration() {
 	} else {
 		log.P(l, "Config file failed to load.")
 	}
+
+	app.EncryptionKey = []byte(app.Config.GetString("security.encryptionKey"))
 }
 
 func (app *App) connectDatabase() {

@@ -49,6 +49,7 @@ func CreatePlayerHandler(app *App) func(c echo.Context) error {
 			log.D(l, "Creating player...")
 			player, err = models.CreatePlayer(
 				db,
+				app.EncryptionKey,
 				gameID,
 				payload.PublicID,
 				payload.Name,
@@ -77,7 +78,11 @@ func CreatePlayerHandler(app *App) func(c echo.Context) error {
 		}
 
 		err = WithSegment("hook-dispatch", c, func() error {
-			err = app.DispatchHooks(gameID, models.PlayerCreatedHook, player.Serialize())
+			err = app.DispatchHooks(
+				gameID,
+				models.PlayerCreatedHook,
+				player.Serialize(app.EncryptionKey),
+			)
 			if err != nil {
 				log.E(l, "Player creation hook dispatch failed.", func(cm log.CM) {
 					cm.Write(zap.Error(err))
@@ -142,7 +147,7 @@ func UpdatePlayerHandler(app *App) func(c echo.Context) error {
 
 		err = WithSegment("player-retrieve", c, func() error {
 			log.D(l, "Retrieving player...")
-			beforeUpdatePlayer, err = models.GetPlayerByPublicID(db, gameID, playerPublicID)
+			beforeUpdatePlayer, err = models.GetPlayerByPublicID(db, app.EncryptionKey, gameID, playerPublicID)
 			if err != nil && err.Error() != (&models.ModelNotFoundError{Type: "Player", ID: playerPublicID}).Error() {
 				return err
 			}
@@ -158,6 +163,7 @@ func UpdatePlayerHandler(app *App) func(c echo.Context) error {
 				log.D(l, "Updating player...")
 				player, err = models.UpdatePlayer(
 					db,
+					app.EncryptionKey,
 					gameID,
 					playerPublicID,
 					payload.Name,
@@ -182,7 +188,11 @@ func UpdatePlayerHandler(app *App) func(c echo.Context) error {
 			shouldDispatch := validateUpdatePlayerDispatch(game, beforeUpdatePlayer, player, payload.Metadata, l)
 			if shouldDispatch {
 				log.D(l, "Dispatching player update hooks...")
-				err = app.DispatchHooks(gameID, models.PlayerUpdatedHook, player.Serialize())
+				err = app.DispatchHooks(
+					gameID,
+					models.PlayerUpdatedHook,
+					player.Serialize(app.EncryptionKey),
+				)
 				if err != nil {
 					log.E(l, "Update player hook dispatch failed.", func(cm log.CM) {
 						cm.Write(zap.Error(err))
@@ -233,6 +243,7 @@ func RetrievePlayerHandler(app *App) func(c echo.Context) error {
 			log.D(l, "Retrieving player details...")
 			player, err = models.GetPlayerDetails(
 				db,
+				app.EncryptionKey,
 				gameID,
 				publicID,
 			)
