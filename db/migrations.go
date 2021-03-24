@@ -187,6 +187,15 @@ func migrations_20180517112014_changeidsequencetype_sql() ([]byte, error) {
 	)
 }
 
+var _migrations_20210323185959_createencryptiontable_sql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x8c\xce\xc1\x4a\x03\x31\x18\x04\xe0\x7b\x9e\x62\x6e\x6d\x91\x3e\x41\x4f\x6b\xfb\x0b\x62\xd5\x9a\x76\x0f\x7b\x92\x98\xfc\xec\xfe\x18\x93\x90\x44\xd6\x7d\x7b\x59\x61\xc5\x8b\xd0\xe3\x0c\x33\xf0\xa9\xed\x16\x37\x7d\x8c\x85\xd1\xa6\x39\x9c\x5f\x8e\x90\x80\xc2\xb6\x4a\x0c\x58\xb5\x69\x05\x29\xe0\x2f\xb6\x9f\x95\x1d\xc6\x81\x03\xea\x20\x05\x1f\xd2\x67\xf3\x33\x92\x02\x93\x92\x17\x76\x6a\xaf\xa9\xb9\x10\x2e\xcd\xed\x91\x90\xbc\x99\x38\x97\x57\x0e\x36\x4f\xa9\xb2\x2b\x58\x2b\x00\x10\x07\x09\x95\x7b\xce\x38\xe9\xfb\xc7\x46\x77\x78\xa0\x0e\x9a\xee\x48\xd3\xd3\x9e\xce\xcb\x15\x6b\x71\x1b\xb5\xd9\xa9\x3f\xce\x43\x1c\xc3\x22\xfd\x65\xce\xe5\x55\xd0\x1c\xbd\x67\x87\x37\x63\xdf\xd5\x41\x3f\x9f\xfe\xa5\xee\xd4\x77\x00\x00\x00\xff\xff\xca\x05\xe9\xe8\x1c\x01\x00\x00")
+
+func migrations_20210323185959_createencryptiontable_sql() ([]byte, error) {
+	return bindata_read(
+		_migrations_20210323185959_createencryptiontable_sql,
+		"migrations/20210323185959_CreateEncryptionTable.sql",
+	)
+}
+
 // Asset loads and returns the asset for the given name.
 // It returns an error if the asset could not be found or
 // could not be loaded.
@@ -227,6 +236,7 @@ var _bindata = map[string]func() ([]byte, error){
 	"migrations/20160729184159_CreateCooldownAfterInviteField.sql": migrations_20160729184159_createcooldownafterinvitefield_sql,
 	"migrations/20160819145352_CreateHookTriggerFieldsMetadata.sql": migrations_20160819145352_createhooktriggerfieldsmetadata_sql,
 	"migrations/20180517112014_ChangeIDSequenceType.sql": migrations_20180517112014_changeidsequencetype_sql,
+	"migrations/20210323185959_CreateEncryptionTable.sql": migrations_20210323185959_createencryptiontable_sql,
 }
 // AssetDir returns the file names below a certain
 // directory embedded in the file by go-bindata.
@@ -304,6 +314,8 @@ var _bintree = &_bintree_t{nil, map[string]*_bintree_t{
 		"20160819145352_CreateHookTriggerFieldsMetadata.sql": &_bintree_t{migrations_20160819145352_createhooktriggerfieldsmetadata_sql, map[string]*_bintree_t{
 		}},
 		"20180517112014_ChangeIDSequenceType.sql": &_bintree_t{migrations_20180517112014_changeidsequencetype_sql, map[string]*_bintree_t{
+		}},
+		"20210323185959_CreateEncryptionTable.sql": &_bintree_t{migrations_20210323185959_createencryptiontable_sql, map[string]*_bintree_t{
 		}},
 	}},
 }}
