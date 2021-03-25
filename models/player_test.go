@@ -218,7 +218,7 @@ var _ = Describe("Player Model", func() {
 				Expect(err).NotTo(HaveOccurred())
 
 				var playerEncrypted *PlayerEncrypted
-				err = testDb.SelectOne(&playerEncrypted, "select * from players_encrypteds where id = $1", player.ID)
+				err = testDb.SelectOne(&playerEncrypted, "select * from players_encrypted where id = $1", player.ID)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(playerEncrypted.ID).To(Equal(player.ID))
 
@@ -299,7 +299,7 @@ var _ = Describe("Player Model", func() {
 				Expect(err).NotTo(HaveOccurred())
 
 				var playerEncrypted *PlayerEncrypted
-				err = testDb.SelectOne(&playerEncrypted, "select * from players_encrypteds where id = $1", player.ID)
+				err = testDb.SelectOne(&playerEncrypted, "select * from players_encrypted where id = $1", player.ID)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(playerEncrypted.ID).To(Equal(player.ID))
 
@@ -389,7 +389,42 @@ var _ = Describe("Player Model", func() {
 				Expect(err).NotTo(HaveOccurred())
 
 				var playerEncrypted *PlayerEncrypted
-				err = testDb.SelectOne(&playerEncrypted, "select * from players_encrypteds where id = $1", player.ID)
+				err = testDb.SelectOne(&playerEncrypted, "select * from players_encrypted where id = $1", player.ID)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(playerEncrypted.ID).To(Equal(player.ID))
+
+			})
+
+			It("Should return player normally if PlayerEncrypted is already created", func() {
+				game := GameFactory.MustCreate().(*Game)
+				err := testDb.Insert(game)
+				Expect(err).NotTo(HaveOccurred())
+
+				metadata := map[string]interface{}{"x": "1"}
+				_, err = CreatePlayer(
+					testDb,
+					logger,
+					GetEncryptionKey(),
+					game.PublicID,
+					uuid.NewV4().String(),
+					uuid.NewV4().String(),
+					metadata,
+				)
+				Expect(err).NotTo(HaveOccurred())
+
+				player, err := UpdatePlayer(
+					testDb,
+					logger,
+					GetEncryptionKey(),
+					game.PublicID,
+					uuid.NewV4().String(),
+					uuid.NewV4().String(),
+					metadata,
+				)
+				Expect(err).NotTo(HaveOccurred())
+
+				var playerEncrypted *PlayerEncrypted
+				err = testDb.SelectOne(&playerEncrypted, "select * from players_encrypted where id = $1", player.ID)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(playerEncrypted.ID).To(Equal(player.ID))
 

@@ -8,7 +8,7 @@
 package models
 
 import (
-	"database/sql"
+	"encoding/json"
 	"fmt"
 
 	"github.com/topfreegames/khan/util"
@@ -210,45 +210,31 @@ func UpdatePlayer(db DB, logger zap.Logger, encryptionKey []byte, gameID, public
 		return nil, err
 	}
 
-	var player *Player = &Player{}
-	err = db.SelectOne(player, "select * from players where public_id = $1", publicID)
-	if err != nil {
-		if err != sql.ErrNoRows {
-			return nil, err
-		}
-
-		player.Name = encryptedName
-		player.GameID = gameID
-		player.Metadata = metadata
-
-		err = db.Insert(player)
-		if err != nil {
-			return nil, err
-		}
-
-		err = db.Insert(&PlayerEncrypted{ID: player.ID})
-		if err != nil {
-			logger.Error("Error on insert PlayerEncrypted", zap.Error(err))
-		}
-
-		return GetPlayerByID(db, encryptionKey, player.ID)
-	}
-
-	player.Name = encryptedName
-	player.GameID = gameID
-	player.Metadata = metadata
-
-	_, err = db.Update(player)
+	metadataJSON, err := json.Marshal(metadata)
 	if err != nil {
 		return nil, err
 	}
 
-	err = db.Insert(&PlayerEncrypted{ID: player.ID})
+	query := `INSERT INTO players(game_id, public_id, name, metadata, created_at, updated_at)
+						VALUES($1, $2, $3, $4, $5, $5) ON CONFLICT (game_id, public_id)
+						DO UPDATE set name=$3, metadata=$4, updated_at=$5
+						WHERE players.game_id=$1 and players.public_id=$2
+						RETURNING id`
+
+	var lastID int64
+	lastID, err = db.SelectInt(query,
+		gameID, publicID, encryptedName, metadataJSON, util.NowMilli())
+	if err != nil {
+		return nil, err
+	}
+
+	queryEncrypt := `INSERT INTO players_encrypted (id) VALUES ($1) ON CONFLICT DO NOTHING`
+	_, err = db.Exec(queryEncrypt, lastID)
 	if err != nil {
 		logger.Error("Error on insert PlayerEncrypted", zap.Error(err))
 	}
 
-	return GetPlayerByID(db, encryptionKey, player.ID)
+	return GetPlayerByID(db, encryptionKey, lastID)
 }
 
 // GetPlayerOwnershipDetails returns detailed information about a player owned clans
