@@ -238,13 +238,9 @@ func UpdatePlayer(db DB, logger zap.Logger, encryptionKey []byte, gameID, public
 	player.GameID = gameID
 	player.Metadata = metadata
 
-	count, err := db.Update(player)
+	_, err = db.Update(player)
 	if err != nil {
 		return nil, err
-	}
-
-	if count > 1 {
-		return nil, fmt.Errorf("Multiple players was updated whenever just one is expected to be done")
 	}
 
 	err = db.Insert(&PlayerEncrypted{ID: player.ID})
