@@ -7,7 +7,7 @@
 
 package models
 
-// PlayerEncrypted identifies uniquely one player in a given game
-type PlayerEncrypted struct {
-	ID int64 `db:"id"`
+// EncryptedPlayer identifies uniquely one player in a given game
+type EncryptedPlayer struct {
+	PlayerID int64 `db:"player_id"`
 }

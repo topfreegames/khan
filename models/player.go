@@ -195,9 +195,9 @@ func CreatePlayer(db DB, logger zap.Logger, encryptionKey []byte, gameID, public
 		return nil, err
 	}
 
-	err = db.Insert(&PlayerEncrypted{ID: player.ID})
+	err = db.Insert(&EncryptedPlayer{PlayerID: player.ID})
 	if err != nil {
-		logger.Error("Error on insert PlayerEncrypted", zap.Error(err))
+		logger.Error("Error on insert EncryptedPlayer", zap.Error(err))
 	}
 
 	return GetPlayerByID(db, encryptionKey, player.ID)
@@ -228,10 +228,10 @@ func UpdatePlayer(db DB, logger zap.Logger, encryptionKey []byte, gameID, public
 		return nil, err
 	}
 
-	queryEncrypt := `INSERT INTO players_encrypted (id) VALUES ($1) ON CONFLICT DO NOTHING`
+	queryEncrypt := `INSERT INTO encrypted_players (player_id) VALUES ($1) ON CONFLICT DO NOTHING`
 	_, err = db.Exec(queryEncrypt, lastID)
 	if err != nil {
-		logger.Error("Error on insert PlayerEncrypted", zap.Error(err))
+		logger.Error("Error on insert EncryptedPlayer", zap.Error(err))
 	}
 
 	return GetPlayerByID(db, encryptionKey, lastID)

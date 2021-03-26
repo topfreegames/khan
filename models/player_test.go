@@ -199,7 +199,7 @@ var _ = Describe("Player Model", func() {
 				Expect(decryptedName).To(Equal(player.Name))
 			})
 
-			It("Should create a PlayerEncrypted to trace players encryption process", func() {
+			It("Should create a EncryptedPlayer to trace players encryption process", func() {
 				game := GameFactory.MustCreate().(*Game)
 				err := testDb.Insert(game)
 				Expect(err).NotTo(HaveOccurred())
@@ -217,10 +217,10 @@ var _ = Describe("Player Model", func() {
 				)
 				Expect(err).NotTo(HaveOccurred())
 
-				var playerEncrypted *PlayerEncrypted
-				err = testDb.SelectOne(&playerEncrypted, "select * from players_encrypted where id = $1", player.ID)
+				var encryptedPlayer *EncryptedPlayer
+				err = testDb.SelectOne(&encryptedPlayer, "select * from encrypted_players where player_id = $1", player.ID)
 				Expect(err).NotTo(HaveOccurred())
-				Expect(playerEncrypted.ID).To(Equal(player.ID))
+				Expect(encryptedPlayer.PlayerID).To(Equal(player.ID))
 
 			})
 		})
@@ -281,7 +281,7 @@ var _ = Describe("Player Model", func() {
 
 			})
 
-			It("Should create a PlayerEncrypted to trace players encryption process when updating a player", func() {
+			It("Should create a EncryptedPlayer to trace players encryption process when updating a player", func() {
 				_, player, err := CreatePlayerFactory(testDb, "")
 				Expect(err).NotTo(HaveOccurred())
 
@@ -298,10 +298,10 @@ var _ = Describe("Player Model", func() {
 				)
 				Expect(err).NotTo(HaveOccurred())
 
-				var playerEncrypted *PlayerEncrypted
-				err = testDb.SelectOne(&playerEncrypted, "select * from players_encrypted where id = $1", player.ID)
+				var encryptedPlayer *EncryptedPlayer
+				err = testDb.SelectOne(&encryptedPlayer, "select * from encrypted_players where player_id = $1", player.ID)
 				Expect(err).NotTo(HaveOccurred())
-				Expect(playerEncrypted.ID).To(Equal(player.ID))
+				Expect(encryptedPlayer.PlayerID).To(Equal(player.ID))
 
 			})
 
@@ -369,7 +369,7 @@ var _ = Describe("Player Model", func() {
 				Expect(decryptedPlayerName).To(Equal(playerName))
 			})
 
-			It("Should create a PlayerEncrypted to trace players encryption process when creating a player", func() {
+			It("Should create a EncryptedPlayer to trace players encryption process when creating a player", func() {
 				game := GameFactory.MustCreate().(*Game)
 				err := testDb.Insert(game)
 				Expect(err).NotTo(HaveOccurred())
@@ -388,14 +388,14 @@ var _ = Describe("Player Model", func() {
 				)
 				Expect(err).NotTo(HaveOccurred())
 
-				var playerEncrypted *PlayerEncrypted
-				err = testDb.SelectOne(&playerEncrypted, "select * from players_encrypted where id = $1", player.ID)
+				var encryptedPlayer *EncryptedPlayer
+				err = testDb.SelectOne(&encryptedPlayer, "select * from encrypted_players where player_id = $1", player.ID)
 				Expect(err).NotTo(HaveOccurred())
-				Expect(playerEncrypted.ID).To(Equal(player.ID))
+				Expect(encryptedPlayer.PlayerID).To(Equal(player.ID))
 
 			})
 
-			It("Should return player normally if PlayerEncrypted is already created", func() {
+			It("Should return player normally if EncryptedPlayer is already created", func() {
 				game := GameFactory.MustCreate().(*Game)
 				err := testDb.Insert(game)
 				Expect(err).NotTo(HaveOccurred())
@@ -423,10 +423,10 @@ var _ = Describe("Player Model", func() {
 				)
 				Expect(err).NotTo(HaveOccurred())
 
-				var playerEncrypted *PlayerEncrypted
-				err = testDb.SelectOne(&playerEncrypted, "select * from players_encrypted where id = $1", player.ID)
+				var encryptedPlayer *EncryptedPlayer
+				err = testDb.SelectOne(&encryptedPlayer, "select * from encrypted_players where player_id = $1", player.ID)
 				Expect(err).NotTo(HaveOccurred())
-				Expect(playerEncrypted.ID).To(Equal(player.ID))
+				Expect(encryptedPlayer.PlayerID).To(Equal(player.ID))
 
 			})
 
