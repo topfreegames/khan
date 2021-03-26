@@ -919,4 +919,166 @@ var _ = Describe("Player Model", func() {
 			})
 		})
 	})
+
+	Describe("Migration script", func() {
+		Describe("GetPlayersToEncrypt", func() {
+			BeforeEach(func() {
+				_, err := testDb.Exec(`delete from memberships;
+					delete from clans;
+					delete from encrypted_players;
+					delete from players`,
+				)
+				Expect(err).NotTo(HaveOccurred())
+			})
+
+			It("Should return a slice of players that has no EncryptedPlayer", func() {
+				gameID := uuid.NewV4().String()
+				game := GameFactory.MustCreateWithOption(map[string]interface{}{
+					"PublicID": gameID,
+				}).(*Game)
+
+				_, player, err := CreatePlayerFactory(testDb, gameID)
+				Expect(err).NotTo(HaveOccurred())
+
+				encryptedPlayer, err := CreatePlayer(
+					testDb,
+					logger,
+					GetEncryptionKey(),
+					game.PublicID,
+					uuid.NewV4().String(),
+					"player-name",
+					map[string]interface{}{},
+				)
+				Expect(err).NotTo(HaveOccurred())
+
+				playersToEncrypt, err := GetPlayersToEncrypt(testDb, GetEncryptionKey(), 10)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(playersToEncrypt[0].Name).To(Equal(player.Name))
+				Expect(playersToEncrypt[0].PublicID).To(Equal(player.PublicID))
+				Expect(playersToEncrypt[0].ID).To(Equal(player.ID))
+
+				for _, playerToEncrypt := range playersToEncrypt {
+					Expect(playerToEncrypt.ID).NotTo(Equal(encryptedPlayer.ID))
+				}
+
+			})
+
+			It("If player was encrypted but has no EncryptedPlayer, should return it decrypted", func() {
+				gameID := uuid.NewV4().String()
+				game := GameFactory.MustCreateWithOption(map[string]interface{}{
+					"PublicID": gameID,
+				}).(*Game)
+				err := testDb.Insert(game)
+				Expect(err).NotTo(HaveOccurred())
+
+				encryptedPlayer, err := CreatePlayer(
+					testDb,
+					logger,
+					GetEncryptionKey(),
+					game.PublicID,
+					uuid.NewV4().String(),
+					"player-name",
+					map[string]interface{}{},
+				)
+				Expect(err).NotTo(HaveOccurred())
+
+				encryptedPlayer2, err := CreatePlayer(
+					testDb,
+					logger,
+					GetEncryptionKey(),
+					game.PublicID,
+					uuid.NewV4().String(),
+					"player-name",
+					map[string]interface{}{},
+				)
+				Expect(err).NotTo(HaveOccurred())
+
+				_, err = testDb.Exec("delete from encrypted_players where player_id = $1 or player_id = $2", encryptedPlayer.ID, encryptedPlayer2.ID)
+				Expect(err).NotTo(HaveOccurred())
+
+				playersToEncrypt, err := GetPlayersToEncrypt(testDb, GetEncryptionKey(), 10)
+				Expect(err).NotTo(HaveOccurred())
+
+				var firstPlayerToEncrypt, secondPlayerToEncrypt *Player
+				if playersToEncrypt[0].ID == encryptedPlayer.ID {
+					firstPlayerToEncrypt = playersToEncrypt[0]
+					secondPlayerToEncrypt = playersToEncrypt[1]
+				} else {
+					firstPlayerToEncrypt = playersToEncrypt[1]
+					secondPlayerToEncrypt = playersToEncrypt[0]
+				}
+
+				Expect(firstPlayerToEncrypt.Name).To(Equal(encryptedPlayer.Name))
+				Expect(firstPlayerToEncrypt.PublicID).To(Equal(encryptedPlayer.PublicID))
+				Expect(firstPlayerToEncrypt.ID).To(Equal(encryptedPlayer.ID))
+
+				Expect(secondPlayerToEncrypt.Name).To(Equal(encryptedPlayer2.Name))
+				Expect(secondPlayerToEncrypt.PublicID).To(Equal(encryptedPlayer2.PublicID))
+				Expect(secondPlayerToEncrypt.ID).To(Equal(encryptedPlayer2.ID))
+			})
+		})
+
+		Describe("ApplySecurityChanges", func() {
+			It("Should encrypt and update players", func() {
+				_, player, err := CreatePlayerFactory(testDb, "")
+				Expect(err).NotTo(HaveOccurred())
+
+				_, secondPlayer, err := CreatePlayerFactory(testDb, "")
+				Expect(err).NotTo(HaveOccurred())
+
+				playerName := player.Name
+				secondPlayerName := secondPlayer.Name
+
+				players := []*Player{player, secondPlayer}
+
+				err = ApplySecurityChanges(testDb, GetEncryptionKey(), players)
+				Expect(err).NotTo(HaveOccurred())
+
+				var recoveredPlayer, secondRecoveredPlayer *Player
+				err = testDb.SelectOne(&recoveredPlayer, "select * from players where id = $1", player.ID)
+				Expect(err).NotTo(HaveOccurred())
+
+				err = testDb.SelectOne(&secondRecoveredPlayer, "select * from players where id = $1", secondPlayer.ID)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(recoveredPlayer.ID).To(Equal(player.ID))
+				Expect(playerName).NotTo(Equal(player.Name))
+
+				decryptedPlayerName, err := util.DecryptData(recoveredPlayer.Name, GetEncryptionKey())
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(decryptedPlayerName).To(Equal(playerName))
+
+				decryptedPlayerName, err = util.DecryptData(secondRecoveredPlayer.Name, GetEncryptionKey())
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(decryptedPlayerName).To(Equal(secondPlayerName))
+			})
+
+			It("Should create EncryptedPlayer to each player", func() {
+				_, player, err := CreatePlayerFactory(testDb, "")
+				Expect(err).NotTo(HaveOccurred())
+
+				_, secondPlayer, err := CreatePlayerFactory(testDb, "")
+				Expect(err).NotTo(HaveOccurred())
+
+				players := []*Player{player, secondPlayer}
+
+				err = ApplySecurityChanges(testDb, GetEncryptionKey(), players)
+				Expect(err).NotTo(HaveOccurred())
+
+				var encryptedPlayer *EncryptedPlayer
+				err = testDb.SelectOne(&encryptedPlayer, "select * from encrypted_players where player_id = $1", player.ID)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(encryptedPlayer.PlayerID).To(Equal(player.ID))
+
+				err = testDb.SelectOne(&encryptedPlayer, "select * from encrypted_players where player_id = $1", secondPlayer.ID)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(encryptedPlayer.PlayerID).To(Equal(secondPlayer.ID))
+			})
+		})
+	})
 })

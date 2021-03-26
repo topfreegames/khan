@@ -312,6 +312,55 @@ func GetPlayerDetails(db DB, encryptionKey []byte, gameID, publicID string) (map
 	return result, nil
 }
 
+// GetPlayersToEncrypt get players that have plain text name
+func GetPlayersToEncrypt(db DB, encryptionKey []byte, amount int) ([]*Player, error) {
+	query := `SELECT p.*
+	FROM players p
+		LEFT JOIN encrypted_players ep ON p.id = ep.player_id
+	WHERE ep.player_id IS NULL`
+
+	var players []*Player
+	_, err := db.Select(&players, query)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, player := range players {
+		decryptedName, err := util.DecryptData(player.Name, encryptionKey)
+		if err != nil {
+			continue
+		}
+
+		player.Name = decryptedName
+	}
+
+	return players, nil
+}
+
+// ApplySecurityChanges encrypt and update player
+func ApplySecurityChanges(db DB, encryptionKey []byte, players []*Player) error {
+	for _, player := range players {
+		encryptedName, err := util.EncryptData(player.Name, encryptionKey)
+		if err != nil {
+			return err
+		}
+
+		player.Name = encryptedName
+
+		_, err = db.Update(player)
+		if err != nil {
+			return err
+		}
+
+		err = db.Insert(&EncryptedPlayer{PlayerID: player.ID})
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 // getPlayerMembershipDetails returns detailed information about a player and their memberships
 func getPlayerMembershipDetails(db DB, encryptionKey []byte, gameID, publicID string) (map[string]interface{}, error) {
 	player, err := GetPlayerByPublicID(db, encryptionKey, gameID, publicID)
