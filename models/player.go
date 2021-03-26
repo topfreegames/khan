@@ -12,6 +12,7 @@ import (
 	"fmt"
 
 	"github.com/topfreegames/khan/util"
+	"github.com/uber-go/zap"
 
 	"github.com/go-gorp/gorp"
 )
@@ -177,38 +178,63 @@ func GetPlayerByPublicID(db DB, encryptionKey []byte, gameID string, publicID st
 }
 
 // CreatePlayer creates a new player
-// TODO: encryption not implemented in CreatePlayer
-func CreatePlayer(db DB, encryptionKey []byte, gameID, publicID, name string, metadata map[string]interface{}, upsert bool) (*Player, error) {
+func CreatePlayer(db DB, logger zap.Logger, encryptionKey []byte, gameID, publicID, name string, metadata map[string]interface{}) (*Player, error) {
+	encryptedName, err := util.EncryptData(name, encryptionKey)
+	if err != nil {
+		return nil, err
+	}
+
+	player := &Player{
+		GameID:   gameID,
+		PublicID: publicID,
+		Name:     encryptedName,
+		Metadata: metadata,
+	}
+	err = db.Insert(player)
+	if err != nil {
+		return nil, err
+	}
+
+	err = db.Insert(&EncryptedPlayer{PlayerID: player.ID})
+	if err != nil {
+		logger.Error("Error on insert EncryptedPlayer", zap.Error(err))
+	}
+
+	return GetPlayerByID(db, encryptionKey, player.ID)
+}
+
+// UpdatePlayer updates an existing player
+func UpdatePlayer(db DB, logger zap.Logger, encryptionKey []byte, gameID, publicID, name string, metadata map[string]interface{}) (*Player, error) {
+	encryptedName, err := util.EncryptData(name, encryptionKey)
+	if err != nil {
+		return nil, err
+	}
+
 	metadataJSON, err := json.Marshal(metadata)
 	if err != nil {
 		return nil, err
 	}
 
-	query := `
-			INSERT INTO players(game_id, public_id, name, metadata, created_at, updated_at)
-						VALUES($1, $2, $3, $4, $5, $5)%s RETURNING id`
-	onConflict := ` ON CONFLICT (game_id, public_id)
-			DO UPDATE set name=$3, metadata=$4, updated_at=$5
-			WHERE players.game_id=$1 and players.public_id=$2`
-
-	if upsert {
-		query = fmt.Sprintf(query, onConflict)
-	} else {
-		query = fmt.Sprintf(query, "")
-	}
+	query := `INSERT INTO players(game_id, public_id, name, metadata, created_at, updated_at)
+						VALUES($1, $2, $3, $4, $5, $5) ON CONFLICT (game_id, public_id)
+						DO UPDATE set name=$3, metadata=$4, updated_at=$5
+						WHERE players.game_id=$1 and players.public_id=$2
+						RETURNING id`
 
 	var lastID int64
 	lastID, err = db.SelectInt(query,
-		gameID, publicID, name, metadataJSON, util.NowMilli())
+		gameID, publicID, encryptedName, metadataJSON, util.NowMilli())
 	if err != nil {
 		return nil, err
 	}
-	return GetPlayerByID(db, encryptionKey, lastID)
-}
 
-// UpdatePlayer updates an existing player
-func UpdatePlayer(db DB, encryptionKey []byte, gameID, publicID, name string, metadata map[string]interface{}) (*Player, error) {
-	return CreatePlayer(db, encryptionKey, gameID, publicID, name, metadata, true)
+	queryEncrypt := `INSERT INTO encrypted_players (player_id) VALUES ($1) ON CONFLICT DO NOTHING`
+	_, err = db.Exec(queryEncrypt, lastID)
+	if err != nil {
+		logger.Error("Error on insert EncryptedPlayer", zap.Error(err))
+	}
+
+	return GetPlayerByID(db, encryptionKey, lastID)
 }
 
 // GetPlayerOwnershipDetails returns detailed information about a player owned clans

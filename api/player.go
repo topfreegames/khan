@@ -27,7 +27,7 @@ func CreatePlayerHandler(app *App) func(c echo.Context) error {
 
 		db := app.Db(c.StdContext())
 
-		l := app.Logger.With(
+		logger := app.Logger.With(
 			zap.String("source", "playerHandler"),
 			zap.String("operation", "createPlayer"),
 			zap.String("gameID", gameID),
@@ -35,7 +35,7 @@ func CreatePlayerHandler(app *App) func(c echo.Context) error {
 
 		var payload CreatePlayerPayload
 		err := WithSegment("payload", c, func() error {
-			if err := LoadJSONPayload(&payload, c, l); err != nil {
+			if err := LoadJSONPayload(&payload, c, logger); err != nil {
 				return err
 			}
 			return nil
@@ -46,19 +46,19 @@ func CreatePlayerHandler(app *App) func(c echo.Context) error {
 
 		var player *models.Player
 		err = WithSegment("player-create", c, func() error {
-			log.D(l, "Creating player...")
+			log.D(logger, "Creating player...")
 			player, err = models.CreatePlayer(
 				db,
+				logger,
 				app.EncryptionKey,
 				gameID,
 				payload.PublicID,
 				payload.Name,
 				payload.Metadata,
-				false,
 			)
 
 			if err != nil {
-				log.E(l, "Player creation failed.", func(cm log.CM) {
+				log.E(logger, "Player creation failed.", func(cm log.CM) {
 					cm.Write(zap.Error(err))
 				})
 				return err
@@ -84,7 +84,7 @@ func CreatePlayerHandler(app *App) func(c echo.Context) error {
 				player.Serialize(app.EncryptionKey),
 			)
 			if err != nil {
-				log.E(l, "Player creation hook dispatch failed.", func(cm log.CM) {
+				log.E(logger, "Player creation hook dispatch failed.", func(cm log.CM) {
 					cm.Write(zap.Error(err))
 				})
 				return err
@@ -95,7 +95,7 @@ func CreatePlayerHandler(app *App) func(c echo.Context) error {
 			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 
-		log.D(l, "Player created successfully.", func(cm log.CM) {
+		log.D(logger, "Player created successfully.", func(cm log.CM) {
 			cm.Write(zap.Duration("duration", time.Now().Sub(start)))
 		})
 
@@ -113,7 +113,7 @@ func UpdatePlayerHandler(app *App) func(c echo.Context) error {
 
 		db := app.Db(c.StdContext())
 
-		l := app.Logger.With(
+		logger := app.Logger.With(
 			zap.String("source", "playerHandler"),
 			zap.String("operation", "updatePlayer"),
 			zap.String("gameID", gameID),
@@ -122,7 +122,7 @@ func UpdatePlayerHandler(app *App) func(c echo.Context) error {
 
 		var payload UpdatePlayerPayload
 		err := WithSegment("payload", c, func() error {
-			return LoadJSONPayload(&payload, c, l)
+			return LoadJSONPayload(&payload, c, logger)
 		})
 		if err != nil {
 			return FailWith(http.StatusBadRequest, err.Error(), c)
@@ -132,13 +132,13 @@ func UpdatePlayerHandler(app *App) func(c echo.Context) error {
 		var game *models.Game
 
 		err = WithSegment("game-retrieve", c, func() error {
-			log.D(l, "Retrieving game...")
+			log.D(logger, "Retrieving game...")
 			game, err = models.GetGameByPublicID(db, gameID)
 
 			if err != nil {
 				return err
 			}
-			log.D(l, "Game retrieved successfully")
+			log.D(logger, "Game retrieved successfully")
 			return nil
 		})
 		if err != nil {
@@ -146,12 +146,12 @@ func UpdatePlayerHandler(app *App) func(c echo.Context) error {
 		}
 
 		err = WithSegment("player-retrieve", c, func() error {
-			log.D(l, "Retrieving player...")
+			log.D(logger, "Retrieving player...")
 			beforeUpdatePlayer, err = models.GetPlayerByPublicID(db, app.EncryptionKey, gameID, playerPublicID)
 			if err != nil && err.Error() != (&models.ModelNotFoundError{Type: "Player", ID: playerPublicID}).Error() {
 				return err
 			}
-			log.D(l, "Player retrieved successfully")
+			log.D(logger, "Player retrieved successfully")
 			return nil
 		})
 		if err != nil {
@@ -160,9 +160,10 @@ func UpdatePlayerHandler(app *App) func(c echo.Context) error {
 
 		err = WithSegment("player-update", c, func() error {
 			err = WithSegment("player-update-query", c, func() error {
-				log.D(l, "Updating player...")
+				log.D(logger, "Updating player...")
 				player, err = models.UpdatePlayer(
 					db,
+					logger,
 					app.EncryptionKey,
 					gameID,
 					playerPublicID,
@@ -173,7 +174,7 @@ func UpdatePlayerHandler(app *App) func(c echo.Context) error {
 			})
 
 			if err != nil {
-				log.E(l, "Updating player failed.", func(cm log.CM) {
+				log.E(logger, "Updating player failed.", func(cm log.CM) {
 					cm.Write(zap.Error(err))
 				})
 				return err
@@ -185,16 +186,16 @@ func UpdatePlayerHandler(app *App) func(c echo.Context) error {
 		}
 
 		err = WithSegment("hook-dispatch", c, func() error {
-			shouldDispatch := validateUpdatePlayerDispatch(game, beforeUpdatePlayer, player, payload.Metadata, l)
+			shouldDispatch := validateUpdatePlayerDispatch(game, beforeUpdatePlayer, player, payload.Metadata, logger)
 			if shouldDispatch {
-				log.D(l, "Dispatching player update hooks...")
+				log.D(logger, "Dispatching player update hooks...")
 				err = app.DispatchHooks(
 					gameID,
 					models.PlayerUpdatedHook,
 					player.Serialize(app.EncryptionKey),
 				)
 				if err != nil {
-					log.E(l, "Update player hook dispatch failed.", func(cm log.CM) {
+					log.E(logger, "Update player hook dispatch failed.", func(cm log.CM) {
 						cm.Write(zap.Error(err))
 					})
 					return err
@@ -206,7 +207,7 @@ func UpdatePlayerHandler(app *App) func(c echo.Context) error {
 			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 
-		log.D(l, "Player updated successfully.", func(cm log.CM) {
+		log.D(logger, "Player updated successfully.", func(cm log.CM) {
 			cm.Write(zap.Duration("duration", time.Now().Sub(start)))
 		})
 		return SucceedWith(map[string]interface{}{}, c)
