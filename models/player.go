@@ -317,10 +317,11 @@ func GetPlayersToEncrypt(db DB, encryptionKey []byte, amount int) ([]*Player, er
 	query := `SELECT p.*
 	FROM players p
 		LEFT JOIN encrypted_players ep ON p.id = ep.player_id
-	WHERE ep.player_id IS NULL`
+	WHERE ep.player_id IS NULL
+	LIMIT $1`
 
 	var players []*Player
-	_, err := db.Select(&players, query)
+	_, err := db.Select(&players, query, amount)
 	if err != nil {
 		return nil, err
 	}

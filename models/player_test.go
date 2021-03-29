@@ -1017,6 +1017,19 @@ var _ = Describe("Player Model", func() {
 				Expect(secondPlayerToEncrypt.PublicID).To(Equal(encryptedPlayer2.PublicID))
 				Expect(secondPlayerToEncrypt.ID).To(Equal(encryptedPlayer2.ID))
 			})
+
+			It("Should return the amount of players", func() {
+				_, _, err := CreatePlayerFactory(testDb, "")
+				Expect(err).NotTo(HaveOccurred())
+
+				_, _, err = CreatePlayerFactory(testDb, "")
+				Expect(err).NotTo(HaveOccurred())
+
+				playersToEncrypt, err := GetPlayersToEncrypt(testDb, GetEncryptionKey(), 1)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(len(playersToEncrypt)).To(Equal(1))
+			})
 		})
 
 		Describe("ApplySecurityChanges", func() {
