@@ -335,7 +335,6 @@ func ApplySecurityChanges(db egorp.Database, encryptionKey []byte, players []*Pl
 
 	trx, err := db.Begin()
 	if err != nil {
-		err = trx.Rollback()
 		return err
 	}
 
