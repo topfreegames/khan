@@ -14,6 +14,7 @@ import (
 	workers "github.com/jrallison/go-workers"
 	uuid "github.com/satori/go.uuid"
 	"github.com/spf13/viper"
+	egorp "github.com/topfreegames/extensions/v9/gorp/interfaces"
 	"github.com/topfreegames/extensions/v9/mongo/interfaces"
 	"github.com/topfreegames/khan/models"
 	"github.com/topfreegames/khan/mongo"
@@ -22,7 +23,7 @@ import (
 )
 
 // GetTestDB returns a connection to the test database
-func GetTestDB() (models.DB, error) {
+func GetTestDB() (egorp.Database, error) {
 	return models.GetDB("localhost", "khan_test", 5433, "disable", "khan_test", "")
 }
 

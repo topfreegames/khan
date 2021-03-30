@@ -12,6 +12,7 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	egorp "github.com/topfreegames/extensions/v9/gorp/interfaces"
 	. "github.com/topfreegames/khan/models"
 	"github.com/topfreegames/khan/testing"
 	"github.com/topfreegames/khan/util"
@@ -21,7 +22,7 @@ import (
 )
 
 var _ = Describe("Player Model", func() {
-	var testDb DB
+	var testDb egorp.Database
 	var logger zap.Logger
 
 	BeforeEach(func() {
@@ -962,60 +963,6 @@ var _ = Describe("Player Model", func() {
 					Expect(playerToEncrypt.ID).NotTo(Equal(encryptedPlayer.ID))
 				}
 
-			})
-
-			It("If player was encrypted but has no EncryptedPlayer, should return it decrypted", func() {
-				gameID := uuid.NewV4().String()
-				game := GameFactory.MustCreateWithOption(map[string]interface{}{
-					"PublicID": gameID,
-				}).(*Game)
-				err := testDb.Insert(game)
-				Expect(err).NotTo(HaveOccurred())
-
-				encryptedPlayer, err := CreatePlayer(
-					testDb,
-					logger,
-					GetEncryptionKey(),
-					game.PublicID,
-					uuid.NewV4().String(),
-					"player-name",
-					map[string]interface{}{},
-				)
-				Expect(err).NotTo(HaveOccurred())
-
-				encryptedPlayer2, err := CreatePlayer(
-					testDb,
-					logger,
-					GetEncryptionKey(),
-					game.PublicID,
-					uuid.NewV4().String(),
-					"player-name",
-					map[string]interface{}{},
-				)
-				Expect(err).NotTo(HaveOccurred())
-
-				_, err = testDb.Exec("delete from encrypted_players where player_id = $1 or player_id = $2", encryptedPlayer.ID, encryptedPlayer2.ID)
-				Expect(err).NotTo(HaveOccurred())
-
-				playersToEncrypt, err := GetPlayersToEncrypt(testDb, GetEncryptionKey(), 10)
-				Expect(err).NotTo(HaveOccurred())
-
-				var firstPlayerToEncrypt, secondPlayerToEncrypt *Player
-				if playersToEncrypt[0].ID == encryptedPlayer.ID {
-					firstPlayerToEncrypt = playersToEncrypt[0]
-					secondPlayerToEncrypt = playersToEncrypt[1]
-				} else {
-					firstPlayerToEncrypt = playersToEncrypt[1]
-					secondPlayerToEncrypt = playersToEncrypt[0]
-				}
-
-				Expect(firstPlayerToEncrypt.Name).To(Equal(encryptedPlayer.Name))
-				Expect(firstPlayerToEncrypt.PublicID).To(Equal(encryptedPlayer.PublicID))
-				Expect(firstPlayerToEncrypt.ID).To(Equal(encryptedPlayer.ID))
-
-				Expect(secondPlayerToEncrypt.Name).To(Equal(encryptedPlayer2.Name))
-				Expect(secondPlayerToEncrypt.PublicID).To(Equal(encryptedPlayer2.PublicID))
-				Expect(secondPlayerToEncrypt.ID).To(Equal(encryptedPlayer2.ID))
 			})
 
 			It("Should return the amount of players", func() {
