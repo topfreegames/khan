@@ -15,6 +15,7 @@ import (
 	"github.com/uber-go/zap"
 
 	"github.com/go-gorp/gorp"
+	egorp "github.com/topfreegames/extensions/v9/gorp/interfaces"
 )
 
 // Player identifies uniquely one player in a given game
@@ -326,20 +327,18 @@ func GetPlayersToEncrypt(db DB, encryptionKey []byte, amount int) ([]*Player, er
 		return nil, err
 	}
 
-	for _, player := range players {
-		decryptedName, err := util.DecryptData(player.Name, encryptionKey)
-		if err != nil {
-			continue
-		}
-
-		player.Name = decryptedName
-	}
-
 	return players, nil
 }
 
 // ApplySecurityChanges encrypt and update player
-func ApplySecurityChanges(db DB, encryptionKey []byte, players []*Player) error {
+func ApplySecurityChanges(db egorp.Database, encryptionKey []byte, players []*Player) error {
+
+	trx, err := db.Begin()
+	if err != nil {
+		err = trx.Rollback()
+		return err
+	}
+
 	for _, player := range players {
 		encryptedName, err := util.EncryptData(player.Name, encryptionKey)
 		if err != nil {
@@ -348,15 +347,27 @@ func ApplySecurityChanges(db DB, encryptionKey []byte, players []*Player) error 
 
 		player.Name = encryptedName
 
-		_, err = db.Update(player)
 		if err != nil {
+			err = trx.Rollback()
 			return err
 		}
 
-		err = db.Insert(&EncryptedPlayer{PlayerID: player.ID})
+		_, err = trx.Update(player)
 		if err != nil {
+			err = trx.Rollback()
 			return err
 		}
+
+		err = trx.Insert(&EncryptedPlayer{PlayerID: player.ID})
+		if err != nil {
+			err = trx.Rollback()
+			return err
+		}
+	}
+
+	err = trx.Commit()
+	if err != nil {
+		return err
 	}
 
 	return nil

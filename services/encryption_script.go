@@ -180,6 +180,7 @@ func (app *EncryptionScript) encryptPlayers() {
 		log.E(logger, "error on get players to encrypt", func(cm log.CM) {
 			cm.Write(zap.Error(err))
 		})
+		return
 	}
 
 	if len(players) == 0 {
@@ -192,6 +193,8 @@ func (app *EncryptionScript) encryptPlayers() {
 		log.E(logger, "error on update players", func(cm log.CM) {
 			cm.Write(zap.Error(err))
 		})
+		return
 	}
+
 	app.Logger.Debug("encryption done", zap.String("spent time", time.Since(initTime).String()))
 }
