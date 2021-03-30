@@ -46,7 +46,7 @@ func CreatePlayerHandler(app *App) func(c echo.Context) error {
 		var transaction interfaces.Transaction
 		transaction, err = app.BeginTrans(c.StdContext(), logger)
 		if err != nil {
-			return FailWith(http.StatusBadRequest, err.Error(), c)
+			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 
 		var player *models.Player
@@ -80,7 +80,7 @@ func CreatePlayerHandler(app *App) func(c echo.Context) error {
 
 		err = app.Commit(transaction, "Player created successful", c, logger)
 		if err != nil {
-			return FailWith(500, err.Error(), c)
+			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 
 		result := map[string]interface{}{
@@ -175,7 +175,7 @@ func UpdatePlayerHandler(app *App) func(c echo.Context) error {
 		var transaction interfaces.Transaction
 		transaction, err = app.BeginTrans(c.StdContext(), logger)
 		if err != nil {
-			return FailWith(http.StatusBadRequest, err.Error(), c)
+			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 
 		err = WithSegment("player-update", c, func() error {
@@ -211,7 +211,7 @@ func UpdatePlayerHandler(app *App) func(c echo.Context) error {
 
 		err = app.Commit(transaction, "Player created successful", c, logger)
 		if err != nil {
-			return FailWith(500, err.Error(), c)
+			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 
 		err = WithSegment("hook-dispatch", c, func() error {
