@@ -54,6 +54,16 @@ To run a new khan instance, run:
 
     $ make run-docker
 
+### Running with docker-compose
+
+We already provide a docker-compose.yml as well with all dependencies configured for you to run. To run Khan and all its dependencies, run:
+
+```sh
+    $ docker-compose up
+```
+
+**Note** If you are running it on MacOS, you will need to update the amount of RAM docker has access to. Docker, by default, can use 2GB of RAM, however, Khan uses an instance of ElasticSearch and it needs at least 2GB of RAM to work properly. So, if you are experiencing problems while connecting to the elastic search, this might be the root cause of the problem.
+
 ### Tests
 
 Running tests can be done with `make test`, while creating the test database can be accomplished with `make drop-test` and `make db-test`.

@@ -87,6 +87,9 @@ worker:
 run-fast:
 	@go run main.go start --fast -c ./config/local.yaml
 
+start-with-docker:
+	@bash ./docker/start-khan.sh
+
 build-docker:
 	@docker build -t khan .
 

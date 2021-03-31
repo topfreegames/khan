@@ -34,3 +34,4 @@ khan-perf.dump
 *.coverprofile
 dev/khan-linux-x86_64
 *.swp
+/docker-data
