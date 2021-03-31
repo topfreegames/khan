@@ -1,3 +1,7 @@
+## [5.0.1]
+### Added
+- Transactions on write player routes
+
 ## [5.0.0]
 ### Added
 - Encryption to write player models functions `CreatePlayer` and `UpdatePlayer`
