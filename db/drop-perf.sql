@@ -8,14 +8,3 @@
 REVOKE ALL ON SCHEMA public FROM khan_perf;
 DROP DATABASE IF EXISTS khan_perf;
 DROP ROLE khan_perf;
-
-CREATE ROLE khan_perf LOGIN
-  SUPERUSER INHERIT CREATEDB CREATEROLE;
-
-CREATE DATABASE khan_perf
-  WITH OWNER = khan_perf
-       ENCODING = 'UTF8'
-       TABLESPACE = pg_default
-       TEMPLATE = template0;
-
-GRANT ALL ON SCHEMA public TO khan_perf;

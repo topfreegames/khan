@@ -136,7 +136,7 @@ run-prune-docker:
 
 test: start-test-deps run-test
 
-start-test-deps: schema-update start-deps assets drop-test db-test
+start-test-deps: schema-update start-deps assets drop-test criate-test-db migrate-test
 
 run-test:
 	@SKIP_ELASTIC_LOG=true ginkgo -nodes=1 -r --cover .
@@ -153,7 +153,7 @@ random-data:
 
 drop:
 	@psql -d postgres -U postgres -p 5433 -h ${MYIP} -f db/drop.sql > /dev/null
-	@echo "Database created successfully!"
+	@echo "Database dropped successfully!"
 
 db migrate:
 	@go run main.go migrate -c ./config/local.yaml
@@ -163,10 +163,14 @@ db-test migrate-test:
 	@go run main.go migrate -t 0 -c ./config/test.yaml
 	@go run main.go migrate -c ./config/test.yaml
 
+create-test-db:
+	@psql -d postgres -h localhost -p 5433 -U postgres -f db/create-test.sql > /dev/null
+	@echo "Test database created successfully!"
+
 drop-test:
 	@-psql -d postgres -h localhost -p 5433 -U postgres -c "SELECT pg_terminate_backend(pid.pid) FROM pg_stat_activity, (SELECT pid FROM pg_stat_activity where pid <> pg_backend_pid()) pid WHERE datname='khan_test';"
 	@psql -d postgres -h localhost -p 5433 -U postgres -f db/drop-test.sql > /dev/null
-	@echo "Test database created successfully!"
+	@echo "Test database dropped successfully!"
 
 run-test-khan: build
 	@rm -rf /tmp/khan-bench.log
@@ -188,6 +192,10 @@ restore-perf:
 
 dump-perf:
 	@pg_dump khan_perf > khan-perf.dump
+
+create-perf-db:
+	@psql -d postgres -h localhost -p 5433 -U postgres -f db/create-perf.sql > /dev/null
+	@echo "Perf database created successfully!"
 
 drop-perf:
 	@psql -d postgres -h localhost -p 5433 -U postgres -f db/drop-perf.sql > /dev/null
