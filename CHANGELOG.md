@@ -1,3 +1,7 @@
+## [5.1.0]
+### Added
+- Create script to encrypt player name
+
 ## [5.0.1]
 ### Added
 - Transactions on write player routes
