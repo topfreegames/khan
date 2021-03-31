@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/labstack/echo"
+	"github.com/topfreegames/extensions/v9/gorp/interfaces"
 	"github.com/topfreegames/khan/log"
 	"github.com/topfreegames/khan/models"
 	"github.com/uber-go/zap"
@@ -24,8 +25,6 @@ func CreatePlayerHandler(app *App) func(c echo.Context) error {
 		c.Set("route", "CreatePlayer")
 		start := time.Now()
 		gameID := c.Param("gameID")
-
-		db := app.Db(c.StdContext())
 
 		logger := app.Logger.With(
 			zap.String("source", "playerHandler"),
@@ -44,11 +43,17 @@ func CreatePlayerHandler(app *App) func(c echo.Context) error {
 			return FailWith(http.StatusBadRequest, err.Error(), c)
 		}
 
+		var transaction interfaces.Transaction
+		transaction, err = app.BeginTrans(c.StdContext(), logger)
+		if err != nil {
+			return FailWith(http.StatusInternalServerError, err.Error(), c)
+		}
+
 		var player *models.Player
 		err = WithSegment("player-create", c, func() error {
 			log.D(logger, "Creating player...")
 			player, err = models.CreatePlayer(
-				db,
+				transaction,
 				logger,
 				app.EncryptionKey,
 				gameID,
@@ -65,6 +70,15 @@ func CreatePlayerHandler(app *App) func(c echo.Context) error {
 			}
 			return nil
 		})
+		if err != nil {
+			errRollback := app.Rollback(transaction, "Player creation failed, rolling back", c, logger, err)
+			if errRollback != nil {
+				return FailWith(http.StatusInternalServerError, fmt.Sprint(err.Error(), ", rolback error: ", errRollback.Error()), c)
+			}
+			return FailWith(http.StatusInternalServerError, err.Error(), c)
+		}
+
+		err = app.Commit(transaction, "Player created successful", c, logger)
 		if err != nil {
 			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
@@ -158,11 +172,17 @@ func UpdatePlayerHandler(app *App) func(c echo.Context) error {
 			return FailWith(http.StatusBadRequest, err.Error(), c)
 		}
 
+		var transaction interfaces.Transaction
+		transaction, err = app.BeginTrans(c.StdContext(), logger)
+		if err != nil {
+			return FailWith(http.StatusInternalServerError, err.Error(), c)
+		}
+
 		err = WithSegment("player-update", c, func() error {
 			err = WithSegment("player-update-query", c, func() error {
 				log.D(logger, "Updating player...")
 				player, err = models.UpdatePlayer(
-					db,
+					transaction,
 					logger,
 					app.EncryptionKey,
 					gameID,
@@ -181,6 +201,15 @@ func UpdatePlayerHandler(app *App) func(c echo.Context) error {
 			}
 			return nil
 		})
+		if err != nil {
+			errRollback := app.Rollback(transaction, "Player update failed, rolling back", c, logger, err)
+			if errRollback != nil {
+				return FailWith(http.StatusInternalServerError, fmt.Sprint(err.Error(), ", rolback error: ", errRollback.Error()), c)
+			}
+			return FailWith(http.StatusInternalServerError, err.Error(), c)
+		}
+
+		err = app.Commit(transaction, "Player created successful", c, logger)
 		if err != nil {
 			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
