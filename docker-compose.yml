@@ -1,0 +1,108 @@
+version: "3.8"
+
+services:
+  khan:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: "make migrate start-with-docker"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+    links:
+      - postgres
+      - redis
+      - elasticsearch
+    ports:
+      - "80:80"
+    networks:
+      - wildlife-services
+    environment:
+      - KHAN_POSTGRES_HOST=postgres
+      - KHAN_POSTGRES_USER=postgres
+      - KHAN_POSTGRES_PASSWORD=123456
+      - KHAN_REDIS_HOST=redis
+      - KHAN_ELASTICSEARCH_HOST=elasticsearch
+    healthcheck:
+        test: ["CMD-SHELL", "curl --silent --fail http://localhost/healthcheck || exit 1"]
+        interval: 30s
+        timeout: 30s
+        retries: 3
+
+  # khan-worker:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   depends_on:
+  #     khan:
+  #       condition: service_healthy
+  #   links:
+  #     - khan
+  #   ports:
+  #     - "8080:8080"
+  #   networks:
+  #     - wildlife-services
+  #   environment:
+  #     - KHAN_RUN_WORKER=true
+  #     - KHAN_POSTGRES_HOST=postgres
+  #     - KHAN_POSTGRES_USER=postgres
+  #     - KHAN_POSTGRES_PASSWORD=123456
+  #     - KHAN_REDIS_HOST=redis
+  #     - KHAN_ELASTICSEARCH_HOST=elasticsearch
+
+  postgres:
+    image: postgres:12
+    restart: always
+    environment:
+      - POSTGRES_PASSWORD=123456
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=khan
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./docker-data/postgres:/var/lib/postgresql/data
+    networks:
+      - wildlife-services
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:4
+    restart: always
+    ports: 
+      - "6379:6379"
+    networks:
+      - wildlife-services
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+
+  elasticsearch:
+    image: elasticsearch:7.6.1
+    ports:
+      - '9200:9200'
+      - '9300:9300'
+    networks:
+      - wildlife-services
+    volumes:
+      - ./docker-data/elasticsearch:/usr/share/elasticsearch/data
+    environment:
+      - xpack.security.enabled=false
+      - discovery.type=single-node
+    healthcheck:
+        test: ["CMD-SHELL", "curl --silent --fail localhost:9200/_cluster/health || exit 1"]
+        interval: 10s
+        timeout: 30s
+        retries: 3
+
+networks:
+  wildlife-services: 
