@@ -136,7 +136,7 @@ run-prune-docker:
 
 test: start-test-deps run-test
 
-start-test-deps: schema-update start-deps assets drop-test criate-test-db migrate-test
+start-test-deps: schema-update start-deps assets drop-test create-test-db migrate-test
 
 run-test:
 	@SKIP_ELASTIC_LOG=true ginkgo -nodes=1 -r --cover .
