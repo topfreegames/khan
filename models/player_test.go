@@ -12,6 +12,7 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	egorp "github.com/topfreegames/extensions/v9/gorp/interfaces"
 	. "github.com/topfreegames/khan/models"
 	"github.com/topfreegames/khan/testing"
 	"github.com/topfreegames/khan/util"
@@ -21,7 +22,7 @@ import (
 )
 
 var _ = Describe("Player Model", func() {
-	var testDb DB
+	var testDb egorp.Database
 	var logger zap.Logger
 
 	BeforeEach(func() {
@@ -916,6 +917,127 @@ var _ = Describe("Player Model", func() {
 				err := UpdatePlayerOwnershipCount(testDb, -1)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(Equal("Player was not found with id: -1"))
+			})
+		})
+	})
+
+	Describe("Migration script", func() {
+		Describe("GetPlayersToEncrypt", func() {
+			BeforeEach(func() {
+				_, err := testDb.Exec(`delete from memberships;
+					delete from clans;
+					delete from encrypted_players;
+					delete from players`,
+				)
+				Expect(err).NotTo(HaveOccurred())
+			})
+
+			It("Should return a slice of players that has no EncryptedPlayer", func() {
+				gameID := uuid.NewV4().String()
+				game := GameFactory.MustCreateWithOption(map[string]interface{}{
+					"PublicID": gameID,
+				}).(*Game)
+
+				_, player, err := CreatePlayerFactory(testDb, gameID)
+				Expect(err).NotTo(HaveOccurred())
+
+				encryptedPlayer, err := CreatePlayer(
+					testDb,
+					logger,
+					GetEncryptionKey(),
+					game.PublicID,
+					uuid.NewV4().String(),
+					"player-name",
+					map[string]interface{}{},
+				)
+				Expect(err).NotTo(HaveOccurred())
+
+				playersToEncrypt, err := GetPlayersToEncrypt(testDb, GetEncryptionKey(), 10)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(playersToEncrypt[0].Name).To(Equal(player.Name))
+				Expect(playersToEncrypt[0].PublicID).To(Equal(player.PublicID))
+				Expect(playersToEncrypt[0].ID).To(Equal(player.ID))
+
+				for _, playerToEncrypt := range playersToEncrypt {
+					Expect(playerToEncrypt.ID).NotTo(Equal(encryptedPlayer.ID))
+				}
+
+			})
+
+			It("Should return the amount of players", func() {
+				_, _, err := CreatePlayerFactory(testDb, "")
+				Expect(err).NotTo(HaveOccurred())
+
+				_, _, err = CreatePlayerFactory(testDb, "")
+				Expect(err).NotTo(HaveOccurred())
+
+				playersToEncrypt, err := GetPlayersToEncrypt(testDb, GetEncryptionKey(), 1)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(len(playersToEncrypt)).To(Equal(1))
+			})
+		})
+
+		Describe("ApplySecurityChanges", func() {
+			It("Should encrypt and update players", func() {
+				_, player, err := CreatePlayerFactory(testDb, "")
+				Expect(err).NotTo(HaveOccurred())
+
+				_, secondPlayer, err := CreatePlayerFactory(testDb, "")
+				Expect(err).NotTo(HaveOccurred())
+
+				playerName := player.Name
+				secondPlayerName := secondPlayer.Name
+
+				players := []*Player{player, secondPlayer}
+
+				err = ApplySecurityChanges(testDb, GetEncryptionKey(), players)
+				Expect(err).NotTo(HaveOccurred())
+
+				var recoveredPlayer, secondRecoveredPlayer *Player
+				err = testDb.SelectOne(&recoveredPlayer, "select * from players where id = $1", player.ID)
+				Expect(err).NotTo(HaveOccurred())
+
+				err = testDb.SelectOne(&secondRecoveredPlayer, "select * from players where id = $1", secondPlayer.ID)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(recoveredPlayer.ID).To(Equal(player.ID))
+				Expect(playerName).NotTo(Equal(player.Name))
+
+				decryptedPlayerName, err := util.DecryptData(recoveredPlayer.Name, GetEncryptionKey())
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(decryptedPlayerName).To(Equal(playerName))
+
+				decryptedPlayerName, err = util.DecryptData(secondRecoveredPlayer.Name, GetEncryptionKey())
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(decryptedPlayerName).To(Equal(secondPlayerName))
+			})
+
+			It("Should create EncryptedPlayer to each player", func() {
+				_, player, err := CreatePlayerFactory(testDb, "")
+				Expect(err).NotTo(HaveOccurred())
+
+				_, secondPlayer, err := CreatePlayerFactory(testDb, "")
+				Expect(err).NotTo(HaveOccurred())
+
+				players := []*Player{player, secondPlayer}
+
+				err = ApplySecurityChanges(testDb, GetEncryptionKey(), players)
+				Expect(err).NotTo(HaveOccurred())
+
+				var encryptedPlayer *EncryptedPlayer
+				err = testDb.SelectOne(&encryptedPlayer, "select * from encrypted_players where player_id = $1", player.ID)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(encryptedPlayer.PlayerID).To(Equal(player.ID))
+
+				err = testDb.SelectOne(&encryptedPlayer, "select * from encrypted_players where player_id = $1", secondPlayer.ID)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(encryptedPlayer.PlayerID).To(Equal(secondPlayer.ID))
 			})
 		})
 	})

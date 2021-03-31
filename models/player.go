@@ -15,6 +15,7 @@ import (
 	"github.com/uber-go/zap"
 
 	"github.com/go-gorp/gorp"
+	egorp "github.com/topfreegames/extensions/v9/gorp/interfaces"
 )
 
 // Player identifies uniquely one player in a given game
@@ -310,6 +311,65 @@ func GetPlayerDetails(db DB, encryptionKey []byte, gameID, publicID string) (map
 	result["clans"].(map[string]interface{})["owned"] = ownerships["clans"]
 	result["memberships"] = append(result["memberships"].([]map[string]interface{}), ownerships["memberships"].([]map[string]interface{})...)
 	return result, nil
+}
+
+// GetPlayersToEncrypt get players that have plain text name
+func GetPlayersToEncrypt(db DB, encryptionKey []byte, amount int) ([]*Player, error) {
+	query := `SELECT p.*
+	FROM players p
+		LEFT JOIN encrypted_players ep ON p.id = ep.player_id
+	WHERE ep.player_id IS NULL
+	LIMIT $1`
+
+	var players []*Player
+	_, err := db.Select(&players, query, amount)
+	if err != nil {
+		return nil, err
+	}
+
+	return players, nil
+}
+
+// ApplySecurityChanges encrypt and update player
+func ApplySecurityChanges(db egorp.Database, encryptionKey []byte, players []*Player) error {
+
+	trx, err := db.Begin()
+	if err != nil {
+		return err
+	}
+
+	for _, player := range players {
+		encryptedName, err := util.EncryptData(player.Name, encryptionKey)
+		if err != nil {
+			return err
+		}
+
+		player.Name = encryptedName
+
+		if err != nil {
+			err = trx.Rollback()
+			return err
+		}
+
+		_, err = trx.Update(player)
+		if err != nil {
+			err = trx.Rollback()
+			return err
+		}
+
+		err = trx.Insert(&EncryptedPlayer{PlayerID: player.ID})
+		if err != nil {
+			err = trx.Rollback()
+			return err
+		}
+	}
+
+	err = trx.Commit()
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // getPlayerMembershipDetails returns detailed information about a player and their memberships
