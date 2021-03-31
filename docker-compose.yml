@@ -33,26 +33,26 @@ services:
         timeout: 30s
         retries: 3
 
-  # khan-worker:
-  #   build:
-  #     context: .
-  #     dockerfile: Dockerfile
-  #   depends_on:
-  #     khan:
-  #       condition: service_healthy
-  #   links:
-  #     - khan
-  #   ports:
-  #     - "8080:8080"
-  #   networks:
-  #     - wildlife-services
-  #   environment:
-  #     - KHAN_RUN_WORKER=true
-  #     - KHAN_POSTGRES_HOST=postgres
-  #     - KHAN_POSTGRES_USER=postgres
-  #     - KHAN_POSTGRES_PASSWORD=123456
-  #     - KHAN_REDIS_HOST=redis
-  #     - KHAN_ELASTICSEARCH_HOST=elasticsearch
+  khan-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      khan:
+        condition: service_healthy
+    links:
+      - khan
+    ports:
+      - "8080:8080"
+    networks:
+      - wildlife-services
+    environment:
+      - KHAN_RUN_WORKER=true
+      - KHAN_POSTGRES_HOST=postgres
+      - KHAN_POSTGRES_USER=postgres
+      - KHAN_POSTGRES_PASSWORD=123456
+      - KHAN_REDIS_HOST=redis
+      - KHAN_ELASTICSEARCH_HOST=elasticsearch
 
   postgres:
     image: postgres:12
