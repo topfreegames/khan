@@ -196,6 +196,15 @@ func migrations_20210323185959_createencryptiontable_sql() ([]byte, error) {
 	)
 }
 
+var _migrations_20210401151842_changeencryptedplayersidtype_sql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\xa4\xce\x31\x4e\xc4\x30\x10\x85\xe1\xde\xa7\x78\xdd\x16\x68\x4f\xb0\xd5\x2e\x58\x51\x24\x13\x20\x38\x05\x55\x64\xec\x51\x32\xc2\xd8\x96\x6d\x14\x72\x7b\x14\x22\x10\x25\xd2\x96\xf3\xcf\x2b\x3e\x71\x3c\xe2\x66\x8a\xb1\x10\x86\xb4\x1d\xcf\x4f\x0a\x1c\x50\xc8\x56\x8e\x01\x87\x21\x1d\xc0\x05\xf4\x49\xf6\xa3\x92\xc3\x32\x53\x40\x9d\xb9\xe0\x9d\xa7\x6c\xbe\x47\x5c\x60\x52\xf2\x4c\x4e\x9c\x95\x96\x3d\xf4\xf9\xa2\x24\x28\xd8\xbc\xa6\x4a\x6e\x4c\xde\xac\x94\x0b\xf6\xef\xed\x83\x1a\xee\x3b\xec\x71\x64\x07\xfd\xf2\x28\x71\x69\x9b\xb6\xd3\x27\x21\xfe\x90\xee\xe2\x12\x7e\x50\xbf\xa2\x2d\xfe\xcb\x94\xa3\xf7\xe4\xf0\x6a\xec\xdb\x15\xae\xb6\xd3\xb2\x91\xfd\x49\x88\xaf\x00\x00\x00\xff\xff\x0c\x3d\xc4\xc5\x2c\x01\x00\x00")
+
+func migrations_20210401151842_changeencryptedplayersidtype_sql() ([]byte, error) {
+	return bindata_read(
+		_migrations_20210401151842_changeencryptedplayersidtype_sql,
+		"migrations/20210401151842_ChangeEncryptedPlayersIDType.sql",
+	)
+}
+
 // Asset loads and returns the asset for the given name.
 // It returns an error if the asset could not be found or
 // could not be loaded.
@@ -237,6 +246,7 @@ var _bindata = map[string]func() ([]byte, error){
 	"migrations/20160819145352_CreateHookTriggerFieldsMetadata.sql": migrations_20160819145352_createhooktriggerfieldsmetadata_sql,
 	"migrations/20180517112014_ChangeIDSequenceType.sql": migrations_20180517112014_changeidsequencetype_sql,
 	"migrations/20210323185959_CreateEncryptionTable.sql": migrations_20210323185959_createencryptiontable_sql,
+	"migrations/20210401151842_ChangeEncryptedPlayersIDType.sql": migrations_20210401151842_changeencryptedplayersidtype_sql,
 }
 // AssetDir returns the file names below a certain
 // directory embedded in the file by go-bindata.
@@ -316,6 +326,8 @@ var _bintree = &_bintree_t{nil, map[string]*_bintree_t{
 		"20180517112014_ChangeIDSequenceType.sql": &_bintree_t{migrations_20180517112014_changeidsequencetype_sql, map[string]*_bintree_t{
 		}},
 		"20210323185959_CreateEncryptionTable.sql": &_bintree_t{migrations_20210323185959_createencryptiontable_sql, map[string]*_bintree_t{
+		}},
+		"20210401151842_ChangeEncryptedPlayersIDType.sql": &_bintree_t{migrations_20210401151842_changeencryptedplayersidtype_sql, map[string]*_bintree_t{
 		}},
 	}},
 }}
