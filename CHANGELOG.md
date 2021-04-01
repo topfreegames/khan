@@ -1,3 +1,9 @@
+## [5.1.1]
+### Changed
+- Fix encrypted players id type (#74) 
+- Explicit database creation (#67)
+- Add docker-compose for khan (#72)
+
 ## [5.1.0]
 ### Added
 - Create script to encrypt player name
