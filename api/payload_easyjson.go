@@ -28,7 +28,7 @@ func easyjsonA8a797f8DecodeGithubComTopfreegamesKhanApi(in *jlexer.Lexer, out *V
 	}
 	in.Delim('{')
 	for !in.IsDelim('}') {
-		key := in.UnsafeString()
+		key := in.UnsafeFieldName(false)
 		in.WantColon()
 		if in.IsNull() {
 			in.Skip()
@@ -73,7 +73,7 @@ func easyjsonA8a797f8DecodeGithubComTopfreegamesKhanApi1(in *jlexer.Lexer, out *
 	}
 	in.Delim('{')
 	for !in.IsDelim('}') {
-		key := in.UnsafeString()
+		key := in.UnsafeFieldName(false)
 		in.WantColon()
 		if in.IsNull() {
 			in.Skip()
@@ -88,11 +88,7 @@ func easyjsonA8a797f8DecodeGithubComTopfreegamesKhanApi1(in *jlexer.Lexer, out *
 				in.Skip()
 			} else {
 				in.Delim('{')
-				if !in.IsDelim('}') {
-					out.Metadata = make(map[string]interface{})
-				} else {
-					out.Metadata = nil
-				}
+				out.Metadata = make(map[string]interface{})
 				for !in.IsDelim('}') {
 					key := string(in.String())
 					in.WantColon()
@@ -125,22 +121,12 @@ func easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi1(out *jwriter.Writer, in
 	_ = first
 	{
 		const prefix string = ",\"name\":"
-		if first {
-			first = false
-			out.RawString(prefix[1:])
-		} else {
-			out.RawString(prefix)
-		}
+		out.RawString(prefix[1:])
 		out.String(string(in.Name))
 	}
 	{
 		const prefix string = ",\"metadata\":"
-		if first {
-			first = false
-			out.RawString(prefix[1:])
-		} else {
-			out.RawString(prefix)
-		}
+		out.RawString(prefix)
 		if in.Metadata == nil && (out.Flags&jwriter.NilMapAsEmpty) == 0 {
 			out.RawString(`null`)
 		} else {
@@ -188,7 +174,7 @@ func easyjsonA8a797f8DecodeGithubComTopfreegamesKhanApi2(in *jlexer.Lexer, out *
 	}
 	in.Delim('{')
 	for !in.IsDelim('}') {
-		key := in.UnsafeString()
+		key := in.UnsafeFieldName(false)
 		in.WantColon()
 		if in.IsNull() {
 			in.Skip()
@@ -203,11 +189,7 @@ func easyjsonA8a797f8DecodeGithubComTopfreegamesKhanApi2(in *jlexer.Lexer, out *
 				in.Skip()
 			} else {
 				in.Delim('{')
-				if !in.IsDelim('}') {
-					out.MembershipLevels = make(map[string]interface{})
-				} else {
-					out.MembershipLevels = nil
-				}
+				out.MembershipLevels = make(map[string]interface{})
 				for !in.IsDelim('}') {
 					key := string(in.String())
 					in.WantColon()
@@ -229,11 +211,7 @@ func easyjsonA8a797f8DecodeGithubComTopfreegamesKhanApi2(in *jlexer.Lexer, out *
 				in.Skip()
 			} else {
 				in.Delim('{')
-				if !in.IsDelim('}') {
-					out.Metadata = make(map[string]interface{})
-				} else {
-					out.Metadata = nil
-				}
+				out.Metadata = make(map[string]interface{})
 				for !in.IsDelim('}') {
 					key := string(in.String())
 					in.WantColon()
@@ -286,22 +264,12 @@ func easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi2(out *jwriter.Writer, in
 	_ = first
 	{
 		const prefix string = ",\"name\":"
-		if first {
-			first = false
-			out.RawString(prefix[1:])
-		} else {
-			out.RawString(prefix)
-		}
+		out.RawString(prefix[1:])
 		out.String(string(in.Name))
 	}
 	{
 		const prefix string = ",\"membershipLevels\":"
-		if first {
-			first = false
-			out.RawString(prefix[1:])
-		} else {
-			out.RawString(prefix)
-		}
+		out.RawString(prefix)
 		if in.MembershipLevels == nil && (out.Flags&jwriter.NilMapAsEmpty) == 0 {
 			out.RawString(`null`)
 		} else {
@@ -328,12 +296,7 @@ func easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi2(out *jwriter.Writer, in
 	}
 	{
 		const prefix string = ",\"metadata\":"
-		if first {
-			first = false
-			out.RawString(prefix[1:])
-		} else {
-			out.RawString(prefix)
-		}
+		out.RawString(prefix)
 		if in.Metadata == nil && (out.Flags&jwriter.NilMapAsEmpty) == 0 {
 			out.RawString(`null`)
 		} else {
@@ -360,102 +323,52 @@ func easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi2(out *jwriter.Writer, in
 	}
 	{
 		const prefix string = ",\"minLevelToAcceptApplication\":"
-		if first {
-			first = false
-			out.RawString(prefix[1:])
-		} else {
-			out.RawString(prefix)
-		}
+		out.RawString(prefix)
 		out.Int(int(in.MinLevelToAcceptApplication))
 	}
 	{
 		const prefix string = ",\"minLevelToCreateInvitation\":"
-		if first {
-			first = false
-			out.RawString(prefix[1:])
-		} else {
-			out.RawString(prefix)
-		}
+		out.RawString(prefix)
 		out.Int(int(in.MinLevelToCreateInvitation))
 	}
 	{
 		const prefix string = ",\"minLevelToRemoveMember\":"
-		if first {
-			first = false
-			out.RawString(prefix[1:])
-		} else {
-			out.RawString(prefix)
-		}
+		out.RawString(prefix)
 		out.Int(int(in.MinLevelToRemoveMember))
 	}
 	{
 		const prefix string = ",\"minLevelOffsetToRemoveMember\":"
-		if first {
-			first = false
-			out.RawString(prefix[1:])
-		} else {
-			out.RawString(prefix)
-		}
+		out.RawString(prefix)
 		out.Int(int(in.MinLevelOffsetToRemoveMember))
 	}
 	{
 		const prefix string = ",\"minLevelOffsetToPromoteMember\":"
-		if first {
-			first = false
-			out.RawString(prefix[1:])
-		} else {
-			out.RawString(prefix)
-		}
+		out.RawString(prefix)
 		out.Int(int(in.MinLevelOffsetToPromoteMember))
 	}
 	{
 		const prefix string = ",\"minLevelOffsetToDemoteMember\":"
-		if first {
-			first = false
-			out.RawString(prefix[1:])
-		} else {
-			out.RawString(prefix)
-		}
+		out.RawString(prefix)
 		out.Int(int(in.MinLevelOffsetToDemoteMember))
 	}
 	{
 		const prefix string = ",\"maxMembers\":"
-		if first {
-			first = false
-			out.RawString(prefix[1:])
-		} else {
-			out.RawString(prefix)
-		}
+		out.RawString(prefix)
 		out.Int(int(in.MaxMembers))
 	}
 	{
 		const prefix string = ",\"maxClansPerPlayer\":"
-		if first {
-			first = false
-			out.RawString(prefix[1:])
-		} else {
-			out.RawString(prefix)
-		}
+		out.RawString(prefix)
 		out.Int(int(in.MaxClansPerPlayer))
 	}
 	{
 		const prefix string = ",\"cooldownAfterDeny\":"
-		if first {
-			first = false
-			out.RawString(prefix[1:])
-		} else {
-			out.RawString(prefix)
-		}
+		out.RawString(prefix)
 		out.Int(int(in.CooldownAfterDeny))
 	}
 	{
 		const prefix string = ",\"cooldownAfterDelete\":"
-		if first {
-			first = false
-			out.RawString(prefix[1:])
-		} else {
-			out.RawString(prefix)
-		}
+		out.RawString(prefix)
 		out.Int(int(in.CooldownAfterDelete))
 	}
 	out.RawByte('}')
@@ -481,7 +394,7 @@ func easyjsonA8a797f8DecodeGithubComTopfreegamesKhanApi3(in *jlexer.Lexer, out *
 	}
 	in.Delim('{')
 	for !in.IsDelim('}') {
-		key := in.UnsafeString()
+		key := in.UnsafeFieldName(false)
 		in.WantColon()
 		if in.IsNull() {
 			in.Skip()
@@ -498,11 +411,7 @@ func easyjsonA8a797f8DecodeGithubComTopfreegamesKhanApi3(in *jlexer.Lexer, out *
 				in.Skip()
 			} else {
 				in.Delim('{')
-				if !in.IsDelim('}') {
-					out.Metadata = make(map[string]interface{})
-				} else {
-					out.Metadata = nil
-				}
+				out.Metadata = make(map[string]interface{})
 				for !in.IsDelim('}') {
 					key := string(in.String())
 					in.WantColon()
@@ -539,32 +448,17 @@ func easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi3(out *jwriter.Writer, in
 	_ = first
 	{
 		const prefix string = ",\"name\":"
-		if first {
-			first = false
-			out.RawString(prefix[1:])
-		} else {
-			out.RawString(prefix)
-		}
+		out.RawString(prefix[1:])
 		out.String(string(in.Name))
 	}
 	{
 		const prefix string = ",\"ownerPublicID\":"
-		if first {
-			first = false
-			out.RawString(prefix[1:])
-		} else {
-			out.RawString(prefix)
-		}
+		out.RawString(prefix)
 		out.String(string(in.OwnerPublicID))
 	}
 	{
 		const prefix string = ",\"metadata\":"
-		if first {
-			first = false
-			out.RawString(prefix[1:])
-		} else {
-			out.RawString(prefix)
-		}
+		out.RawString(prefix)
 		if in.Metadata == nil && (out.Flags&jwriter.NilMapAsEmpty) == 0 {
 			out.RawString(`null`)
 		} else {
@@ -591,22 +485,12 @@ func easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi3(out *jwriter.Writer, in
 	}
 	{
 		const prefix string = ",\"allowApplication\":"
-		if first {
-			first = false
-			out.RawString(prefix[1:])
-		} else {
-			out.RawString(prefix)
-		}
+		out.RawString(prefix)
 		out.Bool(bool(in.AllowApplication))
 	}
 	{
 		const prefix string = ",\"autoJoin\":"
-		if first {
-			first = false
-			out.RawString(prefix[1:])
-		} else {
-			out.RawString(prefix)
-		}
+		out.RawString(prefix)
 		out.Bool(bool(in.AutoJoin))
 	}
 	out.RawByte('}')
@@ -632,7 +516,7 @@ func easyjsonA8a797f8DecodeGithubComTopfreegamesKhanApi4(in *jlexer.Lexer, out *
 	}
 	in.Delim('{')
 	for !in.IsDelim('}') {
-		key := in.UnsafeString()
+		key := in.UnsafeFieldName(false)
 		in.WantColon()
 		if in.IsNull() {
 			in.Skip()
@@ -658,12 +542,7 @@ func easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi4(out *jwriter.Writer, in
 	_ = first
 	{
 		const prefix string = ",\"playerPublicID\":"
-		if first {
-			first = false
-			out.RawString(prefix[1:])
-		} else {
-			out.RawString(prefix)
-		}
+		out.RawString(prefix[1:])
 		out.String(string(in.PlayerPublicID))
 	}
 	out.RawByte('}')
@@ -689,7 +568,7 @@ func easyjsonA8a797f8DecodeGithubComTopfreegamesKhanApi5(in *jlexer.Lexer, out *
 	}
 	in.Delim('{')
 	for !in.IsDelim('}') {
-		key := in.UnsafeString()
+		key := in.UnsafeFieldName(false)
 		in.WantColon()
 		if in.IsNull() {
 			in.Skip()
@@ -719,32 +598,17 @@ func easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi5(out *jwriter.Writer, in
 	_ = first
 	{
 		const prefix string = ",\"level\":"
-		if first {
-			first = false
-			out.RawString(prefix[1:])
-		} else {
-			out.RawString(prefix)
-		}
+		out.RawString(prefix[1:])
 		out.String(string(in.Level))
 	}
 	{
 		const prefix string = ",\"playerPublicID\":"
-		if first {
-			first = false
-			out.RawString(prefix[1:])
-		} else {
-			out.RawString(prefix)
-		}
+		out.RawString(prefix)
 		out.String(string(in.PlayerPublicID))
 	}
 	{
 		const prefix string = ",\"requestorPublicID\":"
-		if first {
-			first = false
-			out.RawString(prefix[1:])
-		} else {
-			out.RawString(prefix)
-		}
+		out.RawString(prefix)
 		out.String(string(in.RequestorPublicID))
 	}
 	out.RawByte('}')
@@ -770,7 +634,7 @@ func easyjsonA8a797f8DecodeGithubComTopfreegamesKhanApi6(in *jlexer.Lexer, out *
 	}
 	in.Delim('{')
 	for !in.IsDelim('}') {
-		key := in.UnsafeString()
+		key := in.UnsafeFieldName(false)
 		in.WantColon()
 		if in.IsNull() {
 			in.Skip()
@@ -798,22 +662,12 @@ func easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi6(out *jwriter.Writer, in
 	_ = first
 	{
 		const prefix string = ",\"type\":"
-		if first {
-			first = false
-			out.RawString(prefix[1:])
-		} else {
-			out.RawString(prefix)
-		}
+		out.RawString(prefix[1:])
 		out.Int(int(in.Type))
 	}
 	{
 		const prefix string = ",\"hookURL\":"
-		if first {
-			first = false
-			out.RawString(prefix[1:])
-		} else {
-			out.RawString(prefix)
-		}
+		out.RawString(prefix)
 		out.String(string(in.HookURL))
 	}
 	out.RawByte('}')
@@ -839,7 +693,7 @@ func easyjsonA8a797f8DecodeGithubComTopfreegamesKhanApi7(in *jlexer.Lexer, out *
 	}
 	in.Delim('{')
 	for !in.IsDelim('}') {
-		key := in.UnsafeString()
+		key := in.UnsafeFieldName(false)
 		in.WantColon()
 		if in.IsNull() {
 			in.Skip()
@@ -856,11 +710,7 @@ func easyjsonA8a797f8DecodeGithubComTopfreegamesKhanApi7(in *jlexer.Lexer, out *
 				in.Skip()
 			} else {
 				in.Delim('{')
-				if !in.IsDelim('}') {
-					out.Metadata = make(map[string]interface{})
-				} else {
-					out.Metadata = nil
-				}
+				out.Metadata = make(map[string]interface{})
 				for !in.IsDelim('}') {
 					key := string(in.String())
 					in.WantColon()
@@ -893,32 +743,17 @@ func easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi7(out *jwriter.Writer, in
 	_ = first
 	{
 		const prefix string = ",\"publicID\":"
-		if first {
-			first = false
-			out.RawString(prefix[1:])
-		} else {
-			out.RawString(prefix)
-		}
+		out.RawString(prefix[1:])
 		out.String(string(in.PublicID))
 	}
 	{
 		const prefix string = ",\"name\":"
-		if first {
-			first = false
-			out.RawString(prefix[1:])
-		} else {
-			out.RawString(prefix)
-		}
+		out.RawString(prefix)
 		out.String(string(in.Name))
 	}
 	{
 		const prefix string = ",\"metadata\":"
-		if first {
-			first = false
-			out.RawString(prefix[1:])
-		} else {
-			out.RawString(prefix)
-		}
+		out.RawString(prefix)
 		if in.Metadata == nil && (out.Flags&jwriter.NilMapAsEmpty) == 0 {
 			out.RawString(`null`)
 		} else {
@@ -966,7 +801,7 @@ func easyjsonA8a797f8DecodeGithubComTopfreegamesKhanApi8(in *jlexer.Lexer, out *
 	}
 	in.Delim('{')
 	for !in.IsDelim('}') {
-		key := in.UnsafeString()
+		key := in.UnsafeFieldName(false)
 		in.WantColon()
 		if in.IsNull() {
 			in.Skip()
@@ -983,11 +818,7 @@ func easyjsonA8a797f8DecodeGithubComTopfreegamesKhanApi8(in *jlexer.Lexer, out *
 				in.Skip()
 			} else {
 				in.Delim('{')
-				if !in.IsDelim('}') {
-					out.MembershipLevels = make(map[string]interface{})
-				} else {
-					out.MembershipLevels = nil
-				}
+				out.MembershipLevels = make(map[string]interface{})
 				for !in.IsDelim('}') {
 					key := string(in.String())
 					in.WantColon()
@@ -1009,11 +840,7 @@ func easyjsonA8a797f8DecodeGithubComTopfreegamesKhanApi8(in *jlexer.Lexer, out *
 				in.Skip()
 			} else {
 				in.Delim('{')
-				if !in.IsDelim('}') {
-					out.Metadata = make(map[string]interface{})
-				} else {
-					out.Metadata = nil
-				}
+				out.Metadata = make(map[string]interface{})
 				for !in.IsDelim('}') {
 					key := string(in.String())
 					in.WantColon()
@@ -1066,32 +893,17 @@ func easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi8(out *jwriter.Writer, in
 	_ = first
 	{
 		const prefix string = ",\"publicID\":"
-		if first {
-			first = false
-			out.RawString(prefix[1:])
-		} else {
-			out.RawString(prefix)
-		}
+		out.RawString(prefix[1:])
 		out.String(string(in.PublicID))
 	}
 	{
 		const prefix string = ",\"name\":"
-		if first {
-			first = false
-			out.RawString(prefix[1:])
-		} else {
-			out.RawString(prefix)
-		}
+		out.RawString(prefix)
 		out.String(string(in.Name))
 	}
 	{
 		const prefix string = ",\"membershipLevels\":"
-		if first {
-			first = false
-			out.RawString(prefix[1:])
-		} else {
-			out.RawString(prefix)
-		}
+		out.RawString(prefix)
 		if in.MembershipLevels == nil && (out.Flags&jwriter.NilMapAsEmpty) == 0 {
 			out.RawString(`null`)
 		} else {
@@ -1118,12 +930,7 @@ func easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi8(out *jwriter.Writer, in
 	}
 	{
 		const prefix string = ",\"metadata\":"
-		if first {
-			first = false
-			out.RawString(prefix[1:])
-		} else {
-			out.RawString(prefix)
-		}
+		out.RawString(prefix)
 		if in.Metadata == nil && (out.Flags&jwriter.NilMapAsEmpty) == 0 {
 			out.RawString(`null`)
 		} else {
@@ -1150,102 +957,52 @@ func easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi8(out *jwriter.Writer, in
 	}
 	{
 		const prefix string = ",\"minLevelToAcceptApplication\":"
-		if first {
-			first = false
-			out.RawString(prefix[1:])
-		} else {
-			out.RawString(prefix)
-		}
+		out.RawString(prefix)
 		out.Int(int(in.MinLevelToAcceptApplication))
 	}
 	{
 		const prefix string = ",\"minLevelToCreateInvitation\":"
-		if first {
-			first = false
-			out.RawString(prefix[1:])
-		} else {
-			out.RawString(prefix)
-		}
+		out.RawString(prefix)
 		out.Int(int(in.MinLevelToCreateInvitation))
 	}
 	{
 		const prefix string = ",\"minLevelToRemoveMember\":"
-		if first {
-			first = false
-			out.RawString(prefix[1:])
-		} else {
-			out.RawString(prefix)
-		}
+		out.RawString(prefix)
 		out.Int(int(in.MinLevelToRemoveMember))
 	}
 	{
 		const prefix string = ",\"minLevelOffsetToRemoveMember\":"
-		if first {
-			first = false
-			out.RawString(prefix[1:])
-		} else {
-			out.RawString(prefix)
-		}
+		out.RawString(prefix)
 		out.Int(int(in.MinLevelOffsetToRemoveMember))
 	}
 	{
 		const prefix string = ",\"minLevelOffsetToPromoteMember\":"
-		if first {
-			first = false
-			out.RawString(prefix[1:])
-		} else {
-			out.RawString(prefix)
-		}
+		out.RawString(prefix)
 		out.Int(int(in.MinLevelOffsetToPromoteMember))
 	}
 	{
 		const prefix string = ",\"minLevelOffsetToDemoteMember\":"
-		if first {
-			first = false
-			out.RawString(prefix[1:])
-		} else {
-			out.RawString(prefix)
-		}
+		out.RawString(prefix)
 		out.Int(int(in.MinLevelOffsetToDemoteMember))
 	}
 	{
 		const prefix string = ",\"maxMembers\":"
-		if first {
-			first = false
-			out.RawString(prefix[1:])
-		} else {
-			out.RawString(prefix)
-		}
+		out.RawString(prefix)
 		out.Int(int(in.MaxMembers))
 	}
 	{
 		const prefix string = ",\"maxClansPerPlayer\":"
-		if first {
-			first = false
-			out.RawString(prefix[1:])
-		} else {
-			out.RawString(prefix)
-		}
+		out.RawString(prefix)
 		out.Int(int(in.MaxClansPerPlayer))
 	}
 	{
 		const prefix string = ",\"cooldownAfterDeny\":"
-		if first {
-			first = false
-			out.RawString(prefix[1:])
-		} else {
-			out.RawString(prefix)
-		}
+		out.RawString(prefix)
 		out.Int(int(in.CooldownAfterDeny))
 	}
 	{
 		const prefix string = ",\"cooldownAfterDelete\":"
-		if first {
-			first = false
-			out.RawString(prefix[1:])
-		} else {
-			out.RawString(prefix)
-		}
+		out.RawString(prefix)
 		out.Int(int(in.CooldownAfterDelete))
 	}
 	out.RawByte('}')
@@ -1271,7 +1028,7 @@ func easyjsonA8a797f8DecodeGithubComTopfreegamesKhanApi9(in *jlexer.Lexer, out *
 	}
 	in.Delim('{')
 	for !in.IsDelim('}') {
-		key := in.UnsafeString()
+		key := in.UnsafeFieldName(false)
 		in.WantColon()
 		if in.IsNull() {
 			in.Skip()
@@ -1290,11 +1047,7 @@ func easyjsonA8a797f8DecodeGithubComTopfreegamesKhanApi9(in *jlexer.Lexer, out *
 				in.Skip()
 			} else {
 				in.Delim('{')
-				if !in.IsDelim('}') {
-					out.Metadata = make(map[string]interface{})
-				} else {
-					out.Metadata = nil
-				}
+				out.Metadata = make(map[string]interface{})
 				for !in.IsDelim('}') {
 					key := string(in.String())
 					in.WantColon()
@@ -1331,42 +1084,22 @@ func easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi9(out *jwriter.Writer, in
 	_ = first
 	{
 		const prefix string = ",\"publicID\":"
-		if first {
-			first = false
-			out.RawString(prefix[1:])
-		} else {
-			out.RawString(prefix)
-		}
+		out.RawString(prefix[1:])
 		out.String(string(in.PublicID))
 	}
 	{
 		const prefix string = ",\"name\":"
-		if first {
-			first = false
-			out.RawString(prefix[1:])
-		} else {
-			out.RawString(prefix)
-		}
+		out.RawString(prefix)
 		out.String(string(in.Name))
 	}
 	{
 		const prefix string = ",\"ownerPublicID\":"
-		if first {
-			first = false
-			out.RawString(prefix[1:])
-		} else {
-			out.RawString(prefix)
-		}
+		out.RawString(prefix)
 		out.String(string(in.OwnerPublicID))
 	}
 	{
 		const prefix string = ",\"metadata\":"
-		if first {
-			first = false
-			out.RawString(prefix[1:])
-		} else {
-			out.RawString(prefix)
-		}
+		out.RawString(prefix)
 		if in.Metadata == nil && (out.Flags&jwriter.NilMapAsEmpty) == 0 {
 			out.RawString(`null`)
 		} else {
@@ -1393,22 +1126,12 @@ func easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi9(out *jwriter.Writer, in
 	}
 	{
 		const prefix string = ",\"allowApplication\":"
-		if first {
-			first = false
-			out.RawString(prefix[1:])
-		} else {
-			out.RawString(prefix)
-		}
+		out.RawString(prefix)
 		out.Bool(bool(in.AllowApplication))
 	}
 	{
 		const prefix string = ",\"autoJoin\":"
-		if first {
-			first = false
-			out.RawString(prefix[1:])
-		} else {
-			out.RawString(prefix)
-		}
+		out.RawString(prefix)
 		out.Bool(bool(in.AutoJoin))
 	}
 	out.RawByte('}')
@@ -1434,7 +1157,7 @@ func easyjsonA8a797f8DecodeGithubComTopfreegamesKhanApi10(in *jlexer.Lexer, out 
 	}
 	in.Delim('{')
 	for !in.IsDelim('}') {
-		key := in.UnsafeString()
+		key := in.UnsafeFieldName(false)
 		in.WantColon()
 		if in.IsNull() {
 			in.Skip()
@@ -1462,22 +1185,12 @@ func easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi10(out *jwriter.Writer, i
 	_ = first
 	{
 		const prefix string = ",\"playerPublicID\":"
-		if first {
-			first = false
-			out.RawString(prefix[1:])
-		} else {
-			out.RawString(prefix)
-		}
+		out.RawString(prefix[1:])
 		out.String(string(in.PlayerPublicID))
 	}
 	{
 		const prefix string = ",\"requestorPublicID\":"
-		if first {
-			first = false
-			out.RawString(prefix[1:])
-		} else {
-			out.RawString(prefix)
-		}
+		out.RawString(prefix)
 		out.String(string(in.RequestorPublicID))
 	}
 	out.RawByte('}')
@@ -1503,7 +1216,7 @@ func easyjsonA8a797f8DecodeGithubComTopfreegamesKhanApi11(in *jlexer.Lexer, out 
 	}
 	in.Delim('{')
 	for !in.IsDelim('}') {
-		key := in.UnsafeString()
+		key := in.UnsafeFieldName(false)
 		in.WantColon()
 		if in.IsNull() {
 			in.Skip()
@@ -1529,12 +1242,7 @@ func easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi11(out *jwriter.Writer, i
 	_ = first
 	{
 		const prefix string = ",\"playerPublicID\":"
-		if first {
-			first = false
-			out.RawString(prefix[1:])
-		} else {
-			out.RawString(prefix)
-		}
+		out.RawString(prefix[1:])
 		out.String(string(in.PlayerPublicID))
 	}
 	out.RawByte('}')
@@ -1560,7 +1268,7 @@ func easyjsonA8a797f8DecodeGithubComTopfreegamesKhanApi12(in *jlexer.Lexer, out 
 	}
 	in.Delim('{')
 	for !in.IsDelim('}') {
-		key := in.UnsafeString()
+		key := in.UnsafeFieldName(false)
 		in.WantColon()
 		if in.IsNull() {
 			in.Skip()
@@ -1588,22 +1296,12 @@ func easyjsonA8a797f8EncodeGithubComTopfreegamesKhanApi12(out *jwriter.Writer, i
 	_ = first
 	{
 		const prefix string = ",\"level\":"
-		if first {
-			first = false
-			out.RawString(prefix[1:])
-		} else {
-			out.RawString(prefix)
-		}
+		out.RawString(prefix[1:])
 		out.String(string(in.Level))
 	}
 	{
 		const prefix string = ",\"playerPublicID\":"
-		if first {
-			first = false
-			out.RawString(prefix[1:])
-		} else {
-			out.RawString(prefix)
-		}
+		out.RawString(prefix)
 		out.String(string(in.PlayerPublicID))
 	}
 	out.RawByte('}')

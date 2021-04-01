@@ -53,11 +53,7 @@ func easyjson91eb9988DecodeGithubComTopfreegamesKhanModels(in *jlexer.Lexer, out
 				in.Skip()
 			} else {
 				in.Delim('{')
-				if !in.IsDelim('}') {
-					out.Metadata = make(map[string]interface{})
-				} else {
-					out.Metadata = nil
-				}
+				out.Metadata = make(map[string]interface{})
 				for !in.IsDelim('}') {
 					key := string(in.String())
 					in.WantColon()
@@ -100,72 +96,37 @@ func easyjson91eb9988EncodeGithubComTopfreegamesKhanModels(out *jwriter.Writer, 
 	_ = first
 	{
 		const prefix string = ",\"id\":"
-		if first {
-			first = false
-			out.RawString(prefix[1:])
-		} else {
-			out.RawString(prefix)
-		}
+		out.RawString(prefix[1:])
 		out.Int64(int64(in.ID))
 	}
 	{
 		const prefix string = ",\"gameId\":"
-		if first {
-			first = false
-			out.RawString(prefix[1:])
-		} else {
-			out.RawString(prefix)
-		}
+		out.RawString(prefix)
 		out.String(string(in.GameID))
 	}
 	{
 		const prefix string = ",\"publicId\":"
-		if first {
-			first = false
-			out.RawString(prefix[1:])
-		} else {
-			out.RawString(prefix)
-		}
+		out.RawString(prefix)
 		out.String(string(in.PublicID))
 	}
 	{
 		const prefix string = ",\"name\":"
-		if first {
-			first = false
-			out.RawString(prefix[1:])
-		} else {
-			out.RawString(prefix)
-		}
+		out.RawString(prefix)
 		out.String(string(in.Name))
 	}
 	{
 		const prefix string = ",\"ownerId\":"
-		if first {
-			first = false
-			out.RawString(prefix[1:])
-		} else {
-			out.RawString(prefix)
-		}
+		out.RawString(prefix)
 		out.Int64(int64(in.OwnerID))
 	}
 	{
 		const prefix string = ",\"membershipCount\":"
-		if first {
-			first = false
-			out.RawString(prefix[1:])
-		} else {
-			out.RawString(prefix)
-		}
+		out.RawString(prefix)
 		out.Int(int(in.MembershipCount))
 	}
 	{
 		const prefix string = ",\"metadata\":"
-		if first {
-			first = false
-			out.RawString(prefix[1:])
-		} else {
-			out.RawString(prefix)
-		}
+		out.RawString(prefix)
 		if in.Metadata == nil && (out.Flags&jwriter.NilMapAsEmpty) == 0 {
 			out.RawString(`null`)
 		} else {
@@ -192,52 +153,27 @@ func easyjson91eb9988EncodeGithubComTopfreegamesKhanModels(out *jwriter.Writer, 
 	}
 	{
 		const prefix string = ",\"allowApplication\":"
-		if first {
-			first = false
-			out.RawString(prefix[1:])
-		} else {
-			out.RawString(prefix)
-		}
+		out.RawString(prefix)
 		out.Bool(bool(in.AllowApplication))
 	}
 	{
 		const prefix string = ",\"autoJoin\":"
-		if first {
-			first = false
-			out.RawString(prefix[1:])
-		} else {
-			out.RawString(prefix)
-		}
+		out.RawString(prefix)
 		out.Bool(bool(in.AutoJoin))
 	}
 	{
 		const prefix string = ",\"createdAt\":"
-		if first {
-			first = false
-			out.RawString(prefix[1:])
-		} else {
-			out.RawString(prefix)
-		}
+		out.RawString(prefix)
 		out.Int64(int64(in.CreatedAt))
 	}
 	{
 		const prefix string = ",\"updatedAt\":"
-		if first {
-			first = false
-			out.RawString(prefix[1:])
-		} else {
-			out.RawString(prefix)
-		}
+		out.RawString(prefix)
 		out.Int64(int64(in.UpdatedAt))
 	}
 	{
 		const prefix string = ",\"deletedAt\":"
-		if first {
-			first = false
-			out.RawString(prefix[1:])
-		} else {
-			out.RawString(prefix)
-		}
+		out.RawString(prefix)
 		out.Int64(int64(in.DeletedAt))
 	}
 	out.RawByte('}')
