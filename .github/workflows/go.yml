@@ -2,7 +2,7 @@
 name: Khan
 'on': push
 jobs:
-  build:
+  build-step:
     runs-on: ubuntu-latest
   steps:
     - id: go-cache-paths
