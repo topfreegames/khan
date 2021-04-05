@@ -34,40 +34,25 @@ func CreateHookHandler(app *App) func(c echo.Context) error {
 
 		var payload HookPayload
 
-		err := WithSegment("payload", c, func() error {
-			if err := LoadJSONPayload(&payload, c, l); err != nil {
-				log.E(l, "Failed to parse json payload.", func(cm log.CM) {
-					cm.Write(zap.Error(err))
-				})
-				return err
-			}
-
-			return nil
-		})
-		if err != nil {
+		if err := LoadJSONPayload(&payload, c, l); err != nil {
+			log.E(l, "Failed to parse json payload.", func(cm log.CM) {
+				cm.Write(zap.Error(err))
+			})
 			return FailWith(http.StatusBadRequest, err.Error(), c)
 		}
 
-		var hook *models.Hook
-		err = WithSegment("hook-create", c, func() error {
-			log.D(l, "Creating hook...")
-			hook, err = models.CreateHook(
-				db,
-				gameID,
-				payload.Type,
-				payload.HookURL,
-			)
+		log.D(l, "Creating hook...")
+		hook, err := models.CreateHook(
+			db,
+			gameID,
+			payload.Type,
+			payload.HookURL,
+		)
 
-			if err != nil {
-				log.E(l, "Failed to create the hook.", func(cm log.CM) {
-					cm.Write(zap.Error(err))
-				})
-				return err
-			}
-
-			return nil
-		})
 		if err != nil {
+			log.E(l, "Failed to create the hook.", func(cm log.CM) {
+				cm.Write(zap.Error(err))
+			})
 			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 
@@ -100,24 +85,17 @@ func RemoveHookHandler(app *App) func(c echo.Context) error {
 			zap.String("hookPublicID", publicID),
 		)
 
-		var err error
-		err = WithSegment("hook-remove", c, func() error {
-			log.D(l, "Removing hook...")
-			err = models.RemoveHook(
-				db,
-				gameID,
-				publicID,
-			)
+		log.D(l, "Removing hook...")
+		err := models.RemoveHook(
+			db,
+			gameID,
+			publicID,
+		)
 
-			if err != nil {
-				log.E(l, "Failed to remove hook.", func(cm log.CM) {
-					cm.Write(zap.Error(err))
-				})
-				return err
-			}
-			return nil
-		})
 		if err != nil {
+			log.E(l, "Failed to remove hook.", func(cm log.CM) {
+				cm.Write(zap.Error(err))
+			})
 			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 

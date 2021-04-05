@@ -705,30 +705,26 @@ func (app *App) BeginTrans(ctx context.Context, l zap.Logger) (gorp.Transaction,
 
 //Rollback transaction
 func (app *App) Rollback(tx gorp.Transaction, msg string, c echo.Context, l zap.Logger, err error) error {
-	return WithSegment("tx-rollback", c, func() error {
-		txErr := tx.Rollback()
-		if txErr != nil {
-			log.E(l, fmt.Sprintf("%s and failed to rollback transaction.", msg), func(cm log.CM) {
-				cm.Write(zap.Error(txErr), zap.String("originalError", err.Error()))
-			})
-			return txErr
-		}
-		return nil
-	})
+	txErr := tx.Rollback()
+	if txErr != nil {
+		log.E(l, fmt.Sprintf("%s and failed to rollback transaction.", msg), func(cm log.CM) {
+			cm.Write(zap.Error(txErr), zap.String("originalError", err.Error()))
+		})
+		return txErr
+	}
+	return nil
 }
 
 //Commit transaction
 func (app *App) Commit(tx gorp.Transaction, msg string, c echo.Context, l zap.Logger) error {
-	return WithSegment("tx-commit", c, func() error {
-		txErr := tx.Commit()
-		if txErr != nil {
-			log.E(l, fmt.Sprintf("%s failed to commit transaction.", msg), func(cm log.CM) {
-				cm.Write(zap.Error(txErr))
-			})
-			return txErr
-		}
-		return nil
-	})
+	txErr := tx.Commit()
+	if txErr != nil {
+		log.E(l, fmt.Sprintf("%s failed to commit transaction.", msg), func(cm log.CM) {
+			cm.Write(zap.Error(txErr))
+		})
+		return txErr
+	}
+	return nil
 }
 
 // GetCtxDB returns the proper database connection depending on the request context

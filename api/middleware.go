@@ -67,11 +67,9 @@ type VersionMiddleware struct {
 // Serve serves the middleware
 func (v *VersionMiddleware) Serve(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		return WithSegment("middleware-version", c, func() error {
-			c.Response().Header().Set(echo.HeaderServer, fmt.Sprintf("Khan/v%s", v.Version))
-			c.Response().Header().Set("Khan-Server", fmt.Sprintf("Khan/v%s", v.Version))
-			return next(c)
-		})
+		c.Response().Header().Set(echo.HeaderServer, fmt.Sprintf("Khan/v%s", v.Version))
+		c.Response().Header().Set("Khan-Server", fmt.Sprintf("Khan/v%s", v.Version))
+		return next(c)
 	}
 }
 
@@ -90,38 +88,36 @@ type SentryMiddleware struct {
 // Serve serves the middleware
 func (s *SentryMiddleware) Serve(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		return WithSegment("middleware-sentry", c, func() error {
-			err := next(c)
-			body := c.Get("body").(string)
+		err := next(c)
+		body := c.Get("body").(string)
 
-			if err == nil {
-				status := c.Response().Status()
+		if err == nil {
+			status := c.Response().Status()
 
-				//request is ok, but server failed
-				if status > 499 {
-					err = fmt.Errorf("Server failed to process response with status code 500: %s", body)
+			//request is ok, but server failed
+			if status > 499 {
+				err = fmt.Errorf("Server failed to process response with status code 500: %s", body)
+			}
+		}
+
+		if err != nil {
+			if httpErr, ok := err.(*echo.HTTPError); ok {
+				if httpErr.Code < 500 {
+					return err
 				}
 			}
-
-			if err != nil {
-				if httpErr, ok := err.(*echo.HTTPError); ok {
-					if httpErr.Code < 500 {
-						return err
-					}
-				}
-				tags := map[string]string{
-					"source": "app",
-					"type":   "Internal server error",
-					"url":    c.Request().URI(),
-					"status": fmt.Sprintf("%d", c.Response().Status()),
-					"body":   body,
-				}
-				raven.SetHttpContext(newHTTPFromCtx(c))
-				raven.CaptureError(err, tags)
+			tags := map[string]string{
+				"source": "app",
+				"type":   "Internal server error",
+				"url":    c.Request().URI(),
+				"status": fmt.Sprintf("%d", c.Response().Status()),
+				"body":   body,
 			}
+			raven.SetHttpContext(newHTTPFromCtx(c))
+			raven.CaptureError(err, tags)
+		}
 
-			return err
-		})
+		return err
 	}
 }
 

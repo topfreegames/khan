@@ -25,6 +25,7 @@ require (
 	github.com/jarcoal/httpmock v1.0.4
 	github.com/jinzhu/inflection v0.0.0-20180308033659-04140366298a // indirect
 	github.com/jrallison/go-workers v0.0.0-20180112190529-dbf81d0b75bb
+	github.com/jteeuwen/go-bindata v3.0.7+incompatible // indirect
 	github.com/klauspost/compress v0.0.0-20161025140425-8df558b6cb6f // indirect
 	github.com/klauspost/cpuid v0.0.0-20160302075316-09cded8978dc // indirect
 	github.com/klauspost/crc32 v0.0.0-20161016154125-cb6bfca970f6 // indirect
@@ -34,7 +35,7 @@ require (
 	github.com/lyft/protoc-gen-star v0.5.2 // indirect
 	github.com/mailru/easyjson v0.7.7
 	github.com/newrelic/go-agent v1.9.0
-	github.com/onsi/ginkgo v1.15.1
+	github.com/onsi/ginkgo v1.16.0
 	github.com/onsi/gomega v1.11.0
 	github.com/opentracing/opentracing-go v1.2.0
 	github.com/patrickmn/go-cache v2.1.0+incompatible
@@ -58,7 +59,7 @@ require (
 	github.com/ziutek/mymysql v1.5.5-0.20160909221029-df6241f6355c // indirect
 	golang.org/x/crypto v0.0.0-20210220033148-5ea612d1eb83 // indirect
 	golang.org/x/mod v0.4.2 // indirect
-	golang.org/x/sys v0.0.0-20210309074719-68d13333faf2 // indirect
+	golang.org/x/sys v0.0.0-20210403161142-5e06dd20ab57 // indirect
 	golang.org/x/term v0.0.0-20210220032956-6a3ed077a48d // indirect
 	golang.org/x/time v0.0.0-20191024005414-555d28b269f0 // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
