@@ -20,6 +20,7 @@ import (
 	uuid "github.com/satori/go.uuid"
 	. "github.com/topfreegames/khan/api"
 	"github.com/topfreegames/khan/models"
+	"github.com/topfreegames/khan/models/fixtures"
 	kt "github.com/topfreegames/khan/testing"
 )
 
@@ -75,7 +76,7 @@ var _ = Describe("API Application", func() {
 
 	Describe("App Games", func() {
 		It("should load all games", func() {
-			game := models.GameFactory.MustCreate().(*models.Game)
+			game := fixtures.GameFactory.MustCreate().(*models.Game)
 			err := testDb.Insert(game)
 			Expect(err).NotTo(HaveOccurred())
 
@@ -88,7 +89,7 @@ var _ = Describe("API Application", func() {
 		})
 
 		It("should get game by Public ID", func() {
-			game := models.GameFactory.MustCreate().(*models.Game)
+			game := fixtures.GameFactory.MustCreate().(*models.Game)
 			err := testDb.Insert(game)
 			Expect(err).NotTo(HaveOccurred())
 
@@ -105,7 +106,7 @@ var _ = Describe("API Application", func() {
 	Describe("App Load Hooks", func() {
 		It("should load all hooks", func() {
 			gameID := uuid.NewV4().String()
-			_, err := models.GetTestHooks(testDb, gameID, 2)
+			_, err := fixtures.GetTestHooks(testDb, gameID, 2)
 			Expect(err).NotTo(HaveOccurred())
 
 			app := GetDefaultTestApp()
@@ -120,7 +121,7 @@ var _ = Describe("API Application", func() {
 
 	Describe("App Dispatch Hook", func() {
 		It("should dispatch hooks", func() {
-			hooks, err := models.GetHooksForRoutes(testDb, []string{
+			hooks, err := fixtures.GetHooksForRoutes(testDb, []string{
 				"http://localhost:52525/created",
 				"http://localhost:52525/created2",
 			}, models.GameUpdatedHook)
@@ -143,7 +144,7 @@ var _ = Describe("API Application", func() {
 		})
 
 		It("should encode hook parameters", func() {
-			hooks, err := models.GetHooksForRoutes(
+			hooks, err := fixtures.GetHooksForRoutes(
 				testDb, []string{
 					"http://localhost:52525/encoding?url={{url}}",
 				}, models.GameUpdatedHook,
@@ -183,7 +184,7 @@ var _ = Describe("API Application", func() {
 		})
 
 		It("should dispatch hooks using template", func() {
-			hooks, err := models.GetHooksForRoutes(testDb, []string{
+			hooks, err := fixtures.GetHooksForRoutes(testDb, []string{
 				"http://localhost:52525/created/{{publicID}}",
 			}, models.GameUpdatedHook)
 			Expect(err).NotTo(HaveOccurred())
@@ -207,7 +208,7 @@ var _ = Describe("API Application", func() {
 		})
 
 		It("should dispatch hooks using second-level key", func() {
-			hooks, err := models.GetHooksForRoutes(testDb, []string{
+			hooks, err := fixtures.GetHooksForRoutes(testDb, []string{
 				"http://localhost:52525/{{playerPosition}}/créated/{{player.publicID}}",
 			}, models.GameUpdatedHook)
 			Expect(err).NotTo(HaveOccurred())
@@ -234,7 +235,7 @@ var _ = Describe("API Application", func() {
 		})
 
 		It("should fail dispatch hooks if invalid key", func() {
-			hooks, err := models.GetHooksForRoutes(testDb, []string{
+			hooks, err := fixtures.GetHooksForRoutes(testDb, []string{
 				"http://localhost:52525/invalid-webhook-request/{{player.publicID.invalid}}",
 			}, models.GameUpdatedHook)
 			Expect(err).NotTo(HaveOccurred())

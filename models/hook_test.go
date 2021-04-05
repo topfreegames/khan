@@ -12,8 +12,9 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/satori/go.uuid"
+	uuid "github.com/satori/go.uuid"
 	. "github.com/topfreegames/khan/models"
+	"github.com/topfreegames/khan/models/fixtures"
 )
 
 var _ = Describe("Hook Model", func() {
@@ -29,7 +30,7 @@ var _ = Describe("Hook Model", func() {
 
 		Describe("Model Basic Tests", func() {
 			It("Should create a new Hook", func() {
-				hook, err := CreateHookFactory(testDb, "", GameUpdatedHook, "http://test/created")
+				hook, err := fixtures.CreateHookFactory(testDb, "", GameUpdatedHook, "http://test/created")
 				Expect(err).NotTo(HaveOccurred())
 				Expect(hook.ID).NotTo(BeEquivalentTo(0))
 
@@ -42,7 +43,7 @@ var _ = Describe("Hook Model", func() {
 			})
 
 			It("Should update a Hook", func() {
-				hook, err := CreateHookFactory(testDb, "", GameUpdatedHook, "http://test/updated")
+				hook, err := fixtures.CreateHookFactory(testDb, "", GameUpdatedHook, "http://test/updated")
 				Expect(err).NotTo(HaveOccurred())
 				dt := hook.UpdatedAt
 				hook.URL = "http://test/updated2"
@@ -59,7 +60,7 @@ var _ = Describe("Hook Model", func() {
 
 		Describe("Get Hook By ID", func() {
 			It("Should get existing Hook", func() {
-				hook, err := CreateHookFactory(testDb, "", GameUpdatedHook, "http://test/getbyid")
+				hook, err := fixtures.CreateHookFactory(testDb, "", GameUpdatedHook, "http://test/getbyid")
 				Expect(err).NotTo(HaveOccurred())
 
 				dbHook, err := GetHookByID(testDb, hook.ID)
@@ -76,7 +77,7 @@ var _ = Describe("Hook Model", func() {
 
 		Describe("Get Hook By Public ID", func() {
 			It("Should get existing Hook", func() {
-				hook, err := CreateHookFactory(testDb, "", GameUpdatedHook, "http://test/getbyid")
+				hook, err := fixtures.CreateHookFactory(testDb, "", GameUpdatedHook, "http://test/getbyid")
 				Expect(err).NotTo(HaveOccurred())
 
 				dbHook, err := GetHookByPublicID(testDb, hook.GameID, hook.PublicID)
@@ -93,7 +94,7 @@ var _ = Describe("Hook Model", func() {
 
 		Describe("Create Hook", func() {
 			It("Should create a new Hook with CreateHook", func() {
-				game := GameFactory.MustCreate().(*Game)
+				game := fixtures.GameFactory.MustCreate().(*Game)
 				err := testDb.Insert(game)
 				Expect(err).NotTo(HaveOccurred())
 
@@ -116,7 +117,7 @@ var _ = Describe("Hook Model", func() {
 
 			It("Create same Hook works fine", func() {
 				gameID := uuid.NewV4().String()
-				hook, err := CreateHookFactory(testDb, gameID, GameUpdatedHook, "http://test/created")
+				hook, err := fixtures.CreateHookFactory(testDb, gameID, GameUpdatedHook, "http://test/created")
 
 				hook2, err := CreateHook(
 					testDb,
@@ -139,7 +140,7 @@ var _ = Describe("Hook Model", func() {
 
 		Describe("Remove Hook", func() {
 			It("Should remove a Hook with RemoveHook", func() {
-				hook, err := CreateHookFactory(testDb, "", GameUpdatedHook, "http://test/update")
+				hook, err := fixtures.CreateHookFactory(testDb, "", GameUpdatedHook, "http://test/update")
 				Expect(err).NotTo(HaveOccurred())
 
 				err = RemoveHook(
@@ -159,7 +160,7 @@ var _ = Describe("Hook Model", func() {
 		Describe("Get All Hooks", func() {
 			It("Should get all hooks", func() {
 				gameID := uuid.NewV4().String()
-				_, err := GetTestHooks(testDb, gameID, 5)
+				_, err := fixtures.GetTestHooks(testDb, gameID, 5)
 				Expect(err).NotTo(HaveOccurred())
 
 				hooks, err := GetAllHooks(testDb)

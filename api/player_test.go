@@ -20,6 +20,7 @@ import (
 	uuid "github.com/satori/go.uuid"
 	"github.com/topfreegames/khan/api"
 	"github.com/topfreegames/khan/models"
+	"github.com/topfreegames/khan/models/fixtures"
 	"github.com/topfreegames/khan/testing"
 )
 
@@ -39,7 +40,7 @@ var _ = Describe("Player API Handler", func() {
 
 	Describe("Create Player Handler", func() {
 		It("Should create player", func() {
-			game := models.GameFactory.MustCreate().(*models.Game)
+			game := fixtures.GameFactory.MustCreate().(*models.Game)
 			err := db.Insert(game)
 			Expect(err).NotTo(HaveOccurred())
 
@@ -89,7 +90,7 @@ var _ = Describe("Player API Handler", func() {
 		})
 
 		It("Should not create player if invalid data", func() {
-			game := models.GameFactory.MustCreate().(*models.Game)
+			game := fixtures.GameFactory.MustCreate().(*models.Game)
 			err := db.Insert(game)
 			Expect(err).NotTo(HaveOccurred())
 
@@ -110,7 +111,7 @@ var _ = Describe("Player API Handler", func() {
 
 	Describe("Update Player Handler", func() {
 		It("Should update player", func() {
-			_, player, err := models.CreatePlayerFactory(db, "")
+			_, player, err := fixtures.CreatePlayerFactory(db, "")
 			Expect(err).NotTo(HaveOccurred())
 
 			metadata := map[string]interface{}{"y": 10}
@@ -157,7 +158,7 @@ var _ = Describe("Player API Handler", func() {
 		})
 
 		It("Should not update player if invalid data", func() {
-			_, player, err := models.CreatePlayerFactory(db, "")
+			_, player, err := fixtures.CreatePlayerFactory(db, "")
 			Expect(err).NotTo(HaveOccurred())
 
 			payload := map[string]interface{}{
@@ -179,7 +180,7 @@ var _ = Describe("Player API Handler", func() {
 	Describe("Retrieve Player", func() {
 		It("Should retrieve player", func() {
 			gameID := uuid.NewV4().String()
-			_, player, err := models.GetTestPlayerWithMemberships(testDb, gameID, 5, 2, 3, 8)
+			_, player, err := fixtures.GetTestPlayerWithMemberships(testDb, gameID, 5, 2, 3, 8)
 			Expect(err).NotTo(HaveOccurred())
 
 			route := GetGameRoute(player.GameID, fmt.Sprintf("/players/%s", player.PublicID))
@@ -217,7 +218,7 @@ var _ = Describe("Player API Handler", func() {
 
 		It("Should retrieve player decrypting player.Name", func() {
 			gameID := uuid.NewV4().String()
-			owner, player, err := models.GetTestPlayerWithMemberships(testDb, gameID, 5, 2, 3, 8)
+			owner, player, err := fixtures.GetTestPlayerWithMemberships(testDb, gameID, 5, 2, 3, 8)
 			Expect(err).NotTo(HaveOccurred())
 
 			testing.UpdateEncryptingTestPlayer(testDb, a.EncryptionKey, owner)
@@ -273,7 +274,7 @@ var _ = Describe("Player API Handler", func() {
 
 	Describe("Player Hooks", func() {
 		It("Should call create player hook", func() {
-			hooks, err := models.GetHooksForRoutes(testDb, []string{
+			hooks, err := fixtures.GetHooksForRoutes(testDb, []string{
 				"http://localhost:52525/playercreated",
 			}, models.PlayerCreatedHook)
 			Expect(err).NotTo(HaveOccurred())
@@ -313,13 +314,13 @@ var _ = Describe("Player API Handler", func() {
 		Describe("Update Player Hook", func() {
 			Describe("Without Whitelist", func() {
 				It("Should not call update player hook", func() {
-					hooks, err := models.GetHooksForRoutes(testDb, []string{
+					hooks, err := fixtures.GetHooksForRoutes(testDb, []string{
 						"http://localhost:52525/updated",
 					}, models.PlayerUpdatedHook)
 					Expect(err).NotTo(HaveOccurred())
 					responses := startRouteHandler([]string{"/updated"}, 52525)
 
-					player := models.PlayerFactory.MustCreateWithOption(map[string]interface{}{"GameID": hooks[0].GameID}).(*models.Player)
+					player := fixtures.PlayerFactory.MustCreateWithOption(map[string]interface{}{"GameID": hooks[0].GameID}).(*models.Player)
 					err = testDb.Insert(player)
 					Expect(err).NotTo(HaveOccurred())
 
@@ -343,7 +344,7 @@ var _ = Describe("Player API Handler", func() {
 			})
 			Describe("With Whitelist", func() {
 				It("Should call update player hook if whitelisted", func() {
-					hooks, err := models.GetHooksForRoutes(testDb, []string{
+					hooks, err := fixtures.GetHooksForRoutes(testDb, []string{
 						"http://localhost:52525/updated_whitelist",
 					}, models.PlayerUpdatedHook)
 					Expect(err).NotTo(HaveOccurred())
@@ -358,7 +359,7 @@ var _ = Describe("Player API Handler", func() {
 					Expect(err).NotTo(HaveOccurred())
 					Expect(count).To(BeEquivalentTo(1))
 
-					player := models.PlayerFactory.MustCreateWithOption(map[string]interface{}{
+					player := fixtures.PlayerFactory.MustCreateWithOption(map[string]interface{}{
 						"GameID": hooks[0].GameID,
 						"Metadata": map[string]interface{}{
 							"new": "something",
@@ -400,7 +401,7 @@ var _ = Describe("Player API Handler", func() {
 				})
 
 				It("Should call update player hook if whitelisted and field is new", func() {
-					hooks, err := models.GetHooksForRoutes(testDb, []string{
+					hooks, err := fixtures.GetHooksForRoutes(testDb, []string{
 						"http://localhost:52525/updated_whitelist_3",
 					}, models.PlayerUpdatedHook)
 					Expect(err).NotTo(HaveOccurred())
@@ -415,7 +416,7 @@ var _ = Describe("Player API Handler", func() {
 					Expect(err).NotTo(HaveOccurred())
 					Expect(count).To(BeEquivalentTo(1))
 
-					player := models.PlayerFactory.MustCreateWithOption(map[string]interface{}{
+					player := fixtures.PlayerFactory.MustCreateWithOption(map[string]interface{}{
 						"GameID":   hooks[0].GameID,
 						"Metadata": map[string]interface{}{},
 					}).(*models.Player)
@@ -455,7 +456,7 @@ var _ = Describe("Player API Handler", func() {
 				})
 
 				It("Should not call update player hook if not whitelisted", func() {
-					hooks, err := models.GetHooksForRoutes(testDb, []string{
+					hooks, err := fixtures.GetHooksForRoutes(testDb, []string{
 						"http://localhost:52525/updated_whitelist_2",
 					}, models.PlayerUpdatedHook)
 					Expect(err).NotTo(HaveOccurred())
@@ -470,7 +471,7 @@ var _ = Describe("Player API Handler", func() {
 					Expect(err).NotTo(HaveOccurred())
 					Expect(count).To(BeEquivalentTo(1))
 
-					player := models.PlayerFactory.MustCreateWithOption(map[string]interface{}{
+					player := fixtures.PlayerFactory.MustCreateWithOption(map[string]interface{}{
 						"GameID": hooks[0].GameID,
 						"Metadata": map[string]interface{}{
 							"else": "something",
@@ -500,7 +501,7 @@ var _ = Describe("Player API Handler", func() {
 				})
 
 				It("Should call update player hook if whitelisted and player does not exist", func() {
-					hooks, err := models.GetHooksForRoutes(testDb, []string{
+					hooks, err := fixtures.GetHooksForRoutes(testDb, []string{
 						"http://localhost:52525/updated_whitelist_not_exist",
 					}, models.PlayerUpdatedHook)
 					Expect(err).NotTo(HaveOccurred())

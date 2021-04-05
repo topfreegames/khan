@@ -13,8 +13,9 @@ import (
 	"testing"
 
 	"github.com/Pallinder/go-randomdata"
-	"github.com/satori/go.uuid"
+	uuid "github.com/satori/go.uuid"
 	"github.com/topfreegames/khan/models"
+	"github.com/topfreegames/khan/models/fixtures"
 )
 
 var gameResult *http.Response
@@ -67,7 +68,7 @@ func BenchmarkUpdateGame(b *testing.B) {
 
 	var games []*models.Game
 	for i := 0; i < b.N; i++ {
-		game := models.GameFactory.MustCreateWithOption(map[string]interface{}{
+		game := fixtures.GameFactory.MustCreateWithOption(map[string]interface{}{
 			"PublicID":          uuid.NewV4().String(),
 			"MaxClansPerPlayer": 999999,
 		}).(*models.Game)

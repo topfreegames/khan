@@ -45,13 +45,13 @@ func GetFaultyTestDB() models.DB {
 	return faultyDb
 }
 
-func ConfigureAndStartGoWorkers() error {
+func ConfigureAndStartGoWorkers() (*models.MongoWorker, error) {
 	config := viper.New()
 	config.SetConfigType("yaml")
 	config.SetConfigFile("../config/test.yaml")
 	err := config.ReadInConfig()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	redisHost := config.GetString("redis.host")
@@ -87,5 +87,5 @@ func ConfigureAndStartGoWorkers() error {
 	mongoWorker := models.NewMongoWorker(logger, config)
 	workers.Process(queues.KhanMongoQueue, mongoWorker.PerformUpdateMongo, workerCount)
 	workers.Start()
-	return nil
+	return mongoWorker, nil
 }
