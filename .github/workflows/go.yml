@@ -92,8 +92,8 @@ jobs:
           discovery type: single-node
       - name: Performance test
         run: | 
-          make coverage
           make ci-perf
+          make coverage
       - name: Install goveralls
         env:
           GO111MODULE: off
