@@ -2,7 +2,7 @@
 name: Khan
 'on': push
 jobs:
-  build-step:
+  build:
     runs-on: ubuntu-latest
     steps:
       - id: go-cache-paths
@@ -31,6 +31,8 @@ jobs:
         run: make setup-ci
   tests:
     runs-on: ubuntu-latest
+    needs: 
+      - build
     services:
       postgres:
         image: postgres:9.5
