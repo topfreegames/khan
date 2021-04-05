@@ -1044,6 +1044,7 @@ var _ = Describe("Clan API Handler", func() {
 				testDb, gameID, "clan-apisearch-clan", 10,
 			)
 			Expect(err).NotTo(HaveOccurred())
+			time.Sleep(10 * time.Second)
 
 			err = testing.CreateClanNameTextIndexInMongo(GetTestMongo, gameID)
 			Expect(err).NotTo(HaveOccurred())
