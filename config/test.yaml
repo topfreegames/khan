@@ -32,9 +32,6 @@ healthcheck:
 webhooks:
   timeout: 500
 
-newrelic:
-  key: ""
-
 jaeger:
   disabled: false
   samplingProbability: 1.0

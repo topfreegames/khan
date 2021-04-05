@@ -5,9 +5,6 @@ postgres:
   port: 5433
   sslMode: "disable"
 
-newrelic:
-  key: ""
-
 jaeger:
   disabled: false
   samplingProbability: 1.0

@@ -26,7 +26,6 @@ import (
 	"github.com/labstack/echo/engine/fasthttp"
 	"github.com/labstack/echo/engine/standard"
 	"github.com/labstack/echo/middleware"
-	newrelic "github.com/newrelic/go-agent"
 	gocache "github.com/patrickmn/go-cache"
 	"github.com/rcrowley/go-metrics"
 	uuid "github.com/satori/go.uuid"
@@ -51,28 +50,26 @@ import (
 
 // App is a struct that represents a Khan API Application
 type App struct {
-	ID             string
-	Test           bool
-	Debug          bool
-	Port           int
-	Host           string
-	ConfigPath     string
-	Errors         metrics.EWMA
-	App            *eecho.Echo
-	Engine         engine.Server
-	Config         *viper.Viper
-	Dispatcher     *Dispatcher
-	ESWorker       *models.ESWorker
-	MongoWorker    *models.MongoWorker
-	Logger         zap.Logger
-	ESClient       *es.Client
-	MongoDB        interfaces.MongoDB
-	ReadBufferSize int
-	Fast           bool
-	NewRelic       newrelic.Application
-	DDStatsD       *extnethttpmiddleware.DogStatsD
-	EncryptionKey  []byte
-
+	ID                  string
+	Test                bool
+	Debug               bool
+	Port                int
+	Host                string
+	ConfigPath          string
+	Errors              metrics.EWMA
+	App                 *eecho.Echo
+	Engine              engine.Server
+	Config              *viper.Viper
+	Dispatcher          *Dispatcher
+	ESWorker            *models.ESWorker
+	MongoWorker         *models.MongoWorker
+	Logger              zap.Logger
+	ESClient            *es.Client
+	MongoDB             interfaces.MongoDB
+	ReadBufferSize      int
+	Fast                bool
+	DDStatsD            *extnethttpmiddleware.DogStatsD
+	EncryptionKey       []byte
 	getGameCache        *gocache.Cache
 	clansSummariesCache *caches.ClansSummaries
 	db                  gorp.Database
@@ -103,7 +100,6 @@ func (app *App) Configure() {
 	app.loadConfiguration()
 	app.configureStatsD()
 	app.configureSentry()
-	app.configureNewRelic()
 	app.configureJaeger()
 	app.connectDatabase()
 	app.configureApplication()
@@ -187,36 +183,6 @@ func (app *App) configureStatsD() error {
 	return nil
 }
 
-func (app *App) configureNewRelic() error {
-	newRelicKey := app.Config.GetString("newrelic.key")
-	appName := app.Config.GetString("newrelic.appName")
-	if appName == "" {
-		appName = "Khan"
-	}
-
-	l := app.Logger.With(
-		zap.String("source", "app"),
-		zap.String("appName", appName),
-		zap.String("operation", "configureNewRelic"),
-	)
-
-	config := newrelic.NewConfig(appName, newRelicKey)
-	if newRelicKey == "" {
-		l.Info("New Relic is not enabled..")
-		config.Enabled = false
-	}
-	nr, err := newrelic.NewApplication(config)
-	if err != nil {
-		l.Error("Failed to initialize New Relic.", zap.Error(err))
-		return err
-	}
-
-	app.NewRelic = nr
-	l.Info("Initialized New Relic successfully.")
-
-	return nil
-}
-
 func (app *App) configureJaeger() {
 	l := app.Logger.With(
 		zap.String("source", "app"),
@@ -244,7 +210,6 @@ func (app *App) configureElasticsearch() {
 			app.Config.GetBool("elasticsearch.sniff"),
 			app.Logger,
 			app.Debug,
-			app.NewRelic,
 		)
 	}
 }
@@ -409,9 +374,6 @@ func (app *App) configureApplication() {
 			},
 		}))
 	}
-
-	//NewRelicMiddleware has to stand out from all others
-	a.Use(NewNewRelicMiddleware(app, app.Logger).Serve)
 
 	a.Use(NewRecoveryMiddleware(app.onErrorHandler).Serve)
 	a.Use(extechomiddleware.NewResponseTimeMetricsMiddleware(app.DDStatsD).Serve)

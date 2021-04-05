@@ -34,7 +34,6 @@ require (
 	github.com/lib/pq v1.0.0
 	github.com/lyft/protoc-gen-star v0.5.2 // indirect
 	github.com/mailru/easyjson v0.7.7
-	github.com/newrelic/go-agent v1.9.0
 	github.com/onsi/ginkgo v1.16.0
 	github.com/onsi/gomega v1.11.0
 	github.com/opentracing/opentracing-go v1.2.0

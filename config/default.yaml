@@ -38,10 +38,6 @@ webhooks:
 sentry:
   url: ""
 
-newrelic:
-  appName: "khan"
-  key: ""
-
 jaeger:
   disabled: true
   samplingProbability: 0.001
