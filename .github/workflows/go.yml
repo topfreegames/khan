@@ -91,7 +91,9 @@ jobs:
           node port: 9300
           discovery type: single-node
       - name: Performance test
-        run: make ci-perf
+        run: | 
+          make coverage
+          make ci-perf
       - name: Install goveralls
         env:
           GO111MODULE: off
