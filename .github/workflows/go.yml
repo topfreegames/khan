@@ -92,6 +92,14 @@ jobs:
           discovery type: single-node
       - name: Performance test
         run: make ci-perf
+      - name: Install goveralls
+      env:
+        GO111MODULE: off
+      run: go get github.com/mattn/goveralls
+    - name: Send coverage
+      env:
+        COVERALLS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: goveralls -coverprofile=coverage-all.out -service=github
   build_and_deploy_khan:
     needs:
       - tests
