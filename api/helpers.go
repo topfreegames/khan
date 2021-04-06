@@ -21,7 +21,6 @@ import (
 	"github.com/labstack/echo"
 	"github.com/mailru/easyjson/jlexer"
 	"github.com/mailru/easyjson/jwriter"
-	newrelic "github.com/newrelic/go-agent"
 	"github.com/topfreegames/khan/log"
 	"github.com/topfreegames/khan/models"
 	"github.com/uber-go/zap"
@@ -72,12 +71,6 @@ func SucceedWith(payload map[string]interface{}, c echo.Context) error {
 		payload["success"] = true
 		return c.JSON(http.StatusOK, payload)
 	}
-	tx := GetTX(c)
-	if tx == nil {
-		return f()
-	}
-	segment := newrelic.StartSegment(tx, "response-marshalling")
-	defer segment.End()
 	return f()
 }
 
@@ -155,27 +148,6 @@ func GetRequestJSON(payloadStruct interface{}, c echo.Context) error {
 	}
 
 	return nil
-}
-
-//GetTX returns new relic transaction
-func GetTX(c echo.Context) newrelic.Transaction {
-	tx := c.Get("txn")
-	if tx == nil {
-		return nil
-	}
-
-	return tx.(newrelic.Transaction)
-}
-
-//WithSegment adds a segment to new relic transaction
-func WithSegment(name string, c echo.Context, f func() error) error {
-	tx := GetTX(c)
-	if tx == nil {
-		return f()
-	}
-	segment := newrelic.StartSegment(tx, name)
-	defer segment.End()
-	return f()
 }
 
 // SetRetrieveClanHandlerConfigurationDefaults sets the default configs for RetrieveClanHandler

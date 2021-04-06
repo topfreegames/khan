@@ -5,7 +5,6 @@ import (
 	"os"
 	"sync"
 
-	newrelic "github.com/newrelic/go-agent"
 	eelastic "github.com/topfreegames/extensions/v9/elastic"
 	"github.com/topfreegames/khan/log"
 	"github.com/uber-go/zap"
@@ -14,14 +13,13 @@ import (
 
 // Client is the struct of an elasticsearch client
 type Client struct {
-	Debug    bool
-	Host     string
-	Port     int
-	Index    string
-	Logger   zap.Logger
-	Sniff    bool
-	Client   *elastic.Client
-	NewRelic newrelic.Application
+	Debug  bool
+	Host   string
+	Port   int
+	Index  string
+	Logger zap.Logger
+	Sniff  bool
+	Client *elastic.Client
 }
 
 var once sync.Once
@@ -36,16 +34,15 @@ func (es *Client) GetIndexName(gameID string) string {
 }
 
 // GetClient returns an elasticsearch client configured with the given the arguments
-func GetClient(host string, port int, index string, sniff bool, logger zap.Logger, debug bool, newRelic newrelic.Application) *Client {
+func GetClient(host string, port int, index string, sniff bool, logger zap.Logger, debug bool) *Client {
 	once.Do(func() {
 		client = &Client{
-			Debug:    debug,
-			Host:     host,
-			Port:     port,
-			Logger:   logger,
-			Index:    index,
-			Sniff:    sniff,
-			NewRelic: newRelic,
+			Debug:  debug,
+			Host:   host,
+			Port:   port,
+			Logger: logger,
+			Index:  index,
+			Sniff:  sniff,
 		}
 		client.configure()
 	})
@@ -55,13 +52,12 @@ func GetClient(host string, port int, index string, sniff bool, logger zap.Logge
 // GetTestClient returns a test elasticsearch client configured with the given the arguments
 func GetTestClient(host string, port int, index string, sniff bool, logger zap.Logger, debug bool) *Client {
 	client = &Client{
-		Debug:    debug,
-		Host:     host,
-		Port:     port,
-		Logger:   logger,
-		Index:    index,
-		Sniff:    sniff,
-		NewRelic: nil,
+		Debug:  debug,
+		Host:   host,
+		Port:   port,
+		Logger: logger,
+		Index:  index,
+		Sniff:  sniff,
 	}
 	client.configure()
 	return client

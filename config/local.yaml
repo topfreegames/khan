@@ -31,9 +31,6 @@ webhooks:
 healthcheck:
   workingText: "WORKING"
 
-newrelic:
-  key: ""
-
 jaeger:
   disabled: false
   samplingProbability: 1.0
