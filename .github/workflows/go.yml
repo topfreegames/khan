@@ -56,7 +56,15 @@ jobs:
       - name: Setup ci
         run: make setup-ci
       - name: Test
-        run: make schema-update assets migrate-test run-test
+        run: make schema-update assets migrate-test run-test coverage
+      - name: Install goveralls
+        env:
+          GO111MODULE: off
+        run: go get github.com/mattn/goveralls
+      - name: Send coverage
+        env:
+          COVERALLS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: goveralls -coverprofile coverage-all.out -service=github
   performance:
     runs-on: ubuntu-latest
     services:
@@ -110,17 +118,7 @@ jobs:
           node port: 9300
           discovery type: single-node
       - name: Performance test
-        run: | 
-          make ci-perf
-          make coverage
-      - name: Install goveralls
-        env:
-          GO111MODULE: off
-        run: go get github.com/mattn/goveralls
-      - name: Send coverage
-        env:
-          COVERALLS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: goveralls -coverprofile coverage-all.out -service=github
+        run: make ci-perf
   build_and_deploy_khan:
     needs:
       - tests
