@@ -15,7 +15,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/topfreegames/khan/models"
-	testing "github.com/topfreegames/khan/models/fixtures"
+	"github.com/topfreegames/khan/models/fixtures"
 )
 
 var _ = Describe("Hook API Handler", func() {
@@ -31,7 +31,7 @@ var _ = Describe("Hook API Handler", func() {
 		It("Should create hook", func() {
 			a := GetDefaultTestApp()
 			db := a.Db(nil)
-			game := testing.GameFactory.MustCreate().(*models.Game)
+			game := fixtures.GameFactory.MustCreate().(*models.Game)
 			err := db.Insert(game)
 			Expect(err).NotTo(HaveOccurred())
 
@@ -86,7 +86,7 @@ var _ = Describe("Hook API Handler", func() {
 		It("Should delete hook", func() {
 			a := GetDefaultTestApp()
 
-			hook, err := testing.CreateHookFactory(testDb, "", models.GameUpdatedHook, "http://test/update")
+			hook, err := fixtures.CreateHookFactory(testDb, "", models.GameUpdatedHook, "http://test/update")
 			Expect(err).NotTo(HaveOccurred())
 
 			status, body := Delete(a, GetGameRoute(hook.GameID, fmt.Sprintf("/hooks/%s", hook.PublicID)))
