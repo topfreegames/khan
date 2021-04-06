@@ -1,6 +1,6 @@
 # Khan
 
-[![Build Status](https://travis-ci.org/topfreegames/khan.svg?branch=master)](https://travis-ci.org/topfreegames/khan)
+[![Khan](https://github.com/topfreegames/khan/actions/workflows/go.yml/badge.svg)](https://github.com/topfreegames/khan/actions/workflows/go.yml)
 [![Coverage Status](https://coveralls.io/repos/github/topfreegames/khan/badge.svg?branch=master)](https://coveralls.io/github/topfreegames/khan?branch=master)
 [![Code Climate](https://codeclimate.com/github/topfreegames/khan/badges/gpa.svg)](https://codeclimate.com/github/topfreegames/khan)
 [![Go Report Card](https://goreportcard.com/badge/github.com/topfreegames/khan)](https://goreportcard.com/report/github.com/topfreegames/khan)

@@ -141,9 +141,11 @@ start-test-deps: schema-update start-deps assets drop-test create-test-db migrat
 run-test:
 	@SKIP_ELASTIC_LOG=true ginkgo -nodes=1 -r --cover .
 
-test-coverage coverage: test
+coverage: 
 	@echo "mode: count" > coverage-all.out
 	@bash -c 'for f in $$(find . -name "*.coverprofile"); do tail -n +2 $$f >> coverage-all.out; done'
+
+test-coverage: test coverage
 
 test-coverage-html coverage-html: test-coverage
 	@go tool cover -html=coverage-all.out
