@@ -1052,9 +1052,6 @@ var _ = Describe("Clan API Handler", func() {
 			)
 			Expect(err).NotTo(HaveOccurred())
 
-			// TODO: Replace this with something more reliable
-			// time.Sleep(10 * time.Second)
-
 			err = testing.CreateClanNameTextIndexInMongo(GetTestMongo, gameID)
 			Expect(err).NotTo(HaveOccurred())
 
