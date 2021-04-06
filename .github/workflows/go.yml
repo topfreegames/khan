@@ -61,6 +61,11 @@ jobs:
           host node port: 9300
           node port: 9300
           discovery type: single-node
+      - uses: actions/checkout@v2
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.15.2
       - name: Test
         run: make schema-update assets migrate-test run-test
   performance:
