@@ -1,11 +1,34 @@
 version: "3.8"
 
 services:
+  migrate:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: "migrate"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    links:
+      - postgres
+    networks:
+      - wildlife-services
+    environment:
+      - KHAN_POSTGRES_HOST=postgres
+      - KHAN_POSTGRES_USER=postgres
+      - KHAN_POSTGRES_PORT=5432
+      - KHAN_POSTGRES_PASSWORD=123456
+    healthcheck:
+        test: ["CMD-SHELL", "curl --silent --fail http://localhost/healthcheck || exit 1"]
+        interval: 30s
+        timeout: 30s
+        retries: 3
+
   khan:
     build:
       context: .
       dockerfile: Dockerfile
-    command: "make migrate start-with-docker"
+    command: "start"
     depends_on:
       postgres:
         condition: service_healthy
@@ -13,17 +36,20 @@ services:
         condition: service_healthy
       elasticsearch:
         condition: service_healthy
+      migrate:
+        condition: service_started
     links:
       - postgres
       - redis
       - elasticsearch
-    ports:
-      - "80:80"
     networks:
       - wildlife-services
+    ports:
+      - "80:80"
     environment:
       - KHAN_POSTGRES_HOST=postgres
       - KHAN_POSTGRES_USER=postgres
+      - KHAN_POSTGRES_PORT=5432
       - KHAN_POSTGRES_PASSWORD=123456
       - KHAN_REDIS_HOST=redis
       - KHAN_ELASTICSEARCH_HOST=elasticsearch
@@ -37,19 +63,28 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    command: "worker"
     depends_on:
-      khan:
+      postgres:
         condition: service_healthy
+      redis:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+      migrate:
+        condition: service_started
     links:
-      - khan
-    ports:
-      - "8080:8080"
+      - postgres
+      - redis
+      - elasticsearch
     networks:
       - wildlife-services
+    ports:
+      - "8080:8080"
     environment:
-      - KHAN_RUN_WORKER=true
       - KHAN_POSTGRES_HOST=postgres
       - KHAN_POSTGRES_USER=postgres
+      - KHAN_POSTGRES_PORT=5432
       - KHAN_POSTGRES_PASSWORD=123456
       - KHAN_REDIS_HOST=redis
       - KHAN_ELASTICSEARCH_HOST=elasticsearch

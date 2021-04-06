@@ -1,49 +1,20 @@
-FROM golang:1.15.2-alpine
+FROM golang:1.16.3-alpine as build
 
 LABEL TFG Co <backend@tfgco.com>
-WORKDIR /go/src/github.com/topfreegames/khan
 
-EXPOSE 80
+COPY . /khan
 
-RUN apk update
-RUN apk add git make g++ apache2-utils curl
-RUN apk add --update bash
+WORKDIR /khan
 
-RUN go get -u github.com/topfreegames/goose/cmd/goose
+RUN apk --update add make gcc && \
+        make setup && \
+        make build
 
-ADD loadtest/words /usr/share/dict/words
-ADD . /go/src/github.com/topfreegames/khan
+FROM alpine:3.12
 
-ADD . .
-RUN go mod tidy
-RUN go install github.com/topfreegames/khan
+COPY --from=build /khan/bin/khan /
+COPY --from=build /khan/config/default.yaml /
 
-ENV KHAN_POSTGRES_HOST 0.0.0.0
-ENV KHAN_POSTGRES_PORT 5432
-ENV KHAN_POSTGRES_USER khan
-ENV KHAN_POSTGRES_PASSWORD ""
-ENV KHAN_POSTGRES_DBNAME khan
-ENV KHAN_ELASTICSEARCH_HOST 0.0.0.0
-ENV KHAN_ELASTICSEARCH_PORT 9200
-ENV KHAN_ELASTICSEARCH_INDEX khan
-ENV KHAN_ELASTICSEARCH_SNIFF false
+RUN chmod +x /khan
 
-ENV KHAN_WEBHOOKS_WORKERS 5
-ENV KHAN_WEBHOOKS_RUNSTATS true
-ENV KHAN_WEBHOOKS_STATSPORT 80
-
-ENV KHAN_REDIS_HOST 0.0.0.0
-ENV KHAN_REDIS_PORT 6379
-ENV KHAN_REDIS_DATABASE 0
-ENV KHAN_REDIS_POOL 30
-ENV KHAN_REDIS_PASSWORD ""
-
-ENV KHAN_SENTRY_URL ""
-ENV KHAN_BASICAUTH_USERNAME ""
-ENV KHAN_BASICAUTH_PASSWORD ""
-
-ENV KHAN_RUN_WORKER ""
-
-RUN chmod +x ./docker/start-khan.sh
-
-CMD [ "./docker/start-khan.sh" ]
+ENTRYPOINT [ "/khan", "-c", "/default.yaml" ]

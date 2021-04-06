@@ -87,19 +87,9 @@ worker:
 run-fast:
 	@go run main.go start --fast -c ./config/local.yaml
 
-start-with-docker:
-	@bash ./docker/start-khan.sh
-
 build-docker:
 	@docker build -t khan .
 
-build-dev-docker:
-	@cp ./config/default.yaml ./dev
-	@cp ./bin/khan-linux-x86_64 ./dev
-	@cd dev && docker build -t khan-dev .
-
-build-prune-docker:
-	@docker build -t khan-prune -f PruneDockerfile .
 
 # the crypto
 run-docker:
@@ -112,7 +102,7 @@ run-docker:
 		-e "AUTH_USERNAME=auth-username" \
 		-e "AUTH_PASSWORD=auth-password" \
 		-p 8080:80 \
-		khan
+		khan start -p 80 --fast
 
 run-worker-docker:
 	@docker run -i -t --rm \
@@ -125,14 +115,14 @@ run-worker-docker:
 		-e "AUTH_USERNAME=auth-username" \
 		-e "AUTH_PASSWORD=auth-password" \
 		-p 9999:80 \
-		khan
+		khan worker -p 80 --fast
 
 run-prune-docker:
 	@docker run -i -t --rm \
 		-e "KHAN_POSTGRES_HOST=${MYIP}" \
 		-e "KHAN_POSTGRES_PORT=5433" \
 		-e "KHAN_PRUNING_SLEEP=10" \
-		khan-prune
+		khan prune
 
 test: start-test-deps run-test
 
