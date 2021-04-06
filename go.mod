@@ -13,7 +13,6 @@ require (
 	github.com/cncf/udpa/go v0.0.0-20210210032658-bff43e8824d0 // indirect
 	github.com/creack/pty v1.1.11 // indirect
 	github.com/envoyproxy/protoc-gen-validate v0.4.1 // indirect
-	github.com/getsentry/raven-go v0.0.0-20170918144728-1452f6376ddb
 	github.com/globalsign/mgo v0.0.0-20180615134936-113d3961e731
 	github.com/go-gorp/gorp v2.2.0+incompatible
 	github.com/golang/mock v1.5.0
