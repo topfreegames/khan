@@ -62,7 +62,6 @@ In order to use it, you need to configure these environment variables in the con
 * `KHAN_POSTGRES_USER` - PostgreSQL to prune username;
 * `KHAN_POSTGRES_PASSWORD` - PostgreSQL to prune password;
 * `KHAN_POSTGRES_DBNAME` - PostgreSQL to prune database name;
-* `KHAN_SENTRY_URL` - Sentry URL to send errors to. If you do not use sentry, just leave this unset;
 * `KHAN_PRUNING_SLEEP` - Number of seconds to sleep between pruning operations. Defaults to 3600.
 
 The image can be found at our [official Docker Hub repository](https://hub.docker.com/r/tfgco/khan-prune/).

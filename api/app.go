@@ -19,7 +19,6 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/getsentry/raven-go"
 	"github.com/jrallison/go-workers"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/engine"
@@ -43,7 +42,6 @@ import (
 	"github.com/topfreegames/khan/models"
 	"github.com/topfreegames/khan/mongo"
 	"github.com/topfreegames/khan/queues"
-	"github.com/topfreegames/khan/util"
 	"github.com/uber-go/zap"
 	"github.com/valyala/fasthttp/fasthttpadaptor"
 )
@@ -99,7 +97,6 @@ func (app *App) Configure() {
 	app.setConfigurationDefaults()
 	app.loadConfiguration()
 	app.configureStatsD()
-	app.configureSentry()
 	app.configureJaeger()
 	app.connectDatabase()
 	app.configureApplication()
@@ -151,17 +148,6 @@ func (app *App) configureClansSummariesCache() {
 	app.clansSummariesCache = &caches.ClansSummaries{
 		Cache: gocache.New(ttl, cleanupInterval),
 	}
-}
-
-func (app *App) configureSentry() {
-	logger := app.Logger.With(
-		zap.String("source", "app"),
-		zap.String("operation", "configureSentry"),
-	)
-	sentryURL := app.Config.GetString("sentry.url")
-	log.D(logger, fmt.Sprintf("Configuring sentry with URL %s", sentryURL))
-	raven.SetDSN(sentryURL)
-	raven.SetRelease(util.VERSION)
 }
 
 func (app *App) configureStatsD() error {
@@ -341,11 +327,6 @@ func (app *App) onErrorHandler(err error, stack []byte) {
 			zap.String("stack", string(stack)),
 		)
 	})
-	tags := map[string]string{
-		"source": "app",
-		"type":   "panic",
-	}
-	raven.CaptureError(err, tags)
 }
 
 func (app *App) configureApplication() {
@@ -378,7 +359,6 @@ func (app *App) configureApplication() {
 	a.Use(NewRecoveryMiddleware(app.onErrorHandler).Serve)
 	a.Use(extechomiddleware.NewResponseTimeMetricsMiddleware(app.DDStatsD).Serve)
 	a.Use(NewVersionMiddleware().Serve)
-	a.Use(NewSentryMiddleware(app).Serve)
 	a.Use(NewLoggerMiddleware(app.Logger).Serve)
 	a.Use(NewBodyExtractionMiddleware().Serve)
 

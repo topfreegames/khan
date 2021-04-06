@@ -8,43 +8,21 @@
 package cmd
 
 import (
-	"fmt"
 	"os"
 
-	raven "github.com/getsentry/raven-go"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/topfreegames/khan/log"
 	"github.com/topfreegames/khan/models"
-	"github.com/topfreegames/khan/util"
 	"github.com/uber-go/zap"
 )
 
 var pruneDebug bool
 var pruneQuiet bool
 
-func reportErrorToSentry(err error) {
-	tags := map[string]string{
-		"source": "prune",
-	}
-	raven.CaptureError(err, tags)
-}
-
 //PruneStaleData prunes old data from the DB
 func PruneStaleData(debug, quiet bool) (*models.PruneStats, error) {
-	tags := map[string]string{
-		"source": "prune",
-	}
-	var stats *models.PruneStats
-	var err error
-
-	raven.CapturePanic(func() {
-		stats, err = executePruning(debug, quiet)
-		if err != nil {
-			reportErrorToSentry(err)
-		}
-	}, tags)
-	return stats, err
+	return executePruning(debug, quiet)
 }
 
 func executePruning(debug, quiet bool) (*models.PruneStats, error) {
@@ -66,11 +44,6 @@ func executePruning(debug, quiet bool) (*models.PruneStats, error) {
 		zap.String("operation", "Run"),
 		zap.Bool("debug", pruneDebug),
 	)
-
-	sentryURL := viper.GetString("sentry.url")
-	log.I(cmdL, fmt.Sprintf("Configuring sentry with URL %s", sentryURL))
-	raven.SetDSN(sentryURL)
-	raven.SetRelease(util.VERSION)
 
 	host := viper.GetString("postgres.host")
 	user := viper.GetString("postgres.user")
@@ -134,7 +107,7 @@ func executePruning(debug, quiet bool) (*models.PruneStats, error) {
 		}
 
 		options := &models.PruneOptions{
-			GameID: game.PublicID,
+			GameID:                        game.PublicID,
 			PendingApplicationsExpiration: int(pendingApplicationsExpiration.(float64)),
 			PendingInvitesExpiration:      int(pendingInvitesExpiration.(float64)),
 			DeniedMembershipsExpiration:   int(deniedMembershipsExpiration.(float64)),

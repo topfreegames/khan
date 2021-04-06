@@ -15,7 +15,6 @@ import (
 	"runtime/debug"
 	"time"
 
-	"github.com/getsentry/raven-go"
 	"github.com/labstack/echo"
 	"github.com/topfreegames/khan/log"
 	"github.com/topfreegames/khan/util"
@@ -73,54 +72,6 @@ func (v *VersionMiddleware) Serve(next echo.HandlerFunc) echo.HandlerFunc {
 	}
 }
 
-//NewSentryMiddleware returns a new sentry middleware
-func NewSentryMiddleware(app *App) *SentryMiddleware {
-	return &SentryMiddleware{
-		App: app,
-	}
-}
-
-//SentryMiddleware is responsible for sending all exceptions to sentry
-type SentryMiddleware struct {
-	App *App
-}
-
-// Serve serves the middleware
-func (s *SentryMiddleware) Serve(next echo.HandlerFunc) echo.HandlerFunc {
-	return func(c echo.Context) error {
-		err := next(c)
-		body := c.Get("body").(string)
-
-		if err == nil {
-			status := c.Response().Status()
-
-			//request is ok, but server failed
-			if status > 499 {
-				err = fmt.Errorf("Server failed to process response with status code 500: %s", body)
-			}
-		}
-
-		if err != nil {
-			if httpErr, ok := err.(*echo.HTTPError); ok {
-				if httpErr.Code < 500 {
-					return err
-				}
-			}
-			tags := map[string]string{
-				"source": "app",
-				"type":   "Internal server error",
-				"url":    c.Request().URI(),
-				"status": fmt.Sprintf("%d", c.Response().Status()),
-				"body":   body,
-			}
-			raven.SetHttpContext(newHTTPFromCtx(c))
-			raven.CaptureError(err, tags)
-		}
-
-		return err
-	}
-}
-
 func getHTTPParams(ctx echo.Context) (string, map[string]string, string) {
 	qs := ""
 	if len(ctx.QueryParams()) > 0 {
@@ -135,19 +86,6 @@ func getHTTPParams(ctx echo.Context) (string, map[string]string, string) {
 
 	cookies := string(ctx.Response().Header().Get("Cookie"))
 	return qs, headers, cookies
-}
-
-func newHTTPFromCtx(ctx echo.Context) *raven.Http {
-	qs, headers, cookies := getHTTPParams(ctx)
-
-	h := &raven.Http{
-		Method:  string(ctx.Request().Method()),
-		Cookies: cookies,
-		Query:   qs,
-		URL:     ctx.Request().URI(),
-		Headers: headers,
-	}
-	return h
 }
 
 //NewRecoveryMiddleware returns a configured middleware
