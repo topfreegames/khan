@@ -21,19 +21,19 @@ You can use environment variables to override configuration keys.`,
 
 		exitChannel := make(chan bool)
 		routine := func() {
-			l := logger.With(
+			logger := logger.With(
 				zap.String("source", "cmd/loadtest.go"),
 				zap.String("operation", "loadtestCmd.Run/goroutine"),
 			)
 
 			app := loadtest.GetApp(ConfigFile, sharedClansFile, logger)
 			if err := app.Run(); err != nil {
-				log.E(l, "Goroutine exited with error. Restarting...", func(cm log.CM) {
+				log.E(logger, "Goroutine exited with error. Restarting...", func(cm log.CM) {
 					cm.Write(zap.String("error", err.Error()))
 				})
 				exitChannel <- false
 			} else {
-				log.I(l, "Goroutine exited without errors.")
+				log.I(logger, "Goroutine exited without errors.")
 				exitChannel <- true
 			}
 		}
@@ -48,11 +48,11 @@ You can use environment variables to override configuration keys.`,
 			}
 		}
 
-		l := logger.With(
+		logger = logger.With(
 			zap.String("source", "cmd/loadtest.go"),
 			zap.String("operation", "loadtestCmd.Run"),
 		)
-		log.I(l, "Application exited.")
+		log.I(logger, "Application exited.")
 	},
 }
 

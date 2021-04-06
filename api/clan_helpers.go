@@ -21,7 +21,7 @@ func dispatchClanOwnershipChangeHook(app *App, hookType int, clan *models.Clan, 
 		newOwnerPublicID = newOwner.PublicID
 	}
 
-	l := app.Logger.With(
+	logger := app.Logger.With(
 		zap.String("source", "clanHandler"),
 		zap.String("operation", "dispatchClanOwnershipChangeHook"),
 		zap.Int("hookType", hookType),
@@ -52,9 +52,9 @@ func dispatchClanOwnershipChangeHook(app *App, hookType int, clan *models.Clan, 
 		result["isDeleted"] = false
 	}
 
-	log.D(l, "Dispatching hook...")
+	log.D(logger, "Dispatching hook...")
 	app.DispatchHooks(clan.GameID, hookType, result)
-	log.D(l, "Hook dispatch succeeded.")
+	log.D(logger, "Hook dispatch succeeded.")
 
 	return nil
 }
@@ -84,8 +84,8 @@ func serializeClan(clan *models.Clan, includePublicID bool) map[string]interface
 	return serial
 }
 
-func validateUpdateClanDispatch(game *models.Game, sourceClan *models.Clan, clan *models.Clan, metadata map[string]interface{}, l zap.Logger) bool {
-	cl := l.With(
+func validateUpdateClanDispatch(game *models.Game, sourceClan *models.Clan, clan *models.Clan, metadata map[string]interface{}, logger zap.Logger) bool {
+	cl := logger.With(
 		zap.String("clanUpdateMetadataFieldsHookTriggerWhitelist", game.ClanUpdateMetadataFieldsHookTriggerWhitelist),
 	)
 
@@ -107,7 +107,7 @@ func validateUpdateClanDispatch(game *models.Game, sourceClan *models.Clan, clan
 	for _, field := range fields {
 		oldVal, existsOld := sourceClan.Metadata[field]
 		newVal, existsNew := metadata[field]
-		log.D(l, "Verifying field for change...", func(cm log.CM) {
+		log.D(logger, "Verifying field for change...", func(cm log.CM) {
 			cm.Write(
 				zap.Bool("existsOld", existsOld),
 				zap.Bool("existsNew", existsNew),
@@ -118,14 +118,14 @@ func validateUpdateClanDispatch(game *models.Game, sourceClan *models.Clan, clan
 		})
 
 		if existsOld != existsNew {
-			log.D(l, "Found difference in field. Dispatching hook...", func(cm log.CM) {
+			log.D(logger, "Found difference in field. Dispatching hook...", func(cm log.CM) {
 				cm.Write(zap.String("field", field))
 			})
 			return true
 		}
 
 		if existsOld && oldVal != newVal {
-			log.D(l, "Found difference in field. Dispatching hook...", func(cm log.CM) {
+			log.D(logger, "Found difference in field. Dispatching hook...", func(cm log.CM) {
 				cm.Write(zap.String("field", field))
 			})
 			return true

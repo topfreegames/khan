@@ -35,8 +35,8 @@ func GetTestMongo() (interfaces.MongoDB, error) {
 	if err != nil {
 		return nil, err
 	}
-	l := kt.NewMockLogger()
-	return mongo.GetMongo(l, config)
+	logger := kt.NewMockLogger()
+	return mongo.GetMongo(logger, config)
 }
 
 // GetFaultyTestDB returns an ill-configured test database
@@ -83,8 +83,8 @@ func ConfigureAndStartGoWorkers() error {
 	}
 	workers.Configure(opts)
 
-	l := kt.NewMockLogger()
-	mongoWorker := models.NewMongoWorker(l, config)
+	logger := kt.NewMockLogger()
+	mongoWorker := models.NewMongoWorker(logger, config)
 	workers.Process(queues.KhanMongoQueue, mongoWorker.PerformUpdateMongo, workerCount)
 	workers.Start()
 	return nil

@@ -27,7 +27,7 @@ If the game do not exists in the main Postgres database, no actions take place.`
 	Run: func(cmd *cobra.Command, args []string) {
 		// create logger
 		logger := zap.New(zap.NewJSONEncoder(), zap.InfoLevel)
-		l := logger.With(
+		logger = logger.With(
 			zap.String("source", "cmd/migrate_mongo.go"),
 			zap.String("operation", "migrateMongoCmd.Run"),
 			zap.String("game", gameID),
@@ -36,7 +36,7 @@ If the game do not exists in the main Postgres database, no actions take place.`
 		// read config
 		config, err := newConfig()
 		if err != nil {
-			log.F(l, "Error reading config.", func(cm log.CM) {
+			log.F(logger, "Error reading config.", func(cm log.CM) {
 				cm.Write(zap.String("error", err.Error()))
 			})
 		}
@@ -44,13 +44,13 @@ If the game do not exists in the main Postgres database, no actions take place.`
 		// connect to main db and check if game exists
 		db, err := newDatabase(config)
 		if err != nil {
-			log.F(l, "Error connecting to postgres.", func(cm log.CM) {
+			log.F(logger, "Error connecting to postgres.", func(cm log.CM) {
 				cm.Write(zap.String("error", err.Error()))
 			})
 		}
 		_, err = models.GetGameByPublicID(db, gameID)
 		if err != nil {
-			log.F(l, "Error fetching game from postgres.", func(cm log.CM) {
+			log.F(logger, "Error fetching game from postgres.", func(cm log.CM) {
 				cm.Write(zap.String("error", err.Error()))
 			})
 		}
@@ -58,13 +58,13 @@ If the game do not exists in the main Postgres database, no actions take place.`
 		// connect to mongo and run migrations
 		mongoDB, err := newMongo(config)
 		if err != nil {
-			log.F(l, "Error connecting to mongo.", func(cm log.CM) {
+			log.F(logger, "Error connecting to mongo.", func(cm log.CM) {
 				cm.Write(zap.String("error", err.Error()))
 			})
 		}
 		err = runMigrations(mongoDB, logger)
 		if err != nil {
-			log.F(l, "Error running mongo migrations.", func(cm log.CM) {
+			log.F(logger, "Error running mongo migrations.", func(cm log.CM) {
 				cm.Write(zap.String("error", err.Error()))
 			})
 		}
@@ -114,13 +114,13 @@ func newMongo(config *viper.Viper) (imongo.MongoDB, error) {
 }
 
 func runMigrations(mongoDB imongo.MongoDB, logger zap.Logger) error {
-	l := logger.With(
+	logger = logger.With(
 		zap.String("source", "cmd/migrate_mongo.go"),
 		zap.String("operation", "runMigrations"),
 		zap.String("game", gameID),
 	)
 
-	log.I(l, "Running mongo migrations for game...")
+	log.I(logger, "Running mongo migrations for game...")
 
 	// migrations
 	type Migration func(imongo.MongoDB, zap.Logger) error
@@ -133,13 +133,13 @@ func runMigrations(mongoDB imongo.MongoDB, logger zap.Logger) error {
 		}
 	}
 
-	log.I(l, "Migrated.")
+	log.I(logger, "Migrated.")
 
 	return nil
 }
 
 func createClanNameTextIndex(mongoDB imongo.MongoDB, logger zap.Logger) error {
-	l := logger.With(
+	logger = logger.With(
 		zap.String("source", "cmd/migrate_mongo.go"),
 		zap.String("operation", "createClanNameTextIndex"),
 		zap.String("game", gameID),
@@ -159,7 +159,7 @@ func createClanNameTextIndex(mongoDB imongo.MongoDB, logger zap.Logger) error {
 		return &MongoCommandError{cmd: cmd}
 	}
 	if res.NumIndexesAfter == res.NumIndexesBefore {
-		log.W(l, "Clan name text index already exists for this game.")
+		log.W(logger, "Clan name text index already exists for this game.")
 	}
 	return nil
 }

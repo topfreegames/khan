@@ -29,7 +29,7 @@ func ApplyForMembershipHandler(app *App) func(c echo.Context) error {
 		gameID := c.Param("gameID")
 		clanPublicID := c.Param("clanPublicID")
 
-		l := app.Logger.With(
+		logger := app.Logger.With(
 			zap.String("source", "membershipHandler"),
 			zap.String("operation", "applyForMembership"),
 			zap.String("gameID", gameID),
@@ -38,7 +38,7 @@ func ApplyForMembershipHandler(app *App) func(c echo.Context) error {
 
 		var payload ApplyForMembershipPayload
 		var optional *membershipOptionalParams
-		if err := LoadJSONPayload(&payload, c, l); err != nil {
+		if err := LoadJSONPayload(&payload, c, logger); err != nil {
 			return FailWith(400, err.Error(), c)
 		}
 
@@ -47,7 +47,7 @@ func ApplyForMembershipHandler(app *App) func(c echo.Context) error {
 			return FailWith(400, err.Error(), c)
 		}
 
-		l = l.With(
+		logger = logger.With(
 			zap.String("level", payload.Level),
 			zap.String("playerPublicID", payload.PlayerPublicID),
 		)
@@ -55,17 +55,17 @@ func ApplyForMembershipHandler(app *App) func(c echo.Context) error {
 		var membership *models.Membership
 		game, err := app.GetGame(c.StdContext(), gameID)
 		if err != nil {
-			log.W(l, "Could not find game.")
+			log.W(logger, "Could not find game.")
 			return FailWith(404, err.Error(), c)
 		}
 
-		tx, err := app.BeginTrans(c.StdContext(), l)
+		tx, err := app.BeginTrans(c.StdContext(), logger)
 		if err != nil {
 			return FailWithError(err, c)
 		}
-		log.D(l, "DB Tx begun successful.")
+		log.D(logger, "DB Tx begun successful.")
 
-		log.D(l, "Applying for membership...")
+		log.D(logger, "Applying for membership...")
 		membership, err = models.CreateMembership(
 			tx,
 			app.EncryptionKey,
@@ -78,14 +78,14 @@ func ApplyForMembershipHandler(app *App) func(c echo.Context) error {
 			optional.Message,
 		)
 		if err != nil {
-			txErr := app.Rollback(tx, "Membership application failed", c, l, err)
+			txErr := app.Rollback(tx, "Membership application failed", c, logger, err)
 			if txErr != nil {
-				log.E(l, "Could not rollback transaction", func(cm log.CM) {
+				log.E(logger, "Could not rollback transaction", func(cm log.CM) {
 					cm.Write(zap.Error(txErr))
 				})
 			}
 
-			log.E(l, "Membership application failed.", func(cm log.CM) {
+			log.E(logger, "Membership application failed.", func(cm log.CM) {
 				cm.Write(zap.Error(err))
 			})
 			return FailWithError(err, c)
@@ -97,25 +97,25 @@ func ApplyForMembershipHandler(app *App) func(c echo.Context) error {
 			membership.RequestorID, membership.Message, membership.Level,
 		)
 		if err != nil {
-			txErr := app.Rollback(tx, "Membership application failed", c, l, err)
+			txErr := app.Rollback(tx, "Membership application failed", c, logger, err)
 			if txErr != nil {
-				log.E(l, "Could not rollback transaction", func(cm log.CM) {
+				log.E(logger, "Could not rollback transaction", func(cm log.CM) {
 					cm.Write(zap.Error(txErr))
 				})
 			}
 
-			log.E(l, "Membership application created dispatch hook failed.", func(cm log.CM) {
+			log.E(logger, "Membership application created dispatch hook failed.", func(cm log.CM) {
 				cm.Write(zap.Error(err))
 			})
 			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 
-		err = app.Commit(tx, "Membership application", c, l)
+		err = app.Commit(tx, "Membership application", c, logger)
 		if err != nil {
 			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 
-		log.I(l, "Membership application created successfully.", func(cm log.CM) {
+		log.I(logger, "Membership application created successfully.", func(cm log.CM) {
 			cm.Write(zap.Duration("duration", time.Now().Sub(start)))
 		})
 
@@ -140,14 +140,14 @@ func InviteForMembershipHandler(app *App) func(c echo.Context) error {
 		gameID := c.Param("gameID")
 		clanPublicID := c.Param("clanPublicID")
 
-		l := app.Logger.With(
+		logger := app.Logger.With(
 			zap.String("source", "membershipHandler"),
 			zap.String("operation", "inviteForMembership"),
 			zap.String("gameID", gameID),
 			zap.String("clanPublicID", clanPublicID),
 		)
 
-		if err = LoadJSONPayload(&payload, c, l); err != nil {
+		if err = LoadJSONPayload(&payload, c, logger); err != nil {
 			return FailWith(400, err.Error(), c)
 		}
 		optional, err = getMembershipOptionalParameters(app, c)
@@ -155,7 +155,7 @@ func InviteForMembershipHandler(app *App) func(c echo.Context) error {
 			return FailWith(400, err.Error(), c)
 		}
 
-		l = l.With(
+		logger = logger.With(
 			zap.String("level", payload.Level),
 			zap.String("playerPublicID", payload.PlayerPublicID),
 			zap.String("requestorPublicID", payload.RequestorPublicID),
@@ -163,17 +163,17 @@ func InviteForMembershipHandler(app *App) func(c echo.Context) error {
 
 		game, err = app.GetGame(c.StdContext(), gameID)
 		if err != nil {
-			log.W(l, "Could not find game.")
+			log.W(logger, "Could not find game.")
 			return FailWith(404, err.Error(), c)
 		}
 
-		tx, err = app.BeginTrans(c.StdContext(), l)
+		tx, err = app.BeginTrans(c.StdContext(), logger)
 		if err != nil {
 			return FailWithError(err, c)
 		}
-		log.D(l, "DB Tx begun successful.")
+		log.D(logger, "DB Tx begun successful.")
 
-		log.D(l, "Inviting for membership...")
+		log.D(logger, "Inviting for membership...")
 		membership, err = models.CreateMembership(
 			tx,
 			app.EncryptionKey,
@@ -187,12 +187,12 @@ func InviteForMembershipHandler(app *App) func(c echo.Context) error {
 		)
 
 		if err != nil {
-			txErr := app.Rollback(tx, "Membership invitation failed", c, l, err)
+			txErr := app.Rollback(tx, "Membership invitation failed", c, logger, err)
 			if txErr != nil {
 				return FailWith(http.StatusInternalServerError, err.Error(), c)
 			}
 
-			log.E(l, "Membership invitation failed.", func(cm log.CM) {
+			log.E(logger, "Membership invitation failed.", func(cm log.CM) {
 				cm.Write(zap.Error(err))
 			})
 			return FailWithError(err, c)
@@ -204,25 +204,25 @@ func InviteForMembershipHandler(app *App) func(c echo.Context) error {
 			membership.RequestorID, membership.Message, membership.Level,
 		)
 		if err != nil {
-			txErr := app.Rollback(tx, "Membership invitation dispatch hook failed", c, l, err)
+			txErr := app.Rollback(tx, "Membership invitation dispatch hook failed", c, logger, err)
 			if txErr != nil {
-				log.E(l, "Could not rollback transaction", func(cm log.CM) {
+				log.E(logger, "Could not rollback transaction", func(cm log.CM) {
 					cm.Write(zap.Error(txErr))
 				})
 			}
 
-			log.E(l, "Membership invitation dispatch hook failed.", func(cm log.CM) {
+			log.E(logger, "Membership invitation dispatch hook failed.", func(cm log.CM) {
 				cm.Write(zap.Error(err))
 			})
 			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 
-		err = app.Commit(tx, "Membership invitation", c, l)
+		err = app.Commit(tx, "Membership invitation", c, logger)
 		if err != nil {
 			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 
-		log.I(l, "Membership invitation created successfully.", func(cm log.CM) {
+		log.I(logger, "Membership invitation created successfully.", func(cm log.CM) {
 			cm.Write(zap.Duration("duration", time.Now().Sub(start)))
 		})
 
@@ -239,7 +239,7 @@ func ApproveOrDenyMembershipApplicationHandler(app *App) func(c echo.Context) er
 		gameID := c.Param("gameID")
 		clanPublicID := c.Param("clanPublicID")
 
-		l := app.Logger.With(
+		logger := app.Logger.With(
 			zap.String("source", "membershipHandler"),
 			zap.String("operation", "approveOrDenyApplication"),
 			zap.String("gameID", gameID),
@@ -248,32 +248,32 @@ func ApproveOrDenyMembershipApplicationHandler(app *App) func(c echo.Context) er
 		)
 
 		var payload BasePayloadWithRequestorAndPlayerPublicIDs
-		if err := LoadJSONPayload(&payload, c, l); err != nil {
+		if err := LoadJSONPayload(&payload, c, logger); err != nil {
 			return FailWith(400, err.Error(), c)
 		}
 
-		l = l.With(
+		logger = logger.With(
 			zap.String("playerPublicID", payload.PlayerPublicID),
 			zap.String("requestorPublicID", payload.RequestorPublicID),
 		)
 
 		game, err := app.GetGame(c.StdContext(), gameID)
 		if err != nil {
-			log.W(l, "Could not find game.")
+			log.W(logger, "Could not find game.")
 			return FailWith(404, err.Error(), c)
 		}
 
-		tx, err := app.BeginTrans(c.StdContext(), l)
+		tx, err := app.BeginTrans(c.StdContext(), logger)
 		if err != nil {
 			return FailWithError(err, c)
 		}
-		log.D(l, "DB Tx begun successful.")
+		log.D(logger, "DB Tx begun successful.")
 
 		rollback := func(err error) error {
-			return app.Rollback(tx, "Approving/Denying membership application failed", c, l, err)
+			return app.Rollback(tx, "Approving/Denying membership application failed", c, logger, err)
 		}
 
-		log.D(l, "Approving/Denying membership application.")
+		log.D(logger, "Approving/Denying membership application.")
 		membership, err := models.ApproveOrDenyMembershipApplication(
 			tx,
 			app.EncryptionKey,
@@ -288,29 +288,29 @@ func ApproveOrDenyMembershipApplicationHandler(app *App) func(c echo.Context) er
 		if err != nil {
 			txErr := rollback(err)
 			if txErr == nil {
-				log.E(l, "Could not rollback transaction", func(cm log.CM) {
+				log.E(logger, "Could not rollback transaction", func(cm log.CM) {
 					cm.Write(zap.Error(txErr))
 				})
 			}
 			return FailWithError(err, c)
 		}
 
-		log.D(l, "Retrieving requestor details.")
+		log.D(logger, "Retrieving requestor details.")
 		requestor, err := models.GetPlayerByPublicID(tx, app.EncryptionKey, gameID, payload.RequestorPublicID)
 		if err != nil {
 			txErr := rollback(err)
 			if txErr == nil {
-				log.E(l, "Could not rollback transaction", func(cm log.CM) {
+				log.E(logger, "Could not rollback transaction", func(cm log.CM) {
 					cm.Write(zap.Error(txErr))
 				})
 			}
-			log.E(l, "Requestor details retrieval failed", func(cm log.CM) {
+			log.E(logger, "Requestor details retrieval failed", func(cm log.CM) {
 				cm.Write(zap.Error(txErr))
 			})
 
 			return FailWithError(err, c)
 		}
-		log.D(l, "Requestor details retrieved successfully.")
+		log.D(logger, "Requestor details retrieved successfully.")
 
 		if err != nil {
 			return FailWithError(err, c)
@@ -328,23 +328,23 @@ func ApproveOrDenyMembershipApplicationHandler(app *App) func(c echo.Context) er
 		if err != nil {
 			txErr := rollback(err)
 			if txErr == nil {
-				log.E(l, "Could not rollback transaction", func(cm log.CM) {
+				log.E(logger, "Could not rollback transaction", func(cm log.CM) {
 					cm.Write(zap.Error(txErr))
 				})
 			}
 
-			log.E(l, "Membership approved/denied application dispatch hook failed.", func(cm log.CM) {
+			log.E(logger, "Membership approved/denied application dispatch hook failed.", func(cm log.CM) {
 				cm.Write(zap.Error(txErr))
 			})
 			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 
-		err = app.Commit(tx, "Membership application approval/deny", c, l)
+		err = app.Commit(tx, "Membership application approval/deny", c, logger)
 		if err != nil {
 			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 
-		log.I(l, "Membership application approved/denied successfully.", func(cm log.CM) {
+		log.I(logger, "Membership application approved/denied successfully.", func(cm log.CM) {
 			cm.Write(zap.Duration("duration", time.Now().Sub(start)))
 		})
 
@@ -365,7 +365,7 @@ func ApproveOrDenyMembershipInvitationHandler(app *App) func(c echo.Context) err
 		gameID := c.Param("gameID")
 		clanPublicID := c.Param("clanPublicID")
 
-		l := app.Logger.With(
+		logger := app.Logger.With(
 			zap.String("source", "membershipHandler"),
 			zap.String("operation", "approveOrDenyInvitation"),
 			zap.String("gameID", gameID),
@@ -374,23 +374,23 @@ func ApproveOrDenyMembershipInvitationHandler(app *App) func(c echo.Context) err
 		)
 
 		var payload ApproveOrDenyMembershipInvitationPayload
-		err = LoadJSONPayload(&payload, c, l)
+		err = LoadJSONPayload(&payload, c, logger)
 		if err != nil {
 			return FailWith(400, err.Error(), c)
 		}
 
-		l = l.With(
+		logger = logger.With(
 			zap.String("playerPublicID", payload.PlayerPublicID),
 		)
 
 		game, err := app.GetGame(c.StdContext(), gameID)
 		if err != nil {
-			log.W(l, "Could not find game.")
+			log.W(logger, "Could not find game.")
 			return FailWith(404, err.Error(), c)
 		}
 
 		rollback := func(err error) error {
-			txErr := app.Rollback(tx, "Approving/Denying membership invitation failed", c, l, err)
+			txErr := app.Rollback(tx, "Approving/Denying membership invitation failed", c, logger, err)
 			if txErr != nil {
 				return txErr
 			}
@@ -398,13 +398,13 @@ func ApproveOrDenyMembershipInvitationHandler(app *App) func(c echo.Context) err
 			return nil
 		}
 
-		tx, err = app.BeginTrans(c.StdContext(), l)
+		tx, err = app.BeginTrans(c.StdContext(), logger)
 		if err != nil {
 			return FailWithError(err, c)
 		}
-		log.D(l, "DB Tx begun successful.")
+		log.D(logger, "DB Tx begun successful.")
 
-		log.D(l, "Approving/Denying membership invitation...")
+		log.D(logger, "Approving/Denying membership invitation...")
 		membership, err = models.ApproveOrDenyMembershipInvitation(
 			tx,
 			app.EncryptionKey,
@@ -417,7 +417,7 @@ func ApproveOrDenyMembershipInvitationHandler(app *App) func(c echo.Context) err
 		if err != nil {
 			txErr := rollback(err)
 			if txErr == nil {
-				log.E(l, "Could not rollback transaction", func(cm log.CM) {
+				log.E(logger, "Could not rollback transaction", func(cm log.CM) {
 					cm.Write(zap.Error(txErr))
 				})
 			}
@@ -438,18 +438,18 @@ func ApproveOrDenyMembershipInvitationHandler(app *App) func(c echo.Context) err
 		if err != nil {
 			txErr := rollback(err)
 			if txErr == nil {
-				log.E(l, "Membership invitation approval/deny hook dispatch failed.", func(cm log.CM) {
+				log.E(logger, "Membership invitation approval/deny hook dispatch failed.", func(cm log.CM) {
 					cm.Write(zap.Error(err))
 				})
 			}
 			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 
-		log.I(l, "Membership invitation approved/denied successfully.", func(cm log.CM) {
+		log.I(logger, "Membership invitation approved/denied successfully.", func(cm log.CM) {
 			cm.Write(zap.Duration("duration", time.Now().Sub(start)))
 		})
 
-		err = app.Commit(tx, "Membership invitation approval/deny", c, l)
+		err = app.Commit(tx, "Membership invitation approval/deny", c, logger)
 		if err != nil {
 			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
@@ -465,31 +465,31 @@ func DeleteMembershipHandler(app *App) func(c echo.Context) error {
 		start := time.Now()
 		clanPublicID := c.Param("clanPublicID")
 
-		l := app.Logger.With(
+		logger := app.Logger.With(
 			zap.String("source", "membershipHandler"),
 			zap.String("operation", "deleteMembership"),
 			zap.String("clanPublicID", clanPublicID),
 		)
 
-		payload, game, status, err := getPayloadAndGame(app, c, l)
+		payload, game, status, err := getPayloadAndGame(app, c, logger)
 		if err != nil {
 			return FailWith(status, err.Error(), c)
 		}
 
-		l = l.With(
+		logger = logger.With(
 			zap.String("gameID", game.PublicID),
 			zap.String("playerPublicID", payload.PlayerPublicID),
 			zap.String("requestorPublicID", payload.RequestorPublicID),
 		)
 
-		tx, err := app.BeginTrans(c.StdContext(), l)
+		tx, err := app.BeginTrans(c.StdContext(), logger)
 		if err != nil {
 			return FailWithError(err, c)
 		}
-		log.D(l, "DB Tx began successfully.")
+		log.D(logger, "DB Tx began successfully.")
 
 		rollback := func(err error) error {
-			txErr := app.Rollback(tx, "Deleting membership failed", c, l, err)
+			txErr := app.Rollback(tx, "Deleting membership failed", c, logger, err)
 			if txErr != nil {
 				return txErr
 			}
@@ -497,7 +497,7 @@ func DeleteMembershipHandler(app *App) func(c echo.Context) error {
 			return nil
 		}
 
-		log.D(l, "Deleting membership...")
+		log.D(logger, "Deleting membership...")
 		membership, err := models.DeleteMembership(
 			tx,
 			game,
@@ -512,7 +512,7 @@ func DeleteMembershipHandler(app *App) func(c echo.Context) error {
 			if txErr == nil {
 
 			}
-			log.E(l, "Membership delete failed.", func(cm log.CM) {
+			log.E(logger, "Membership delete failed.", func(cm log.CM) {
 				cm.Write(zap.Error(err))
 			})
 			return FailWithError(err, c)
@@ -526,22 +526,22 @@ func DeleteMembershipHandler(app *App) func(c echo.Context) error {
 		if err != nil {
 			txErr := rollback(err)
 			if txErr == nil {
-				log.E(l, "Could not rollback transaction", func(cm log.CM) {
+				log.E(logger, "Could not rollback transaction", func(cm log.CM) {
 					cm.Write(zap.Error(txErr))
 				})
 			}
 
-			log.E(l, "Membership deleted hook dispatch failed.", func(cm log.CM) {
+			log.E(logger, "Membership deleted hook dispatch failed.", func(cm log.CM) {
 				cm.Write(zap.Error(err))
 			})
 			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 
-		log.I(l, "Membership deleted successfully.", func(cm log.CM) {
+		log.I(logger, "Membership deleted successfully.", func(cm log.CM) {
 			cm.Write(zap.Duration("duration", time.Now().Sub(start)))
 		})
 
-		err = app.Commit(tx, "Membership invitation approval/deny", c, l)
+		err = app.Commit(tx, "Membership invitation approval/deny", c, logger)
 		if err != nil {
 			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
@@ -560,25 +560,25 @@ func PromoteOrDemoteMembershipHandler(app *App, action string) func(c echo.Conte
 
 		db := app.Db(c.StdContext())
 
-		l := app.Logger.With(
+		logger := app.Logger.With(
 			zap.String("source", "membershipHandler"),
 			zap.String("operation", "promoteOrDemoteMembership"),
 			zap.String("clanPublicID", clanPublicID),
 			zap.String("action", action),
 		)
 
-		payload, game, status, err := getPayloadAndGame(app, c, l)
+		payload, game, status, err := getPayloadAndGame(app, c, logger)
 		if err != nil {
 			return FailWith(status, err.Error(), c)
 		}
 
-		l = l.With(
+		logger = logger.With(
 			zap.String("gameID", game.PublicID),
 			zap.String("playerPublicID", payload.PlayerPublicID),
 			zap.String("requestorPublicID", payload.RequestorPublicID),
 		)
 
-		log.D(l, "Promoting/Demoting member...")
+		log.D(logger, "Promoting/Demoting member...")
 		membership, err := models.PromoteOrDemoteMember(
 			db,
 			game,
@@ -590,22 +590,22 @@ func PromoteOrDemoteMembershipHandler(app *App, action string) func(c echo.Conte
 		)
 
 		if err != nil {
-			log.E(l, "Member promotion/demotion failed.", func(cm log.CM) {
+			log.E(logger, "Member promotion/demotion failed.", func(cm log.CM) {
 				cm.Write(zap.Error(err))
 			})
 			return FailWithError(err, c)
 		}
-		log.D(l, "Member promoted/demoted successful.")
+		log.D(logger, "Member promoted/demoted successful.")
 
-		log.D(l, "Retrieving promoter/demoter member...")
+		log.D(logger, "Retrieving promoter/demoter member...")
 		requestor, err := models.GetPlayerByPublicID(db, app.EncryptionKey, membership.GameID, payload.RequestorPublicID)
 		if err != nil {
-			log.E(l, "Promoter/Demoter member retrieval failed.", func(cm log.CM) {
+			log.E(logger, "Promoter/Demoter member retrieval failed.", func(cm log.CM) {
 				cm.Write(zap.Error(err))
 			})
 			return FailWithError(err, c)
 		}
-		log.D(l, "Promoter/Demoter member retrieved successfully.")
+		log.D(logger, "Promoter/Demoter member retrieved successfully.")
 
 		hookType := models.MembershipPromotedHook
 		if action == "demote" {
@@ -618,13 +618,13 @@ func PromoteOrDemoteMembershipHandler(app *App, action string) func(c echo.Conte
 			requestor.ID, membership.Message, membership.Level,
 		)
 		if err != nil {
-			log.E(l, "Promote/Demote member hook dispatch failed.", func(cm log.CM) {
+			log.E(logger, "Promote/Demote member hook dispatch failed.", func(cm log.CM) {
 				cm.Write(zap.Error(err))
 			})
 			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 
-		log.I(l, "Member promoted/demoted successfully.", func(cm log.CM) {
+		log.I(logger, "Member promoted/demoted successfully.", func(cm log.CM) {
 			cm.Write(zap.Duration("duration", time.Now().Sub(start)))
 		})
 

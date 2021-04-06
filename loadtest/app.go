@@ -51,7 +51,7 @@ func (app *App) setClientConfigurationDefaults() {
 }
 
 func (app *App) loadConfiguration(configFile string) {
-	l := app.logger.With(
+	logger := app.logger.With(
 		zap.String("source", "loadtest/app"),
 		zap.String("operation", "loadConfiguration"),
 		zap.String("configFile", configFile),
@@ -65,9 +65,9 @@ func (app *App) loadConfiguration(configFile string) {
 	app.config.AutomaticEnv()
 
 	if err := app.config.ReadInConfig(); err == nil {
-		log.I(l, "Loaded config file successfully.")
+		log.I(logger, "Loaded config file successfully.")
 	} else {
-		log.P(l, "Config file failed to load.")
+		log.P(logger, "Config file failed to load.")
 	}
 }
 
@@ -83,14 +83,14 @@ func (app *App) configureCache(sharedClansFile string) {
 	var err error
 	app.cache, err = newCacheImpl(gameMaxMembers, sharedClansFile)
 	if err != nil {
-		l := app.logger.With(
+		logger := app.logger.With(
 			zap.String("source", "loadtest/app"),
 			zap.String("operation", "configureCache"),
 			zap.Int("gameMaxMembers", gameMaxMembers),
 			zap.String("sharedClansFile", sharedClansFile),
 			zap.String("error", err.Error()),
 		)
-		log.P(l, "Error configuring cache.")
+		log.P(logger, "Error configuring cache.")
 	}
 }
 
@@ -118,7 +118,7 @@ func (app *App) Run() error {
 		return int((100 * int64(cur)) / int64(nOperations))
 	}
 
-	l := app.logger.With(
+	logger := app.logger.With(
 		zap.String("source", "loadtest/app"),
 		zap.String("operation", "Run"),
 		zap.Int("nOperations", nOperations),
@@ -136,7 +136,7 @@ func (app *App) Run() error {
 		}
 
 		if getPercent(i+1)/10 > getPercent(i)/10 {
-			log.I(l, fmt.Sprintf("Goroutine completed %v%%.", getPercent(i+1)))
+			log.I(logger, fmt.Sprintf("Goroutine completed %v%%.", getPercent(i+1)))
 		}
 	}
 

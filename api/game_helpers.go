@@ -78,9 +78,9 @@ func getOptionalParameters(app *App, c echo.Context) (*optionalParams, error) {
 	}, nil
 }
 
-func getCreateGamePayload(app *App, c echo.Context, l zap.Logger) (*CreateGamePayload, *optionalParams, error) {
+func getCreateGamePayload(app *App, c echo.Context, logger zap.Logger) (*CreateGamePayload, *optionalParams, error) {
 	var payload CreateGamePayload
-	if err := LoadJSONPayload(&payload, c, l); err != nil {
+	if err := LoadJSONPayload(&payload, c, logger); err != nil {
 		return nil, nil, err
 	}
 	optional, err := getOptionalParameters(app, c)

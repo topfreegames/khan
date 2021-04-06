@@ -49,8 +49,8 @@ func GetTestMongo() (interfaces.MongoDB, error) {
 	if err != nil {
 		return nil, err
 	}
-	l := kt.NewMockLogger()
-	return mongo.GetMongo(l, config)
+	logger := kt.NewMockLogger()
+	return mongo.GetMongo(logger, config)
 }
 
 func DestroyTestES() {
@@ -73,16 +73,16 @@ func GetFaultyTestDB() models.DB {
 
 // GetDefaultTestApp returns a new Khan API Application bound to 0.0.0.0:8888 for test
 func GetDefaultTestApp() *api.App {
-	l := kt.NewMockLogger()
-	app := api.GetApp("0.0.0.0", 8888, "../config/test.yaml", true, l, false, true)
+	logger := kt.NewMockLogger()
+	app := api.GetApp("0.0.0.0", 8888, "../config/test.yaml", true, logger, false, true)
 	app.Configure()
 	return app
 }
 
 // GetTestAppWithBasicAuth returns a new Khan API application bound to 0.0.0.0:8888 for test with basic auth configs
 func GetTestAppWithBasicAuth(username, password string) *api.App {
-	l := kt.NewMockLogger()
-	app := api.GetApp("0.0.0.0", 8888, "../config/test.yaml", true, l, false, true)
+	logger := kt.NewMockLogger()
+	app := api.GetApp("0.0.0.0", 8888, "../config/test.yaml", true, logger, false, true)
 	app.Config.Set("basicauth.username", username)
 	app.Config.Set("basicauth.password", password)
 	app.Configure()

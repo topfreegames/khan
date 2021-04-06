@@ -195,7 +195,7 @@ type LoggerMiddleware struct {
 // Serve serves the middleware
 func (l *LoggerMiddleware) Serve(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		l := l.Logger.With(
+		logger := l.Logger.With(
 			zap.String("source", "request"),
 		)
 
@@ -221,11 +221,11 @@ func (l *LoggerMiddleware) Serve(next echo.HandlerFunc) echo.HandlerFunc {
 
 		route := c.Get("route")
 		if route == nil {
-			log.D(l, "Route does not have route set in ctx")
+			log.D(logger, "Route does not have route set in ctx")
 			return err
 		}
 
-		reqLog := l.With(
+		reqLog := logger.With(
 			zap.String("route", route.(string)),
 			zap.Time("endTime", endTime),
 			zap.Int("statusCode", status),

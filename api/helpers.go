@@ -75,12 +75,12 @@ func SucceedWith(payload map[string]interface{}, c echo.Context) error {
 }
 
 //LoadJSONPayload loads the JSON payload to the given struct validating all fields are not null
-func LoadJSONPayload(payloadStruct interface{}, c echo.Context, l zap.Logger) error {
-	log.D(l, "Loading payload...")
+func LoadJSONPayload(payloadStruct interface{}, c echo.Context, logger zap.Logger) error {
+	log.D(logger, "Loading payload...")
 
 	data, err := GetRequestBody(c)
 	if err != nil {
-		log.E(l, "Loading payload failed.", func(cm log.CM) {
+		log.E(logger, "Loading payload failed.", func(cm log.CM) {
 			cm.Write(zap.Error(err))
 		})
 		return err
@@ -89,7 +89,7 @@ func LoadJSONPayload(payloadStruct interface{}, c echo.Context, l zap.Logger) er
 	unmarshaler, ok := payloadStruct.(EasyJSONUnmarshaler)
 	if !ok {
 		err := fmt.Errorf("Can't unmarshal specified payload since it does not implement easyjson interface")
-		log.E(l, "Loading payload failed.", func(cm log.CM) {
+		log.E(logger, "Loading payload failed.", func(cm log.CM) {
 			cm.Write(zap.Error(err))
 		})
 		return err
@@ -98,7 +98,7 @@ func LoadJSONPayload(payloadStruct interface{}, c echo.Context, l zap.Logger) er
 	lexer := jlexer.Lexer{Data: []byte(data)}
 	unmarshaler.UnmarshalEasyJSON(&lexer)
 	if err = lexer.Error(); err != nil {
-		log.E(l, "Loading payload failed.", func(cm log.CM) {
+		log.E(logger, "Loading payload failed.", func(cm log.CM) {
 			cm.Write(zap.Error(err))
 		})
 		return err
@@ -109,14 +109,14 @@ func LoadJSONPayload(payloadStruct interface{}, c echo.Context, l zap.Logger) er
 
 		if len(missingFieldErrors) != 0 {
 			err := errors.New(strings.Join(missingFieldErrors[:], ", "))
-			log.E(l, "Loading payload failed.", func(cm log.CM) {
+			log.E(logger, "Loading payload failed.", func(cm log.CM) {
 				cm.Write(zap.Error(err))
 			})
 			return err
 		}
 	}
 
-	log.D(l, "Payload loaded successfully.")
+	log.D(logger, "Payload loaded successfully.")
 	return nil
 }
 
