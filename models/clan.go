@@ -121,9 +121,9 @@ func (c *Clan) ToJSON() ([]byte, error) {
 //GetClanFromJSON unmarshals the clan from the specified JSON
 func GetClanFromJSON(data []byte) (*Clan, error) {
 	clan := &Clan{}
-	l := jlexer.Lexer{Data: data}
-	clan.UnmarshalEasyJSON(&l)
-	return clan, l.Error()
+	lexer := jlexer.Lexer{Data: data}
+	clan.UnmarshalEasyJSON(&lexer)
+	return clan, lexer.Error()
 }
 
 //PreInsert populates fields before inserting a new clan

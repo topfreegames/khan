@@ -17,7 +17,7 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/satori/go.uuid"
+	uuid "github.com/satori/go.uuid"
 	. "github.com/topfreegames/khan/api"
 	"github.com/topfreegames/khan/models"
 	kt "github.com/topfreegames/khan/testing"
@@ -66,8 +66,8 @@ var _ = Describe("API Application", func() {
 
 	Describe("App Struct", func() {
 		It("should create app with custom arguments", func() {
-			l := kt.NewMockLogger()
-			app := GetApp("127.0.0.1", 9999, "../config/test.yaml", false, l, false, true)
+			logger := kt.NewMockLogger()
+			app := GetApp("127.0.0.1", 9999, "../config/test.yaml", false, logger, false, true)
 			Expect(app.Port).To(Equal(9999))
 			Expect(app.Host).To(Equal("127.0.0.1"))
 		})

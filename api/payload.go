@@ -75,12 +75,12 @@ func (v *Validation) Errors() []string {
 	return v.errors
 }
 
-func logPayloadErrors(l zap.Logger, errors []string) {
+func logPayloadErrors(logger zap.Logger, errors []string) {
 	var fields []zap.Field
 	for _, err := range errors {
 		fields = append(fields, zap.String("validationError", err))
 	}
-	log.W(l, "Payload is not valid", func(cm log.CM) {
+	log.W(logger, "Payload is not valid", func(cm log.CM) {
 		cm.Write(fields...)
 	})
 }

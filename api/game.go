@@ -25,24 +25,24 @@ func CreateGameHandler(app *App) func(c echo.Context) error {
 
 		db := app.Db(c.StdContext())
 
-		l := app.Logger.With(
+		logger := app.Logger.With(
 			zap.String("source", "gameHandler"),
 			zap.String("operation", "createGame"),
 		)
 
-		log.D(l, "Retrieving parameters...")
+		log.D(logger, "Retrieving parameters...")
 		var err error
 		var optional *optionalParams
 
-		payload, optional, err := getCreateGamePayload(app, c, l)
+		payload, optional, err := getCreateGamePayload(app, c, logger)
 		if err != nil {
-			log.E(l, "Failed to retrieve parameters.", func(cm log.CM) {
+			log.E(logger, "Failed to retrieve parameters.", func(cm log.CM) {
 				cm.Write(zap.Error(err))
 			})
 			return FailWith(400, err.Error(), c)
 		}
 
-		log.D(l, "Parameters retrieved successfully.", func(cm log.CM) {
+		log.D(logger, "Parameters retrieved successfully.", func(cm log.CM) {
 			cm.Write(
 				zap.Int("maxPendingInvites", optional.maxPendingInvites),
 				zap.Int("cooldownBeforeInvite", optional.cooldownBeforeInvite),
@@ -50,7 +50,7 @@ func CreateGameHandler(app *App) func(c echo.Context) error {
 			)
 		})
 
-		log.D(l, "Creating game...")
+		log.D(logger, "Creating game...")
 		game, err := models.CreateGame(
 			db,
 			payload.PublicID,
@@ -76,13 +76,13 @@ func CreateGameHandler(app *App) func(c echo.Context) error {
 		)
 
 		if err != nil {
-			log.E(l, "Create game failed.", func(cm log.CM) {
+			log.E(logger, "Create game failed.", func(cm log.CM) {
 				cm.Write(zap.Error(err))
 			})
 			return FailWith(500, err.Error(), c)
 		}
 
-		log.I(l, "Game created succesfully.", func(cm log.CM) {
+		log.I(logger, "Game created succesfully.", func(cm log.CM) {
 			cm.Write(zap.Duration("duration", time.Now().Sub(start)))
 		})
 
@@ -101,7 +101,7 @@ func UpdateGameHandler(app *App) func(c echo.Context) error {
 
 		db := app.Db(c.StdContext())
 
-		l := app.Logger.With(
+		logger := app.Logger.With(
 			zap.String("source", "gameHandler"),
 			zap.String("operation", "updateGame"),
 			zap.String("gameID", gameID),
@@ -109,9 +109,9 @@ func UpdateGameHandler(app *App) func(c echo.Context) error {
 
 		var payload UpdateGamePayload
 
-		log.D(l, "Retrieving parameters...")
-		if err := LoadJSONPayload(&payload, c, l); err != nil {
-			log.E(l, "Failed to retrieve parameters.", func(cm log.CM) {
+		log.D(logger, "Retrieving parameters...")
+		if err := LoadJSONPayload(&payload, c, logger); err != nil {
+			log.E(logger, "Failed to retrieve parameters.", func(cm log.CM) {
 				cm.Write(zap.Error(err))
 			})
 			return FailWith(400, err.Error(), c)
@@ -120,27 +120,27 @@ func UpdateGameHandler(app *App) func(c echo.Context) error {
 
 		optional, err := getOptionalParameters(app, c)
 		if err != nil {
-			log.E(l, "Failed to retrieve optional parameters.", func(cm log.CM) {
+			log.E(logger, "Failed to retrieve optional parameters.", func(cm log.CM) {
 				cm.Write(zap.Error(err))
 			})
 			return FailWith(400, err.Error(), c)
 		}
 
-		log.D(l, "Parameters retrieved successfully.", func(cm log.CM) {
+		log.D(logger, "Parameters retrieved successfully.", func(cm log.CM) {
 			cm.Write(
 				zap.Int("maxPendingInvites", optional.maxPendingInvites),
 				zap.Int("cooldownBeforeInvite", optional.cooldownBeforeInvite),
 				zap.Int("cooldownBeforeApply", optional.cooldownBeforeApply),
 			)
 		})
-		log.D(l, "Validating payload...")
+		log.D(logger, "Validating payload...")
 		if payloadErrors := ValidatePayload(&payload); len(payloadErrors) != 0 {
-			logPayloadErrors(l, payloadErrors)
+			logPayloadErrors(logger, payloadErrors)
 			errorString := strings.Join(payloadErrors[:], ", ")
 			return FailWith(422, errorString, c)
 		}
 
-		log.D(l, "Updating game...")
+		log.D(logger, "Updating game...")
 		_, err = models.UpdateGame(
 			db,
 			gameID,
@@ -165,7 +165,7 @@ func UpdateGameHandler(app *App) func(c echo.Context) error {
 		)
 
 		if err != nil {
-			log.E(l, "Game update failed.", func(cm log.CM) {
+			log.E(logger, "Game update failed.", func(cm log.CM) {
 				cm.Write(zap.Error(err))
 			})
 			return FailWith(500, err.Error(), c)
@@ -192,13 +192,13 @@ func UpdateGameHandler(app *App) func(c echo.Context) error {
 		}
 		dErr := app.DispatchHooks(gameID, models.GameUpdatedHook, successPayload)
 		if dErr != nil {
-			log.E(l, "Game update hook dispatch failed.", func(cm log.CM) {
+			log.E(logger, "Game update hook dispatch failed.", func(cm log.CM) {
 				cm.Write(zap.Error(dErr))
 			})
 			return FailWith(500, err.Error(), c)
 		}
 
-		log.I(l, "Game updated succesfully.", func(cm log.CM) {
+		log.I(logger, "Game updated succesfully.", func(cm log.CM) {
 			cm.Write(zap.Duration("duration", time.Now().Sub(start)))
 		})
 

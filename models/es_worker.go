@@ -47,7 +47,7 @@ func (w *ESWorker) PerformUpdateES(m *workers.Msg) {
 	clan := data["clan"].(map[string]interface{})
 	clanID := data["clanID"].(string)
 
-	l := w.Logger.With(
+	logger := w.Logger.With(
 		zap.String("index", index),
 		zap.String("operation", op),
 		zap.String("clanId", clanID),
@@ -59,7 +59,7 @@ func (w *ESWorker) PerformUpdateES(m *workers.Msg) {
 		if op == "index" {
 			body, er := json.Marshal(clan)
 			if er != nil {
-				l.Error("Failed to get clan JSON and index into Elastic Search", zap.Error(er))
+				logger.Error("Failed to get clan JSON and index into Elastic Search", zap.Error(er))
 				return
 			}
 			_, err := w.ES.Client.
@@ -70,11 +70,11 @@ func (w *ESWorker) PerformUpdateES(m *workers.Msg) {
 				BodyString(string(body)).
 				Do(ctx)
 			if err != nil {
-				l.Error("Failed to index clan into Elastic Search")
+				logger.Error("Failed to index clan into Elastic Search")
 				return
 			}
 
-			l.Debug("Successfully indexed clan into Elastic Search.", zap.Duration("latency", time.Now().Sub(start)))
+			logger.Debug("Successfully indexed clan into Elastic Search.", zap.Duration("latency", time.Now().Sub(start)))
 		} else if op == "update" {
 			_, err := w.ES.Client.
 				Update().
@@ -84,10 +84,10 @@ func (w *ESWorker) PerformUpdateES(m *workers.Msg) {
 				Doc(clan).
 				Do(ctx)
 			if err != nil {
-				l.Error("Failed to update clan from Elastic Search.", zap.Error(err))
+				logger.Error("Failed to update clan from Elastic Search.", zap.Error(err))
 			}
 
-			l.Debug("Successfully updated clan from Elastic Search.", zap.Duration("latency", time.Now().Sub(start)))
+			logger.Debug("Successfully updated clan from Elastic Search.", zap.Duration("latency", time.Now().Sub(start)))
 		} else if op == "delete" {
 			_, err := w.ES.Client.
 				Delete().
@@ -97,10 +97,10 @@ func (w *ESWorker) PerformUpdateES(m *workers.Msg) {
 				Do(ctx)
 
 			if err != nil {
-				l.Error("Failed to delete clan from Elastic Search.", zap.Error(err))
+				logger.Error("Failed to delete clan from Elastic Search.", zap.Error(err))
 			}
 
-			l.Debug("Successfully deleted clan from Elastic Search.", zap.Duration("latency", time.Now().Sub(start)))
+			logger.Debug("Successfully deleted clan from Elastic Search.", zap.Duration("latency", time.Now().Sub(start)))
 		}
 	}
 

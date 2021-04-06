@@ -78,11 +78,11 @@ func DestroyClient() {
 }
 
 func (es *Client) configureClient() {
-	l := es.Logger.With(
+	logger := es.Logger.With(
 		zap.String("source", "elasticsearch"),
 		zap.String("operation", "configureClient"),
 	)
-	log.I(l, "Connecting to elasticsearch...", func(cm log.CM) {
+	log.I(logger, "Connecting to elasticsearch...", func(cm log.CM) {
 		cm.Write(
 			zap.String("elasticsearch.url", fmt.Sprintf("http://%s:%d/%s", es.Host, es.Port, es.Index)),
 			zap.Bool("sniff", es.Sniff),
@@ -95,7 +95,7 @@ func (es *Client) configureClient() {
 	)
 
 	if err != nil {
-		log.E(l, "Failed to connect to elasticsearch!", func(cm log.CM) {
+		log.E(logger, "Failed to connect to elasticsearch!", func(cm log.CM) {
 			cm.Write(
 				zap.String("elasticsearch.url", fmt.Sprintf("http://%s:%d/%s", es.Host, es.Port, es.Index)),
 				zap.Error(err),

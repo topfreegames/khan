@@ -205,24 +205,24 @@ func RetrievePlayerHandler(app *App) func(c echo.Context) error {
 		gameID := c.Param("gameID")
 		publicID := c.Param("playerPublicID")
 
-		l := app.Logger.With(
+		logger := app.Logger.With(
 			zap.String("source", "playerHandler"),
 			zap.String("operation", "retrievePlayer"),
 			zap.String("gameID", gameID),
 			zap.String("playerPublicID", publicID),
 		)
 
-		log.D(l, "Getting DB connection...")
+		log.D(logger, "Getting DB connection...")
 		db, err := app.GetCtxDB(c)
 		if err != nil {
-			log.E(l, "Failed to connect to DB.", func(cm log.CM) {
+			log.E(logger, "Failed to connect to DB.", func(cm log.CM) {
 				cm.Write(zap.Error(err))
 			})
 			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
-		log.D(l, "DB Connection successful.")
+		log.D(logger, "DB Connection successful.")
 
-		log.D(l, "Retrieving player details...")
+		log.D(logger, "Retrieving player details...")
 		player, err := models.GetPlayerDetails(
 			db,
 			app.EncryptionKey,
@@ -232,19 +232,19 @@ func RetrievePlayerHandler(app *App) func(c echo.Context) error {
 
 		if err != nil {
 			if err.Error() == fmt.Sprintf("Player was not found with id: %s", publicID) {
-				log.D(l, "Player was not found.", func(cm log.CM) {
+				log.D(logger, "Player was not found.", func(cm log.CM) {
 					cm.Write(zap.Error(err))
 				})
 				return FailWith(http.StatusNotFound, err.Error(), c)
 			}
 
-			log.E(l, "Retrieve player details failed.", func(cm log.CM) {
+			log.E(logger, "Retrieve player details failed.", func(cm log.CM) {
 				cm.Write(zap.Error(err))
 			})
 			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 
-		log.D(l, "Player details retrieved successfully.", func(cm log.CM) {
+		log.D(logger, "Player details retrieved successfully.", func(cm log.CM) {
 			cm.Write(zap.Duration("duration", time.Now().Sub(start)))
 		})
 

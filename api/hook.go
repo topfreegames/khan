@@ -26,7 +26,7 @@ func CreateHookHandler(app *App) func(c echo.Context) error {
 
 		db := app.Db(c.StdContext())
 
-		l := app.Logger.With(
+		logger := app.Logger.With(
 			zap.String("source", "CreateHookHandler"),
 			zap.String("operation", "createHook"),
 			zap.String("gameID", gameID),
@@ -34,14 +34,14 @@ func CreateHookHandler(app *App) func(c echo.Context) error {
 
 		var payload HookPayload
 
-		if err := LoadJSONPayload(&payload, c, l); err != nil {
-			log.E(l, "Failed to parse json payload.", func(cm log.CM) {
+		if err := LoadJSONPayload(&payload, c, logger); err != nil {
+			log.E(logger, "Failed to parse json payload.", func(cm log.CM) {
 				cm.Write(zap.Error(err))
 			})
 			return FailWith(http.StatusBadRequest, err.Error(), c)
 		}
 
-		log.D(l, "Creating hook...")
+		log.D(logger, "Creating hook...")
 		hook, err := models.CreateHook(
 			db,
 			gameID,
@@ -50,13 +50,13 @@ func CreateHookHandler(app *App) func(c echo.Context) error {
 		)
 
 		if err != nil {
-			log.E(l, "Failed to create the hook.", func(cm log.CM) {
+			log.E(logger, "Failed to create the hook.", func(cm log.CM) {
 				cm.Write(zap.Error(err))
 			})
 			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 
-		log.I(l, "Created hook successfully.", func(cm log.CM) {
+		log.I(logger, "Created hook successfully.", func(cm log.CM) {
 			cm.Write(
 				zap.String("hookPublicID", hook.PublicID),
 				zap.Duration("duration", time.Now().Sub(start)),
@@ -78,14 +78,14 @@ func RemoveHookHandler(app *App) func(c echo.Context) error {
 
 		db := app.Db(c.StdContext())
 
-		l := app.Logger.With(
+		logger := app.Logger.With(
 			zap.String("source", "RemoveHookHandler"),
 			zap.String("operation", "removeHook"),
 			zap.String("gameID", gameID),
 			zap.String("hookPublicID", publicID),
 		)
 
-		log.D(l, "Removing hook...")
+		log.D(logger, "Removing hook...")
 		err := models.RemoveHook(
 			db,
 			gameID,
@@ -93,13 +93,13 @@ func RemoveHookHandler(app *App) func(c echo.Context) error {
 		)
 
 		if err != nil {
-			log.E(l, "Failed to remove hook.", func(cm log.CM) {
+			log.E(logger, "Failed to remove hook.", func(cm log.CM) {
 				cm.Write(zap.Error(err))
 			})
 			return FailWith(http.StatusInternalServerError, err.Error(), c)
 		}
 
-		log.I(l, "Hook removed successfully.", func(cm log.CM) {
+		log.I(logger, "Hook removed successfully.", func(cm log.CM) {
 			cm.Write(zap.Duration("duration", time.Now().Sub(start)))
 		})
 		return SucceedWith(map[string]interface{}{}, c)

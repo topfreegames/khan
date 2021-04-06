@@ -174,7 +174,7 @@ func (d *Dispatcher) PerformDispatchHook(m *workers.Msg) {
 	eventType, _ := data["eventType"].(json.Number).Int64()
 	payload := data["payload"].(map[string]interface{})
 
-	l := d.app.Logger.With(
+	logger := d.app.Logger.With(
 		zap.String("source", "dispatcher"),
 		zap.String("operation", "PerformDispatchHook"),
 		zap.String("gameID", gameID),
@@ -183,11 +183,11 @@ func (d *Dispatcher) PerformDispatchHook(m *workers.Msg) {
 
 	hooks := app.GetHooks(ctx)
 	if _, ok := hooks[gameID]; !ok {
-		log.D(l, "No hooks found for game.")
+		log.D(logger, "No hooks found for game.")
 		return
 	}
 	if _, ok := hooks[gameID][int(eventType)]; !ok {
-		log.D(l, "No hooks found for event in specified game.")
+		log.D(logger, "No hooks found for event in specified game.")
 		return
 	}
 
@@ -206,7 +206,7 @@ func (d *Dispatcher) PerformDispatchHook(m *workers.Msg) {
 			}
 			statsd.Increment(hookInternalFailures, tags...)
 
-			log.E(l, "Could not interpolate webhook.", func(cm log.CM) {
+			log.E(logger, "Could not interpolate webhook.", func(cm log.CM) {
 				cm.Write(
 					zap.String("requestURL", hook.URL),
 					zap.Error(err),
@@ -217,13 +217,13 @@ func (d *Dispatcher) PerformDispatchHook(m *workers.Msg) {
 
 		payloadJSON, _ := json.Marshal(payload)
 
-		log.D(l, "Requesting Hook URL...", func(cm log.CM) {
+		log.D(logger, "Requesting Hook URL...", func(cm log.CM) {
 			cm.Write(zap.String("requestURL", requestURL))
 		})
 
 		req, err := http.NewRequest("POST", requestURL, bytes.NewBuffer(payloadJSON))
 		if err != nil {
-			log.E(l, "failed to create webhook request", func(cm log.CM) {
+			log.E(logger, "failed to create webhook request", func(cm log.CM) {
 				cm.Write(
 					zap.String("requestURL", hook.URL),
 					zap.Error(err),
@@ -244,7 +244,7 @@ func (d *Dispatcher) PerformDispatchHook(m *workers.Msg) {
 			}
 			statsd.Increment(hookInternalFailures, tags...)
 
-			log.E(l, "Could not parse request requestURL.", func(cm log.CM) {
+			log.E(logger, "Could not parse request requestURL.", func(cm log.CM) {
 				cm.Write(
 					zap.String(requestURL, hook.URL),
 					zap.Error(err),
@@ -275,7 +275,7 @@ func (d *Dispatcher) PerformDispatchHook(m *workers.Msg) {
 			statsd.Timing(requestingHookMilliseconds, elapsed, tags...)
 			statsd.Increment(hookInternalFailures, tags...)
 
-			log.E(l, "Could not request webhook.", func(cm log.CM) {
+			log.E(logger, "Could not request webhook.", func(cm log.CM) {
 				cm.Write(zap.String("requestURL", hook.URL), zap.Error(err))
 			})
 			continue
@@ -284,7 +284,7 @@ func (d *Dispatcher) PerformDispatchHook(m *workers.Msg) {
 
 		body, respErr := ioutil.ReadAll(resp.Body)
 		if respErr != nil {
-			log.E(l, "failed to read webhook response", func(cm log.CM) {
+			log.E(logger, "failed to read webhook response", func(cm log.CM) {
 				cm.Write(zap.String("requestURL", hook.URL), zap.Error(respErr))
 			})
 			continue
@@ -301,7 +301,7 @@ func (d *Dispatcher) PerformDispatchHook(m *workers.Msg) {
 
 		if resp.StatusCode > 399 {
 			app.addError()
-			log.E(l, "Could not request webhook.", func(cm log.CM) {
+			log.E(logger, "Could not request webhook.", func(cm log.CM) {
 				cm.Write(
 					zap.String("requestURL", hook.URL),
 					zap.Int("statusCode", resp.StatusCode),
@@ -311,7 +311,7 @@ func (d *Dispatcher) PerformDispatchHook(m *workers.Msg) {
 			continue
 		}
 
-		log.D(l, "Webhook requested successfully.", func(cm log.CM) {
+		log.D(logger, "Webhook requested successfully.", func(cm log.CM) {
 			cm.Write(
 				zap.Int("statusCode", resp.StatusCode),
 				zap.String("requestURL", requestURL),

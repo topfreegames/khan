@@ -177,17 +177,17 @@ func dispatchApproveDenyMembershipHook(app *App, db models.DB, hookType int, gam
 	return nil
 }
 
-func getPayloadAndGame(app *App, c echo.Context, l zap.Logger) (*BasePayloadWithRequestorAndPlayerPublicIDs, *models.Game, int, error) {
+func getPayloadAndGame(app *App, c echo.Context, logger zap.Logger) (*BasePayloadWithRequestorAndPlayerPublicIDs, *models.Game, int, error) {
 	gameID := c.Param("gameID")
 
 	var payload BasePayloadWithRequestorAndPlayerPublicIDs
-	if err := LoadJSONPayload(&payload, c, l.With(zap.String("gameID", gameID))); err != nil {
+	if err := LoadJSONPayload(&payload, c, logger.With(zap.String("gameID", gameID))); err != nil {
 		return nil, nil, 400, err
 	}
 
 	game, err := app.GetGame(c.StdContext(), gameID)
 	if err != nil {
-		log.W(l, "Could not find game.")
+		log.W(logger, "Could not find game.")
 		return nil, nil, 404, err
 	}
 

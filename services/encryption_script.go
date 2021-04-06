@@ -46,7 +46,7 @@ func (app *EncryptionScript) Configure() {
 }
 
 func (app *EncryptionScript) setConfigurationDefaults() {
-	l := app.Logger.With(
+	logger := app.Logger.With(
 		zap.String("source", "app"),
 		zap.String("operation", "setConfigurationDefaults"),
 	)
@@ -60,11 +60,11 @@ func (app *EncryptionScript) setConfigurationDefaults() {
 	app.Config.SetDefault("script.tick", "1s")
 	app.Config.SetDefault("script.playerAmount", "500")
 
-	log.D(l, "Configuration defaults set.")
+	log.D(logger, "Configuration defaults set.")
 }
 
 func (app *EncryptionScript) loadConfiguration() {
-	l := app.Logger.With(
+	logger := app.Logger.With(
 		zap.String("source", "app"),
 		zap.String("operation", "loadConfiguration"),
 		zap.String("configPath", app.ConfigPath),
@@ -77,11 +77,11 @@ func (app *EncryptionScript) loadConfiguration() {
 	app.Config.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	app.Config.AutomaticEnv()
 
-	log.D(l, "Loading configuration file...")
+	log.D(logger, "Loading configuration file...")
 	if err := app.Config.ReadInConfig(); err == nil {
-		log.I(l, "Loaded config file successfully.")
+		log.I(logger, "Loaded config file successfully.")
 	} else {
-		log.P(l, "Config file failed to load.")
+		log.P(logger, "Config file failed to load.")
 	}
 
 	app.EncryptionKey = []byte(app.Config.GetString("security.encryptionKey"))
@@ -95,7 +95,7 @@ func (app *EncryptionScript) connectDatabase() {
 	port := app.Config.GetInt("postgres.port")
 	sslMode := app.Config.GetString("postgres.sslMode")
 
-	l := app.Logger.With(
+	logger := app.Logger.With(
 		zap.String("source", "app"),
 		zap.String("operation", "connectDatabase"),
 		zap.String("host", host),
@@ -105,30 +105,30 @@ func (app *EncryptionScript) connectDatabase() {
 		zap.String("sslMode", sslMode),
 	)
 
-	log.D(l, "Connecting to database...")
+	log.D(logger, "Connecting to database...")
 
 	db, err := models.GetDB(host, user, port, sslMode, dbName, password)
 
 	if err != nil {
-		log.P(l, "Could not connect to postgres...", func(cm log.CM) {
+		log.P(logger, "Could not connect to postgres...", func(cm log.CM) {
 			cm.Write(zap.String("error", err.Error()))
 		})
 	}
 
 	_, err = db.SelectInt("select count(*) from games")
 	if err != nil {
-		log.P(l, "Could not connect to postgres...", func(cm log.CM) {
+		log.P(logger, "Could not connect to postgres...", func(cm log.CM) {
 			cm.Write(zap.String("error", err.Error()))
 		})
 	}
 
-	log.I(l, "Connected to database successfully.")
+	log.I(logger, "Connected to database successfully.")
 	app.db = db
 }
 
 // Start starts listening for web requests at specified host and port
 func (app *EncryptionScript) Start() {
-	l := app.Logger.With(
+	logger := app.Logger.With(
 		zap.String("source", "app"),
 		zap.String("operation", "Start"),
 	)
@@ -143,14 +143,14 @@ func (app *EncryptionScript) Start() {
 	select {
 	case s := <-sg:
 		graceperiod := app.Config.GetInt("graceperiod.ms")
-		log.I(l, "shutting down", func(cm log.CM) {
+		log.I(logger, "shutting down", func(cm log.CM) {
 			cm.Write(zap.String("signal", fmt.Sprintf("%v", s)),
 				zap.Int("graceperiod", graceperiod))
 		})
 		stopScript <- true
 		time.Sleep(time.Duration(graceperiod) * time.Millisecond)
 	}
-	log.I(l, "app stopped")
+	log.I(logger, "app stopped")
 }
 
 func (app *EncryptionScript) executeScript(stopChan chan bool) {

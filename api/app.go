@@ -154,37 +154,37 @@ func (app *App) configureClansSummariesCache() {
 }
 
 func (app *App) configureSentry() {
-	l := app.Logger.With(
+	logger := app.Logger.With(
 		zap.String("source", "app"),
 		zap.String("operation", "configureSentry"),
 	)
 	sentryURL := app.Config.GetString("sentry.url")
-	log.D(l, fmt.Sprintf("Configuring sentry with URL %s", sentryURL))
+	log.D(logger, fmt.Sprintf("Configuring sentry with URL %s", sentryURL))
 	raven.SetDSN(sentryURL)
 	raven.SetRelease(util.VERSION)
 }
 
 func (app *App) configureStatsD() error {
-	l := app.Logger.With(
+	logger := app.Logger.With(
 		zap.String("source", "app"),
 		zap.String("operation", "configureStatsD"),
 	)
 
 	ddstatsd, err := extnethttpmiddleware.NewDogStatsD(app.Config)
 	if err != nil {
-		log.E(l, "Failed to initialize DogStatsD.", func(cm log.CM) {
+		log.E(logger, "Failed to initialize DogStatsD.", func(cm log.CM) {
 			cm.Write(zap.Error(err))
 		})
 		return err
 	}
 	app.DDStatsD = ddstatsd
-	l.Info("Initialized DogStatsD successfully.")
+	logger.Info("Initialized DogStatsD successfully.")
 
 	return nil
 }
 
 func (app *App) configureJaeger() {
-	l := app.Logger.With(
+	logger := app.Logger.With(
 		zap.String("source", "app"),
 		zap.String("operation", "configureJaeger"),
 	)
@@ -197,7 +197,7 @@ func (app *App) configureJaeger() {
 
 	_, err := jaeger.Configure(opts)
 	if err != nil {
-		l.Error("Failed to initialize Jaeger.")
+		logger.Error("Failed to initialize Jaeger.")
 	}
 }
 
@@ -231,7 +231,7 @@ func (app *App) configureMongoDB() {
 }
 
 func (app *App) setConfigurationDefaults() {
-	l := app.Logger.With(
+	logger := app.Logger.With(
 		zap.String("source", "app"),
 		zap.String("operation", "setConfigurationDefaults"),
 	)
@@ -259,7 +259,7 @@ func (app *App) setConfigurationDefaults() {
 
 	app.setHandlersConfigurationDefaults()
 
-	log.D(l, "Configuration defaults set.")
+	log.D(logger, "Configuration defaults set.")
 }
 
 func (app *App) setHandlersConfigurationDefaults() {
@@ -271,7 +271,7 @@ func (app *App) setRetrieveClanHandlerConfigurationDefaults() {
 }
 
 func (app *App) loadConfiguration() {
-	l := app.Logger.With(
+	logger := app.Logger.With(
 		zap.String("source", "app"),
 		zap.String("operation", "loadConfiguration"),
 		zap.String("configPath", app.ConfigPath),
@@ -284,11 +284,11 @@ func (app *App) loadConfiguration() {
 	app.Config.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	app.Config.AutomaticEnv()
 
-	log.D(l, "Loading configuration file...")
+	log.D(logger, "Loading configuration file...")
 	if err := app.Config.ReadInConfig(); err == nil {
-		log.I(l, "Loaded config file successfully.")
+		log.I(logger, "Loaded config file successfully.")
 	} else {
-		log.P(l, "Config file failed to load.")
+		log.P(logger, "Config file failed to load.")
 	}
 
 	app.EncryptionKey = []byte(app.Config.GetString("security.encryptionKey"))
@@ -302,7 +302,7 @@ func (app *App) connectDatabase() {
 	port := app.Config.GetInt("postgres.port")
 	sslMode := app.Config.GetString("postgres.sslMode")
 
-	l := app.Logger.With(
+	logger := app.Logger.With(
 		zap.String("source", "app"),
 		zap.String("operation", "connectDatabase"),
 		zap.String("host", host),
@@ -312,24 +312,24 @@ func (app *App) connectDatabase() {
 		zap.String("sslMode", sslMode),
 	)
 
-	log.D(l, "Connecting to database...")
+	log.D(logger, "Connecting to database...")
 
 	db, err := models.GetDB(host, user, port, sslMode, dbName, password)
 
 	if err != nil {
-		log.P(l, "Could not connect to postgres...", func(cm log.CM) {
+		log.P(logger, "Could not connect to postgres...", func(cm log.CM) {
 			cm.Write(zap.String("error", err.Error()))
 		})
 	}
 
 	_, err = db.SelectInt("select count(*) from games")
 	if err != nil {
-		log.P(l, "Could not connect to postgres...", func(cm log.CM) {
+		log.P(logger, "Could not connect to postgres...", func(cm log.CM) {
 			cm.Write(zap.String("error", err.Error()))
 		})
 	}
 
-	log.I(l, "Connected to database successfully.")
+	log.I(logger, "Connected to database successfully.")
 	app.db = db
 }
 
@@ -446,21 +446,21 @@ func (app *App) addError() {
 
 //GetHooks returns all available hooks
 func (app *App) GetHooks(ctx context.Context) map[string]map[int][]*models.Hook {
-	l := app.Logger.With(
+	logger := app.Logger.With(
 		zap.String("source", "app"),
 		zap.String("operation", "GetHooks"),
 	)
 
 	start := time.Now()
-	log.D(l, "Retrieving hooks...")
+	log.D(logger, "Retrieving hooks...")
 	dbHooks, err := models.GetAllHooks(app.Db(ctx))
 	if err != nil {
-		log.E(l, "Retrieve hooks failed.", func(cm log.CM) {
+		log.E(logger, "Retrieve hooks failed.", func(cm log.CM) {
 			cm.Write(zap.String("error", err.Error()))
 		})
 		return nil
 	}
-	log.D(l, "Hooks retrieved successfully.", func(cm log.CM) {
+	log.D(logger, "Hooks retrieved successfully.", func(cm log.CM) {
 		cm.Write(zap.Duration("hookRetrievalDuration", time.Now().Sub(start)))
 	})
 
@@ -480,7 +480,7 @@ func (app *App) GetHooks(ctx context.Context) map[string]map[int][]*models.Hook 
 
 //GetGame returns a game by Public ID
 func (app *App) GetGame(ctx context.Context, gameID string) (*models.Game, error) {
-	l := app.Logger.With(
+	logger := app.Logger.With(
 		zap.String("source", "app"),
 		zap.String("operation", "GetGame"),
 		zap.String("gameID", gameID),
@@ -493,17 +493,17 @@ func (app *App) GetGame(ctx context.Context, gameID string) (*models.Game, error
 	}
 
 	start := time.Now()
-	log.D(l, "Retrieving game...")
+	log.D(logger, "Retrieving game...")
 
 	game, err := models.GetGameByPublicID(app.Db(ctx), gameID)
 	if err != nil {
-		log.E(l, "Retrieve game failed.", func(cm log.CM) {
+		log.E(logger, "Retrieve game failed.", func(cm log.CM) {
 			cm.Write(zap.Error(err))
 		})
 		return nil, err
 	}
 
-	log.D(l, "Game retrieved succesfully.", func(cm log.CM) {
+	log.D(logger, "Game retrieved succesfully.", func(cm log.CM) {
 		cm.Write(zap.Duration("gameRetrievalDuration", time.Now().Sub(start)))
 	})
 	app.getGameCache.Set(key, game, gocache.DefaultExpiration)
@@ -524,7 +524,7 @@ func (app *App) configureGoWorkers() {
 		workerCount = 5
 	}
 
-	l := app.Logger.With(
+	logger := app.Logger.With(
 		zap.String("source", "dispatcher"),
 		zap.String("operation", "Configure"),
 		zap.Int("workerCount", workerCount),
@@ -548,24 +548,24 @@ func (app *App) configureGoWorkers() {
 	if redisPass != "" {
 		opts["password"] = redisPass
 	}
-	l.Debug("Configuring workers...")
+	logger.Debug("Configuring workers...")
 	workers.Configure(opts)
 
 	workers.Middleware.Append(extworkermiddleware.NewResponseTimeMetricsMiddleware(app.DDStatsD))
 	workers.Process(queues.KhanQueue, app.Dispatcher.PerformDispatchHook, workerCount)
 	workers.Process(queues.KhanESQueue, app.ESWorker.PerformUpdateES, workerCount)
 	workers.Process(queues.KhanMongoQueue, app.MongoWorker.PerformUpdateMongo, workerCount)
-	l.Info("Worker configured.")
+	logger.Info("Worker configured.")
 }
 
 //StartWorkers "starts" the dispatcher
 func (app *App) StartWorkers() {
-	l := app.Logger.With(
+	logger := app.Logger.With(
 		zap.String("source", "app"),
 		zap.String("operation", "StartWorkers"),
 	)
 
-	log.D(l, "Starting workers...")
+	log.D(logger, "Starting workers...")
 	if app.Config.GetBool("webhooks.runStats") {
 		jobsStatsPort := app.Config.GetInt("webhooks.statsPort")
 		go workers.StatsServer(jobsStatsPort)
@@ -579,52 +579,52 @@ func (app *App) NonblockingStartWorkers() {
 }
 
 func (app *App) initESWorker() {
-	l := app.Logger.With(
+	logger := app.Logger.With(
 		zap.String("source", "app"),
 		zap.String("operation", "initESWorker"),
 	)
 
-	log.D(l, "Initializing es worker...")
+	log.D(logger, "Initializing es worker...")
 	esWorker := models.NewESWorker(app.Logger)
-	log.I(l, "ES Worker initialized successfully")
+	log.I(logger, "ES Worker initialized successfully")
 	app.ESWorker = esWorker
 }
 
 func (app *App) initMongoWorker() {
-	l := app.Logger.With(
+	logger := app.Logger.With(
 		zap.String("source", "app"),
 		zap.String("operation", "initMongoWorker"),
 	)
 
-	log.D(l, "Initializing mongo worker...")
+	log.D(logger, "Initializing mongo worker...")
 	mongoWorker := models.NewMongoWorker(app.Logger, app.Config)
-	log.I(l, "Mongo Worker initialized successfully")
+	log.I(logger, "Mongo Worker initialized successfully")
 	app.MongoWorker = mongoWorker
 }
 
 func (app *App) initDispatcher() {
-	l := app.Logger.With(
+	logger := app.Logger.With(
 		zap.String("source", "app"),
 		zap.String("operation", "initDispatcher"),
 	)
 
-	log.D(l, "Initializing dispatcher...")
+	log.D(logger, "Initializing dispatcher...")
 
 	disp, err := NewDispatcher(app)
 	if err != nil {
-		log.P(l, "Dispatcher failed to initialize.", func(cm log.CM) {
+		log.P(logger, "Dispatcher failed to initialize.", func(cm log.CM) {
 			cm.Write(zap.Error(err))
 		})
 		return
 	}
-	log.I(l, "Dispatcher initialized successfully")
+	log.I(logger, "Dispatcher initialized successfully")
 
 	app.Dispatcher = disp
 }
 
 // DispatchHooks dispatches web hooks for a specific game and event type
 func (app *App) DispatchHooks(gameID string, eventType int, payload map[string]interface{}) error {
-	l := app.Logger.With(
+	logger := app.Logger.With(
 		zap.String("source", "app"),
 		zap.String("operation", "DispatchHooks"),
 		zap.String("gameID", gameID),
@@ -632,44 +632,44 @@ func (app *App) DispatchHooks(gameID string, eventType int, payload map[string]i
 	)
 
 	start := time.Now()
-	log.D(l, "Dispatching hook...")
+	log.D(logger, "Dispatching hook...")
 	app.Dispatcher.DispatchHook(gameID, eventType, payload)
-	log.D(l, "Hook dispatched successfully.", func(cm log.CM) {
+	log.D(logger, "Hook dispatched successfully.", func(cm log.CM) {
 		cm.Write(zap.Duration("hookDispatchDuration", time.Now().Sub(start)))
 	})
 	return nil
 }
 
 func (app *App) finalizeApp() {
-	l := app.Logger.With(
+	logger := app.Logger.With(
 		zap.String("source", "app"),
 		zap.String("operation", "finalizeApp"),
 	)
 
-	log.D(l, "Closing DB connection...")
+	log.D(logger, "Closing DB connection...")
 	app.db.Close()
-	log.I(l, "DB connection closed succesfully.")
+	log.I(logger, "DB connection closed succesfully.")
 }
 
 //BeginTrans in the current Db connection
-func (app *App) BeginTrans(ctx context.Context, l zap.Logger) (gorp.Transaction, error) {
-	log.D(l, "Beginning DB tx...")
+func (app *App) BeginTrans(ctx context.Context, logger zap.Logger) (gorp.Transaction, error) {
+	log.D(logger, "Beginning DB tx...")
 	tx, err := app.Db(ctx).Begin()
 	if err != nil {
-		log.E(l, "Failed to begin tx.", func(cm log.CM) {
+		log.E(logger, "Failed to begin tx.", func(cm log.CM) {
 			cm.Write(zap.Error(err))
 		})
 		return nil, err
 	}
-	log.D(l, "Tx begun successfuly.")
+	log.D(logger, "Tx begun successfuly.")
 	return tx, nil
 }
 
 //Rollback transaction
-func (app *App) Rollback(tx gorp.Transaction, msg string, c echo.Context, l zap.Logger, err error) error {
+func (app *App) Rollback(tx gorp.Transaction, msg string, c echo.Context, logger zap.Logger, err error) error {
 	txErr := tx.Rollback()
 	if txErr != nil {
-		log.E(l, fmt.Sprintf("%s and failed to rollback transaction.", msg), func(cm log.CM) {
+		log.E(logger, fmt.Sprintf("%s and failed to rollback transaction.", msg), func(cm log.CM) {
 			cm.Write(zap.Error(txErr), zap.String("originalError", err.Error()))
 		})
 		return txErr
@@ -678,10 +678,10 @@ func (app *App) Rollback(tx gorp.Transaction, msg string, c echo.Context, l zap.
 }
 
 //Commit transaction
-func (app *App) Commit(tx gorp.Transaction, msg string, c echo.Context, l zap.Logger) error {
+func (app *App) Commit(tx gorp.Transaction, msg string, c echo.Context, logger zap.Logger) error {
 	txErr := tx.Commit()
 	if txErr != nil {
-		log.E(l, fmt.Sprintf("%s failed to commit transaction.", msg), func(cm log.CM) {
+		log.E(logger, fmt.Sprintf("%s failed to commit transaction.", msg), func(cm log.CM) {
 			cm.Write(zap.Error(txErr))
 		})
 		return txErr
@@ -709,13 +709,13 @@ func (app *App) Db(ctx context.Context) gorp.Database {
 
 // Start starts listening for web requests at specified host and port
 func (app *App) Start() {
-	l := app.Logger.With(
+	logger := app.Logger.With(
 		zap.String("source", "app"),
 		zap.String("operation", "Start"),
 	)
 
 	defer app.finalizeApp()
-	log.I(l, "app started", func(cm log.CM) {
+	log.I(logger, "app started", func(cm log.CM) {
 		cm.Write(zap.String("host", app.Host), zap.Int("port", app.Port))
 	})
 
@@ -730,11 +730,11 @@ func (app *App) Start() {
 	select {
 	case s := <-sg:
 		graceperiod := app.Config.GetInt("graceperiod.ms")
-		log.I(l, "shutting down", func(cm log.CM) {
+		log.I(logger, "shutting down", func(cm log.CM) {
 			cm.Write(zap.String("signal", fmt.Sprintf("%v", s)),
 				zap.Int("graceperiod", graceperiod))
 		})
 		time.Sleep(time.Duration(graceperiod) * time.Millisecond)
 	}
-	log.I(l, "app stopped")
+	log.I(logger, "app stopped")
 }
