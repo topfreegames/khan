@@ -18,7 +18,6 @@ setup:
 	@go get -u github.com/onsi/ginkgo/ginkgo
 	@go get -u github.com/jteeuwen/go-bindata/...
 	@go get github.com/mailru/easyjson/...
-	@go mod tidy
 
 mod-tidy:
 	@go mod tidy

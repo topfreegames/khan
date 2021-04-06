@@ -2,13 +2,17 @@ FROM golang:1.16.3-alpine as build
 
 LABEL TFG Co <backend@tfgco.com>
 
-COPY . /khan
-
 WORKDIR /khan
 
+COPY Makefile .
+
 RUN apk --update add make gcc && \
-        make setup && \
-        make build
+            make setup
+
+COPY . .
+
+RUN make mod-tidy && \
+            make build
 
 FROM alpine:3.12
 
