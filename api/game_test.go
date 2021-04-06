@@ -58,7 +58,7 @@ var _ = Describe("Game API Handler", func() {
 
 		a = GetDefaultTestApp()
 		db = a.Db(nil)
-		a.NonblockingStartWorkers()
+		fixtures.ConfigureAndStartGoWorkers()
 	})
 
 	Describe("Create Game Handler", func() {

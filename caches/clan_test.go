@@ -77,7 +77,7 @@ var _ = Describe("Clan Cache", func() {
 
 		It("Should return a cached payload for a second call made immediately after the first", func() {
 			gameID := uuid.NewV4().String()
-			_, clans, err := fixtures.CreateTestClans(testDb, gameID, "test-sort-clan", 10, nil)
+			_, clans, err := fixtures.CreateTestClans(testDb, gameID, "test-sort-clan", 10, fixtures.EnqueueClanForMongoUpdate)
 			Expect(err).NotTo(HaveOccurred())
 
 			publicIDs, idToIdx := getPublicIDsAndIDToIndexMap(clans)
@@ -100,7 +100,7 @@ var _ = Describe("Clan Cache", func() {
 
 		It("Should return fresh information after expiration time is reached", func() {
 			gameID := uuid.NewV4().String()
-			_, clans, err := fixtures.CreateTestClans(testDb, gameID, "test-sort-clan", 10, nil)
+			_, clans, err := fixtures.CreateTestClans(testDb, gameID, "test-sort-clan", 10, fixtures.EnqueueClanForMongoUpdate)
 			Expect(err).NotTo(HaveOccurred())
 
 			publicIDs, idToIdx := getPublicIDsAndIDToIndexMap(clans)

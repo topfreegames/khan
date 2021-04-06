@@ -10,12 +10,17 @@ package fixtures
 import (
 	"database/sql"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/Pallinder/go-randomdata"
 	"github.com/bluele/factory-go/factory"
+	"github.com/jrallison/go-workers"
 	uuid "github.com/satori/go.uuid"
+	"github.com/spf13/viper"
 	"github.com/topfreegames/khan/models"
+	"github.com/topfreegames/khan/queues"
+	kt "github.com/topfreegames/khan/testing"
 	"github.com/topfreegames/khan/util"
 )
 
@@ -487,7 +492,13 @@ func GetTestClanWithName(db models.DB, gameID, name string, ownerID int64) (*mod
 }
 
 // AfterClanCreationHook permits a caller to execute code after a test clan is created.
-type AfterClanCreationHook func(clan *models.Clan) error
+type AfterClanCreationHook func(player *models.Player, clan *models.Clan) error
+
+// EnqueueClanForMongoUpdate is a possible value for the type AfterClanCreationHook. This is will enqueue
+// the clan into Redis for the mongo worker to insert/update it on MongoDB
+func EnqueueClanForMongoUpdate(player *models.Player, clan *models.Clan) error {
+	return clan.UpdateClanIntoMongoDB()
+}
 
 // CreateTestClans returns a list of clans for tests
 func CreateTestClans(
@@ -529,11 +540,9 @@ func CreateTestClans(
 		if err != nil {
 			return nil, nil, err
 		}
-		if afterCreationHook != nil {
-			err = afterCreationHook(clan)
-			if err != nil {
-				return nil, nil, err
-			}
+		err = afterCreationHook(player, clan)
+		if err != nil {
+			return nil, nil, err
 		}
 
 		clans = append(clans, clan)
@@ -802,4 +811,50 @@ func GetTestClanWithStaleData(db models.DB, staleApplications, staleInvites, sta
 	}
 
 	return gameID, nil
+}
+
+// ConfigureAndStartGoWorkers starts the mongo workers
+func ConfigureAndStartGoWorkers() (*models.MongoWorker, error) {
+	config := viper.New()
+	config.SetConfigType("yaml")
+	config.SetConfigFile("../config/test.yaml")
+	err := config.ReadInConfig()
+	if err != nil {
+		return nil, err
+	}
+
+	redisHost := config.GetString("redis.host")
+	redisPort := config.GetInt("redis.port")
+	redisDatabase := config.GetInt("redis.database")
+	redisPool := config.GetInt("redis.pool")
+	workerCount := config.GetInt("webhooks.workers")
+	if redisPool == 0 {
+		redisPool = 30
+	}
+
+	if workerCount == 0 {
+		workerCount = 5
+	}
+
+	opts := map[string]string{
+		// location of redis instance
+		"server": fmt.Sprintf("%s:%d", redisHost, redisPort),
+		// instance of the database
+		"database": strconv.Itoa(redisDatabase),
+		// number of connections to keep open with redis
+		"pool": strconv.Itoa(redisPool),
+		// unique process id
+		"process": uuid.NewV4().String(),
+	}
+	redisPass := config.GetString("redis.password")
+	if redisPass != "" {
+		opts["password"] = redisPass
+	}
+	workers.Configure(opts)
+
+	logger := kt.NewMockLogger()
+	mongoWorker := models.NewMongoWorker(logger, config)
+	workers.Process(queues.KhanMongoQueue, mongoWorker.PerformUpdateMongo, workerCount)
+	workers.Start()
+	return mongoWorker, nil
 }

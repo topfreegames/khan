@@ -41,7 +41,7 @@ var _ = Describe("Clan Model", func() {
 		testMongo, err = GetTestMongo()
 		Expect(err).NotTo(HaveOccurred())
 
-		_, _ = ConfigureAndStartGoWorkers()
+		fixtures.ConfigureAndStartGoWorkers()
 
 		faultyDb = GetFaultyTestDB()
 	})
@@ -50,7 +50,7 @@ var _ = Describe("Clan Model", func() {
 		Describe("Basic Operations", func() {
 			It("Should sort clans by name", func() {
 				gameID := uuid.NewV4().String()
-				_, clans, err := fixtures.CreateTestClans(testDb, gameID, "test-sort-clan", 10, nil)
+				_, clans, err := fixtures.CreateTestClans(testDb, gameID, "test-sort-clan", 10, fixtures.EnqueueClanForMongoUpdate)
 				Expect(err).NotTo(HaveOccurred())
 
 				sort.Sort(ClanByName(clans))
@@ -61,7 +61,7 @@ var _ = Describe("Clan Model", func() {
 			})
 
 			It("Should create a new Clan", func() {
-				_, clans, err := fixtures.CreateTestClans(testDb, "", "", 1, nil)
+				_, clans, err := fixtures.CreateTestClans(testDb, "", "", 1, fixtures.EnqueueClanForMongoUpdate)
 				Expect(err).NotTo(HaveOccurred())
 				clan := clans[0]
 				Expect(clan.ID).NotTo(BeEquivalentTo(0))
@@ -74,7 +74,7 @@ var _ = Describe("Clan Model", func() {
 			})
 
 			It("Should update a Clan", func() {
-				_, clans, err := fixtures.CreateTestClans(testDb, "", "", 1, nil)
+				_, clans, err := fixtures.CreateTestClans(testDb, "", "", 1, fixtures.EnqueueClanForMongoUpdate)
 				Expect(err).NotTo(HaveOccurred())
 				clan := clans[0]
 
@@ -91,7 +91,7 @@ var _ = Describe("Clan Model", func() {
 
 		Describe("Get By Id", func() {
 			It("Should get existing Clan", func() {
-				_, clans, err := fixtures.CreateTestClans(testDb, "", "", 1, nil)
+				_, clans, err := fixtures.CreateTestClans(testDb, "", "", 1, fixtures.EnqueueClanForMongoUpdate)
 				Expect(err).NotTo(HaveOccurred())
 				clan := clans[0]
 
@@ -109,7 +109,7 @@ var _ = Describe("Clan Model", func() {
 
 		Describe("Get By Public Id", func() {
 			It("Should get an existing Clan by Game and PublicID", func() {
-				_, clans, err := fixtures.CreateTestClans(testDb, "", "", 1, nil)
+				_, clans, err := fixtures.CreateTestClans(testDb, "", "", 1, fixtures.EnqueueClanForMongoUpdate)
 				Expect(err).NotTo(HaveOccurred())
 				clan := clans[0]
 
@@ -127,7 +127,7 @@ var _ = Describe("Clan Model", func() {
 
 		Describe("Get By Public Id", func() {
 			It("Should get an existing Clan by Game and PublicID prefix", func() {
-				_, clans, err := fixtures.CreateTestClans(testDb, "", "", 1, nil)
+				_, clans, err := fixtures.CreateTestClans(testDb, "", "", 1, fixtures.EnqueueClanForMongoUpdate)
 				Expect(err).NotTo(HaveOccurred())
 				clan := clans[0]
 
@@ -214,7 +214,7 @@ var _ = Describe("Clan Model", func() {
 
 		Describe("Get By Public Id and OwnerPublicID", func() {
 			It("Should get an existing Clan by Game, PublicID and OwnerPublicID", func() {
-				player, clans, err := fixtures.CreateTestClans(testDb, "", "", 1, nil)
+				player, clans, err := fixtures.CreateTestClans(testDb, "", "", 1, fixtures.EnqueueClanForMongoUpdate)
 				Expect(err).NotTo(HaveOccurred())
 				clan := clans[0]
 
@@ -234,7 +234,7 @@ var _ = Describe("Clan Model", func() {
 			})
 
 			It("Should not get a existing Clan by Game, PublicID and OwnerPublicID if not Clan owner", func() {
-				_, clans, err := fixtures.CreateTestClans(testDb, "", "", 1, nil)
+				_, clans, err := fixtures.CreateTestClans(testDb, "", "", 1, fixtures.EnqueueClanForMongoUpdate)
 				Expect(err).NotTo(HaveOccurred())
 				clan := clans[0]
 
@@ -412,7 +412,7 @@ var _ = Describe("Clan Model", func() {
 
 		Describe("Update Clan", func() {
 			It("Should update a Clan with UpdateClan", func() {
-				player, clans, err := fixtures.CreateTestClans(testDb, "", "", 1, nil)
+				player, clans, err := fixtures.CreateTestClans(testDb, "", "", 1, fixtures.EnqueueClanForMongoUpdate)
 				Expect(err).NotTo(HaveOccurred())
 				clan := clans[0]
 
@@ -443,7 +443,7 @@ var _ = Describe("Clan Model", func() {
 			})
 
 			It("Should not update a Clan if player is not the clan owner with UpdateClan", func() {
-				_, clans, err := fixtures.CreateTestClans(testDb, "", "", 1, nil)
+				_, clans, err := fixtures.CreateTestClans(testDb, "", "", 1, fixtures.EnqueueClanForMongoUpdate)
 				Expect(err).NotTo(HaveOccurred())
 				clan := clans[0]
 
@@ -472,7 +472,7 @@ var _ = Describe("Clan Model", func() {
 			})
 
 			It("Should not update a Clan with Invalid Data with UpdateClan", func() {
-				player, clans, err := fixtures.CreateTestClans(testDb, "", "", 1, nil)
+				player, clans, err := fixtures.CreateTestClans(testDb, "", "", 1, fixtures.EnqueueClanForMongoUpdate)
 				Expect(err).NotTo(HaveOccurred())
 				clan := clans[0]
 
@@ -493,7 +493,7 @@ var _ = Describe("Clan Model", func() {
 			})
 
 			Measure("Should update a Clan with UpdateClan", func(b Benchmarker) {
-				player, clans, err := fixtures.CreateTestClans(testDb, "", "", 1, nil)
+				player, clans, err := fixtures.CreateTestClans(testDb, "", "", 1, fixtures.EnqueueClanForMongoUpdate)
 				Expect(err).NotTo(HaveOccurred())
 				clan := clans[0]
 
@@ -735,7 +735,7 @@ var _ = Describe("Clan Model", func() {
 
 		Describe("Get List of Clans", func() {
 			It("Should get all clans", func() {
-				player, _, err := fixtures.CreateTestClans(testDb, "", "", 10, nil)
+				player, _, err := fixtures.CreateTestClans(testDb, "", "", 10, fixtures.EnqueueClanForMongoUpdate)
 				Expect(err).NotTo(HaveOccurred())
 
 				clans, err := GetAllClans(testDb, player.GameID)
@@ -1176,7 +1176,7 @@ var _ = Describe("Clan Model", func() {
 			BeforeEach(func() {
 				var err error
 				player, realClans, err = fixtures.CreateTestClans(
-					testDb, "", "clan-search-clan", 10, nil,
+					testDb, "", "clan-search-clan", 10, fixtures.EnqueueClanForMongoUpdate,
 				)
 				Expect(err).NotTo(HaveOccurred())
 				time.Sleep(500 * time.Millisecond)

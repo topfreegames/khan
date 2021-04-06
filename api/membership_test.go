@@ -17,6 +17,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/topfreegames/khan/api"
 	"github.com/topfreegames/khan/models"
+	"github.com/topfreegames/khan/models/fixtures"
 	testing "github.com/topfreegames/khan/models/fixtures"
 )
 
@@ -31,7 +32,7 @@ var _ = Describe("Membership API Handler", func() {
 
 		a = GetDefaultTestApp()
 		db = a.Db(nil)
-		a.NonblockingStartWorkers()
+		fixtures.ConfigureAndStartGoWorkers()
 	})
 
 	Describe("Apply For Membership Handler", func() {

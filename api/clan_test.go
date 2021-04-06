@@ -31,6 +31,7 @@ import (
 var _ = Describe("Clan API Handler", func() {
 	var testDb, db models.DB
 	var app *api.App
+	var mongoWorker *models.MongoWorker
 
 	BeforeEach(func() {
 		var err error
@@ -40,7 +41,7 @@ var _ = Describe("Clan API Handler", func() {
 		app = GetDefaultTestApp()
 		db = app.Db(nil)
 
-		app.NonblockingStartWorkers()
+		mongoWorker, _ = fixtures.ConfigureAndStartGoWorkers()
 	})
 
 	AfterEach(func() {
@@ -562,7 +563,7 @@ var _ = Describe("Clan API Handler", func() {
 
 	Describe("List All Clans Handler", func() {
 		It("Should get all clans", func() {
-			player, expectedClans, err := fixtures.CreateTestClans(testDb, "", "", 10, nil)
+			player, expectedClans, err := fixtures.CreateTestClans(testDb, "", "", 10, fixtures.EnqueueClanForMongoUpdate)
 			Expect(err).NotTo(HaveOccurred())
 			sort.Sort(models.ClanByName(expectedClans))
 
@@ -1041,14 +1042,18 @@ var _ = Describe("Clan API Handler", func() {
 
 	Describe("Search Clan Handler", func() {
 		It("Should search for a clan", func() {
+			insertClanIntoMongo := func(player *models.Player, clan *models.Clan) error {
+				return mongoWorker.InsertGame(context.Background(), player.GameID, clan)
+			}
+
 			gameID := uuid.NewV4().String()
 			player, expectedClans, err := fixtures.CreateTestClans(
-				testDb, gameID, "clan-apisearch-clan", 10, nil,
+				testDb, gameID, "clan-apisearch-clan", 10, insertClanIntoMongo,
 			)
 			Expect(err).NotTo(HaveOccurred())
 
 			// TODO: Replace this with something more reliable
-			time.Sleep(10 * time.Second)
+			// time.Sleep(10 * time.Second)
 
 			err = testing.CreateClanNameTextIndexInMongo(GetTestMongo, gameID)
 			Expect(err).NotTo(HaveOccurred())
@@ -1082,7 +1087,7 @@ var _ = Describe("Clan API Handler", func() {
 		It("Should search for a clan by publicID", func() {
 			gameID := uuid.NewV4().String()
 			player, expectedClans, err := fixtures.CreateTestClans(
-				testDb, gameID, "clan-apisearch-clan", 10, nil,
+				testDb, gameID, "clan-apisearch-clan", 10, fixtures.EnqueueClanForMongoUpdate,
 			)
 			Expect(err).NotTo(HaveOccurred())
 			time.Sleep(1000 * time.Millisecond)
@@ -1106,7 +1111,7 @@ var _ = Describe("Clan API Handler", func() {
 		It("Should unicode search for a clan", func() {
 			gameID := uuid.NewV4().String()
 			player, expectedClans, err := fixtures.CreateTestClans(
-				testDb, gameID, "clan-apisearch-clan", 10, nil,
+				testDb, gameID, "clan-apisearch-clan", 10, fixtures.EnqueueClanForMongoUpdate,
 			)
 			Expect(err).NotTo(HaveOccurred())
 

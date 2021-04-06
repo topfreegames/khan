@@ -8,17 +8,11 @@
 package models_test
 
 import (
-	"fmt"
-	"strconv"
-
-	workers "github.com/jrallison/go-workers"
-	uuid "github.com/satori/go.uuid"
 	"github.com/spf13/viper"
 	egorp "github.com/topfreegames/extensions/v9/gorp/interfaces"
 	"github.com/topfreegames/extensions/v9/mongo/interfaces"
 	"github.com/topfreegames/khan/models"
 	"github.com/topfreegames/khan/mongo"
-	"github.com/topfreegames/khan/queues"
 	kt "github.com/topfreegames/khan/testing"
 )
 
@@ -43,49 +37,4 @@ func GetTestMongo() (interfaces.MongoDB, error) {
 func GetFaultyTestDB() models.DB {
 	faultyDb, _ := models.InitDb("localhost", "khan_tet", 5433, "disable", "khan_test", "")
 	return faultyDb
-}
-
-func ConfigureAndStartGoWorkers() (*models.MongoWorker, error) {
-	config := viper.New()
-	config.SetConfigType("yaml")
-	config.SetConfigFile("../config/test.yaml")
-	err := config.ReadInConfig()
-	if err != nil {
-		return nil, err
-	}
-
-	redisHost := config.GetString("redis.host")
-	redisPort := config.GetInt("redis.port")
-	redisDatabase := config.GetInt("redis.database")
-	redisPool := config.GetInt("redis.pool")
-	workerCount := config.GetInt("webhooks.workers")
-	if redisPool == 0 {
-		redisPool = 30
-	}
-
-	if workerCount == 0 {
-		workerCount = 5
-	}
-
-	opts := map[string]string{
-		// location of redis instance
-		"server": fmt.Sprintf("%s:%d", redisHost, redisPort),
-		// instance of the database
-		"database": strconv.Itoa(redisDatabase),
-		// number of connections to keep open with redis
-		"pool": strconv.Itoa(redisPool),
-		// unique process id
-		"process": uuid.NewV4().String(),
-	}
-	redisPass := config.GetString("redis.password")
-	if redisPass != "" {
-		opts["password"] = redisPass
-	}
-	workers.Configure(opts)
-
-	logger := kt.NewMockLogger()
-	mongoWorker := models.NewMongoWorker(logger, config)
-	workers.Process(queues.KhanMongoQueue, mongoWorker.PerformUpdateMongo, workerCount)
-	workers.Start()
-	return mongoWorker, nil
 }
