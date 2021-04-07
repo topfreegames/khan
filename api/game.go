@@ -90,9 +90,11 @@ func CreateGameHandler(app *App) func(c echo.Context) error {
 			return FailWith(500, err.Error(), c)
 		}
 
-		err = app.MongoDB.Run(mongo.GetClanNameTextIndexCommand(game.PublicID, false), nil)
-		if err != nil {
-			app.Rollback(tx, "Game", c, logger, err)
+		if app.MongoDB != nil {
+			err = app.MongoDB.Run(mongo.GetClanNameTextIndexCommand(game.PublicID, false), nil)
+			if err != nil {
+				app.Rollback(tx, "Game", c, logger, err)
+			}
 		}
 
 		txErr := app.Commit(tx, "Game", c, logger)

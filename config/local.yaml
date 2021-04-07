@@ -1,8 +1,9 @@
 postgres:
-  user: "khan"
+  user: "postgres"
   dbName: "khan"
+  password: "123456"
   host: "localhost"
-  port: 5433
+  port: 5432
   sslMode: "disable"
 
 elasticsearch:
@@ -13,7 +14,7 @@ elasticsearch:
   index: "khan"
 
 mongodb:
-  enabled: false
+  enabled: true
   url: mongodb://localhost:27017
   databaseName: "khan"
   collectionTemplate: "clans_%s"
@@ -38,7 +39,7 @@ jaeger:
 
 redis:
   host: 0.0.0.0
-  port: 50505
+  port: 6379
   database: 0
   pool: 30
   password: ""
