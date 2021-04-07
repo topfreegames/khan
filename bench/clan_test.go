@@ -16,6 +16,7 @@ import (
 	uuid "github.com/satori/go.uuid"
 	"github.com/topfreegames/khan/models"
 	"github.com/topfreegames/khan/models/fixtures"
+	khanTesting "github.com/topfreegames/khan/testing"
 )
 
 var result *http.Response
@@ -61,12 +62,17 @@ func BenchmarkUpdateClan(b *testing.B) {
 		panic(err.Error())
 	}
 
+	mongoDB, err := khanTesting.GetTestMongo()
+	if err != nil {
+		panic(err.Error())
+	}
+
 	game, owner, err := getGameAndPlayer(db)
 	if err != nil {
 		panic(err.Error())
 	}
 
-	clans, err := createClans(db, game, owner, b.N)
+	clans, err := createClans(db, mongoDB, game, owner, b.N)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -144,12 +150,17 @@ func BenchmarkRetrieveClansSummary(b *testing.B) {
 		panic(err.Error())
 	}
 
+	mongoDB, err := khanTesting.GetTestMongo()
+	if err != nil {
+		panic(err.Error())
+	}
+
 	game, owner, err := getGameAndPlayer(db)
 	if err != nil {
 		panic(err.Error())
 	}
 
-	clans, err := createClans(db, game, owner, 500)
+	clans, err := createClans(db, mongoDB, game, owner, 500)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -177,12 +188,17 @@ func BenchmarkSearchClan(b *testing.B) {
 		panic(err.Error())
 	}
 
+	mongoDB, err := khanTesting.GetTestMongo()
+	if err != nil {
+		panic(err.Error())
+	}
+
 	game, owner, err := getGameAndPlayer(db)
 	if err != nil {
 		panic(err.Error())
 	}
 
-	clans, err := createClans(db, game, owner, b.N)
+	clans, err := createClans(db, mongoDB, game, owner, b.N)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -205,12 +221,17 @@ func BenchmarkListClans(b *testing.B) {
 		panic(err.Error())
 	}
 
+	mongoDB, err := khanTesting.GetTestMongo()
+	if err != nil {
+		panic(err.Error())
+	}
+
 	game, owner, err := getGameAndPlayer(db)
 	if err != nil {
 		panic(err.Error())
 	}
 
-	_, err = createClans(db, game, owner, b.N)
+	_, err = createClans(db, mongoDB, game, owner, b.N)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -233,12 +254,17 @@ func BenchmarkLeaveClan(b *testing.B) {
 		panic(err.Error())
 	}
 
+	mongoDB, err := khanTesting.GetTestMongo()
+	if err != nil {
+		panic(err.Error())
+	}
+
 	game, owner, err := getGameAndPlayer(db)
 	if err != nil {
 		panic(err.Error())
 	}
 
-	clans, err := createClans(db, game, owner, b.N)
+	clans, err := createClans(db, mongoDB, game, owner, b.N)
 	if err != nil {
 		panic(err.Error())
 	}

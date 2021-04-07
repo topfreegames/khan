@@ -15,8 +15,10 @@ import (
 	"net/http"
 
 	uuid "github.com/satori/go.uuid"
+	"github.com/topfreegames/extensions/v9/mongo/interfaces"
 	"github.com/topfreegames/khan/models"
 	"github.com/topfreegames/khan/models/fixtures"
+	"github.com/topfreegames/khan/mongo"
 )
 
 func getRoute(url string) string {
@@ -117,7 +119,7 @@ func validateResp(res *http.Response, err error) {
 	}
 }
 
-func createClans(db models.DB, game *models.Game, owner *models.Player, numberOfClans int) ([]*models.Clan, error) {
+func createClans(db models.DB, mongoDB interfaces.MongoDB, game *models.Game, owner *models.Player, numberOfClans int) ([]*models.Clan, error) {
 	var clans []*models.Clan
 	for i := 0; i < numberOfClans; i++ {
 		clan := fixtures.ClanFactory.MustCreateWithOption(map[string]interface{}{
@@ -131,6 +133,11 @@ func createClans(db models.DB, game *models.Game, owner *models.Player, numberOf
 			return nil, err
 		}
 		clans = append(clans, clan)
+	}
+
+	err := mongoDB.Run(mongo.GetClanNameTextIndexCommand(game.PublicID, false), nil)
+	if err != nil {
+		return nil, err
 	}
 
 	return clans, nil
