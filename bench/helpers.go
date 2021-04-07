@@ -87,7 +87,7 @@ func getPlayerPayload(playerPublicID string) map[string]interface{} {
 	}
 }
 
-func getGameAndPlayer(db models.DB) (*models.Game, *models.Player, error) {
+func getGameAndPlayer(db models.DB, mongoDB interfaces.MongoDB) (*models.Game, *models.Player, error) {
 	game := fixtures.GameFactory.MustCreateWithOption(map[string]interface{}{
 		"PublicID":          uuid.NewV4().String(),
 		"MaxClansPerPlayer": 999999,
@@ -101,6 +101,11 @@ func getGameAndPlayer(db models.DB) (*models.Game, *models.Player, error) {
 		"PublicID": uuid.NewV4().String(),
 	}).(*models.Player)
 	err = db.Insert(player)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	err := mongoDB.Run(mongo.GetClanNameTextIndexCommand(game.PublicID, false), nil)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -119,7 +124,7 @@ func validateResp(res *http.Response, err error) {
 	}
 }
 
-func createClans(db models.DB, mongoDB interfaces.MongoDB, game *models.Game, owner *models.Player, numberOfClans int) ([]*models.Clan, error) {
+func createClans(db models.DB, game *models.Game, owner *models.Player, numberOfClans int) ([]*models.Clan, error) {
 	var clans []*models.Clan
 	for i := 0; i < numberOfClans; i++ {
 		clan := fixtures.ClanFactory.MustCreateWithOption(map[string]interface{}{
@@ -133,11 +138,6 @@ func createClans(db models.DB, mongoDB interfaces.MongoDB, game *models.Game, ow
 			return nil, err
 		}
 		clans = append(clans, clan)
-	}
-
-	err := mongoDB.Run(mongo.GetClanNameTextIndexCommand(game.PublicID, false), nil)
-	if err != nil {
-		return nil, err
 	}
 
 	return clans, nil
