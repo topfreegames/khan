@@ -217,7 +217,7 @@ func BenchmarkSearchClan(b *testing.B) {
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		route := getRoute(fmt.Sprintf("/games/%s/clans/search?term=%s", game.Name, clans[0].PublicID))
+		route := getRoute(fmt.Sprintf("/games/%s/clans/search?term=%s", game.PublicID, clans[0].PublicID))
 		res, err := get(route)
 		validateResp(res, err)
 		res.Body.Close()

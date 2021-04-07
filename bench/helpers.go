@@ -105,7 +105,7 @@ func getGameAndPlayer(db models.DB, mongoDB interfaces.MongoDB) (*models.Game, *
 		return nil, nil, err
 	}
 
-	err := mongoDB.Run(mongo.GetClanNameTextIndexCommand(game.PublicID, false), nil)
+	err = mongoDB.Run(mongo.GetClanNameTextIndexCommand(game.PublicID, false), nil)
 	if err != nil {
 		return nil, nil, err
 	}
