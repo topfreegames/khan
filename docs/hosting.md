@@ -17,7 +17,6 @@ Khan uses PostgreSQL to store clans information. The container takes environment
 
 Other than that, there are a couple more configurations you can pass using environment variables:
 
-* `KHAN_SENTRY_URL` - If you have a [sentry server](https://docs.getsentry.com/hosted/) you can use this variable to specify your project's URL to send errors to;
 * `KHAN_EXTENSIONS_DOGSTATSD_HOST` - If you have a [statsd datadog daemon](https://docs.datadoghq.com/developers/dogstatsd/), Podium will publish metrics to the given host at a certain port. Ex. localhost:8125;
 * `KHAN_EXTENSIONS_DOGSTATSD_RATE` - If you have a [statsd daemon](https://docs.datadoghq.com/developers/dogstatsd/), Podium will export metrics to the deamon at the given rate;
 * `KHAN_EXTENSIONS_DOGSTATSD_TAGS_PREFIX` - If you have a [statsd daemon](https://docs.datadoghq.com/developers/dogstatsd/), you may set a prefix to every tag sent to the daemon;

@@ -35,9 +35,6 @@ webhooks:
   statsPort: 9999
   runStats: true
 
-sentry:
-  url: ""
-
 jaeger:
   disabled: true
   samplingProbability: 0.001
