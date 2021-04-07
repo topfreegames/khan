@@ -11,15 +11,6 @@ import (
 	"github.com/topfreegames/khan/models"
 )
 
-// // CreateClanNameTextIndexInMongo creates the necessary text index for clan search in mongo
-// func CreateClanNameTextIndexInMongo(getTestMongo func() (interfaces.MongoDB, error), gameID string) error {
-// 	db, err := getTestMongo()
-// 	if err != nil {
-// 		return err
-// 	}
-// 	return db.Run(mongo.GetClanNameTextIndexCommand(gameID, false), nil)
-// }
-
 var testDB models.DB
 
 // GetTestDB returns a connection to the test database.
