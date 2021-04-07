@@ -15,6 +15,7 @@ import (
 	uuid "github.com/satori/go.uuid"
 	"github.com/topfreegames/khan/models"
 	"github.com/topfreegames/khan/models/fixtures"
+	khanTesting "github.com/topfreegames/khan/testing"
 )
 
 var playerResult *http.Response
@@ -25,7 +26,12 @@ func BenchmarkCreatePlayer(b *testing.B) {
 		panic(err.Error())
 	}
 
-	game, _, err := getGameAndPlayer(db)
+	mongoDB, err := khanTesting.GetTestMongo()
+	if err != nil {
+		panic(err.Error())
+	}
+
+	game, _, err := getGameAndPlayer(db, mongoDB)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -48,7 +54,12 @@ func BenchmarkUpdatePlayer(b *testing.B) {
 		panic(err.Error())
 	}
 
-	game, _, err := getGameAndPlayer(db)
+	mongoDB, err := khanTesting.GetTestMongo()
+	if err != nil {
+		panic(err.Error())
+	}
+
+	game, _, err := getGameAndPlayer(db, mongoDB)
 	if err != nil {
 		panic(err.Error())
 	}
