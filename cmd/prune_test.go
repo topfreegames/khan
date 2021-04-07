@@ -15,6 +15,7 @@ import (
 	"github.com/spf13/viper"
 	. "github.com/topfreegames/khan/cmd"
 	"github.com/topfreegames/khan/models"
+	"github.com/topfreegames/khan/models/fixtures"
 )
 
 var _ = Describe("Prune Command", func() {
@@ -57,7 +58,7 @@ var _ = Describe("Prune Command", func() {
 				invites := rand.Intn(10)
 				denies := rand.Intn(10)
 				deletes := rand.Intn(10)
-				_, err := models.GetTestClanWithStaleData(db, apps, invites, denies, deletes)
+				_, err := fixtures.GetTestClanWithStaleData(db, apps, invites, denies, deletes)
 				Expect(err).NotTo(HaveOccurred())
 				totalApps += apps
 				totalInvites += invites
@@ -88,7 +89,7 @@ var _ = Describe("Prune Command", func() {
 				invites := rand.Intn(10)
 				denies := rand.Intn(10)
 				deletes := rand.Intn(10)
-				gameID, err := models.GetTestClanWithStaleData(db, apps, invites, denies, deletes)
+				gameID, err := fixtures.GetTestClanWithStaleData(db, apps, invites, denies, deletes)
 				Expect(err).NotTo(HaveOccurred())
 
 				_, err = db.Exec("UPDATE games SET metadata='{}' WHERE public_id=$1", gameID)

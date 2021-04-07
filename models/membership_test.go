@@ -16,6 +16,7 @@ import (
 	. "github.com/onsi/gomega"
 	uuid "github.com/satori/go.uuid"
 	. "github.com/topfreegames/khan/models"
+	"github.com/topfreegames/khan/models/fixtures"
 	"github.com/topfreegames/khan/util"
 )
 
@@ -31,7 +32,7 @@ var _ = Describe("Membership Model", func() {
 	Describe("Membership Model", func() {
 		Describe("Get Number of Pending Invites", func() {
 			It("Should get number of pending invites", func() {
-				_, player, err := GetTestPlayerWithMemberships(testDb, uuid.NewV4().String(), 0, 0, 0, 20)
+				_, player, err := fixtures.GetTestPlayerWithMemberships(testDb, uuid.NewV4().String(), 0, 0, 0, 20)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(player).NotTo(BeEquivalentTo(nil))
 
@@ -42,7 +43,7 @@ var _ = Describe("Membership Model", func() {
 		})
 		Describe("Create Membership", func() {
 			It("Should create a new Membership", func() {
-				_, _, _, _, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
+				_, _, _, _, memberships, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				Expect(err).NotTo(HaveOccurred())
 
 				membership := memberships[0]
@@ -59,7 +60,7 @@ var _ = Describe("Membership Model", func() {
 
 			It("Should not create a new membership for a member with max number of invitations", func() {
 				gameID := uuid.NewV4().String()
-				_, player, err := GetTestPlayerWithMemberships(testDb, gameID, 0, 0, 0, 20)
+				_, player, err := fixtures.GetTestPlayerWithMemberships(testDb, gameID, 0, 0, 0, 20)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(player).NotTo(BeEquivalentTo(nil))
 
@@ -67,13 +68,13 @@ var _ = Describe("Membership Model", func() {
 				Expect(err).NotTo(HaveOccurred())
 				Expect(game).NotTo(BeEquivalentTo(nil))
 
-				_, clan, owner, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, gameID, "", true)
+				_, clan, owner, _, _, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 1, gameID, "", true)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(clan).NotTo(BeEquivalentTo(nil))
 
 				_, err = CreateMembership(
 					testDb,
-					GetEncryptionKey(),
+					fixtures.GetEncryptionKey(),
 					game,
 					game.PublicID,
 					"Member",
@@ -93,7 +94,7 @@ var _ = Describe("Membership Model", func() {
 			})
 
 			It("Should not create a new membership for the clan owner", func() {
-				game, clan, owner, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
+				game, clan, owner, _, _, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				Expect(err).NotTo(HaveOccurred())
 				Expect(clan).NotTo(BeEquivalentTo(nil))
 
@@ -103,7 +104,7 @@ var _ = Describe("Membership Model", func() {
 
 				_, err = CreateMembership(
 					testDb,
-					GetEncryptionKey(),
+					fixtures.GetEncryptionKey(),
 					game,
 					game.PublicID,
 					"Member",
@@ -124,7 +125,7 @@ var _ = Describe("Membership Model", func() {
 
 			It("Should create a new membership for a member when game MaxPendingInvites is -1", func() {
 				gameID := uuid.NewV4().String()
-				_, player, err := GetTestPlayerWithMemberships(testDb, gameID, 0, 0, 0, 20)
+				_, player, err := fixtures.GetTestPlayerWithMemberships(testDb, gameID, 0, 0, 0, 20)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(player).NotTo(BeEquivalentTo(nil))
 
@@ -135,13 +136,13 @@ var _ = Describe("Membership Model", func() {
 				_, err = testDb.Update(game)
 				Expect(err).NotTo(HaveOccurred())
 
-				_, clan, owner, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, gameID, "", true)
+				_, clan, owner, _, _, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 1, gameID, "", true)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(clan).NotTo(BeEquivalentTo(nil))
 
 				membership, err := CreateMembership(
 					testDb,
-					GetEncryptionKey(),
+					fixtures.GetEncryptionKey(),
 					game,
 					game.PublicID,
 					"Member",
@@ -158,14 +159,14 @@ var _ = Describe("Membership Model", func() {
 			})
 
 			It("Should allow users to recreate an invitation if no cooldown", func() {
-				game, clan, owner, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
+				game, clan, owner, players, memberships, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				Expect(err).NotTo(HaveOccurred())
 				membership := memberships[0]
 				Expect(membership.ID).NotTo(BeEquivalentTo(0))
 
 				updMembership, err := CreateMembership(
 					testDb,
-					GetEncryptionKey(),
+					fixtures.GetEncryptionKey(),
 					game, game.PublicID,
 					"Member",
 					players[0].PublicID,
@@ -184,19 +185,19 @@ var _ = Describe("Membership Model", func() {
 			})
 
 			It("Should allow users to recreate an application if no cooldown", func() {
-				game, clan, _, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
+				game, clan, _, _, _, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
 				Expect(err).NotTo(HaveOccurred())
 
 				game.CooldownBeforeApply = 0
 				_, err = testDb.Update(game)
 				Expect(err).NotTo(HaveOccurred())
 
-				_, player, err := CreatePlayerFactory(testDb, game.PublicID, true)
+				_, player, err := fixtures.CreatePlayerFactory(testDb, game.PublicID, true)
 				Expect(err).NotTo(HaveOccurred())
 
 				_, err = CreateMembership(
 					testDb,
-					GetEncryptionKey(),
+					fixtures.GetEncryptionKey(),
 					game, game.PublicID,
 					"Member",
 					player.PublicID,
@@ -208,7 +209,7 @@ var _ = Describe("Membership Model", func() {
 
 				updMembership, err := CreateMembership(
 					testDb,
-					GetEncryptionKey(),
+					fixtures.GetEncryptionKey(),
 					game, game.PublicID,
 					"Member",
 					player.PublicID,
@@ -227,15 +228,15 @@ var _ = Describe("Membership Model", func() {
 			})
 
 			It("Should fail if user re-applies before cooldown", func() {
-				game, clan, _, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
+				game, clan, _, _, _, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
 				Expect(err).NotTo(HaveOccurred())
 
-				_, player, err := CreatePlayerFactory(testDb, game.PublicID, true)
+				_, player, err := fixtures.CreatePlayerFactory(testDb, game.PublicID, true)
 				Expect(err).NotTo(HaveOccurred())
 
 				_, err = CreateMembership(
 					testDb,
-					GetEncryptionKey(),
+					fixtures.GetEncryptionKey(),
 					game, game.PublicID,
 					"Member",
 					player.PublicID,
@@ -247,7 +248,7 @@ var _ = Describe("Membership Model", func() {
 
 				_, err = CreateMembership(
 					testDb,
-					GetEncryptionKey(),
+					fixtures.GetEncryptionKey(),
 					game, game.PublicID,
 					"Member",
 					player.PublicID,
@@ -260,15 +261,15 @@ var _ = Describe("Membership Model", func() {
 			})
 
 			It("Should allow users to recreate an invitation if no cooldown", func() {
-				game, clan, owner, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
+				game, clan, owner, _, _, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
 				Expect(err).NotTo(HaveOccurred())
 
-				_, player, err := CreatePlayerFactory(testDb, game.PublicID, true)
+				_, player, err := fixtures.CreatePlayerFactory(testDb, game.PublicID, true)
 				Expect(err).NotTo(HaveOccurred())
 
 				_, err = CreateMembership(
 					testDb,
-					GetEncryptionKey(),
+					fixtures.GetEncryptionKey(),
 					game, game.PublicID,
 					"Member",
 					player.PublicID,
@@ -280,7 +281,7 @@ var _ = Describe("Membership Model", func() {
 
 				updMembership, err := CreateMembership(
 					testDb,
-					GetEncryptionKey(),
+					fixtures.GetEncryptionKey(),
 					game, game.PublicID,
 					"Member",
 					player.PublicID,
@@ -299,19 +300,19 @@ var _ = Describe("Membership Model", func() {
 			})
 
 			It("Should fail if user to be re-invited before cooldown", func() {
-				game, clan, owner, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
+				game, clan, owner, _, _, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
 				Expect(err).NotTo(HaveOccurred())
 
 				game.CooldownBeforeInvite = 1000
 				_, err = testDb.Update(game)
 				Expect(err).NotTo(HaveOccurred())
 
-				_, player, err := CreatePlayerFactory(testDb, game.PublicID, true)
+				_, player, err := fixtures.CreatePlayerFactory(testDb, game.PublicID, true)
 				Expect(err).NotTo(HaveOccurred())
 
 				_, err = CreateMembership(
 					testDb,
-					GetEncryptionKey(),
+					fixtures.GetEncryptionKey(),
 					game, game.PublicID,
 					"Member",
 					player.PublicID,
@@ -323,7 +324,7 @@ var _ = Describe("Membership Model", func() {
 
 				_, err = CreateMembership(
 					testDb,
-					GetEncryptionKey(),
+					fixtures.GetEncryptionKey(),
 					game, game.PublicID,
 					"Member",
 					player.PublicID,
@@ -336,7 +337,7 @@ var _ = Describe("Membership Model", func() {
 			})
 
 			It("Should allow users to create an application after an invitation if no cooldown", func() {
-				game, clan, owner, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
+				game, clan, owner, _, _, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
 				Expect(err).NotTo(HaveOccurred())
 
 				game.CooldownBeforeInvite = 1000
@@ -344,12 +345,12 @@ var _ = Describe("Membership Model", func() {
 				_, err = testDb.Update(game)
 				Expect(err).NotTo(HaveOccurred())
 
-				_, player, err := CreatePlayerFactory(testDb, game.PublicID, true)
+				_, player, err := fixtures.CreatePlayerFactory(testDb, game.PublicID, true)
 				Expect(err).NotTo(HaveOccurred())
 
 				_, err = CreateMembership(
 					testDb,
-					GetEncryptionKey(),
+					fixtures.GetEncryptionKey(),
 					game, game.PublicID,
 					"Member",
 					player.PublicID,
@@ -361,7 +362,7 @@ var _ = Describe("Membership Model", func() {
 
 				updMembership, err := CreateMembership(
 					testDb,
-					GetEncryptionKey(),
+					fixtures.GetEncryptionKey(),
 					game, game.PublicID,
 					"Member",
 					player.PublicID,
@@ -380,7 +381,7 @@ var _ = Describe("Membership Model", func() {
 			})
 
 			It("Should allow users to create an invitation after an application if no cooldown", func() {
-				game, clan, owner, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
+				game, clan, owner, _, _, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
 				Expect(err).NotTo(HaveOccurred())
 
 				game.CooldownBeforeInvite = 0
@@ -388,12 +389,12 @@ var _ = Describe("Membership Model", func() {
 				_, err = testDb.Update(game)
 				Expect(err).NotTo(HaveOccurred())
 
-				_, player, err := CreatePlayerFactory(testDb, game.PublicID, true)
+				_, player, err := fixtures.CreatePlayerFactory(testDb, game.PublicID, true)
 				Expect(err).NotTo(HaveOccurred())
 
 				_, err = CreateMembership(
 					testDb,
-					GetEncryptionKey(),
+					fixtures.GetEncryptionKey(),
 					game, game.PublicID,
 					"Member",
 					player.PublicID,
@@ -405,7 +406,7 @@ var _ = Describe("Membership Model", func() {
 
 				updMembership, err := CreateMembership(
 					testDb,
-					GetEncryptionKey(),
+					fixtures.GetEncryptionKey(),
 					game, game.PublicID,
 					"Member",
 					player.PublicID,
@@ -424,7 +425,7 @@ var _ = Describe("Membership Model", func() {
 			})
 
 			It("Should not fail if an application after an invitation has cooldown", func() {
-				game, clan, owner, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
+				game, clan, owner, _, _, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
 				Expect(err).NotTo(HaveOccurred())
 
 				game.CooldownBeforeInvite = 2000
@@ -437,12 +438,12 @@ var _ = Describe("Membership Model", func() {
 				_, err = testDb.Update(clan)
 				Expect(err).NotTo(HaveOccurred())
 
-				_, player, err := CreatePlayerFactory(testDb, game.PublicID, true)
+				_, player, err := fixtures.CreatePlayerFactory(testDb, game.PublicID, true)
 				Expect(err).NotTo(HaveOccurred())
 
 				_, err = CreateMembership(
 					testDb,
-					GetEncryptionKey(),
+					fixtures.GetEncryptionKey(),
 					game, game.PublicID,
 					"Member",
 					player.PublicID,
@@ -454,7 +455,7 @@ var _ = Describe("Membership Model", func() {
 
 				updMembership, err := CreateMembership(
 					testDb,
-					GetEncryptionKey(),
+					fixtures.GetEncryptionKey(),
 					game, game.PublicID,
 					"Member",
 					player.PublicID,
@@ -475,7 +476,7 @@ var _ = Describe("Membership Model", func() {
 			})
 
 			It("Should not fail if an invitation after an application has cooldown", func() {
-				game, clan, owner, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
+				game, clan, owner, _, _, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
 				Expect(err).NotTo(HaveOccurred())
 
 				game.CooldownBeforeInvite = 2000
@@ -483,12 +484,12 @@ var _ = Describe("Membership Model", func() {
 				_, err = testDb.Update(game)
 				Expect(err).NotTo(HaveOccurred())
 
-				_, player, err := CreatePlayerFactory(testDb, game.PublicID, true)
+				_, player, err := fixtures.CreatePlayerFactory(testDb, game.PublicID, true)
 				Expect(err).NotTo(HaveOccurred())
 
 				_, err = CreateMembership(
 					testDb,
-					GetEncryptionKey(),
+					fixtures.GetEncryptionKey(),
 					game, game.PublicID,
 					"Member",
 					player.PublicID,
@@ -500,7 +501,7 @@ var _ = Describe("Membership Model", func() {
 
 				updMembership, err := CreateMembership(
 					testDb,
-					GetEncryptionKey(),
+					fixtures.GetEncryptionKey(),
 					game, game.PublicID,
 					"Member",
 					player.PublicID,
@@ -522,7 +523,7 @@ var _ = Describe("Membership Model", func() {
 		})
 
 		It("Should update a Membership", func() {
-			_, _, _, _, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
+			_, _, _, _, memberships, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 			Expect(err).NotTo(HaveOccurred())
 			dt := memberships[0].UpdatedAt
 
@@ -535,7 +536,7 @@ var _ = Describe("Membership Model", func() {
 		})
 
 		It("Should get existing Membership", func() {
-			_, _, _, _, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
+			_, _, _, _, memberships, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 			Expect(err).NotTo(HaveOccurred())
 
 			dbMembership, err := GetMembershipByID(testDb, memberships[0].ID)
@@ -550,7 +551,7 @@ var _ = Describe("Membership Model", func() {
 		})
 
 		It("Should get an existing Membership by the player public ID", func() {
-			_, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
+			_, clan, _, players, memberships, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 			Expect(err).NotTo(HaveOccurred())
 
 			dbMembership, err := GetValidMembershipByClanAndPlayerPublicID(testDb, players[0].GameID, clan.PublicID, players[0].PublicID)
@@ -561,10 +562,10 @@ var _ = Describe("Membership Model", func() {
 
 		Describe("Should not get Membership by the player public ID", func() {
 			It("If non-existing Membership", func() {
-				_, player, err := CreatePlayerFactory(testDb, "")
+				_, player, err := fixtures.CreatePlayerFactory(testDb, "")
 				Expect(err).NotTo(HaveOccurred())
 
-				clan := ClanFactory.MustCreateWithOption(map[string]interface{}{
+				clan := fixtures.ClanFactory.MustCreateWithOption(map[string]interface{}{
 					"GameID":  player.GameID,
 					"OwnerID": player.ID,
 				}).(*Clan)
@@ -578,7 +579,7 @@ var _ = Describe("Membership Model", func() {
 			})
 
 			It("If Membership was deleted", func() {
-				_, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
+				_, clan, _, players, memberships, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				Expect(err).NotTo(HaveOccurred())
 
 				memberships[0].DeletedAt = util.NowMilli()
@@ -593,7 +594,7 @@ var _ = Describe("Membership Model", func() {
 		})
 
 		It("Should get a deleted Membership by the clan ID and player private ID using GetDeletedMembershipByClanAndPlayerID", func() {
-			_, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
+			_, clan, _, players, memberships, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 			Expect(err).NotTo(HaveOccurred())
 
 			memberships[0].DeletedAt = util.NowMilli()
@@ -609,7 +610,7 @@ var _ = Describe("Membership Model", func() {
 		})
 
 		It("Should get a deleted Membership by the clan and player public ID using GetMembershipByClanAndPlayerPublicID", func() {
-			_, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
+			_, clan, _, players, memberships, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 			Expect(err).NotTo(HaveOccurred())
 
 			memberships[0].DeletedAt = util.NowMilli()
@@ -625,7 +626,7 @@ var _ = Describe("Membership Model", func() {
 		})
 
 		It("Should get a denied Membership by the player public ID using GetMembershipByClanAndPlayerPublicID", func() {
-			_, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 0, 1, 0, 0, "", "")
+			_, clan, _, players, memberships, err := fixtures.GetClanWithMemberships(testDb, 0, 1, 0, 0, "", "")
 			Expect(err).NotTo(HaveOccurred())
 
 			dbMembership, err := GetMembershipByClanAndPlayerPublicID(testDb, clan.GameID, clan.PublicID, players[0].PublicID)
@@ -636,7 +637,7 @@ var _ = Describe("Membership Model", func() {
 
 		Describe("GetOldestMemberWithHighestLevel", func() {
 			It("Should get the approved member with the highest level", func() {
-				_, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 2, 0, 0, 0, "", "")
+				_, clan, _, players, memberships, err := fixtures.GetClanWithMemberships(testDb, 2, 0, 0, 0, "", "")
 				Expect(err).NotTo(HaveOccurred())
 
 				memberships[0].Level = "CoLeader"
@@ -649,7 +650,7 @@ var _ = Describe("Membership Model", func() {
 			})
 
 			It("Should not get pending memberships", func() {
-				_, clan, _, _, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 2, "", "")
+				_, clan, _, _, memberships, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 2, "", "")
 				Expect(err).NotTo(HaveOccurred())
 
 				memberships[0].Level = "CoLeader"
@@ -662,7 +663,7 @@ var _ = Describe("Membership Model", func() {
 			})
 
 			It("Should return an error if clan has no members", func() {
-				_, clan, _, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
+				_, clan, _, _, _, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
 				Expect(err).NotTo(HaveOccurred())
 
 				dbMembership, err := GetOldestMemberWithHighestLevel(testDb, clan.GameID, clan.PublicID)
@@ -681,14 +682,14 @@ var _ = Describe("Membership Model", func() {
 
 		Describe("Should create a new Membership with CreateMembership", func() {
 			It("If requestor is the player and clan.AllowApplication = true", func() {
-				game, clan, _, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
+				game, clan, _, _, _, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				Expect(err).NotTo(HaveOccurred())
 
 				clan.AllowApplication = true
 				_, err = testDb.Update(clan)
 				Expect(err).NotTo(HaveOccurred())
 
-				player := PlayerFactory.MustCreateWithOption(map[string]interface{}{
+				player := fixtures.PlayerFactory.MustCreateWithOption(map[string]interface{}{
 					"GameID": clan.GameID,
 				}).(*Player)
 				err = testDb.Insert(player)
@@ -696,7 +697,7 @@ var _ = Describe("Membership Model", func() {
 
 				membership, err := CreateMembership(
 					testDb,
-					GetEncryptionKey(),
+					fixtures.GetEncryptionKey(),
 					game,
 					player.GameID,
 					"Member",
@@ -720,7 +721,7 @@ var _ = Describe("Membership Model", func() {
 				Expect(dbMembership.Denied).To(Equal(false))
 				Expect(dbMembership.Message).To(Equal("Please accept me"))
 
-				dbPlayer, err := GetPlayerByID(testDb, GetEncryptionKey(), player.ID)
+				dbPlayer, err := GetPlayerByID(testDb, fixtures.GetEncryptionKey(), player.ID)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(dbPlayer.MembershipCount).To(Equal(0))
 
@@ -730,7 +731,7 @@ var _ = Describe("Membership Model", func() {
 			})
 
 			It("If requestor is the player and clan.AllowApplication = true and previous deleted membership", func() {
-				game, clan, _, players, _, err := GetClanWithMemberships(testDb, 1, 0, 0, 0, "", "")
+				game, clan, _, players, _, err := fixtures.GetClanWithMemberships(testDb, 1, 0, 0, 0, "", "")
 				Expect(err).NotTo(HaveOccurred())
 
 				game.CooldownBeforeApply = 0
@@ -754,7 +755,7 @@ var _ = Describe("Membership Model", func() {
 
 				membership, err := CreateMembership(
 					testDb,
-					GetEncryptionKey(),
+					fixtures.GetEncryptionKey(),
 					game,
 					players[0].GameID,
 					"Member",
@@ -778,7 +779,7 @@ var _ = Describe("Membership Model", func() {
 				Expect(dbMembership.DeletedAt).To(Equal(int64(0)))
 				Expect(dbMembership.Message).To(Equal("Please accept me"))
 
-				dbPlayer, err := GetPlayerByID(testDb, GetEncryptionKey(), players[0].ID)
+				dbPlayer, err := GetPlayerByID(testDb, fixtures.GetEncryptionKey(), players[0].ID)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(dbPlayer.MembershipCount).To(Equal(0))
 
@@ -788,7 +789,7 @@ var _ = Describe("Membership Model", func() {
 			})
 
 			It("And approve it automatically if requestor is the player, clan.AllowApplication=true and clan.AutoJoin=true", func() {
-				game, clan, _, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
+				game, clan, _, _, _, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				Expect(err).NotTo(HaveOccurred())
 
 				clan.AllowApplication = true
@@ -796,7 +797,7 @@ var _ = Describe("Membership Model", func() {
 				_, err = testDb.Update(clan)
 				Expect(err).NotTo(HaveOccurred())
 
-				player := PlayerFactory.MustCreateWithOption(map[string]interface{}{
+				player := fixtures.PlayerFactory.MustCreateWithOption(map[string]interface{}{
 					"GameID": clan.GameID,
 				}).(*Player)
 				err = testDb.Insert(player)
@@ -804,7 +805,7 @@ var _ = Describe("Membership Model", func() {
 
 				membership, err := CreateMembership(
 					testDb,
-					GetEncryptionKey(),
+					fixtures.GetEncryptionKey(),
 					game,
 					player.GameID,
 					"Member",
@@ -828,7 +829,7 @@ var _ = Describe("Membership Model", func() {
 				Expect(dbMembership.Denied).To(Equal(false))
 				Expect(dbMembership.Message).To(Equal("Please accept me"))
 
-				dbPlayer, err := GetPlayerByID(testDb, GetEncryptionKey(), player.ID)
+				dbPlayer, err := GetPlayerByID(testDb, fixtures.GetEncryptionKey(), player.ID)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(dbPlayer.MembershipCount).To(Equal(1))
 
@@ -838,10 +839,10 @@ var _ = Describe("Membership Model", func() {
 			})
 
 			It("If requestor is the clan owner", func() {
-				game, clan, owner, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
+				game, clan, owner, _, _, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				Expect(err).NotTo(HaveOccurred())
 
-				player := PlayerFactory.MustCreateWithOption(map[string]interface{}{
+				player := fixtures.PlayerFactory.MustCreateWithOption(map[string]interface{}{
 					"GameID": clan.GameID,
 				}).(*Player)
 				err = testDb.Insert(player)
@@ -849,7 +850,7 @@ var _ = Describe("Membership Model", func() {
 
 				membership, err := CreateMembership(
 					testDb,
-					GetEncryptionKey(),
+					fixtures.GetEncryptionKey(),
 					game,
 					player.GameID,
 					"Member",
@@ -875,10 +876,10 @@ var _ = Describe("Membership Model", func() {
 			})
 
 			It("If requestor is a member of the clan with level greater than the min level", func() {
-				game, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
+				game, clan, _, players, memberships, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				Expect(err).NotTo(HaveOccurred())
 
-				player := PlayerFactory.MustCreateWithOption(map[string]interface{}{
+				player := fixtures.PlayerFactory.MustCreateWithOption(map[string]interface{}{
 					"GameID": clan.GameID,
 				}).(*Player)
 				err = testDb.Insert(player)
@@ -892,7 +893,7 @@ var _ = Describe("Membership Model", func() {
 
 				membership, err := CreateMembership(
 					testDb,
-					GetEncryptionKey(),
+					fixtures.GetEncryptionKey(),
 					game,
 					player.GameID,
 					"Member",
@@ -918,7 +919,7 @@ var _ = Describe("Membership Model", func() {
 			})
 
 			It("If deleted previous membership", func() {
-				game, clan, owner, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
+				game, clan, owner, players, memberships, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				Expect(err).NotTo(HaveOccurred())
 
 				memberships[0].DeletedAt = util.NowMilli()
@@ -930,7 +931,7 @@ var _ = Describe("Membership Model", func() {
 
 				membership, err := CreateMembership(
 					testDb,
-					GetEncryptionKey(),
+					fixtures.GetEncryptionKey(),
 					game,
 					players[0].GameID,
 					"Member",
@@ -954,7 +955,7 @@ var _ = Describe("Membership Model", func() {
 				Expect(dbMembership.Denied).To(Equal(false))
 				Expect(dbMembership.Message).To(Equal("Please accept me"))
 
-				dbPlayer, err := GetPlayerByID(testDb, GetEncryptionKey(), dbMembership.PlayerID)
+				dbPlayer, err := GetPlayerByID(testDb, fixtures.GetEncryptionKey(), dbMembership.PlayerID)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(dbPlayer.MembershipCount).To(Equal(0))
 
@@ -964,7 +965,7 @@ var _ = Describe("Membership Model", func() {
 			})
 
 			It("If deleted previous membership, after waiting cooldown seconds", func() {
-				game, clan, owner, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
+				game, clan, owner, players, memberships, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				Expect(err).NotTo(HaveOccurred())
 
 				game.CooldownAfterDelete = 1
@@ -981,7 +982,7 @@ var _ = Describe("Membership Model", func() {
 				time.Sleep(time.Second)
 				membership, err := CreateMembership(
 					testDb,
-					GetEncryptionKey(),
+					fixtures.GetEncryptionKey(),
 					game,
 					players[0].GameID,
 					"Member",
@@ -1005,7 +1006,7 @@ var _ = Describe("Membership Model", func() {
 				Expect(dbMembership.Denied).To(Equal(false))
 				Expect(dbMembership.Message).To(Equal("Please accept me"))
 
-				dbPlayer, err := GetPlayerByID(testDb, GetEncryptionKey(), dbMembership.PlayerID)
+				dbPlayer, err := GetPlayerByID(testDb, fixtures.GetEncryptionKey(), dbMembership.PlayerID)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(dbPlayer.MembershipCount).To(Equal(0))
 
@@ -1015,7 +1016,7 @@ var _ = Describe("Membership Model", func() {
 			})
 
 			It("If deleted previous membership and deleter is not the membership player and requestor is not membership player before waiting cooldown seconds", func() {
-				game, clan, owner, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
+				game, clan, owner, players, memberships, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				Expect(err).NotTo(HaveOccurred())
 
 				game.CooldownAfterDelete = 10
@@ -1031,7 +1032,7 @@ var _ = Describe("Membership Model", func() {
 
 				membership, err := CreateMembership(
 					testDb,
-					GetEncryptionKey(),
+					fixtures.GetEncryptionKey(),
 					game,
 					players[0].GameID,
 					"Member",
@@ -1058,7 +1059,7 @@ var _ = Describe("Membership Model", func() {
 			})
 
 			It("If denied previous membership and denier is the membership player, before waiting cooldown seconds", func() {
-				game, clan, owner, players, _, err := GetClanWithMemberships(testDb, 0, 1, 0, 0, "", "")
+				game, clan, owner, players, _, err := fixtures.GetClanWithMemberships(testDb, 0, 1, 0, 0, "", "")
 				Expect(err).NotTo(HaveOccurred())
 
 				game.CooldownAfterDeny = 10
@@ -1067,7 +1068,7 @@ var _ = Describe("Membership Model", func() {
 
 				_, err = CreateMembership(
 					testDb,
-					GetEncryptionKey(),
+					fixtures.GetEncryptionKey(),
 					game,
 					players[0].GameID,
 					"Member",
@@ -1081,7 +1082,7 @@ var _ = Describe("Membership Model", func() {
 			})
 
 			It("If denied previous membership, after waiting cooldown seconds", func() {
-				game, clan, owner, players, _, err := GetClanWithMemberships(testDb, 0, 1, 0, 0, "", "")
+				game, clan, owner, players, _, err := fixtures.GetClanWithMemberships(testDb, 0, 1, 0, 0, "", "")
 				Expect(err).NotTo(HaveOccurred())
 
 				game.CooldownAfterDeny = 1
@@ -1091,7 +1092,7 @@ var _ = Describe("Membership Model", func() {
 				time.Sleep(time.Second)
 				membership, err := CreateMembership(
 					testDb,
-					GetEncryptionKey(),
+					fixtures.GetEncryptionKey(),
 					game,
 					players[0].GameID,
 					"Member",
@@ -1114,7 +1115,7 @@ var _ = Describe("Membership Model", func() {
 				Expect(dbMembership.Denied).To(Equal(false))
 				Expect(dbMembership.Message).To(Equal("Please accept me"))
 
-				dbPlayer, err := GetPlayerByID(testDb, GetEncryptionKey(), dbMembership.PlayerID)
+				dbPlayer, err := GetPlayerByID(testDb, fixtures.GetEncryptionKey(), dbMembership.PlayerID)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(dbPlayer.MembershipCount).To(Equal(0))
 
@@ -1124,7 +1125,7 @@ var _ = Describe("Membership Model", func() {
 			})
 
 			It("If deleted previous membership and deleter is the membership player, before waiting cooldown seconds", func() {
-				game, clan, owner, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
+				game, clan, owner, players, memberships, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				Expect(err).NotTo(HaveOccurred())
 
 				game.CooldownAfterDelete = 10
@@ -1140,7 +1141,7 @@ var _ = Describe("Membership Model", func() {
 
 				membership, err := CreateMembership(
 					testDb,
-					GetEncryptionKey(),
+					fixtures.GetEncryptionKey(),
 					game,
 					players[0].GameID,
 					"Member",
@@ -1164,7 +1165,7 @@ var _ = Describe("Membership Model", func() {
 				Expect(dbMembership.Denied).To(Equal(false))
 				Expect(dbMembership.Message).To(Equal("Please accept me"))
 
-				dbPlayer, err := GetPlayerByID(testDb, GetEncryptionKey(), dbMembership.PlayerID)
+				dbPlayer, err := GetPlayerByID(testDb, fixtures.GetEncryptionKey(), dbMembership.PlayerID)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(dbPlayer.MembershipCount).To(Equal(0))
 
@@ -1175,13 +1176,13 @@ var _ = Describe("Membership Model", func() {
 
 			It("If denied previous membership request and clan autoJoin is changed to true, before waiting cooldown seconds", func() {
 				// create a pending membership application
-				game, clan, owner, players, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "", false, false)
+				game, clan, owner, players, _, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "", false, false)
 				Expect(err).NotTo(HaveOccurred())
 
 				// deny application
 				_, err = ApproveOrDenyMembershipApplication(
 					testDb,
-					GetEncryptionKey(),
+					fixtures.GetEncryptionKey(),
 					game,
 					players[0].GameID,
 					players[0].PublicID,
@@ -1204,7 +1205,7 @@ var _ = Describe("Membership Model", func() {
 				// apply for membership again
 				membership, err := CreateMembership(
 					testDb,
-					GetEncryptionKey(),
+					fixtures.GetEncryptionKey(),
 					game,
 					players[0].GameID,
 					"Member",
@@ -1222,7 +1223,7 @@ var _ = Describe("Membership Model", func() {
 				Expect(dbMembership.Approved).To(BeTrue())
 				Expect(dbMembership.Denied).To(Equal(false))
 
-				dbPlayer, err := GetPlayerByID(testDb, GetEncryptionKey(), dbMembership.PlayerID)
+				dbPlayer, err := GetPlayerByID(testDb, fixtures.GetEncryptionKey(), dbMembership.PlayerID)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(dbPlayer.MembershipCount).To(Equal(1))
 
@@ -1234,7 +1235,7 @@ var _ = Describe("Membership Model", func() {
 
 		Describe("Should not create a new Membership with CreateMembership if", func() {
 			It("If deleted previous membership and deleter is not the membership player and requestor is the membership player before waiting cooldown seconds", func() {
-				game, clan, owner, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
+				game, clan, owner, players, memberships, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				Expect(err).NotTo(HaveOccurred())
 
 				game.CooldownAfterDelete = 10
@@ -1250,7 +1251,7 @@ var _ = Describe("Membership Model", func() {
 
 				_, err = CreateMembership(
 					testDb,
-					GetEncryptionKey(),
+					fixtures.GetEncryptionKey(),
 					game,
 					players[0].GameID,
 					"Member",
@@ -1265,7 +1266,7 @@ var _ = Describe("Membership Model", func() {
 			})
 
 			It("If denied previous membership and denier is not the membership player, before waiting cooldown seconds", func() {
-				game, clan, owner, players, memberships, err := GetClanWithMemberships(testDb, 0, 1, 0, 0, "", "")
+				game, clan, owner, players, memberships, err := fixtures.GetClanWithMemberships(testDb, 0, 1, 0, 0, "", "")
 				Expect(err).NotTo(HaveOccurred())
 
 				game.CooldownAfterDeny = 10
@@ -1278,7 +1279,7 @@ var _ = Describe("Membership Model", func() {
 
 				_, err = CreateMembership(
 					testDb,
-					GetEncryptionKey(),
+					fixtures.GetEncryptionKey(),
 					game,
 					players[0].GameID,
 					"Member",
@@ -1293,10 +1294,10 @@ var _ = Describe("Membership Model", func() {
 			})
 
 			It("If clan reached the game's MaxMembers", func() {
-				game, clan, owner, _, _, err := GetClanReachedMaxMemberships(testDb)
+				game, clan, owner, _, _, err := fixtures.GetClanReachedMaxMemberships(testDb)
 				Expect(err).NotTo(HaveOccurred())
 
-				player := PlayerFactory.MustCreateWithOption(map[string]interface{}{
+				player := fixtures.PlayerFactory.MustCreateWithOption(map[string]interface{}{
 					"GameID": clan.GameID,
 				}).(*Player)
 				err = testDb.Insert(player)
@@ -1304,7 +1305,7 @@ var _ = Describe("Membership Model", func() {
 
 				_, err = CreateMembership(
 					testDb,
-					GetEncryptionKey(),
+					fixtures.GetEncryptionKey(),
 					game,
 					player.GameID,
 					"Member",
@@ -1319,10 +1320,10 @@ var _ = Describe("Membership Model", func() {
 			})
 
 			It("If player reached the game's MaxClansPerPlayer (member of another clans)", func() {
-				game, _, owner, players, _, err := GetClanWithMemberships(testDb, 1, 0, 0, 0, "", "")
+				game, _, owner, players, _, err := fixtures.GetClanWithMemberships(testDb, 1, 0, 0, 0, "", "")
 				Expect(err).NotTo(HaveOccurred())
 
-				anotherClan := ClanFactory.MustCreateWithOption(map[string]interface{}{
+				anotherClan := fixtures.ClanFactory.MustCreateWithOption(map[string]interface{}{
 					"GameID":   owner.GameID,
 					"PublicID": uuid.NewV4().String(),
 					"OwnerID":  owner.ID,
@@ -1333,7 +1334,7 @@ var _ = Describe("Membership Model", func() {
 
 				_, err = CreateMembership(
 					testDb,
-					GetEncryptionKey(),
+					fixtures.GetEncryptionKey(),
 					game,
 					game.PublicID,
 					"Member",
@@ -1348,10 +1349,10 @@ var _ = Describe("Membership Model", func() {
 			})
 
 			It("If player reached the game's MaxClansPerPlayer (owner of another clan)", func() {
-				game, _, owner, players, _, err := GetClanWithMemberships(testDb, 1, 0, 0, 0, "", "")
+				game, _, owner, players, _, err := fixtures.GetClanWithMemberships(testDb, 1, 0, 0, 0, "", "")
 				Expect(err).NotTo(HaveOccurred())
 
-				anotherClan := ClanFactory.MustCreateWithOption(map[string]interface{}{
+				anotherClan := fixtures.ClanFactory.MustCreateWithOption(map[string]interface{}{
 					"GameID":   players[0].GameID,
 					"PublicID": uuid.NewV4().String(),
 					"OwnerID":  players[0].ID,
@@ -1362,7 +1363,7 @@ var _ = Describe("Membership Model", func() {
 
 				_, err = CreateMembership(
 					testDb,
-					GetEncryptionKey(),
+					fixtures.GetEncryptionKey(),
 					game,
 					game.PublicID,
 					"Member",
@@ -1377,14 +1378,14 @@ var _ = Describe("Membership Model", func() {
 			})
 
 			It("If requestor is the player and clan.AllowApplication = false", func() {
-				game, clan, _, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
+				game, clan, _, _, _, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				Expect(err).NotTo(HaveOccurred())
 
 				clan.AllowApplication = false
 				_, err = testDb.Update(clan)
 				Expect(err).NotTo(HaveOccurred())
 
-				player := PlayerFactory.MustCreateWithOption(map[string]interface{}{
+				player := fixtures.PlayerFactory.MustCreateWithOption(map[string]interface{}{
 					"GameID": clan.GameID,
 				}).(*Player)
 				err = testDb.Insert(player)
@@ -1392,7 +1393,7 @@ var _ = Describe("Membership Model", func() {
 
 				_, err = CreateMembership(
 					testDb,
-					GetEncryptionKey(),
+					fixtures.GetEncryptionKey(),
 					game,
 					player.GameID,
 					"Member",
@@ -1408,14 +1409,14 @@ var _ = Describe("Membership Model", func() {
 			})
 
 			It("Unexistent player", func() {
-				game, clan, owner, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
+				game, clan, owner, _, _, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				Expect(err).NotTo(HaveOccurred())
 
 				playerPublicID := randomdata.FullName(randomdata.RandomGender)
 
 				_, err = CreateMembership(
 					testDb,
-					GetEncryptionKey(),
+					fixtures.GetEncryptionKey(),
 					game,
 					owner.GameID,
 					"Member",
@@ -1430,13 +1431,13 @@ var _ = Describe("Membership Model", func() {
 			})
 
 			It("Unexistent clan", func() {
-				game, player, err := CreatePlayerFactory(testDb, "")
+				game, player, err := fixtures.CreatePlayerFactory(testDb, "")
 				Expect(err).NotTo(HaveOccurred())
 
 				clanPublicID := randomdata.FullName(randomdata.RandomGender)
 				_, err = CreateMembership(
 					testDb,
-					GetEncryptionKey(),
+					fixtures.GetEncryptionKey(),
 					game,
 					player.GameID,
 					"Member",
@@ -1452,10 +1453,10 @@ var _ = Describe("Membership Model", func() {
 			})
 
 			It("Unexistent requestor", func() {
-				game, clan, _, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
+				game, clan, _, _, _, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
 				Expect(err).NotTo(HaveOccurred())
 
-				player := PlayerFactory.MustCreateWithOption(map[string]interface{}{
+				player := fixtures.PlayerFactory.MustCreateWithOption(map[string]interface{}{
 					"GameID": clan.GameID,
 				}).(*Player)
 				err = testDb.Insert(player)
@@ -1464,7 +1465,7 @@ var _ = Describe("Membership Model", func() {
 				requestorPublicID := randomdata.FullName(randomdata.RandomGender)
 				_, err = CreateMembership(
 					testDb,
-					GetEncryptionKey(),
+					fixtures.GetEncryptionKey(),
 					game,
 					player.GameID,
 					"Member",
@@ -1479,16 +1480,16 @@ var _ = Describe("Membership Model", func() {
 			})
 
 			It("Requestor is not clan member/owner", func() {
-				game, clan, _, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
+				game, clan, _, _, _, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
 				Expect(err).NotTo(HaveOccurred())
 
-				player := PlayerFactory.MustCreateWithOption(map[string]interface{}{
+				player := fixtures.PlayerFactory.MustCreateWithOption(map[string]interface{}{
 					"GameID": clan.GameID,
 				}).(*Player)
 				err = testDb.Insert(player)
 				Expect(err).NotTo(HaveOccurred())
 
-				requestor := PlayerFactory.MustCreateWithOption(map[string]interface{}{
+				requestor := fixtures.PlayerFactory.MustCreateWithOption(map[string]interface{}{
 					"GameID": clan.GameID,
 				}).(*Player)
 				err = testDb.Insert(requestor)
@@ -1496,7 +1497,7 @@ var _ = Describe("Membership Model", func() {
 
 				_, err = CreateMembership(
 					testDb,
-					GetEncryptionKey(),
+					fixtures.GetEncryptionKey(),
 					game,
 					player.GameID,
 					"Member",
@@ -1512,10 +1513,10 @@ var _ = Describe("Membership Model", func() {
 			})
 
 			It("Requestor's level is less than min level", func() {
-				game, clan, _, players, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
+				game, clan, _, players, _, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				Expect(err).NotTo(HaveOccurred())
 
-				player := PlayerFactory.MustCreateWithOption(map[string]interface{}{
+				player := fixtures.PlayerFactory.MustCreateWithOption(map[string]interface{}{
 					"GameID": clan.GameID,
 				}).(*Player)
 				err = testDb.Insert(player)
@@ -1523,7 +1524,7 @@ var _ = Describe("Membership Model", func() {
 
 				_, err = CreateMembership(
 					testDb,
-					GetEncryptionKey(),
+					fixtures.GetEncryptionKey(),
 					game,
 					player.GameID,
 					"Member",
@@ -1538,12 +1539,12 @@ var _ = Describe("Membership Model", func() {
 			})
 
 			It("Membership already exists", func() {
-				game, clan, owner, players, _, err := GetClanWithMemberships(testDb, 1, 0, 0, 0, "", "")
+				game, clan, owner, players, _, err := fixtures.GetClanWithMemberships(testDb, 1, 0, 0, 0, "", "")
 				Expect(err).NotTo(HaveOccurred())
 
 				membership, err := CreateMembership(
 					testDb,
-					GetEncryptionKey(),
+					fixtures.GetEncryptionKey(),
 					game,
 					clan.GameID,
 					"Member",
@@ -1562,12 +1563,12 @@ var _ = Describe("Membership Model", func() {
 		Describe("Should approve a Membership invitation with ApproveOrDenyMembershipInvitation if", func() {
 			It("Player is not the membership requestor", func() {
 				action := "approve"
-				game, clan, _, players, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
+				game, clan, _, players, _, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				Expect(err).NotTo(HaveOccurred())
 
 				updatedMembership, err := ApproveOrDenyMembershipInvitation(
 					testDb,
-					GetEncryptionKey(),
+					fixtures.GetEncryptionKey(),
 					game,
 					players[0].GameID,
 					players[0].PublicID,
@@ -1588,7 +1589,7 @@ var _ = Describe("Membership Model", func() {
 				Expect(dbMembership.ApproverID.Valid).To(BeTrue())
 				Expect(dbMembership.ApproverID.Int64).To(Equal(int64(players[0].ID)))
 
-				dbPlayer, err := GetPlayerByID(testDb, GetEncryptionKey(), players[0].ID)
+				dbPlayer, err := GetPlayerByID(testDb, fixtures.GetEncryptionKey(), players[0].ID)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(dbPlayer.MembershipCount).To(Equal(1))
 
@@ -1601,12 +1602,12 @@ var _ = Describe("Membership Model", func() {
 		Describe("Should not approve a Membership invitation with ApproveOrDenyMembershipInvitation if", func() {
 			It("If clan reached the game's MaxMembers", func() {
 				action := "approve"
-				game, clan, _, players, _, err := GetClanReachedMaxMemberships(testDb)
+				game, clan, _, players, _, err := fixtures.GetClanReachedMaxMemberships(testDb)
 				Expect(err).NotTo(HaveOccurred())
 
 				_, err = ApproveOrDenyMembershipInvitation(
 					testDb,
-					GetEncryptionKey(),
+					fixtures.GetEncryptionKey(),
 					game,
 					players[1].GameID,
 					players[1].PublicID,
@@ -1620,10 +1621,10 @@ var _ = Describe("Membership Model", func() {
 
 			It("If player reached the game's MaxClansPerPlayer", func() {
 				action := "approve"
-				game, _, owner, players, _, err := GetClanWithMemberships(testDb, 1, 0, 0, 0, "", "")
+				game, _, owner, players, _, err := fixtures.GetClanWithMemberships(testDb, 1, 0, 0, 0, "", "")
 				Expect(err).NotTo(HaveOccurred())
 
-				anotherClan := ClanFactory.MustCreateWithOption(map[string]interface{}{
+				anotherClan := fixtures.ClanFactory.MustCreateWithOption(map[string]interface{}{
 					"GameID":   owner.GameID,
 					"PublicID": uuid.NewV4().String(),
 					"OwnerID":  owner.ID,
@@ -1632,7 +1633,7 @@ var _ = Describe("Membership Model", func() {
 				err = testDb.Insert(anotherClan)
 				Expect(err).NotTo(HaveOccurred())
 
-				membership := MembershipFactory.MustCreateWithOption(map[string]interface{}{
+				membership := fixtures.MembershipFactory.MustCreateWithOption(map[string]interface{}{
 					"GameID":      game.PublicID,
 					"PlayerID":    players[0].ID,
 					"ClanID":      anotherClan.ID,
@@ -1645,7 +1646,7 @@ var _ = Describe("Membership Model", func() {
 
 				_, err = ApproveOrDenyMembershipInvitation(
 					testDb,
-					GetEncryptionKey(),
+					fixtures.GetEncryptionKey(),
 					game,
 					players[0].GameID,
 					players[0].PublicID,
@@ -1659,7 +1660,7 @@ var _ = Describe("Membership Model", func() {
 
 			It("Player is the membership requestor", func() {
 				action := "approve"
-				game, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
+				game, clan, _, players, memberships, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				Expect(err).NotTo(HaveOccurred())
 
 				memberships[0].RequestorID = players[0].ID
@@ -1668,7 +1669,7 @@ var _ = Describe("Membership Model", func() {
 
 				_, err = ApproveOrDenyMembershipInvitation(
 					testDb,
-					GetEncryptionKey(),
+					fixtures.GetEncryptionKey(),
 					game,
 					players[0].GameID,
 					players[0].PublicID,
@@ -1682,10 +1683,10 @@ var _ = Describe("Membership Model", func() {
 
 			It("Membership does not exist", func() {
 				action := "approve"
-				game, clan, _, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
+				game, clan, _, _, _, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				Expect(err).NotTo(HaveOccurred())
 
-				player := PlayerFactory.MustCreateWithOption(map[string]interface{}{
+				player := fixtures.PlayerFactory.MustCreateWithOption(map[string]interface{}{
 					"GameID": clan.GameID,
 				}).(*Player)
 				err = testDb.Insert(player)
@@ -1693,7 +1694,7 @@ var _ = Describe("Membership Model", func() {
 
 				_, err = ApproveOrDenyMembershipInvitation(
 					testDb,
-					GetEncryptionKey(),
+					fixtures.GetEncryptionKey(),
 					game,
 					player.GameID,
 					player.PublicID,
@@ -1707,7 +1708,7 @@ var _ = Describe("Membership Model", func() {
 
 			It("Membership is deleted", func() {
 				action := "approve"
-				game, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
+				game, clan, _, players, memberships, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				Expect(err).NotTo(HaveOccurred())
 
 				memberships[0].DeletedAt = util.NowMilli()
@@ -1717,7 +1718,7 @@ var _ = Describe("Membership Model", func() {
 
 				_, err = ApproveOrDenyMembershipInvitation(
 					testDb,
-					GetEncryptionKey(),
+					fixtures.GetEncryptionKey(),
 					game,
 					players[0].GameID,
 					players[0].PublicID,
@@ -1731,7 +1732,7 @@ var _ = Describe("Membership Model", func() {
 
 			It("Membership is already approved", func() {
 				action := "approve"
-				game, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
+				game, clan, _, players, memberships, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				Expect(err).NotTo(HaveOccurred())
 
 				memberships[0].Approved = true
@@ -1740,7 +1741,7 @@ var _ = Describe("Membership Model", func() {
 
 				_, err = ApproveOrDenyMembershipInvitation(
 					testDb,
-					GetEncryptionKey(),
+					fixtures.GetEncryptionKey(),
 					game,
 					players[0].GameID,
 					players[0].PublicID,
@@ -1754,7 +1755,7 @@ var _ = Describe("Membership Model", func() {
 
 			It("Membership is already denied", func() {
 				action := "approve"
-				game, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
+				game, clan, _, players, memberships, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				Expect(err).NotTo(HaveOccurred())
 
 				memberships[0].Denied = true
@@ -1763,7 +1764,7 @@ var _ = Describe("Membership Model", func() {
 
 				_, err = ApproveOrDenyMembershipInvitation(
 					testDb,
-					GetEncryptionKey(),
+					fixtures.GetEncryptionKey(),
 					game,
 					players[0].GameID,
 					players[0].PublicID,
@@ -1779,12 +1780,12 @@ var _ = Describe("Membership Model", func() {
 		Describe("Should deny a Membership invitation with ApproveOrDenyMembershipInvitation if", func() {
 			It("Player is not the membership requestor", func() {
 				action := "deny"
-				game, clan, _, players, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
+				game, clan, _, players, _, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				Expect(err).NotTo(HaveOccurred())
 
 				updatedMembership, err := ApproveOrDenyMembershipInvitation(
 					testDb,
-					GetEncryptionKey(),
+					fixtures.GetEncryptionKey(),
 					game,
 					players[0].GameID,
 					players[0].PublicID,
@@ -1809,12 +1810,12 @@ var _ = Describe("Membership Model", func() {
 
 		Describe("Should not ApproveOrDenyMembershipInvitation if", func() {
 			It("Invalid action", func() {
-				game, clan, _, players, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
+				game, clan, _, players, _, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				Expect(err).NotTo(HaveOccurred())
 
 				_, err = ApproveOrDenyMembershipInvitation(
 					testDb,
-					GetEncryptionKey(),
+					fixtures.GetEncryptionKey(),
 					game,
 					players[0].GameID,
 					players[0].PublicID,
@@ -1830,7 +1831,7 @@ var _ = Describe("Membership Model", func() {
 		Describe("Should approve a Membership application with ApproveOrDenyMembershipApplication if", func() {
 			It("Owner", func() {
 				action := "approve"
-				game, clan, owner, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
+				game, clan, owner, players, memberships, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				Expect(err).NotTo(HaveOccurred())
 
 				memberships[0].RequestorID = memberships[0].PlayerID
@@ -1838,7 +1839,7 @@ var _ = Describe("Membership Model", func() {
 
 				updatedMembership, err := ApproveOrDenyMembershipApplication(
 					testDb,
-					GetEncryptionKey(),
+					fixtures.GetEncryptionKey(),
 					game,
 					players[0].GameID,
 					players[0].PublicID,
@@ -1859,7 +1860,7 @@ var _ = Describe("Membership Model", func() {
 				Expect(dbMembership.ApproverID.Valid).To(BeTrue())
 				Expect(dbMembership.ApproverID.Int64).To(Equal(int64(owner.ID)))
 
-				dbPlayer, err := GetPlayerByID(testDb, GetEncryptionKey(), players[0].ID)
+				dbPlayer, err := GetPlayerByID(testDb, fixtures.GetEncryptionKey(), players[0].ID)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(dbPlayer.MembershipCount).To(Equal(1))
 
@@ -1870,7 +1871,7 @@ var _ = Describe("Membership Model", func() {
 
 			It("Requestor is member of the clan with level > minLevel", func() {
 				action := "approve"
-				game, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 1, 0, 0, 1, "", "")
+				game, clan, _, players, memberships, err := fixtures.GetClanWithMemberships(testDb, 1, 0, 0, 1, "", "")
 				Expect(err).NotTo(HaveOccurred())
 
 				memberships[0].Level = "CoLeader"
@@ -1883,7 +1884,7 @@ var _ = Describe("Membership Model", func() {
 
 				updatedMembership, err := ApproveOrDenyMembershipApplication(
 					testDb,
-					GetEncryptionKey(),
+					fixtures.GetEncryptionKey(),
 					game,
 					players[1].GameID,
 					players[1].PublicID,
@@ -1905,7 +1906,7 @@ var _ = Describe("Membership Model", func() {
 				Expect(dbMembership.Approved).To(Equal(true))
 				Expect(dbMembership.Denied).To(Equal(false))
 
-				dbPlayer, err := GetPlayerByID(testDb, GetEncryptionKey(), players[1].ID)
+				dbPlayer, err := GetPlayerByID(testDb, fixtures.GetEncryptionKey(), players[1].ID)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(dbPlayer.MembershipCount).To(Equal(1))
 
@@ -1918,7 +1919,7 @@ var _ = Describe("Membership Model", func() {
 		Describe("Should not approve a Membership application with ApproveOrDenyMembershipApplication if", func() {
 			It("If clan reached the game's MaxMembers", func() {
 				action := "approve"
-				game, clan, owner, players, memberships, err := GetClanReachedMaxMemberships(testDb)
+				game, clan, owner, players, memberships, err := fixtures.GetClanReachedMaxMemberships(testDb)
 				Expect(err).NotTo(HaveOccurred())
 
 				memberships[1].RequestorID = memberships[1].PlayerID
@@ -1927,7 +1928,7 @@ var _ = Describe("Membership Model", func() {
 
 				_, err = ApproveOrDenyMembershipApplication(
 					testDb,
-					GetEncryptionKey(),
+					fixtures.GetEncryptionKey(),
 					game,
 					players[1].GameID,
 					players[1].PublicID,
@@ -1942,10 +1943,10 @@ var _ = Describe("Membership Model", func() {
 
 			It("If player reached the game's MaxClansPerPlayer", func() {
 				action := "approve"
-				game, _, owner, players, _, err := GetClanWithMemberships(testDb, 1, 0, 0, 0, "", "")
+				game, _, owner, players, _, err := fixtures.GetClanWithMemberships(testDb, 1, 0, 0, 0, "", "")
 				Expect(err).NotTo(HaveOccurred())
 
-				anotherClan := ClanFactory.MustCreateWithOption(map[string]interface{}{
+				anotherClan := fixtures.ClanFactory.MustCreateWithOption(map[string]interface{}{
 					"GameID":   owner.GameID,
 					"PublicID": uuid.NewV4().String(),
 					"OwnerID":  owner.ID,
@@ -1954,7 +1955,7 @@ var _ = Describe("Membership Model", func() {
 				err = testDb.Insert(anotherClan)
 				Expect(err).NotTo(HaveOccurred())
 
-				membership := MembershipFactory.MustCreateWithOption(map[string]interface{}{
+				membership := fixtures.MembershipFactory.MustCreateWithOption(map[string]interface{}{
 					"GameID":      game.PublicID,
 					"PlayerID":    players[0].ID,
 					"ClanID":      anotherClan.ID,
@@ -1967,7 +1968,7 @@ var _ = Describe("Membership Model", func() {
 
 				_, err = ApproveOrDenyMembershipApplication(
 					testDb,
-					GetEncryptionKey(),
+					fixtures.GetEncryptionKey(),
 					game,
 					players[0].GameID,
 					players[0].PublicID,
@@ -1982,7 +1983,7 @@ var _ = Describe("Membership Model", func() {
 
 			It("Requestor is member of the clan with level < minLevel", func() {
 				action := "approve"
-				game, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 2, "", "")
+				game, clan, _, players, memberships, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 2, "", "")
 				Expect(err).NotTo(HaveOccurred())
 
 				memberships[0].RequestorID = memberships[0].PlayerID
@@ -1996,7 +1997,7 @@ var _ = Describe("Membership Model", func() {
 
 				_, err = ApproveOrDenyMembershipApplication(
 					testDb,
-					GetEncryptionKey(),
+					fixtures.GetEncryptionKey(),
 					game,
 					players[0].GameID,
 					players[0].PublicID,
@@ -2011,7 +2012,7 @@ var _ = Describe("Membership Model", func() {
 
 			It("Requestor is not approved member of the clan", func() {
 				action := "approve"
-				game, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 2, "", "")
+				game, clan, _, players, memberships, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 2, "", "")
 				Expect(err).NotTo(HaveOccurred())
 
 				memberships[0].RequestorID = memberships[0].PlayerID
@@ -2025,7 +2026,7 @@ var _ = Describe("Membership Model", func() {
 
 				_, err = ApproveOrDenyMembershipApplication(
 					testDb,
-					GetEncryptionKey(),
+					fixtures.GetEncryptionKey(),
 					game,
 					players[0].GameID,
 					players[0].PublicID,
@@ -2040,14 +2041,14 @@ var _ = Describe("Membership Model", func() {
 
 			It("Requestor is not member of the clan", func() {
 				action := "approve"
-				game, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
+				game, clan, _, players, memberships, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				Expect(err).NotTo(HaveOccurred())
 
 				memberships[0].RequestorID = memberships[0].PlayerID
 				_, err = testDb.Update(memberships[0])
 				Expect(err).NotTo(HaveOccurred())
 
-				requestor := PlayerFactory.MustCreateWithOption(map[string]interface{}{
+				requestor := fixtures.PlayerFactory.MustCreateWithOption(map[string]interface{}{
 					"GameID": clan.GameID,
 				}).(*Player)
 				err = testDb.Insert(requestor)
@@ -2055,7 +2056,7 @@ var _ = Describe("Membership Model", func() {
 
 				_, err = ApproveOrDenyMembershipApplication(
 					testDb,
-					GetEncryptionKey(),
+					fixtures.GetEncryptionKey(),
 					game,
 					clan.GameID,
 					players[0].PublicID,
@@ -2070,7 +2071,7 @@ var _ = Describe("Membership Model", func() {
 
 			It("Requestor membership is deleted", func() {
 				action := "approve"
-				game, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 2, "", "")
+				game, clan, _, players, memberships, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 2, "", "")
 				Expect(err).NotTo(HaveOccurred())
 
 				memberships[0].RequestorID = memberships[0].PlayerID
@@ -2084,7 +2085,7 @@ var _ = Describe("Membership Model", func() {
 
 				_, err = ApproveOrDenyMembershipApplication(
 					testDb,
-					GetEncryptionKey(),
+					fixtures.GetEncryptionKey(),
 					game,
 					clan.GameID,
 					players[0].PublicID,
@@ -2099,7 +2100,7 @@ var _ = Describe("Membership Model", func() {
 
 			It("Requestor is the player of the membership", func() {
 				action := "approve"
-				game, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
+				game, clan, _, players, memberships, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				Expect(err).NotTo(HaveOccurred())
 
 				memberships[0].RequestorID = memberships[0].PlayerID
@@ -2108,7 +2109,7 @@ var _ = Describe("Membership Model", func() {
 
 				_, err = ApproveOrDenyMembershipApplication(
 					testDb,
-					GetEncryptionKey(),
+					fixtures.GetEncryptionKey(),
 					game,
 					clan.GameID,
 					players[0].PublicID,
@@ -2123,12 +2124,12 @@ var _ = Describe("Membership Model", func() {
 
 			It("Player was not the membership requestor", func() {
 				action := "approve"
-				game, clan, owner, players, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
+				game, clan, owner, players, _, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				Expect(err).NotTo(HaveOccurred())
 
 				_, err = ApproveOrDenyMembershipApplication(
 					testDb,
-					GetEncryptionKey(),
+					fixtures.GetEncryptionKey(),
 					game,
 					clan.GameID,
 					players[0].PublicID,
@@ -2143,10 +2144,10 @@ var _ = Describe("Membership Model", func() {
 
 			It("Membership does not exist", func() {
 				action := "approve"
-				game, clan, owner, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
+				game, clan, owner, _, _, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
 				Expect(err).NotTo(HaveOccurred())
 
-				player := PlayerFactory.MustCreateWithOption(map[string]interface{}{
+				player := fixtures.PlayerFactory.MustCreateWithOption(map[string]interface{}{
 					"GameID": clan.GameID,
 				}).(*Player)
 				err = testDb.Insert(player)
@@ -2154,7 +2155,7 @@ var _ = Describe("Membership Model", func() {
 
 				_, err = ApproveOrDenyMembershipApplication(
 					testDb,
-					GetEncryptionKey(),
+					fixtures.GetEncryptionKey(),
 					game,
 					clan.GameID,
 					player.PublicID,
@@ -2169,7 +2170,7 @@ var _ = Describe("Membership Model", func() {
 
 			It("Membership is already approved", func() {
 				action := "approve"
-				game, clan, owner, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
+				game, clan, owner, players, memberships, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				Expect(err).NotTo(HaveOccurred())
 
 				memberships[0].RequestorID = memberships[0].PlayerID
@@ -2179,7 +2180,7 @@ var _ = Describe("Membership Model", func() {
 
 				_, err = ApproveOrDenyMembershipApplication(
 					testDb,
-					GetEncryptionKey(),
+					fixtures.GetEncryptionKey(),
 					game,
 					clan.GameID,
 					players[0].PublicID,
@@ -2194,7 +2195,7 @@ var _ = Describe("Membership Model", func() {
 
 			It("Membership is already denied", func() {
 				action := "approve"
-				game, clan, owner, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
+				game, clan, owner, players, memberships, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				Expect(err).NotTo(HaveOccurred())
 
 				memberships[0].RequestorID = memberships[0].PlayerID
@@ -2204,7 +2205,7 @@ var _ = Describe("Membership Model", func() {
 
 				_, err = ApproveOrDenyMembershipApplication(
 					testDb,
-					GetEncryptionKey(),
+					fixtures.GetEncryptionKey(),
 					game,
 					clan.GameID,
 					players[0].PublicID,
@@ -2221,7 +2222,7 @@ var _ = Describe("Membership Model", func() {
 		Describe("Should deny a Membership application with ApproveOrDenyMembershipApplication if", func() {
 			It("Owner", func() {
 				action := "deny"
-				game, clan, owner, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
+				game, clan, owner, players, memberships, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				Expect(err).NotTo(HaveOccurred())
 
 				memberships[0].RequestorID = memberships[0].PlayerID
@@ -2230,7 +2231,7 @@ var _ = Describe("Membership Model", func() {
 
 				updatedMembership, err := ApproveOrDenyMembershipApplication(
 					testDb,
-					GetEncryptionKey(),
+					fixtures.GetEncryptionKey(),
 					game,
 					players[0].GameID,
 					players[0].PublicID,
@@ -2256,7 +2257,7 @@ var _ = Describe("Membership Model", func() {
 
 		Describe("Should not ApproveOrDenyMembershipApplication if", func() {
 			It("Invalid action", func() {
-				game, clan, owner, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
+				game, clan, owner, players, memberships, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				Expect(err).NotTo(HaveOccurred())
 
 				memberships[0].RequestorID = memberships[0].PlayerID
@@ -2265,7 +2266,7 @@ var _ = Describe("Membership Model", func() {
 
 				_, err = ApproveOrDenyMembershipApplication(
 					testDb,
-					GetEncryptionKey(),
+					fixtures.GetEncryptionKey(),
 					game,
 					players[0].GameID,
 					players[0].PublicID,
@@ -2282,7 +2283,7 @@ var _ = Describe("Membership Model", func() {
 		Describe("Should promote a member with PromoteOrDemoteMember", func() {
 			It("If requestor is the owner", func() {
 				action := "promote"
-				game, clan, owner, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
+				game, clan, owner, players, memberships, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				Expect(err).NotTo(HaveOccurred())
 
 				memberships[0].Approved = true
@@ -2310,7 +2311,7 @@ var _ = Describe("Membership Model", func() {
 
 			It("If requestor has enough level", func() {
 				action := "promote"
-				game, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 2, "", "")
+				game, clan, _, players, memberships, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 2, "", "")
 				Expect(err).NotTo(HaveOccurred())
 
 				memberships[0].Approved = true
@@ -2345,7 +2346,7 @@ var _ = Describe("Membership Model", func() {
 		Describe("Should not promote a member with PromoteOrDemoteMember", func() {
 			It("If requestor is the player", func() {
 				action := "promote"
-				game, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
+				game, clan, _, players, memberships, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				Expect(err).NotTo(HaveOccurred())
 
 				memberships[0].Approved = true
@@ -2368,7 +2369,7 @@ var _ = Describe("Membership Model", func() {
 
 			It("If requestor does not have enough level", func() {
 				action := "promote"
-				game, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 2, "", "")
+				game, clan, _, players, memberships, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 2, "", "")
 				Expect(err).NotTo(HaveOccurred())
 
 				memberships[0].Approved = true
@@ -2396,7 +2397,7 @@ var _ = Describe("Membership Model", func() {
 
 			It("If requestor is not a clan member", func() {
 				action := "promote"
-				game, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
+				game, clan, _, players, memberships, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				Expect(err).NotTo(HaveOccurred())
 
 				memberships[0].Approved = true
@@ -2420,7 +2421,7 @@ var _ = Describe("Membership Model", func() {
 
 			It("Requestor membership is deleted", func() {
 				action := "promote"
-				game, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 2, "", "")
+				game, clan, _, players, memberships, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 2, "", "")
 				Expect(err).NotTo(HaveOccurred())
 
 				memberships[0].Approved = true
@@ -2447,10 +2448,10 @@ var _ = Describe("Membership Model", func() {
 
 			It("If player is not a clan member", func() {
 				action := "promote"
-				game, clan, owner, _, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
+				game, clan, owner, _, _, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				Expect(err).NotTo(HaveOccurred())
 
-				player := PlayerFactory.MustCreateWithOption(map[string]interface{}{
+				player := fixtures.PlayerFactory.MustCreateWithOption(map[string]interface{}{
 					"GameID": clan.GameID,
 				}).(*Player)
 				err = testDb.Insert(player)
@@ -2472,7 +2473,7 @@ var _ = Describe("Membership Model", func() {
 
 			It("If player membership is not approved", func() {
 				action := "promote"
-				game, clan, owner, players, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
+				game, clan, owner, players, _, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				Expect(err).NotTo(HaveOccurred())
 
 				_, err = PromoteOrDemoteMember(
@@ -2491,7 +2492,7 @@ var _ = Describe("Membership Model", func() {
 
 			It("If player membership is denied", func() {
 				action := "promote"
-				game, clan, owner, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
+				game, clan, owner, players, memberships, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				Expect(err).NotTo(HaveOccurred())
 
 				memberships[0].Denied = true
@@ -2514,7 +2515,7 @@ var _ = Describe("Membership Model", func() {
 
 			It("If requestor membership is not approved", func() {
 				action := "promote"
-				game, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 2, "", "")
+				game, clan, _, players, memberships, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 2, "", "")
 				Expect(err).NotTo(HaveOccurred())
 
 				memberships[0].Approved = true
@@ -2536,7 +2537,7 @@ var _ = Describe("Membership Model", func() {
 
 			It("Player is already max level", func() {
 				action := "promote"
-				game, clan, owner, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 2, "", "")
+				game, clan, owner, players, memberships, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 2, "", "")
 				Expect(err).NotTo(HaveOccurred())
 
 				memberships[0].Approved = true
@@ -2562,7 +2563,7 @@ var _ = Describe("Membership Model", func() {
 		Describe("Should demote a member with PromoteOrDemoteMember", func() {
 			It("If requestor is the owner", func() {
 				action := "demote"
-				game, clan, owner, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
+				game, clan, owner, players, memberships, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				Expect(err).NotTo(HaveOccurred())
 
 				memberships[0].Level = "CoLeader"
@@ -2592,7 +2593,7 @@ var _ = Describe("Membership Model", func() {
 		Describe("Should not demote a member with PromoteOrDemoteMember if", func() {
 			It("Player is already min level", func() {
 				action := "demote"
-				game, clan, owner, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 2, "", "")
+				game, clan, owner, players, memberships, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 2, "", "")
 				Expect(err).NotTo(HaveOccurred())
 
 				memberships[0].Approved = true
@@ -2617,7 +2618,7 @@ var _ = Describe("Membership Model", func() {
 
 		Describe("Should not PromoteOrDemoteMember", func() {
 			It("Invalid action", func() {
-				game, clan, owner, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
+				game, clan, owner, players, memberships, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				Expect(err).NotTo(HaveOccurred())
 
 				memberships[0].Approved = true
@@ -2641,7 +2642,7 @@ var _ = Describe("Membership Model", func() {
 
 		Describe("Should delete a membership with DeleteMembership", func() {
 			It("If requestor is the owner", func() {
-				game, clan, owner, players, memberships, err := GetClanWithMemberships(testDb, 1, 0, 0, 0, "", "")
+				game, clan, owner, players, memberships, err := fixtures.GetClanWithMemberships(testDb, 1, 0, 0, 0, "", "")
 				Expect(err).NotTo(HaveOccurred())
 
 				_, err = DeleteMembership(
@@ -2662,7 +2663,7 @@ var _ = Describe("Membership Model", func() {
 				Expect(dbMembership.Denied).To(Equal(false))
 				Expect(dbMembership.DeletedAt).To(BeNumerically(">", util.NowMilli()-1000))
 
-				dbPlayer, err := GetPlayerByID(testDb, GetEncryptionKey(), memberships[0].PlayerID)
+				dbPlayer, err := GetPlayerByID(testDb, fixtures.GetEncryptionKey(), memberships[0].PlayerID)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(dbPlayer.MembershipCount).To(Equal(0))
 
@@ -2672,7 +2673,7 @@ var _ = Describe("Membership Model", func() {
 			})
 
 			It("If requestor is the player", func() {
-				game, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 1, 0, 0, 0, "", "")
+				game, clan, _, players, memberships, err := fixtures.GetClanWithMemberships(testDb, 1, 0, 0, 0, "", "")
 				Expect(err).NotTo(HaveOccurred())
 
 				_, err = DeleteMembership(
@@ -2693,7 +2694,7 @@ var _ = Describe("Membership Model", func() {
 				Expect(dbMembership.Denied).To(Equal(false))
 				Expect(dbMembership.DeletedAt).To(BeNumerically(">", util.NowMilli()-1000))
 
-				dbPlayer, err := GetPlayerByID(testDb, GetEncryptionKey(), memberships[0].PlayerID)
+				dbPlayer, err := GetPlayerByID(testDb, fixtures.GetEncryptionKey(), memberships[0].PlayerID)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(dbPlayer.MembershipCount).To(Equal(0))
 
@@ -2703,7 +2704,7 @@ var _ = Describe("Membership Model", func() {
 			})
 
 			It("If requestor has enough level and offset", func() {
-				game, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 2, 0, 0, 0, "", "")
+				game, clan, _, players, memberships, err := fixtures.GetClanWithMemberships(testDb, 2, 0, 0, 0, "", "")
 				Expect(err).NotTo(HaveOccurred())
 
 				memberships[1].Level = "CoLeader"
@@ -2727,7 +2728,7 @@ var _ = Describe("Membership Model", func() {
 				Expect(dbMembership.Denied).To(Equal(false))
 				Expect(dbMembership.DeletedAt).To(BeNumerically(">", util.NowMilli()-1000))
 
-				dbPlayer, err := GetPlayerByID(testDb, GetEncryptionKey(), memberships[0].PlayerID)
+				dbPlayer, err := GetPlayerByID(testDb, fixtures.GetEncryptionKey(), memberships[0].PlayerID)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(dbPlayer.MembershipCount).To(Equal(0))
 
@@ -2739,7 +2740,7 @@ var _ = Describe("Membership Model", func() {
 
 		Describe("Should not delete a membership with DeleteMembership", func() {
 			It("If requestor does not have enough level", func() {
-				game, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 2, "", "")
+				game, clan, _, players, memberships, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 2, "", "")
 				Expect(err).NotTo(HaveOccurred())
 
 				memberships[1].Level = "Member"
@@ -2760,7 +2761,7 @@ var _ = Describe("Membership Model", func() {
 			})
 
 			It("If requestor has enough level but not enough offset", func() {
-				game, clan, _, players, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 2, "", "")
+				game, clan, _, players, _, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 2, "", "")
 				Expect(err).NotTo(HaveOccurred())
 
 				_, err = DeleteMembership(
@@ -2776,10 +2777,10 @@ var _ = Describe("Membership Model", func() {
 			})
 
 			It("If requestor is not a clan member", func() {
-				game, clan, _, players, _, err := GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
+				game, clan, _, players, _, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				Expect(err).NotTo(HaveOccurred())
 
-				requestor := PlayerFactory.MustCreateWithOption(map[string]interface{}{
+				requestor := fixtures.PlayerFactory.MustCreateWithOption(map[string]interface{}{
 					"GameID": clan.GameID,
 				}).(*Player)
 				err = testDb.Insert(requestor)
@@ -2799,7 +2800,7 @@ var _ = Describe("Membership Model", func() {
 			})
 
 			It("If requestor membership is denied", func() {
-				game, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 2, "", "")
+				game, clan, _, players, memberships, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 2, "", "")
 				Expect(err).NotTo(HaveOccurred())
 
 				memberships[1].Level = "CoLeader"
@@ -2820,7 +2821,7 @@ var _ = Describe("Membership Model", func() {
 			})
 
 			It("If requestor membership is not approved", func() {
-				game, clan, _, players, memberships, err := GetClanWithMemberships(testDb, 0, 0, 0, 2, "", "")
+				game, clan, _, players, memberships, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 2, "", "")
 				Expect(err).NotTo(HaveOccurred())
 
 				memberships[1].Level = "CoLeader"

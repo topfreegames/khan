@@ -15,6 +15,7 @@ import (
 
 	uuid "github.com/satori/go.uuid"
 	"github.com/topfreegames/khan/models"
+	"github.com/topfreegames/khan/models/fixtures"
 	khanTesting "github.com/topfreegames/khan/testing"
 )
 
@@ -33,7 +34,7 @@ func BenchmarkCreateClan(b *testing.B) {
 
 	var players []*models.Player
 	for i := 0; i < b.N; i++ {
-		player := models.PlayerFactory.MustCreateWithOption(map[string]interface{}{
+		player := fixtures.PlayerFactory.MustCreateWithOption(map[string]interface{}{
 			"GameID": game.PublicID,
 		}).(*models.Player)
 		err = db.Insert(player)
@@ -91,7 +92,7 @@ func BenchmarkRetrieveClan(b *testing.B) {
 	}
 
 	gameID := uuid.NewV4().String()
-	_, clan, _, _, _, err := models.GetClanWithMemberships(
+	_, clan, _, _, _, err := fixtures.GetClanWithMemberships(
 		db, 50, 50, 50, 50, gameID, uuid.NewV4().String(),
 	)
 
@@ -118,7 +119,7 @@ func BenchmarkRetrieveClanSummary(b *testing.B) {
 	}
 
 	gameID := uuid.NewV4().String()
-	_, clan, _, _, _, err := models.GetClanWithMemberships(
+	_, clan, _, _, _, err := fixtures.GetClanWithMemberships(
 		db, 50, 50, 50, 50, gameID, uuid.NewV4().String(),
 	)
 
@@ -268,7 +269,7 @@ func BenchmarkTransferOwnership(b *testing.B) {
 		panic(err.Error())
 	}
 
-	game, clan, owner, members, _, err := models.GetClanWithMemberships(
+	game, clan, owner, members, _, err := fixtures.GetClanWithMemberships(
 		db, 20, 0, 0, 0, "", "",
 	)
 	if err != nil {

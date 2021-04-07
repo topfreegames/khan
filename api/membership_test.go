@@ -17,6 +17,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/topfreegames/khan/api"
 	"github.com/topfreegames/khan/models"
+	"github.com/topfreegames/khan/models/fixtures"
 )
 
 var _ = Describe("Membership API Handler", func() {
@@ -30,12 +31,12 @@ var _ = Describe("Membership API Handler", func() {
 
 		a = GetDefaultTestApp()
 		db = a.Db(nil)
-		a.NonblockingStartWorkers()
+		fixtures.ConfigureAndStartGoWorkers()
 	})
 
 	Describe("Apply For Membership Handler", func() {
 		It("Should create membership application", func() {
-			_, clan, _, _, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
+			_, clan, _, _, _, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
 			Expect(err).NotTo(HaveOccurred())
 
 			clan.AutoJoin = true
@@ -43,7 +44,7 @@ var _ = Describe("Membership API Handler", func() {
 			_, err = testDb.Update(clan)
 			Expect(err).NotTo(HaveOccurred())
 
-			player := models.PlayerFactory.MustCreateWithOption(map[string]interface{}{
+			player := fixtures.PlayerFactory.MustCreateWithOption(map[string]interface{}{
 				"GameID": clan.GameID,
 			}).(*models.Player)
 			err = testDb.Insert(player)
@@ -76,7 +77,7 @@ var _ = Describe("Membership API Handler", func() {
 		})
 
 		It("Should create membership application sending a message", func() {
-			_, clan, _, _, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
+			_, clan, _, _, _, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
 			Expect(err).NotTo(HaveOccurred())
 
 			clan.AutoJoin = false
@@ -84,7 +85,7 @@ var _ = Describe("Membership API Handler", func() {
 			_, err = testDb.Update(clan)
 			Expect(err).NotTo(HaveOccurred())
 
-			player := models.PlayerFactory.MustCreateWithOption(map[string]interface{}{
+			player := fixtures.PlayerFactory.MustCreateWithOption(map[string]interface{}{
 				"GameID": clan.GameID,
 			}).(*models.Player)
 			err = testDb.Insert(player)
@@ -119,7 +120,7 @@ var _ = Describe("Membership API Handler", func() {
 		})
 
 		It("Should conflict when player is already a member", func() {
-			_, clan, owner, players, memberships, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
+			_, clan, owner, players, memberships, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 			Expect(err).NotTo(HaveOccurred())
 
 			memberships[0].RequestorID = memberships[0].PlayerID
@@ -155,7 +156,7 @@ var _ = Describe("Membership API Handler", func() {
 		})
 
 		It("Should create membership application sending a message after player left clan", func() {
-			_, clan, _, players, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
+			_, clan, _, players, _, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 			Expect(err).NotTo(HaveOccurred())
 
 			clan.AllowApplication = true
@@ -205,7 +206,7 @@ var _ = Describe("Membership API Handler", func() {
 		})
 
 		It("Should delete member", func() {
-			_, clan, owner, players, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
+			_, clan, owner, players, _, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 			Expect(err).NotTo(HaveOccurred())
 
 			gameID := clan.GameID
@@ -252,7 +253,7 @@ var _ = Describe("Membership API Handler", func() {
 
 		It("Should not create membership application if player does not exist", func() {
 			playerPublicID := randomdata.FullName(randomdata.RandomGender)
-			_, clan, _, _, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
+			_, clan, _, _, _, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
 			Expect(err).NotTo(HaveOccurred())
 
 			gameID := clan.GameID
@@ -274,10 +275,10 @@ var _ = Describe("Membership API Handler", func() {
 		})
 
 		It("Should not create membership application if invalid data", func() {
-			_, clan, _, _, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
+			_, clan, _, _, _, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
 			Expect(err).NotTo(HaveOccurred())
 
-			player := models.PlayerFactory.MustCreateWithOption(map[string]interface{}{
+			player := fixtures.PlayerFactory.MustCreateWithOption(map[string]interface{}{
 				"GameID": clan.GameID,
 			}).(*models.Player)
 			err = testDb.Insert(player)
@@ -303,10 +304,10 @@ var _ = Describe("Membership API Handler", func() {
 
 	Describe("Invite For Membership Handler", func() {
 		It("Should create membership invitation if clan owner", func() {
-			_, clan, owner, _, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
+			_, clan, owner, _, _, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
 			Expect(err).NotTo(HaveOccurred())
 
-			player := models.PlayerFactory.MustCreateWithOption(map[string]interface{}{
+			player := fixtures.PlayerFactory.MustCreateWithOption(map[string]interface{}{
 				"GameID": clan.GameID,
 			}).(*models.Player)
 			err = testDb.Insert(player)
@@ -339,10 +340,10 @@ var _ = Describe("Membership API Handler", func() {
 		})
 
 		It("Should create membership invitation sending a message", func() {
-			_, clan, owner, _, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
+			_, clan, owner, _, _, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
 			Expect(err).NotTo(HaveOccurred())
 
-			player := models.PlayerFactory.MustCreateWithOption(map[string]interface{}{
+			player := fixtures.PlayerFactory.MustCreateWithOption(map[string]interface{}{
 				"GameID": clan.GameID,
 			}).(*models.Player)
 			err = testDb.Insert(player)
@@ -377,7 +378,7 @@ var _ = Describe("Membership API Handler", func() {
 		})
 
 		It("Should create membership invitation if requestor has level greater than min level", func() {
-			_, clan, _, players, memberships, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
+			_, clan, _, players, memberships, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 			Expect(err).NotTo(HaveOccurred())
 
 			memberships[0].Level = "CoLeader"
@@ -385,7 +386,7 @@ var _ = Describe("Membership API Handler", func() {
 			_, err = testDb.Update(memberships[0])
 			Expect(err).NotTo(HaveOccurred())
 
-			player := models.PlayerFactory.MustCreateWithOption(map[string]interface{}{
+			player := fixtures.PlayerFactory.MustCreateWithOption(map[string]interface{}{
 				"GameID": clan.GameID,
 			}).(*models.Player)
 			err = testDb.Insert(player)
@@ -443,7 +444,7 @@ var _ = Describe("Membership API Handler", func() {
 
 		It("Should not create membership invitation if player does not exist", func() {
 			playerPublicID := randomdata.FullName(randomdata.RandomGender)
-			_, clan, owner, _, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
+			_, clan, owner, _, _, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
 			Expect(err).NotTo(HaveOccurred())
 
 			gameID := owner.GameID
@@ -466,10 +467,10 @@ var _ = Describe("Membership API Handler", func() {
 		})
 
 		It("Should not create membership invitation if invalid data", func() {
-			_, clan, owner, _, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
+			_, clan, owner, _, _, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
 			Expect(err).NotTo(HaveOccurred())
 
-			player := models.PlayerFactory.MustCreateWithOption(map[string]interface{}{
+			player := fixtures.PlayerFactory.MustCreateWithOption(map[string]interface{}{
 				"GameID": clan.GameID,
 			}).(*models.Player)
 			err = testDb.Insert(player)
@@ -496,7 +497,7 @@ var _ = Describe("Membership API Handler", func() {
 
 	Describe("Approve Or Deny Membership Invitation Handler", func() {
 		It("Should approve membership invitation", func() {
-			_, clan, _, players, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
+			_, clan, _, players, _, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 			Expect(err).NotTo(HaveOccurred())
 
 			gameID := clan.GameID
@@ -521,7 +522,7 @@ var _ = Describe("Membership API Handler", func() {
 		})
 
 		It("Should deny membership invitation", func() {
-			_, clan, _, players, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
+			_, clan, _, players, _, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 			Expect(err).NotTo(HaveOccurred())
 
 			gameID := clan.GameID
@@ -570,7 +571,7 @@ var _ = Describe("Membership API Handler", func() {
 
 		It("Should not approve membership invitation if player does not exist", func() {
 			playerPublicID := randomdata.FullName(randomdata.RandomGender)
-			_, clan, owner, _, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
+			_, clan, owner, _, _, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
 			Expect(err).NotTo(HaveOccurred())
 
 			gameID := owner.GameID
@@ -592,7 +593,7 @@ var _ = Describe("Membership API Handler", func() {
 
 	Describe("Approve Or Deny Membership Application Handler", func() {
 		It("Should approve membership application", func() {
-			_, clan, owner, players, memberships, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
+			_, clan, owner, players, memberships, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 			Expect(err).NotTo(HaveOccurred())
 
 			memberships[0].RequestorID = memberships[0].PlayerID
@@ -619,7 +620,7 @@ var _ = Describe("Membership API Handler", func() {
 		})
 
 		It("Should conflict when player is already a member", func() {
-			_, clan, owner, players, memberships, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
+			_, clan, owner, players, memberships, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 			Expect(err).NotTo(HaveOccurred())
 
 			memberships[0].RequestorID = memberships[0].PlayerID
@@ -649,7 +650,7 @@ var _ = Describe("Membership API Handler", func() {
 		})
 
 		It("Should deny membership application", func() {
-			_, clan, owner, players, memberships, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
+			_, clan, owner, players, memberships, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 			Expect(err).NotTo(HaveOccurred())
 
 			memberships[0].RequestorID = memberships[0].PlayerID
@@ -700,7 +701,7 @@ var _ = Describe("Membership API Handler", func() {
 
 		It("Should not approve membership application if player does not exist", func() {
 			playerPublicID := randomdata.FullName(randomdata.RandomGender)
-			_, clan, owner, _, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
+			_, clan, owner, _, _, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
 			Expect(err).NotTo(HaveOccurred())
 
 			gameID := owner.GameID
@@ -723,7 +724,7 @@ var _ = Describe("Membership API Handler", func() {
 
 	Describe("Promote Or Demote Member Handler", func() {
 		It("Should promote member", func() {
-			_, clan, owner, players, memberships, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
+			_, clan, owner, players, memberships, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 			Expect(err).NotTo(HaveOccurred())
 
 			memberships[0].Approved = true
@@ -750,7 +751,7 @@ var _ = Describe("Membership API Handler", func() {
 		})
 
 		It("Should demote member", func() {
-			_, clan, owner, players, memberships, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
+			_, clan, owner, players, memberships, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 			Expect(err).NotTo(HaveOccurred())
 
 			memberships[0].Approved = true
@@ -802,7 +803,7 @@ var _ = Describe("Membership API Handler", func() {
 
 		It("Should not promote member if player does not exist", func() {
 			playerPublicID := randomdata.FullName(randomdata.RandomGender)
-			_, clan, owner, _, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
+			_, clan, owner, _, _, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
 			Expect(err).NotTo(HaveOccurred())
 
 			gameID := owner.GameID
@@ -825,7 +826,7 @@ var _ = Describe("Membership API Handler", func() {
 
 	Describe("Delete Member Handler", func() {
 		It("Should delete member", func() {
-			_, clan, owner, players, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
+			_, clan, owner, players, _, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 			Expect(err).NotTo(HaveOccurred())
 
 			gameID := clan.GameID
@@ -872,7 +873,7 @@ var _ = Describe("Membership API Handler", func() {
 
 		It("Should not delete member if player does not exist", func() {
 			playerPublicID := randomdata.FullName(randomdata.RandomGender)
-			_, clan, owner, _, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
+			_, clan, owner, _, _, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
 			Expect(err).NotTo(HaveOccurred())
 
 			gameID := owner.GameID
@@ -895,20 +896,20 @@ var _ = Describe("Membership API Handler", func() {
 
 	Describe("Membership Hooks", func() {
 		It("Apply should call membership application created hook with non empty message", func() {
-			hooks, err := models.GetHooksForRoutes(testDb, []string{
+			hooks, err := fixtures.GetHooksForRoutes(testDb, []string{
 				"http://localhost:52525/membershipapply",
 			}, models.MembershipApplicationCreatedHook)
 			Expect(err).NotTo(HaveOccurred())
 			responses := startRouteHandler([]string{"/membershipapply"}, 52525)
 
-			_, clan, _, _, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 0, hooks[0].GameID, "", true)
+			_, clan, _, _, _, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 0, hooks[0].GameID, "", true)
 			Expect(err).NotTo(HaveOccurred())
 
 			clan.AllowApplication = true
 			_, err = testDb.Update(clan)
 			Expect(err).NotTo(HaveOccurred())
 
-			player := models.PlayerFactory.MustCreateWithOption(map[string]interface{}{
+			player := fixtures.PlayerFactory.MustCreateWithOption(map[string]interface{}{
 				"GameID": clan.GameID,
 			}).(*models.Player)
 			err = testDb.Insert(player)
@@ -940,20 +941,20 @@ var _ = Describe("Membership API Handler", func() {
 		})
 
 		It("Invite should call membership application created hook", func() {
-			hooks, err := models.GetHooksForRoutes(testDb, []string{
+			hooks, err := fixtures.GetHooksForRoutes(testDb, []string{
 				"http://localhost:52525/membershipinvite",
 			}, models.MembershipApplicationCreatedHook)
 			Expect(err).NotTo(HaveOccurred())
 			responses := startRouteHandler([]string{"/membershipinvite"}, 52525)
 
-			_, clan, owner, _, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 0, hooks[0].GameID, "", true)
+			_, clan, owner, _, _, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 0, hooks[0].GameID, "", true)
 			Expect(err).NotTo(HaveOccurred())
 
 			clan.AllowApplication = true
 			_, err = testDb.Update(clan)
 			Expect(err).NotTo(HaveOccurred())
 
-			player := models.PlayerFactory.MustCreateWithOption(map[string]interface{}{
+			player := fixtures.PlayerFactory.MustCreateWithOption(map[string]interface{}{
 				"GameID": clan.GameID,
 			}).(*models.Player)
 			err = testDb.Insert(player)
@@ -986,13 +987,13 @@ var _ = Describe("Membership API Handler", func() {
 		})
 
 		It("should call membership approved hook on application", func() {
-			hooks, err := models.GetHooksForRoutes(testDb, []string{
+			hooks, err := fixtures.GetHooksForRoutes(testDb, []string{
 				"http://localhost:52525/membershipapplicationapproved",
 			}, models.MembershipApprovedHook)
 			Expect(err).NotTo(HaveOccurred())
 			responses := startRouteHandler([]string{"/membershipapplicationapproved"}, 52525)
 
-			_, clan, owner, players, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 1, hooks[0].GameID, "", true, false)
+			_, clan, owner, players, _, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 1, hooks[0].GameID, "", true, false)
 			Expect(err).NotTo(HaveOccurred())
 
 			clan.AllowApplication = true
@@ -1025,13 +1026,13 @@ var _ = Describe("Membership API Handler", func() {
 		})
 
 		It("should call membership approved hook on invitation", func() {
-			hooks, err := models.GetHooksForRoutes(testDb, []string{
+			hooks, err := fixtures.GetHooksForRoutes(testDb, []string{
 				"http://localhost:52525/membershipinvitationapproved",
 			}, models.MembershipApprovedHook)
 			Expect(err).NotTo(HaveOccurred())
 			responses := startRouteHandler([]string{"/membershipinvitationapproved"}, 52525)
 
-			_, clan, owner, players, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 1, hooks[0].GameID, "", true)
+			_, clan, owner, players, _, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 1, hooks[0].GameID, "", true)
 			Expect(err).NotTo(HaveOccurred())
 
 			clan.AllowApplication = true
@@ -1064,13 +1065,13 @@ var _ = Describe("Membership API Handler", func() {
 		})
 
 		It("should call membership denied hook on application", func() {
-			hooks, err := models.GetHooksForRoutes(testDb, []string{
+			hooks, err := fixtures.GetHooksForRoutes(testDb, []string{
 				"http://localhost:52525/membershipapplicationdenied",
 			}, models.MembershipDeniedHook)
 			Expect(err).NotTo(HaveOccurred())
 			responses := startRouteHandler([]string{"/membershipapplicationdenied"}, 52525)
 
-			_, clan, owner, players, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 1, hooks[0].GameID, "", true, false)
+			_, clan, owner, players, _, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 1, hooks[0].GameID, "", true, false)
 			Expect(err).NotTo(HaveOccurred())
 
 			clan.AllowApplication = true
@@ -1103,13 +1104,13 @@ var _ = Describe("Membership API Handler", func() {
 		})
 
 		It("should call membership denied hook on invitation", func() {
-			hooks, err := models.GetHooksForRoutes(testDb, []string{
+			hooks, err := fixtures.GetHooksForRoutes(testDb, []string{
 				"http://localhost:52525/membershipinvitationdenied",
 			}, models.MembershipDeniedHook)
 			Expect(err).NotTo(HaveOccurred())
 			responses := startRouteHandler([]string{"/membershipinvitationdenied"}, 52525)
 
-			_, clan, owner, players, _, err := models.GetClanWithMemberships(testDb, 0, 0, 0, 1, hooks[0].GameID, "", true)
+			_, clan, owner, players, _, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 1, hooks[0].GameID, "", true)
 			Expect(err).NotTo(HaveOccurred())
 
 			clan.AllowApplication = true
@@ -1142,13 +1143,13 @@ var _ = Describe("Membership API Handler", func() {
 		})
 
 		It("should call membership promoted hook", func() {
-			hooks, err := models.GetHooksForRoutes(testDb, []string{
+			hooks, err := fixtures.GetHooksForRoutes(testDb, []string{
 				"http://localhost:52525/membershippromoted",
 			}, models.MembershipPromotedHook)
 			Expect(err).NotTo(HaveOccurred())
 			responses := startRouteHandler([]string{"/membershippromoted"}, 52525)
 
-			_, clan, owner, players, _, err := models.GetClanWithMemberships(testDb, 1, 0, 0, 0, hooks[0].GameID, "", true)
+			_, clan, owner, players, _, err := fixtures.GetClanWithMemberships(testDb, 1, 0, 0, 0, hooks[0].GameID, "", true)
 			Expect(err).NotTo(HaveOccurred())
 
 			clan.AllowApplication = true
@@ -1178,13 +1179,13 @@ var _ = Describe("Membership API Handler", func() {
 		})
 
 		It("should call membership demoted hook", func() {
-			hooks, err := models.GetHooksForRoutes(testDb, []string{
+			hooks, err := fixtures.GetHooksForRoutes(testDb, []string{
 				"http://localhost:52525/membershipdemoted",
 			}, models.MembershipDemotedHook)
 			Expect(err).NotTo(HaveOccurred())
 			responses := startRouteHandler([]string{"/membershipdemoted"}, 52525)
 
-			_, clan, owner, players, memberships, err := models.GetClanWithMemberships(testDb, 1, 0, 0, 0, hooks[0].GameID, "", true)
+			_, clan, owner, players, memberships, err := fixtures.GetClanWithMemberships(testDb, 1, 0, 0, 0, hooks[0].GameID, "", true)
 			Expect(err).NotTo(HaveOccurred())
 
 			clan.AllowApplication = true
@@ -1218,13 +1219,13 @@ var _ = Describe("Membership API Handler", func() {
 		})
 
 		It("should call membership deleted hook", func() {
-			hooks, err := models.GetHooksForRoutes(testDb, []string{
+			hooks, err := fixtures.GetHooksForRoutes(testDb, []string{
 				"http://localhost:52525/membershipdeleted",
 			}, models.MembershipLeftHook)
 			Expect(err).NotTo(HaveOccurred())
 			responses := startRouteHandler([]string{"/membershipdeleted"}, 52525)
 
-			_, clan, owner, players, _, err := models.GetClanWithMemberships(testDb, 1, 0, 0, 0, hooks[0].GameID, "", true)
+			_, clan, owner, players, _, err := fixtures.GetClanWithMemberships(testDb, 1, 0, 0, 0, hooks[0].GameID, "", true)
 			Expect(err).NotTo(HaveOccurred())
 
 			clan.AllowApplication = true

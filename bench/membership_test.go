@@ -13,6 +13,7 @@ import (
 	"testing"
 
 	"github.com/topfreegames/khan/models"
+	"github.com/topfreegames/khan/models/fixtures"
 )
 
 var membershipResult *http.Response
@@ -23,7 +24,7 @@ func BenchmarkApplyForMembership(b *testing.B) {
 		panic(err.Error())
 	}
 
-	game, clan, _, _, _, err := models.GetClanWithMemberships(db, 20, 20, 20, 20, "", "")
+	game, clan, _, _, _, err := fixtures.GetClanWithMemberships(db, 20, 20, 20, 20, "", "")
 	if err != nil {
 		panic(err.Error())
 	}
@@ -41,7 +42,7 @@ func BenchmarkApplyForMembership(b *testing.B) {
 
 	var players []*models.Player
 	for i := 0; i < b.N; i++ {
-		player := models.PlayerFactory.MustCreateWithOption(map[string]interface{}{
+		player := fixtures.PlayerFactory.MustCreateWithOption(map[string]interface{}{
 			"GameID": game.PublicID,
 		}).(*models.Player)
 		err = db.Insert(player)
@@ -73,7 +74,7 @@ func BenchmarkInviteForMembership(b *testing.B) {
 		panic(err.Error())
 	}
 
-	game, clan, owner, _, _, err := models.GetClanWithMemberships(db, 20, 20, 20, 20, "", "")
+	game, clan, owner, _, _, err := fixtures.GetClanWithMemberships(db, 20, 20, 20, 20, "", "")
 	if err != nil {
 		panic(err.Error())
 	}
@@ -85,7 +86,7 @@ func BenchmarkInviteForMembership(b *testing.B) {
 
 	var players []*models.Player
 	for i := 0; i < b.N; i++ {
-		player := models.PlayerFactory.MustCreateWithOption(map[string]interface{}{
+		player := fixtures.PlayerFactory.MustCreateWithOption(map[string]interface{}{
 			"GameID": game.PublicID,
 		}).(*models.Player)
 		err = db.Insert(player)
@@ -118,7 +119,7 @@ func BenchmarkApproveMembershipApplication(b *testing.B) {
 		panic(err.Error())
 	}
 
-	game, clan, owner, players, memberships, err := models.GetClanWithMemberships(db, 0, 0, 0, b.N, "", "")
+	game, clan, owner, players, memberships, err := fixtures.GetClanWithMemberships(db, 0, 0, 0, b.N, "", "")
 	if err != nil {
 		panic(err.Error())
 	}
@@ -158,7 +159,7 @@ func BenchmarkApproveMembershipInvitation(b *testing.B) {
 		panic(err.Error())
 	}
 
-	game, clan, _, players, _, err := models.GetClanWithMemberships(db, 0, 0, 0, b.N, "", "")
+	game, clan, _, players, _, err := fixtures.GetClanWithMemberships(db, 0, 0, 0, b.N, "", "")
 	if err != nil {
 		panic(err.Error())
 	}
@@ -190,7 +191,7 @@ func BenchmarkDeleteMembership(b *testing.B) {
 		panic(err.Error())
 	}
 
-	game, clan, owner, players, _, err := models.GetClanWithMemberships(db, b.N, 0, 0, 0, "", "")
+	game, clan, owner, players, _, err := fixtures.GetClanWithMemberships(db, b.N, 0, 0, 0, "", "")
 	if err != nil {
 		panic(err.Error())
 	}
@@ -217,7 +218,7 @@ func BenchmarkPromoteMembership(b *testing.B) {
 		panic(err.Error())
 	}
 
-	game, clan, owner, players, _, err := models.GetClanWithMemberships(db, b.N, 0, 0, 0, "", "")
+	game, clan, owner, players, _, err := fixtures.GetClanWithMemberships(db, b.N, 0, 0, 0, "", "")
 	if err != nil {
 		panic(err.Error())
 	}
@@ -244,7 +245,7 @@ func BenchmarkDemoteMembership(b *testing.B) {
 		panic(err.Error())
 	}
 
-	game, clan, owner, players, memberships, err := models.GetClanWithMemberships(db, b.N, 0, 0, 0, "", "")
+	game, clan, owner, players, memberships, err := fixtures.GetClanWithMemberships(db, b.N, 0, 0, 0, "", "")
 	if err != nil {
 		panic(err.Error())
 	}

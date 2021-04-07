@@ -13,6 +13,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	. "github.com/topfreegames/khan/models"
+	"github.com/topfreegames/khan/models/fixtures"
 	"github.com/uber-go/zap"
 )
 
@@ -34,12 +35,12 @@ var _ = Describe("Prune Stale Data Model", func() {
 	Describe("Prune Stale Data Model", func() {
 		Describe("Pruning Stale data", func() {
 			It("Should remove pending applications", func() {
-				gameID, err := GetTestClanWithStaleData(testDb, 5, 6, 7, 8)
+				gameID, err := fixtures.GetTestClanWithStaleData(testDb, 5, 6, 7, 8)
 				Expect(err).NotTo(HaveOccurred())
 
 				expiration := int((2 * time.Hour).Seconds())
 				options := &PruneOptions{
-					GameID: gameID,
+					GameID:                        gameID,
 					PendingApplicationsExpiration: expiration,
 					PendingInvitesExpiration:      expiration,
 					DeniedMembershipsExpiration:   expiration,

@@ -13,8 +13,9 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/satori/go.uuid"
+	uuid "github.com/satori/go.uuid"
 	. "github.com/topfreegames/khan/models"
+	"github.com/topfreegames/khan/models/fixtures"
 )
 
 var _ = Describe("Game Model", func() {
@@ -29,7 +30,7 @@ var _ = Describe("Game Model", func() {
 	Describe("basic functionality", func() {
 		Describe("creating a new game", func() {
 			It("should create a game", func() {
-				game := GameFactory.MustCreate().(*Game)
+				game := fixtures.GameFactory.MustCreate().(*Game)
 				err := testDb.Insert(game)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(game.ID).NotTo(Equal(0))
@@ -59,7 +60,7 @@ var _ = Describe("Game Model", func() {
 		})
 		Describe("updating new game", func() {
 			It("should update game", func() {
-				game := GameFactory.MustCreate().(*Game)
+				game := fixtures.GameFactory.MustCreate().(*Game)
 				err := testDb.Insert(game)
 				Expect(err).NotTo(HaveOccurred())
 
@@ -78,7 +79,7 @@ var _ = Describe("Game Model", func() {
 
 	Describe("getting game by ID", func() {
 		It("Should get existing Game", func() {
-			game := GameFactory.MustCreate().(*Game)
+			game := fixtures.GameFactory.MustCreate().(*Game)
 			err := testDb.Insert(game)
 			Expect(err).NotTo(HaveOccurred())
 
@@ -96,7 +97,7 @@ var _ = Describe("Game Model", func() {
 
 	Describe("getting a game by ID", func() {
 		It("Should get existing Game", func() {
-			game := GameFactory.MustCreate().(*Game)
+			game := fixtures.GameFactory.MustCreate().(*Game)
 			err := testDb.Insert(game)
 			Expect(err).NotTo(HaveOccurred())
 
@@ -114,7 +115,7 @@ var _ = Describe("Game Model", func() {
 
 	Describe("getting a game by Public ID", func() {
 		It("Should get existing Game by Game and Game", func() {
-			game := GameFactory.MustCreate().(*Game)
+			game := fixtures.GameFactory.MustCreate().(*Game)
 			err := testDb.Insert(game)
 			Expect(err).NotTo(HaveOccurred())
 
@@ -208,7 +209,7 @@ var _ = Describe("Game Model", func() {
 
 	Describe("Update Game", func() {
 		It("Should update a Game with UpdateGame", func() {
-			game := GameFactory.MustCreate().(*Game)
+			game := fixtures.GameFactory.MustCreate().(*Game)
 			err := testDb.Insert(game)
 			Expect(err).NotTo(HaveOccurred())
 
@@ -293,7 +294,7 @@ var _ = Describe("Game Model", func() {
 		})
 
 		It("Should not update a Game with Invalid Data with UpdateGame", func() {
-			game := GameFactory.MustCreate().(*Game)
+			game := fixtures.GameFactory.MustCreate().(*Game)
 			err := testDb.Insert(game)
 			Expect(err).NotTo(HaveOccurred())
 
@@ -314,7 +315,7 @@ var _ = Describe("Game Model", func() {
 
 	Describe("Get All Games", func() {
 		It("Should get all games", func() {
-			game := GameFactory.MustCreate().(*Game)
+			game := fixtures.GameFactory.MustCreate().(*Game)
 			err := testDb.Insert(game)
 			Expect(err).NotTo(HaveOccurred())
 

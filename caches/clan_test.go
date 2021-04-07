@@ -7,6 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 	uuid "github.com/satori/go.uuid"
 	"github.com/topfreegames/khan/models"
+	"github.com/topfreegames/khan/models/fixtures"
 	"github.com/topfreegames/khan/testing"
 )
 
@@ -76,7 +77,7 @@ var _ = Describe("Clan Cache", func() {
 
 		It("Should return a cached payload for a second call made immediately after the first", func() {
 			gameID := uuid.NewV4().String()
-			_, clans, err := models.GetTestClans(testDb, gameID, "test-sort-clan", 10)
+			_, clans, err := fixtures.CreateTestClans(testDb, gameID, "test-sort-clan", 10, fixtures.EnqueueClanForMongoUpdate)
 			Expect(err).NotTo(HaveOccurred())
 
 			publicIDs, idToIdx := getPublicIDsAndIDToIndexMap(clans)
@@ -99,7 +100,7 @@ var _ = Describe("Clan Cache", func() {
 
 		It("Should return fresh information after expiration time is reached", func() {
 			gameID := uuid.NewV4().String()
-			_, clans, err := models.GetTestClans(testDb, gameID, "test-sort-clan", 10)
+			_, clans, err := fixtures.CreateTestClans(testDb, gameID, "test-sort-clan", 10, fixtures.EnqueueClanForMongoUpdate)
 			Expect(err).NotTo(HaveOccurred())
 
 			publicIDs, idToIdx := getPublicIDsAndIDToIndexMap(clans)

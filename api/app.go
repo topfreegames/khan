@@ -573,11 +573,6 @@ func (app *App) StartWorkers() {
 	workers.Run()
 }
 
-//NonblockingStartWorkers non-blocking
-func (app *App) NonblockingStartWorkers() {
-	workers.Start()
-}
-
 func (app *App) initESWorker() {
 	logger := app.Logger.With(
 		zap.String("source", "app"),

@@ -2,6 +2,8 @@ package models
 
 import (
 	"context"
+	"encoding/json"
+	"errors"
 	"fmt"
 
 	"github.com/jrallison/go-workers"
@@ -34,7 +36,7 @@ func (w *MongoWorker) configureMongoWorker(config *viper.Viper) {
 	w.MongoDB = mongo.GetConfiguredMongoClient()
 }
 
-// PerformUpdateMongo updates the clan into elasticsearc
+// PerformUpdateMongo updates the clan into mongodb
 func (w *MongoWorker) PerformUpdateMongo(m *workers.Msg) {
 	tags := opentracing.Tags{"component": "go-workers"}
 	span := opentracing.StartSpan("PerformUpdateMongo", tags)
@@ -49,15 +51,38 @@ func (w *MongoWorker) PerformUpdateMongo(m *workers.Msg) {
 	clan := data["clan"].(map[string]interface{})
 	clanID := data["clanID"].(string)
 
+	w.updateClanIntoMongoDB(ctx, game, op, clan, clanID)
+}
+
+// InsertGame creates a game inside Mongo
+func (w *MongoWorker) InsertGame(ctx context.Context, gameID string, clan *Clan) error {
+	clanWithNamePrefixes := clan.NewClanWithNamePrefixes()
+	clanJSON, err := json.Marshal(clanWithNamePrefixes)
+	if err != nil {
+		return errors.New("Could not serialize clan")
+	}
+
+	var clanMap map[string]interface{}
+	json.Unmarshal(clanJSON, &clanMap)
+
+	w.updateClanIntoMongoDB(ctx, gameID, "update", clanMap, clan.PublicID)
+
+	return nil
+}
+
+func (w *MongoWorker) updateClanIntoMongoDB(
+	ctx context.Context, gameID string, op string, clan map[string]interface{}, clanID string,
+) {
+
 	logger := w.Logger.With(
-		zap.String("game", game),
+		zap.String("game", gameID),
 		zap.String("operation", op),
 		zap.String("clanId", clanID),
 		zap.String("source", "PerformUpdateMongo"),
 	)
 
 	if w.MongoDB != nil {
-		mongoCol, mongoSess := w.MongoDB.WithContext(ctx).C(fmt.Sprintf(w.MongoCollectionTemplate, game))
+		mongoCol, mongoSess := w.MongoDB.WithContext(ctx).C(fmt.Sprintf(w.MongoCollectionTemplate, gameID))
 		defer mongoSess.Close()
 
 		if op == "update" {
@@ -76,6 +101,4 @@ func (w *MongoWorker) PerformUpdateMongo(m *workers.Msg) {
 			}
 		}
 	}
-
-	return
 }

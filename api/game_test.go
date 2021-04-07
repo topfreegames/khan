@@ -19,6 +19,7 @@ import (
 	uuid "github.com/satori/go.uuid"
 	"github.com/topfreegames/khan/api"
 	"github.com/topfreegames/khan/models"
+	"github.com/topfreegames/khan/models/fixtures"
 )
 
 func getGamePayload(publicID, name string) map[string]interface{} {
@@ -57,7 +58,7 @@ var _ = Describe("Game API Handler", func() {
 
 		a = GetDefaultTestApp()
 		db = a.Db(nil)
-		a.NonblockingStartWorkers()
+		fixtures.ConfigureAndStartGoWorkers()
 	})
 
 	Describe("Create Game Handler", func() {
@@ -169,7 +170,7 @@ var _ = Describe("Game API Handler", func() {
 
 	Describe("Update Game Handler", func() {
 		It("Should update game", func() {
-			game := models.GameFactory.MustCreate().(*models.Game)
+			game := fixtures.GameFactory.MustCreate().(*models.Game)
 			err := db.Insert(game)
 			Expect(err).NotTo(HaveOccurred())
 
@@ -227,7 +228,7 @@ var _ = Describe("Game API Handler", func() {
 		})
 
 		It("Should not update game if missing parameters", func() {
-			game := models.GameFactory.MustCreate().(*models.Game)
+			game := fixtures.GameFactory.MustCreate().(*models.Game)
 			err := db.Insert(game)
 			Expect(err).NotTo(HaveOccurred())
 
@@ -248,7 +249,7 @@ var _ = Describe("Game API Handler", func() {
 		})
 
 		It("Should not update game if bad payload", func() {
-			game := models.GameFactory.MustCreate().(*models.Game)
+			game := fixtures.GameFactory.MustCreate().(*models.Game)
 			err := db.Insert(game)
 			Expect(err).NotTo(HaveOccurred())
 
@@ -276,7 +277,7 @@ var _ = Describe("Game API Handler", func() {
 		})
 
 		It("Should not update game if invalid data", func() {
-			game := models.GameFactory.MustCreate().(*models.Game)
+			game := fixtures.GameFactory.MustCreate().(*models.Game)
 			err := db.Insert(game)
 			Expect(err).NotTo(HaveOccurred())
 
@@ -296,7 +297,7 @@ var _ = Describe("Game API Handler", func() {
 	Describe("Game Hooks", func() {
 		Describe("Update Game Hook", func() {
 			It("Should call update game hook", func() {
-				hooks, err := models.GetHooksForRoutes(testDb, []string{
+				hooks, err := fixtures.GetHooksForRoutes(testDb, []string{
 					"http://localhost:52525/update",
 				}, models.GameUpdatedHook)
 				Expect(err).NotTo(HaveOccurred())
