@@ -186,28 +186,28 @@ func CreateGame(
 	}
 
 	_, err = db.Exec(query,
-		publicID,                                       // $1
-		name,                                           // $2
-		minLevelAccept,                                 // $3
-		minLevelCreate,                                 // $4
-		minLevelRemove,                                 // $5
-		minOffsetRemove,                                // $6
-		minOffsetPromote,                               // $7
-		minOffsetDemote,                                // $8
-		maxMembers,                                     // $9
-		maxClans,                                       // $10
-		levelsJSON,                                     // $11
-		metadataJSON,                                   // $12
-		cooldownAfterDelete,                            // $13
-		cooldownAfterDeny,                              // $14
-		cooldownBeforeApply,                            // $15
-		cooldownBeforeInvite,                           // $16
-		minMembershipLevel,                             // $17
-		maxMembershipLevel,                             // $18
-		maxPendingInvites,                              // $19
+		publicID,             // $1
+		name,                 // $2
+		minLevelAccept,       // $3
+		minLevelCreate,       // $4
+		minLevelRemove,       // $5
+		minOffsetRemove,      // $6
+		minOffsetPromote,     // $7
+		minOffsetDemote,      // $8
+		maxMembers,           // $9
+		maxClans,             // $10
+		levelsJSON,           // $11
+		metadataJSON,         // $12
+		cooldownAfterDelete,  // $13
+		cooldownAfterDeny,    // $14
+		cooldownBeforeApply,  // $15
+		cooldownBeforeInvite, // $16
+		minMembershipLevel,   // $17
+		maxMembershipLevel,   // $18
+		maxPendingInvites,    // $19
 		clanUpdateMetadataFieldsHookTriggerWhitelist,   // $20
 		playerUpdateMetadataFieldsHookTriggerWhitelist, // $21
-		util.NowMilli(),                                // $22
+		util.NowMilli(), // $22
 	)
 	if err != nil {
 		return nil, err

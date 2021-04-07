@@ -18,6 +18,8 @@ var _ = Describe("Clan Cache", func() {
 		var err error
 		testDb, err = testing.GetTestDB()
 		Expect(err).NotTo(HaveOccurred())
+
+		fixtures.ConfigureAndStartGoWorkers()
 	})
 
 	Describe("Clans Summaries", func() {
@@ -76,8 +78,11 @@ var _ = Describe("Clan Cache", func() {
 		}
 
 		It("Should return a cached payload for a second call made immediately after the first", func() {
+			mongoDB, err := testing.GetTestMongo()
+			Expect(err).NotTo(HaveOccurred())
+
 			gameID := uuid.NewV4().String()
-			_, clans, err := fixtures.CreateTestClans(testDb, gameID, "test-sort-clan", 10, fixtures.EnqueueClanForMongoUpdate)
+			_, clans, err := fixtures.CreateTestClans(testDb, mongoDB, gameID, "test-sort-clan", 10, fixtures.EnqueueClanForMongoUpdate)
 			Expect(err).NotTo(HaveOccurred())
 
 			publicIDs, idToIdx := getPublicIDsAndIDToIndexMap(clans)
@@ -99,8 +104,11 @@ var _ = Describe("Clan Cache", func() {
 		})
 
 		It("Should return fresh information after expiration time is reached", func() {
+			mongoDB, err := testing.GetTestMongo()
+			Expect(err).NotTo(HaveOccurred())
+
 			gameID := uuid.NewV4().String()
-			_, clans, err := fixtures.CreateTestClans(testDb, gameID, "test-sort-clan", 10, fixtures.EnqueueClanForMongoUpdate)
+			_, clans, err := fixtures.CreateTestClans(testDb, mongoDB, gameID, "test-sort-clan", 10, fixtures.EnqueueClanForMongoUpdate)
 			Expect(err).NotTo(HaveOccurred())
 
 			publicIDs, idToIdx := getPublicIDsAndIDToIndexMap(clans)

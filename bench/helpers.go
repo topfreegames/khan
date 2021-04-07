@@ -15,24 +15,9 @@ import (
 	"net/http"
 
 	uuid "github.com/satori/go.uuid"
-	"github.com/spf13/viper"
-	"github.com/topfreegames/extensions/v9/mongo"
-	"github.com/topfreegames/extensions/v9/mongo/interfaces"
 	"github.com/topfreegames/khan/models"
 	"github.com/topfreegames/khan/models/fixtures"
 )
-
-func getTestMongo() (interfaces.MongoDB, error) {
-	config := viper.New()
-	config.SetConfigType("yaml")
-	config.SetConfigFile("../config/perf.yaml")
-	err := config.ReadInConfig()
-	if err != nil {
-		return nil, err
-	}
-	client, err := mongo.NewClient("mongodb", config)
-	return client.MongoDB, err
-}
 
 func getRoute(url string) string {
 	return fmt.Sprintf("http://localhost:8888%s", url)

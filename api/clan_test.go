@@ -84,7 +84,7 @@ var _ = Describe("Clan API Handler", func() {
 		})
 
 		It("Should create clan into mongodb if its configured", func() {
-			mongo, err := GetTestMongo()
+			mongo, err := testing.GetTestMongo()
 			Expect(err).NotTo(HaveOccurred())
 			_, player, err := fixtures.CreatePlayerFactory(testDb, "")
 			Expect(err).NotTo(HaveOccurred())
@@ -361,7 +361,7 @@ var _ = Describe("Clan API Handler", func() {
 		})
 
 		It("Should update Mongo if update clan", func() {
-			mongo, err := GetTestMongo()
+			mongo, err := testing.GetTestMongo()
 			Expect(err).NotTo(HaveOccurred())
 			_, clan, owner, _, _, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
 			Expect(err).NotTo(HaveOccurred())
@@ -563,7 +563,10 @@ var _ = Describe("Clan API Handler", func() {
 
 	Describe("List All Clans Handler", func() {
 		It("Should get all clans", func() {
-			player, expectedClans, err := fixtures.CreateTestClans(testDb, "", "", 10, fixtures.EnqueueClanForMongoUpdate)
+			mongoDB, err := testing.GetTestMongo()
+			Expect(err).NotTo(HaveOccurred())
+
+			player, expectedClans, err := fixtures.CreateTestClans(testDb, mongoDB, "", "", 10, fixtures.EnqueueClanForMongoUpdate)
 			Expect(err).NotTo(HaveOccurred())
 			sort.Sort(models.ClanByName(expectedClans))
 
@@ -1047,12 +1050,12 @@ var _ = Describe("Clan API Handler", func() {
 			}
 
 			gameID := uuid.NewV4().String()
-			player, expectedClans, err := fixtures.CreateTestClans(
-				testDb, gameID, "clan-apisearch-clan", 10, insertClanIntoMongo,
-			)
+			mongoDB, err := testing.GetTestMongo()
 			Expect(err).NotTo(HaveOccurred())
 
-			err = testing.CreateClanNameTextIndexInMongo(GetTestMongo, gameID)
+			player, expectedClans, err := fixtures.CreateTestClans(
+				testDb, mongoDB, gameID, "clan-apisearch-clan", 10, insertClanIntoMongo,
+			)
 			Expect(err).NotTo(HaveOccurred())
 
 			status, body := Get(app, GetGameRoute(player.GameID, "clans/search?term=APISEARCH"))
@@ -1082,9 +1085,12 @@ var _ = Describe("Clan API Handler", func() {
 		})
 
 		It("Should search for a clan by publicID", func() {
+			mongoDB, err := testing.GetTestMongo()
+			Expect(err).NotTo(HaveOccurred())
+
 			gameID := uuid.NewV4().String()
 			player, expectedClans, err := fixtures.CreateTestClans(
-				testDb, gameID, "clan-apisearch-clan", 10, fixtures.EnqueueClanForMongoUpdate,
+				testDb, mongoDB, gameID, "clan-apisearch-clan", 10, fixtures.EnqueueClanForMongoUpdate,
 			)
 			Expect(err).NotTo(HaveOccurred())
 			time.Sleep(1000 * time.Millisecond)
@@ -1106,13 +1112,13 @@ var _ = Describe("Clan API Handler", func() {
 		})
 
 		It("Should unicode search for a clan", func() {
-			gameID := uuid.NewV4().String()
-			player, expectedClans, err := fixtures.CreateTestClans(
-				testDb, gameID, "clan-apisearch-clan", 10, fixtures.EnqueueClanForMongoUpdate,
-			)
+			mongoDB, err := testing.GetTestMongo()
 			Expect(err).NotTo(HaveOccurred())
 
-			err = testing.CreateClanNameTextIndexInMongo(GetTestMongo, gameID)
+			gameID := uuid.NewV4().String()
+			player, expectedClans, err := fixtures.CreateTestClans(
+				testDb, mongoDB, gameID, "clan-apisearch-clan", 10, fixtures.EnqueueClanForMongoUpdate,
+			)
 			Expect(err).NotTo(HaveOccurred())
 
 			url := "clans/search?term=💩clán-clan-APISEARCH"

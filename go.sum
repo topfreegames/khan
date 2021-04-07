@@ -129,6 +129,7 @@ github.com/fsnotify/fsnotify v1.4.9 h1:hsms1Qyu0jgnwNXIxa+/V/PDsU6CfLf6CNO8H7IWo
 github.com/fsnotify/fsnotify v1.4.9/go.mod h1:znqG4EE+3YCdAaPaxE2ZRY/06pZUdp0tY4IgpuI1SZQ=
 github.com/garyburd/redigo v1.6.0 h1:0VruCpn7yAIIu7pWVClQC8wxCJEcG3nyzpMSHKi1PQc=
 github.com/garyburd/redigo v1.6.0/go.mod h1:NR3MbYisc3/PwhQ00EMzDiPmrwpPxAn5GI05/YaO1SY=
+github.com/getsentry/raven-go v0.0.0-20170918144728-1452f6376ddb/go.mod h1:KungGk8q33+aIAZUIVWZDr2OfAEBsO49PX4NzFV5kcQ=
 github.com/ghodss/yaml v1.0.0/go.mod h1:4dBDuWmgqj2HViK6kFavaiC9ZROes6MMH2rRYeMEF04=
 github.com/globalsign/mgo v0.0.0-20180615134936-113d3961e731 h1:y7wyeiA6T+TT+HGC9DYypvLkUeg99N4rqHMzn2MmjYk=
 github.com/globalsign/mgo v0.0.0-20180615134936-113d3961e731/go.mod h1:xkRDCp4j0OGD1HRkm4kmhM+pmpv3AKq5SU7GMg4oO/Q=
@@ -422,6 +423,9 @@ github.com/stretchr/testify v1.6.1/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/
 github.com/stretchr/testify v1.7.0 h1:nwc3DEeHmmLAfoZucVR881uASk0Mfjw8xYJ99tb5CcY=
 github.com/stretchr/testify v1.7.0/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
 github.com/tmc/grpc-websocket-proxy v0.0.0-20190109142713-0ad062ec5ee5/go.mod h1:ncp9v5uamzpCO7NfCPTXjqaC+bZgJeR0sMTm6dMHP7U=
+github.com/topfreegames/extensions v1.2.1 h1:a5VgxBnhg644GjnGFO2Rt0u3GaQJQwBqLzmwM5FttoE=
+github.com/topfreegames/extensions v8.5.0+incompatible h1:l3jQt6ufqC9BZzag/bCN69D9tkDJvSH/KdNGKSvkyQY=
+github.com/topfreegames/extensions v8.5.0+incompatible/go.mod h1:VbIAks7aNbkANieZyVShAV3FSxEbV6useS4r3neXVzc=
 github.com/topfreegames/extensions/v9 v9.0.0 h1:ggPkQ32VlwHnwcrUD7L0A9vc2eK4aXOOtaKmCjX+dz0=
 github.com/topfreegames/extensions/v9 v9.0.0/go.mod h1:QECdo96zIuSzv/duYMNZkChop/Z26ddVCD0vFZLY4LE=
 github.com/topfreegames/goose v0.0.0-20160616205307-c7f6dd34057c h1:fjBoT34+rt+Lbo3M70E1tgUiadL2vVlIjjfs9tapY0A=

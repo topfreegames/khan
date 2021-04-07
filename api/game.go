@@ -14,6 +14,7 @@ import (
 	"github.com/labstack/echo"
 	"github.com/topfreegames/khan/log"
 	"github.com/topfreegames/khan/models"
+	"github.com/topfreegames/khan/mongo"
 	"github.com/uber-go/zap"
 )
 
@@ -22,8 +23,6 @@ func CreateGameHandler(app *App) func(c echo.Context) error {
 	return func(c echo.Context) error {
 		c.Set("route", "CreateGame")
 		start := time.Now()
-
-		db := app.Db(c.StdContext())
 
 		logger := app.Logger.With(
 			zap.String("source", "gameHandler"),
@@ -50,9 +49,17 @@ func CreateGameHandler(app *App) func(c echo.Context) error {
 			)
 		})
 
+		tx, err := app.BeginTrans(c.StdContext(), logger)
+		if err != nil {
+			log.E(logger, "Could not start transaction", func(cm log.CM) {
+				cm.Write(zap.Error(err))
+			})
+			return FailWith(500, err.Error(), c)
+		}
+
 		log.D(logger, "Creating game...")
 		game, err := models.CreateGame(
-			db,
+			tx,
 			payload.PublicID,
 			payload.Name,
 			payload.MembershipLevels,
@@ -79,6 +86,17 @@ func CreateGameHandler(app *App) func(c echo.Context) error {
 			log.E(logger, "Create game failed.", func(cm log.CM) {
 				cm.Write(zap.Error(err))
 			})
+			app.Rollback(tx, "Game", c, logger, err)
+			return FailWith(500, err.Error(), c)
+		}
+
+		err = app.MongoDB.Run(mongo.GetClanNameTextIndexCommand(game.PublicID, false), nil)
+		if err != nil {
+			app.Rollback(tx, "Game", c, logger, err)
+		}
+
+		txErr := app.Commit(tx, "Game", c, logger)
+		if txErr != nil {
 			return FailWith(500, err.Error(), c)
 		}
 
