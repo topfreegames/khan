@@ -57,6 +57,8 @@ func BenchmarkCreateClan(b *testing.B) {
 }
 
 func BenchmarkUpdateClan(b *testing.B) {
+	fixtures.ConfigureAndStartGoWorkers()
+
 	db, err := models.GetPerfDB()
 	if err != nil {
 		panic(err.Error())
@@ -145,6 +147,8 @@ func BenchmarkRetrieveClanSummary(b *testing.B) {
 }
 
 func BenchmarkRetrieveClansSummary(b *testing.B) {
+	fixtures.ConfigureAndStartGoWorkers()
+
 	db, err := models.GetPerfDB()
 	if err != nil {
 		panic(err.Error())
@@ -183,6 +187,7 @@ func BenchmarkRetrieveClansSummary(b *testing.B) {
 }
 
 func BenchmarkSearchClan(b *testing.B) {
+	fixtures.ConfigureAndStartGoWorkers()
 	db, err := models.GetPerfDB()
 	if err != nil {
 		panic(err.Error())
@@ -216,6 +221,8 @@ func BenchmarkSearchClan(b *testing.B) {
 }
 
 func BenchmarkListClans(b *testing.B) {
+	fixtures.ConfigureAndStartGoWorkers()
+
 	db, err := models.GetPerfDB()
 	if err != nil {
 		panic(err.Error())
@@ -249,6 +256,8 @@ func BenchmarkListClans(b *testing.B) {
 }
 
 func BenchmarkLeaveClan(b *testing.B) {
+	fixtures.ConfigureAndStartGoWorkers()
+
 	db, err := models.GetPerfDB()
 	if err != nil {
 		panic(err.Error())
