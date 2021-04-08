@@ -27,7 +27,12 @@ func BenchmarkCreateClan(b *testing.B) {
 		panic(err.Error())
 	}
 
-	game, _, err := getGameAndPlayer(db)
+	mongoDB, err := khanTesting.GetTestMongo()
+	if err != nil {
+		panic(err.Error())
+	}
+
+	game, _, err := getGameAndPlayer(db, mongoDB)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -57,12 +62,19 @@ func BenchmarkCreateClan(b *testing.B) {
 }
 
 func BenchmarkUpdateClan(b *testing.B) {
+	fixtures.ConfigureAndStartGoWorkers()
+
 	db, err := models.GetPerfDB()
 	if err != nil {
 		panic(err.Error())
 	}
 
-	game, owner, err := getGameAndPlayer(db)
+	mongoDB, err := khanTesting.GetTestMongo()
+	if err != nil {
+		panic(err.Error())
+	}
+
+	game, owner, err := getGameAndPlayer(db, mongoDB)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -140,12 +152,19 @@ func BenchmarkRetrieveClanSummary(b *testing.B) {
 }
 
 func BenchmarkRetrieveClansSummary(b *testing.B) {
+	fixtures.ConfigureAndStartGoWorkers()
+
 	db, err := models.GetPerfDB()
 	if err != nil {
 		panic(err.Error())
 	}
 
-	game, owner, err := getGameAndPlayer(db)
+	mongoDB, err := khanTesting.GetTestMongo()
+	if err != nil {
+		panic(err.Error())
+	}
+
+	game, owner, err := getGameAndPlayer(db, mongoDB)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -173,12 +192,19 @@ func BenchmarkRetrieveClansSummary(b *testing.B) {
 }
 
 func BenchmarkSearchClan(b *testing.B) {
+	fixtures.ConfigureAndStartGoWorkers()
+
 	db, err := models.GetPerfDB()
 	if err != nil {
 		panic(err.Error())
 	}
 
-	game, owner, err := getGameAndPlayer(db)
+	mongoDB, err := khanTesting.GetTestMongo()
+	if err != nil {
+		panic(err.Error())
+	}
+
+	game, owner, err := getGameAndPlayer(db, mongoDB)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -190,13 +216,8 @@ func BenchmarkSearchClan(b *testing.B) {
 
 	b.ResetTimer()
 
-	err = khanTesting.CreateClanNameTextIndexInMongo(getTestMongo, game.Name)
-	if err != nil {
-		panic(err.Error())
-	}
-
 	for i := 0; i < b.N; i++ {
-		route := getRoute(fmt.Sprintf("/games/%s/clans/search?term=%s", game.Name, clans[0].PublicID))
+		route := getRoute(fmt.Sprintf("/games/%s/clans/search?term=%s", game.PublicID, clans[0].PublicID))
 		res, err := get(route)
 		validateResp(res, err)
 		res.Body.Close()
@@ -206,12 +227,19 @@ func BenchmarkSearchClan(b *testing.B) {
 }
 
 func BenchmarkListClans(b *testing.B) {
+	fixtures.ConfigureAndStartGoWorkers()
+
 	db, err := models.GetPerfDB()
 	if err != nil {
 		panic(err.Error())
 	}
 
-	game, owner, err := getGameAndPlayer(db)
+	mongoDB, err := khanTesting.GetTestMongo()
+	if err != nil {
+		panic(err.Error())
+	}
+
+	game, owner, err := getGameAndPlayer(db, mongoDB)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -234,12 +262,19 @@ func BenchmarkListClans(b *testing.B) {
 }
 
 func BenchmarkLeaveClan(b *testing.B) {
+	fixtures.ConfigureAndStartGoWorkers()
+
 	db, err := models.GetPerfDB()
 	if err != nil {
 		panic(err.Error())
 	}
 
-	game, owner, err := getGameAndPlayer(db)
+	mongoDB, err := khanTesting.GetTestMongo()
+	if err != nil {
+		panic(err.Error())
+	}
+
+	game, owner, err := getGameAndPlayer(db, mongoDB)
 	if err != nil {
 		panic(err.Error())
 	}

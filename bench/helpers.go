@@ -15,24 +15,11 @@ import (
 	"net/http"
 
 	uuid "github.com/satori/go.uuid"
-	"github.com/spf13/viper"
-	"github.com/topfreegames/extensions/v9/mongo"
 	"github.com/topfreegames/extensions/v9/mongo/interfaces"
 	"github.com/topfreegames/khan/models"
 	"github.com/topfreegames/khan/models/fixtures"
+	"github.com/topfreegames/khan/mongo"
 )
-
-func getTestMongo() (interfaces.MongoDB, error) {
-	config := viper.New()
-	config.SetConfigType("yaml")
-	config.SetConfigFile("../config/perf.yaml")
-	err := config.ReadInConfig()
-	if err != nil {
-		return nil, err
-	}
-	client, err := mongo.NewClient("mongodb", config)
-	return client.MongoDB, err
-}
 
 func getRoute(url string) string {
 	return fmt.Sprintf("http://localhost:8888%s", url)
@@ -100,7 +87,7 @@ func getPlayerPayload(playerPublicID string) map[string]interface{} {
 	}
 }
 
-func getGameAndPlayer(db models.DB) (*models.Game, *models.Player, error) {
+func getGameAndPlayer(db models.DB, mongoDB interfaces.MongoDB) (*models.Game, *models.Player, error) {
 	game := fixtures.GameFactory.MustCreateWithOption(map[string]interface{}{
 		"PublicID":          uuid.NewV4().String(),
 		"MaxClansPerPlayer": 999999,
@@ -114,6 +101,11 @@ func getGameAndPlayer(db models.DB) (*models.Game, *models.Player, error) {
 		"PublicID": uuid.NewV4().String(),
 	}).(*models.Player)
 	err = db.Insert(player)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	err = mongoDB.Run(mongo.GetClanNameTextIndexCommand(game.PublicID, false), nil)
 	if err != nil {
 		return nil, nil, err
 	}

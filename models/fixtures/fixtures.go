@@ -18,7 +18,9 @@ import (
 	"github.com/jrallison/go-workers"
 	uuid "github.com/satori/go.uuid"
 	"github.com/spf13/viper"
+	"github.com/topfreegames/extensions/v9/mongo/interfaces"
 	"github.com/topfreegames/khan/models"
+	"github.com/topfreegames/khan/mongo"
 	"github.com/topfreegames/khan/queues"
 	kt "github.com/topfreegames/khan/testing"
 	"github.com/topfreegames/khan/util"
@@ -502,7 +504,7 @@ func EnqueueClanForMongoUpdate(player *models.Player, clan *models.Clan) error {
 
 // CreateTestClans returns a list of clans for tests
 func CreateTestClans(
-	db models.DB, gameID string, publicIDTemplate string, numberOfClans int, afterCreationHook AfterClanCreationHook,
+	db models.DB, mongoDB interfaces.MongoDB, gameID string, publicIDTemplate string, numberOfClans int, afterCreationHook AfterClanCreationHook,
 ) (*models.Player, []*models.Clan, error) {
 	if gameID == "" {
 		gameID = uuid.NewV4().String()
@@ -546,6 +548,11 @@ func CreateTestClans(
 		}
 
 		clans = append(clans, clan)
+	}
+
+	err = mongoDB.Run(mongo.GetClanNameTextIndexCommand(gameID, false), nil)
+	if err != nil {
+		return nil, nil, err
 	}
 
 	return player, clans, nil

@@ -46,6 +46,7 @@ require (
 	github.com/spf13/viper v1.4.0
 	github.com/stretchr/objx v0.3.0 // indirect
 	github.com/stretchr/testify v1.7.0 // indirect
+	github.com/topfreegames/extensions v8.5.0+incompatible
 	github.com/topfreegames/extensions/v9 v9.0.0
 	github.com/topfreegames/goose v0.0.0-20160616205307-c7f6dd34057c
 	github.com/uber-go/atomic v1.0.0 // indirect

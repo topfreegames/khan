@@ -8,29 +8,13 @@
 package models_test
 
 import (
-	"github.com/spf13/viper"
 	egorp "github.com/topfreegames/extensions/v9/gorp/interfaces"
-	"github.com/topfreegames/extensions/v9/mongo/interfaces"
 	"github.com/topfreegames/khan/models"
-	"github.com/topfreegames/khan/mongo"
-	kt "github.com/topfreegames/khan/testing"
 )
 
 // GetTestDB returns a connection to the test database
 func GetTestDB() (egorp.Database, error) {
 	return models.GetDB("localhost", "khan_test", 5433, "disable", "khan_test", "")
-}
-
-func GetTestMongo() (interfaces.MongoDB, error) {
-	config := viper.New()
-	config.SetConfigType("yaml")
-	config.SetConfigFile("../config/test.yaml")
-	err := config.ReadInConfig()
-	if err != nil {
-		return nil, err
-	}
-	logger := kt.NewMockLogger()
-	return mongo.GetMongo(logger, config)
 }
 
 // GetFaultyTestDB returns an ill-configured test database

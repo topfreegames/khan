@@ -18,16 +18,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/spf13/viper"
 	"github.com/uber-go/zap"
 
 	"github.com/labstack/echo/engine/standard"
 	. "github.com/onsi/gomega"
-	"github.com/topfreegames/extensions/v9/mongo/interfaces"
 	"github.com/topfreegames/khan/api"
 	"github.com/topfreegames/khan/es"
 	"github.com/topfreegames/khan/models"
-	"github.com/topfreegames/khan/mongo"
 	kt "github.com/topfreegames/khan/testing"
 )
 
@@ -39,18 +36,6 @@ func GetTestES() *es.Client {
 	}
 	testES = es.GetTestClient("localhost", 9200, "", false, zap.New(zap.NewJSONEncoder(), zap.ErrorLevel), false)
 	return testES
-}
-
-func GetTestMongo() (interfaces.MongoDB, error) {
-	config := viper.New()
-	config.SetConfigType("yaml")
-	config.SetConfigFile("../config/test.yaml")
-	err := config.ReadInConfig()
-	if err != nil {
-		return nil, err
-	}
-	logger := kt.NewMockLogger()
-	return mongo.GetMongo(logger, config)
 }
 
 func DestroyTestES() {

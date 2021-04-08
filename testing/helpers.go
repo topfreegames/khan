@@ -8,19 +8,8 @@ import (
 	"github.com/topfreegames/khan/util"
 
 	gocache "github.com/patrickmn/go-cache"
-	"github.com/topfreegames/extensions/v9/mongo/interfaces"
 	"github.com/topfreegames/khan/models"
-	"github.com/topfreegames/khan/mongo"
 )
-
-// CreateClanNameTextIndexInMongo creates the necessary text index for clan search in mongo
-func CreateClanNameTextIndexInMongo(getTestMongo func() (interfaces.MongoDB, error), gameID string) error {
-	db, err := getTestMongo()
-	if err != nil {
-		return err
-	}
-	return db.Run(mongo.GetClanNameTextIndexCommand(gameID, false), nil)
-}
 
 var testDB models.DB
 
