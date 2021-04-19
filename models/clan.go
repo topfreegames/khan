@@ -18,7 +18,6 @@ import (
 
 	"github.com/spf13/viper"
 
-	"github.com/globalsign/mgo/bson"
 	"github.com/go-gorp/gorp"
 	workers "github.com/jrallison/go-workers"
 	"github.com/mailru/easyjson/jlexer"
@@ -985,35 +984,9 @@ func SearchClan(
 		return clans, nil
 	}
 
-	projection := bson.M{"textSearchScore": bson.M{"$meta": "textScore"}}
-	cmd := bson.D{
-		{Name: "find", Value: fmt.Sprintf("clans_%s", gameID)},
-		{Name: "filter", Value: bson.M{"$text": bson.M{"$search": term}}},
-		{Name: "projection", Value: projection},
-		{Name: "sort", Value: projection},
-		{Name: "limit", Value: pageSize},
-		{Name: "batchSize", Value: pageSize},
-		{Name: "singleBatch", Value: true},
-	}
-
-	var res struct {
-		OK       int `bson:"ok"`
-		WaitedMS int `bson:"waitedMS"`
-		Cursor   struct {
-			ID         interface{} `bson:"id"`
-			NS         string      `bson:"ns"`
-			FirstBatch []bson.Raw  `bson:"firstBatch"`
-		} `bson:"cursor"`
-	}
-
-	if err := mongo.Run(cmd, &res); err != nil {
+	_, err := db.Select(&clans, "SELECT * FROM clans WHERE searchable @@ plainto_tsquery('portuguese', unaccent('%s'));", term)
+	if err != nil {
 		return []Clan{}, err
-	}
-	clans = make([]Clan, len(res.Cursor.FirstBatch))
-	for i, raw := range res.Cursor.FirstBatch {
-		if err := raw.Unmarshal(&clans[i]); err != nil {
-			return []Clan{}, err
-		}
 	}
 
 	return clans, nil

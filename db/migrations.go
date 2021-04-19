@@ -205,6 +205,15 @@ func migrations_20210401151842_changeencryptedplayersidtype_sql() ([]byte, error
 	)
 }
 
+var _migrations_20210415190942_add_ts_vector_to_clan_name_index_sql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x5c\x8f\xc1\x6a\xac\x30\x18\x85\xf7\x3e\xc5\xd9\x45\xb9\x33\x4f\x30\xab\x5c\xcd\x1d\x04\x6f\xa4\x26\xb6\x76\x25\x69\xe6\x47\x03\x4e\x22\x26\x76\xfa\xf8\xa5\x2d\x43\x61\x96\x07\xbe\x03\xdf\x97\x1d\x8f\xf8\x33\x85\x10\x09\xfd\xfa\x35\xd4\x53\x03\xe7\x11\xc9\x26\x17\x3c\x58\xbf\x32\xb8\x08\xfa\x20\xbb\x27\xba\xe0\x36\x93\x47\x9a\x5d\xc4\xd5\x4d\x9b\xf9\x86\x5c\x84\x59\xd7\xc5\xd1\x25\x2b\x3b\xc1\xb5\x80\x18\xb4\x90\xaa\x6e\x25\xea\x7f\x90\xad\x86\x18\x6a\xa5\x15\x76\x6f\xac\x25\x9f\x4e\x59\xc6\x1b\x2d\x3a\x68\xfe\xb7\x11\xb0\x8b\xf1\x31\xe3\x55\x85\xb2\x6d\xfa\xff\x8f\xaf\x48\x66\xb3\xb3\x79\x5b\x08\x29\xbe\x93\x4d\x61\xc3\x59\x48\xd1\x71\x2d\x2a\xf0\xe6\x85\xbf\x2a\x70\x85\x3c\x03\x80\x48\xe9\x46\x6e\x9a\x53\x9e\xc2\x78\xe7\x73\xb6\x86\x2d\xed\xd3\x4e\x91\xd8\x01\x36\x98\x85\xa2\xa5\xdc\x9b\x2b\x1d\xc0\x58\x51\x1c\xc0\x38\x2b\x0a\x28\xdd\x76\xa2\x3a\x65\xf7\x94\x5a\x56\x62\x78\x10\xaa\xab\x61\x2c\x1b\x2e\x47\xad\xc6\x67\x51\xea\xb6\x43\x2b\x7f\x2a\xd0\xab\x5a\x9e\x71\xae\x65\xfe\xab\x5d\xe0\xf4\x19\x00\x00\xff\xff\xc4\x37\x00\x78\x69\x01\x00\x00")
+
+func migrations_20210415190942_add_ts_vector_to_clan_name_index_sql() ([]byte, error) {
+	return bindata_read(
+		_migrations_20210415190942_add_ts_vector_to_clan_name_index_sql,
+		"migrations/20210415190942_add_ts_vector_to_clan_name_index.sql",
+	)
+}
+
 // Asset loads and returns the asset for the given name.
 // It returns an error if the asset could not be found or
 // could not be loaded.
@@ -247,6 +256,7 @@ var _bindata = map[string]func() ([]byte, error){
 	"migrations/20180517112014_ChangeIDSequenceType.sql": migrations_20180517112014_changeidsequencetype_sql,
 	"migrations/20210323185959_CreateEncryptionTable.sql": migrations_20210323185959_createencryptiontable_sql,
 	"migrations/20210401151842_ChangeEncryptedPlayersIDType.sql": migrations_20210401151842_changeencryptedplayersidtype_sql,
+	"migrations/20210415190942_add_ts_vector_to_clan_name_index.sql": migrations_20210415190942_add_ts_vector_to_clan_name_index_sql,
 }
 // AssetDir returns the file names below a certain
 // directory embedded in the file by go-bindata.
@@ -328,6 +338,8 @@ var _bintree = &_bintree_t{nil, map[string]*_bintree_t{
 		"20210323185959_CreateEncryptionTable.sql": &_bintree_t{migrations_20210323185959_createencryptiontable_sql, map[string]*_bintree_t{
 		}},
 		"20210401151842_ChangeEncryptedPlayersIDType.sql": &_bintree_t{migrations_20210401151842_changeencryptedplayersidtype_sql, map[string]*_bintree_t{
+		}},
+		"20210415190942_add_ts_vector_to_clan_name_index.sql": &_bintree_t{migrations_20210415190942_add_ts_vector_to_clan_name_index_sql, map[string]*_bintree_t{
 		}},
 	}},
 }}
