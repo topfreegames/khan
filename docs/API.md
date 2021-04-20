@@ -1296,6 +1296,8 @@ Khan API
 
   Allows the clan owner or a clan member to remove another member from the clan. The member's membership level must be at least `minLevelToRemoveMember`. A member can leave the clan by sending the same `playerPublicID` and `requestorPublicID`.
 
+  If `requestorPublicID` is different than `playerPublicID`, Khan will ban the player from that clan. Preventing it from trying to apply for a membership again.
+
   * Payload
 
     ```
