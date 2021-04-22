@@ -186,17 +186,22 @@ type UpdateGamePayload struct {
 func (p *UpdateGamePayload) Validate() []string {
 	v := NewValidation()
 
-	v.validateRequiredString("name", p.Name)
+	var minMembershipLevel int
+
 	v.validateRequiredMap("membershipLevels", p.MembershipLevels)
+
+	if p.MembershipLevels != nil {
+		sortedLevels := util.SortLevels(p.MembershipLevels)
+		minMembershipLevel = sortedLevels[0].Value
+	}
+
+	v.validateRequiredString("name", p.Name)
 	v.validateRequired("metadata", p.Metadata)
 	v.validateRequiredInt("minLevelOffsetToRemoveMember", p.MinLevelOffsetToRemoveMember)
 	v.validateRequiredInt("minLevelOffsetToPromoteMember", p.MinLevelOffsetToPromoteMember)
 	v.validateRequiredInt("minLevelOffsetToDemoteMember", p.MinLevelOffsetToDemoteMember)
 	v.validateRequiredInt("maxMembers", p.MaxMembers)
 	v.validateRequiredInt("maxClansPerPlayer", p.MaxClansPerPlayer)
-
-	sortedLevels := util.SortLevels(p.MembershipLevels)
-	minMembershipLevel := sortedLevels[0].Value
 
 	v.validateCustom("minLevelToAcceptApplication", func() []string {
 		if p.MinLevelToAcceptApplication < minMembershipLevel {
@@ -241,11 +246,17 @@ type CreateGamePayload struct {
 //Validate the create game payload
 func (p *CreateGamePayload) Validate() []string {
 	v := NewValidation()
-	sortedLevels := util.SortLevels(p.MembershipLevels)
-	minMembershipLevel := sortedLevels[0].Value
+
+	var minMembershipLevel int
+
+	v.validateRequiredMap("membershipLevels", p.MembershipLevels)
+
+	if p.MembershipLevels != nil {
+		sortedLevels := util.SortLevels(p.MembershipLevels)
+		minMembershipLevel = sortedLevels[0].Value
+	}
 
 	v.validateRequiredString("name", p.Name)
-	v.validateRequiredMap("membershipLevels", p.MembershipLevels)
 	v.validateRequired("metadata", p.Metadata)
 	v.validateRequiredInt("minLevelOffsetToRemoveMember", p.MinLevelOffsetToRemoveMember)
 	v.validateRequiredInt("minLevelOffsetToPromoteMember", p.MinLevelOffsetToPromoteMember)
