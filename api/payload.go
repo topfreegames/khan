@@ -190,7 +190,7 @@ func (p *UpdateGamePayload) Validate() []string {
 
 	v.validateRequiredMap("membershipLevels", p.MembershipLevels)
 
-	if p.MembershipLevels != nil {
+	if len(p.MembershipLevels) > 0 {
 		sortedLevels := util.SortLevels(p.MembershipLevels)
 		minMembershipLevel = sortedLevels[0].Value
 	}
@@ -251,7 +251,7 @@ func (p *CreateGamePayload) Validate() []string {
 
 	v.validateRequiredMap("membershipLevels", p.MembershipLevels)
 
-	if p.MembershipLevels != nil {
+	if len(p.MembershipLevels) > 0 {
 		sortedLevels := util.SortLevels(p.MembershipLevels)
 		minMembershipLevel = sortedLevels[0].Value
 	}
