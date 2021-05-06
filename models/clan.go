@@ -49,6 +49,7 @@ type Clan struct {
 	Metadata         map[string]interface{} `db:"metadata" json:"metadata" bson:"metadata"`
 	AllowApplication bool                   `db:"allow_application" json:"allowApplication" bson:"allowApplication"`
 	AutoJoin         bool                   `db:"auto_join"  json:"autoJoin" bson:"autoJoin"`
+	Searchable       string                 `db:"searchable"`
 	CreatedAt        int64                  `db:"created_at" json:"createdAt" bson:"createdAt"`
 	UpdatedAt        int64                  `db:"updated_at" json:"updatedAt" bson:"updatedAt"`
 	DeletedAt        int64                  `db:"deleted_at" json:"deletedAt" bson:"deletedAt"`

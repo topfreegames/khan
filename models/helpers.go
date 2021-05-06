@@ -83,7 +83,8 @@ func InitDb(host string, user string, port int, sslmode string, dbName string, p
 	dbmap.AddTableWithName(Game{}, "games").SetKeys(true, "ID")
 	dbmap.AddTableWithName(Player{}, "players").SetKeys(true, "ID")
 	dbmap.AddTableWithName(EncryptedPlayer{}, "encrypted_players")
-	dbmap.AddTableWithName(Clan{}, "clans").SetKeys(true, "ID")
+	clanTbl := dbmap.AddTableWithName(Clan{}, "clans").SetKeys(true, "ID")
+	clanTbl.ColMap("searchable").SetTransient(true)
 	dbmap.AddTableWithName(Membership{}, "memberships").SetKeys(true, "ID")
 	dbmap.AddTableWithName(Hook{}, "hooks").SetKeys(true, "ID")
 
