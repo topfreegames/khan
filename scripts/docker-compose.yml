@@ -3,7 +3,7 @@ version: '2'
 services:
   postgres:
     container_name: khan_postgres_1
-    image: postgres:9.5
+    image: postgres:12
     ports:
       - "5433:5432"
     environment:
