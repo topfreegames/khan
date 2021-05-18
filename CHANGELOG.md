@@ -1,3 +1,10 @@
+## [5.2.2]
+### Changed
+- Update go.mod
+
+### Removed
+- Profiling routes
+
 ## [5.1.1]
 ### Changed
 - Fix encrypted players id type (#74) 
