@@ -14,12 +14,12 @@ MYIP=`ifconfig | grep --color=none -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep
 setup-hooks:
 	@cd .git/hooks && ln -sf ../../hooks/pre-commit.sh pre-commit
 
-setup:
+setup: mod-download
 	@go get -u github.com/onsi/ginkgo/ginkgo
 	@go get -u github.com/jteeuwen/go-bindata/...
 	@go get github.com/mailru/easyjson/...
 
-mod-tidy:
+mod-download:
 	@go mod download
 
 setup-docs:
