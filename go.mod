@@ -38,6 +38,7 @@ require (
 	github.com/topfreegames/goose v0.0.0-20160616205307-c7f6dd34057c
 	github.com/uber-go/atomic v1.0.0 // indirect
 	github.com/uber-go/zap v0.0.0-20160809182253-d11d2851fcab
+	github.com/uber/jaeger-client-go v2.25.0+incompatible
 	github.com/valyala/fasthttp v0.0.0-20160818100357-834fb48f1040 // indirect
 	github.com/valyala/fasttemplate v0.0.0-20170224212429-dcecefd839c4
 	github.com/wildlife-studios/crypto v1.1.0
