@@ -20,7 +20,7 @@ setup:
 	@go get github.com/mailru/easyjson/...
 
 mod-tidy:
-	@go mod tidy
+	@go mod download
 
 setup-docs:
 	@pip install -q --log /tmp/pip.log --no-cache-dir sphinx recommonmark sphinx_rtd_theme

@@ -182,7 +182,7 @@ func GetPlayerByPublicID(db DB, encryptionKey []byte, gameID string, publicID st
 func CreatePlayer(db DB, logger zap.Logger, encryptionKey []byte, gameID, publicID, name string, metadata map[string]interface{}) (*Player, error) {
 	encryptedName, err := util.EncryptData(name, encryptionKey)
 	if err != nil {
-		return nil, err
+		encryptedName = name
 	}
 
 	player := &Player{
@@ -208,7 +208,7 @@ func CreatePlayer(db DB, logger zap.Logger, encryptionKey []byte, gameID, public
 func UpdatePlayer(db DB, logger zap.Logger, encryptionKey []byte, gameID, publicID, name string, metadata map[string]interface{}) (*Player, error) {
 	encryptedName, err := util.EncryptData(name, encryptionKey)
 	if err != nil {
-		return nil, err
+		encryptedName = name
 	}
 
 	metadataJSON, err := json.Marshal(metadata)
