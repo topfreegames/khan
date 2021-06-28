@@ -180,9 +180,11 @@ func GetPlayerByPublicID(db DB, encryptionKey []byte, gameID string, publicID st
 
 // CreatePlayer creates a new player
 func CreatePlayer(db DB, logger zap.Logger, encryptionKey []byte, gameID, publicID, name string, metadata map[string]interface{}) (*Player, error) {
+	markAsEncrypted := true
 	encryptedName, err := util.EncryptData(name, encryptionKey)
 	if err != nil {
 		encryptedName = name
+		markAsEncrypted = false
 	}
 
 	player := &Player{
@@ -196,9 +198,11 @@ func CreatePlayer(db DB, logger zap.Logger, encryptionKey []byte, gameID, public
 		return nil, err
 	}
 
-	err = db.Insert(&EncryptedPlayer{PlayerID: player.ID})
-	if err != nil {
-		logger.Error("Error on insert EncryptedPlayer", zap.Error(err))
+	if markAsEncrypted {
+		err = db.Insert(&EncryptedPlayer{PlayerID: player.ID})
+		if err != nil {
+			logger.Error("Error on insert EncryptedPlayer", zap.Error(err))
+		}
 	}
 
 	return GetPlayerByID(db, encryptionKey, player.ID)
@@ -206,9 +210,11 @@ func CreatePlayer(db DB, logger zap.Logger, encryptionKey []byte, gameID, public
 
 // UpdatePlayer updates an existing player
 func UpdatePlayer(db DB, logger zap.Logger, encryptionKey []byte, gameID, publicID, name string, metadata map[string]interface{}) (*Player, error) {
+	markAsEncrypted := true
 	encryptedName, err := util.EncryptData(name, encryptionKey)
 	if err != nil {
 		encryptedName = name
+		markAsEncrypted = false
 	}
 
 	metadataJSON, err := json.Marshal(metadata)
@@ -229,10 +235,12 @@ func UpdatePlayer(db DB, logger zap.Logger, encryptionKey []byte, gameID, public
 		return nil, err
 	}
 
-	queryEncrypt := `INSERT INTO encrypted_players (player_id) VALUES ($1) ON CONFLICT DO NOTHING`
-	_, err = db.Exec(queryEncrypt, lastID)
-	if err != nil {
-		logger.Error("Error on insert EncryptedPlayer", zap.Error(err))
+	if markAsEncrypted {
+		queryEncrypt := `INSERT INTO encrypted_players (player_id) VALUES ($1) ON CONFLICT DO NOTHING`
+		_, err = db.Exec(queryEncrypt, lastID)
+		if err != nil {
+			logger.Error("Error on insert EncryptedPlayer", zap.Error(err))
+		}
 	}
 
 	return GetPlayerByID(db, encryptionKey, lastID)
