@@ -1,3 +1,11 @@
+## [5.3.0]
+### Changed
+- Update `jaeger` to use official client
+- Change `Makefile` to use `go mod download` instead `go mod tidy`
+
+### Removed
+- Encryption obligation
+
 ## [5.2.2]
 ### Changed
 - Update go.mod
