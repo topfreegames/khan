@@ -1,3 +1,7 @@
+## [5.3.1]
+### Changed
+- Remove encryption entry when don't have encryption key
+
 ## [5.3.0]
 ### Changed
 - Update `jaeger` to use official client
