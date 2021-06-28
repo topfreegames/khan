@@ -5,14 +5,14 @@ LABEL TFG Co <backend@tfgco.com>
 WORKDIR /khan
 
 COPY Makefile .
+COPY go.mod go.sum .
 
 RUN apk --update add make gcc && \
             make setup
 
 COPY . .
 
-RUN make mod-tidy && \
-            make build
+RUN make build
 
 FROM alpine:3.12
 
