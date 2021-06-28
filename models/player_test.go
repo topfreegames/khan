@@ -154,7 +154,7 @@ var _ = Describe("Player Model", func() {
 				player, err := CreatePlayer(
 					testDb,
 					logger,
-					fixtures.GetEncryptionKey(),
+					[]byte(""),
 					game.PublicID,
 					playerID,
 					"player-name",
@@ -236,7 +236,7 @@ var _ = Describe("Player Model", func() {
 				updatedPlayer, err := UpdatePlayer(
 					testDb,
 					logger,
-					fixtures.GetEncryptionKey(),
+					[]byte(""),
 					player.GameID,
 					player.PublicID,
 					player.Name,
@@ -319,7 +319,7 @@ var _ = Describe("Player Model", func() {
 				updPlayer, err := UpdatePlayer(
 					testDb,
 					logger,
-					fixtures.GetEncryptionKey(),
+					[]byte(""),
 					gameID,
 					publicID,
 					publicID,

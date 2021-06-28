@@ -57,3 +57,6 @@ extensions:
     prefix: khan.
     tags_prefix: ""
     rate: 1
+
+security:
+  encryptionKey: "00000000000000000000000000000000"

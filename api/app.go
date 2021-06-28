@@ -239,7 +239,7 @@ func (app *App) setConfigurationDefaults() {
 	app.Config.SetDefault("khan.defaultCooldownBeforeApply", -1)
 	app.Config.SetDefault("jaeger.disabled", true)
 	app.Config.SetDefault("jaeger.samplingProbability", 0.001)
-	app.Config.SetDefault("security.encryptionKey", "00000000000000000000000000000000")
+	app.Config.SetDefault("security.encryptionKey", "")
 
 	app.setHandlersConfigurationDefaults()
 
