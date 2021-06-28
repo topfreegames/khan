@@ -24,6 +24,7 @@ import (
 	"github.com/labstack/echo/engine/fasthttp"
 	"github.com/labstack/echo/engine/standard"
 	"github.com/labstack/echo/middleware"
+	opentracing "github.com/opentracing/opentracing-go"
 	gocache "github.com/patrickmn/go-cache"
 	"github.com/rcrowley/go-metrics"
 	uuid "github.com/satori/go.uuid"
@@ -31,7 +32,6 @@ import (
 	eecho "github.com/topfreegames/extensions/v9/echo"
 	extechomiddleware "github.com/topfreegames/extensions/v9/echo/middleware"
 	gorp "github.com/topfreegames/extensions/v9/gorp/interfaces"
-	"github.com/topfreegames/extensions/v9/jaeger"
 	extnethttpmiddleware "github.com/topfreegames/extensions/v9/middleware"
 	"github.com/topfreegames/extensions/v9/mongo/interfaces"
 	extworkermiddleware "github.com/topfreegames/extensions/v9/worker/middleware"
@@ -42,6 +42,7 @@ import (
 	"github.com/topfreegames/khan/mongo"
 	"github.com/topfreegames/khan/queues"
 	"github.com/uber-go/zap"
+	jaegercfg "github.com/uber/jaeger-client-go/config"
 )
 
 // App is a struct that represents a Khan API Application
@@ -173,16 +174,22 @@ func (app *App) configureJaeger() {
 		zap.String("operation", "configureJaeger"),
 	)
 
-	opts := jaeger.Options{
-		Disabled:    app.Config.GetBool("jaeger.disabled"),
-		Probability: app.Config.GetFloat64("jaeger.samplingProbability"),
-		ServiceName: app.Config.GetString("jaeger.serviceName"),
+	cfg, err := jaegercfg.FromEnv()
+	if cfg.ServiceName == "" {
+		logger.Error("Could not init jaeger tracer without ServiceName, either set environment JAEGER_SERVICE_NAME or cfg.ServiceName = \"my-api\"")
+		return
 	}
-
-	_, err := jaeger.Configure(opts)
 	if err != nil {
-		logger.Error("Failed to initialize Jaeger.")
+		logger.Error("Could not parse Jaeger env vars: %s", zap.Error(err))
+		return
 	}
+	tracer, _, err := cfg.NewTracer()
+	if err != nil {
+		logger.Error("Could not initialize jaeger tracer: %s", zap.Error(err))
+		return
+	}
+	opentracing.SetGlobalTracer(tracer)
+	logger.Info("Tracer configured", zap.String("jaeger-agent", cfg.Reporter.LocalAgentHostPort))
 }
 
 func (app *App) configureElasticsearch() {
@@ -237,8 +244,6 @@ func (app *App) setConfigurationDefaults() {
 	app.Config.SetDefault("khan.maxPendingInvites", -1)
 	app.Config.SetDefault("khan.defaultCooldownBeforeInvite", -1)
 	app.Config.SetDefault("khan.defaultCooldownBeforeApply", -1)
-	app.Config.SetDefault("jaeger.disabled", true)
-	app.Config.SetDefault("jaeger.samplingProbability", 0.001)
 	app.Config.SetDefault("security.encryptionKey", "")
 
 	app.setHandlersConfigurationDefaults()
