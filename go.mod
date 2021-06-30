@@ -38,11 +38,13 @@ require (
 	github.com/topfreegames/goose v0.0.0-20160616205307-c7f6dd34057c
 	github.com/uber-go/atomic v1.0.0 // indirect
 	github.com/uber-go/zap v0.0.0-20160809182253-d11d2851fcab
-	github.com/uber/jaeger-client-go v2.25.0+incompatible
+	github.com/uber/jaeger-client-go v2.29.1+incompatible
+	github.com/uber/jaeger-lib v2.4.1+incompatible // indirect
 	github.com/valyala/fasthttp v0.0.0-20160818100357-834fb48f1040 // indirect
 	github.com/valyala/fasttemplate v0.0.0-20170224212429-dcecefd839c4
 	github.com/wildlife-studios/crypto v1.1.0
 	github.com/ziutek/mymysql v1.5.5-0.20160909221029-df6241f6355c // indirect
+	go.uber.org/atomic v1.8.0 // indirect
 	golang.org/x/crypto v0.0.0-20210220033148-5ea612d1eb83 // indirect
 	golang.org/x/sys v0.0.0-20210616094352-59db8d763f22 // indirect
 	golang.org/x/term v0.0.0-20210220032956-6a3ed077a48d // indirect
