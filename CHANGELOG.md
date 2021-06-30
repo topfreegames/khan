@@ -1,3 +1,7 @@
+## [5.3.2]
+### Changed
+- Update `jaeger-client-go` to version `v2.29.1`
+
 ## [5.3.1]
 ### Changed
 - Remove encryption entry when don't have encryption key
