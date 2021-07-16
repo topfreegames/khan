@@ -16,6 +16,10 @@ func GetClanNameTextIndexCommand(gameID string, background bool) bson.D {
 					"name":         "text",
 					"namePrefixes": "text",
 				},
+				"weights": bson.M{
+					"name":         256,
+					"namePrefixes": 1,
+				},
 				"name":             fmt.Sprintf("clans_%s_name_text_namePrefixes_text_index", gameID),
 				"background":       background,
 				"default_language": "none",
