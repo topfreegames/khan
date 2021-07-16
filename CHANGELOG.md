@@ -1,3 +1,7 @@
+## [5.3.3]
+### Changed
+- Add weights in mongo text index
+
 ## [5.3.2]
 ### Changed
 - Update `jaeger-client-go` to version `v2.29.1`
