@@ -78,6 +78,10 @@ func ApplyForMembershipHandler(app *App) func(c echo.Context) error {
 			optional.Message,
 		)
 		if err != nil {
+			log.E(logger, "Could not create membership", func(cm log.CM) {
+				cm.Write(zap.Error(err))
+			})
+
 			txErr := app.Rollback(tx, "Membership application failed", c, logger, err)
 			if txErr != nil {
 				log.E(logger, "Could not rollback transaction", func(cm log.CM) {
@@ -97,6 +101,10 @@ func ApplyForMembershipHandler(app *App) func(c echo.Context) error {
 			membership.RequestorID, membership.Message, membership.Level,
 		)
 		if err != nil {
+			log.E(logger, "Could not dispatch membership hook by id", func(cm log.CM) {
+				cm.Write(zap.Error(err))
+			})
+
 			txErr := app.Rollback(tx, "Membership application failed", c, logger, err)
 			if txErr != nil {
 				log.E(logger, "Could not rollback transaction", func(cm log.CM) {
@@ -187,6 +195,10 @@ func InviteForMembershipHandler(app *App) func(c echo.Context) error {
 		)
 
 		if err != nil {
+			log.E(logger, "Could not create membership", func(cm log.CM) {
+				cm.Write(zap.Error(err))
+			})
+
 			txErr := app.Rollback(tx, "Membership invitation failed", c, logger, err)
 			if txErr != nil {
 				return FailWith(http.StatusInternalServerError, err.Error(), c)
@@ -204,6 +216,10 @@ func InviteForMembershipHandler(app *App) func(c echo.Context) error {
 			membership.RequestorID, membership.Message, membership.Level,
 		)
 		if err != nil {
+			log.E(logger, "Could not dispatch membership hook by id", func(cm log.CM) {
+				cm.Write(zap.Error(err))
+			})
+
 			txErr := app.Rollback(tx, "Membership invitation dispatch hook failed", c, logger, err)
 			if txErr != nil {
 				log.E(logger, "Could not rollback transaction", func(cm log.CM) {
@@ -286,8 +302,12 @@ func ApproveOrDenyMembershipApplicationHandler(app *App) func(c echo.Context) er
 		)
 
 		if err != nil {
+			log.E(logger, "Could not approve or deny membership application", func(cm log.CM) {
+				cm.Write(zap.Error(err))
+			})
+
 			txErr := rollback(err)
-			if txErr == nil {
+			if txErr != nil {
 				log.E(logger, "Could not rollback transaction", func(cm log.CM) {
 					cm.Write(zap.Error(txErr))
 				})
@@ -298,8 +318,12 @@ func ApproveOrDenyMembershipApplicationHandler(app *App) func(c echo.Context) er
 		log.D(logger, "Retrieving requestor details.")
 		requestor, err := models.GetPlayerByPublicID(tx, app.EncryptionKey, gameID, payload.RequestorPublicID)
 		if err != nil {
+			log.E(logger, "Could not get player by public id", func(cm log.CM) {
+				cm.Write(zap.Error(err))
+			})
+
 			txErr := rollback(err)
-			if txErr == nil {
+			if txErr != nil {
 				log.E(logger, "Could not rollback transaction", func(cm log.CM) {
 					cm.Write(zap.Error(txErr))
 				})
@@ -326,8 +350,12 @@ func ApproveOrDenyMembershipApplicationHandler(app *App) func(c echo.Context) er
 			requestor.ID, membership.RequestorID, membership.Message, membership.Level,
 		)
 		if err != nil {
+			log.E(logger, "Could not dispatch approve deny membership by id", func(cm log.CM) {
+				cm.Write(zap.Error(err))
+			})
+
 			txErr := rollback(err)
-			if txErr == nil {
+			if txErr != nil {
 				log.E(logger, "Could not rollback transaction", func(cm log.CM) {
 					cm.Write(zap.Error(txErr))
 				})
@@ -415,8 +443,12 @@ func ApproveOrDenyMembershipInvitationHandler(app *App) func(c echo.Context) err
 			action,
 		)
 		if err != nil {
+			log.E(logger, "Could not approve or deny membership invitation", func(cm log.CM) {
+				cm.Write(zap.Error(err))
+			})
+
 			txErr := rollback(err)
-			if txErr == nil {
+			if txErr != nil {
 				log.E(logger, "Could not rollback transaction", func(cm log.CM) {
 					cm.Write(zap.Error(txErr))
 				})
@@ -436,8 +468,12 @@ func ApproveOrDenyMembershipInvitationHandler(app *App) func(c echo.Context) err
 		)
 
 		if err != nil {
+			log.E(logger, "Could not dispatch approve deny membership hook by id", func(cm log.CM) {
+				cm.Write(zap.Error(err))
+			})
+
 			txErr := rollback(err)
-			if txErr == nil {
+			if txErr != nil {
 				log.E(logger, "Membership invitation approval/deny hook dispatch failed.", func(cm log.CM) {
 					cm.Write(zap.Error(err))
 				})
@@ -508,8 +544,12 @@ func DeleteMembershipHandler(app *App) func(c echo.Context) error {
 		)
 
 		if err != nil {
+			log.E(logger, "Could not delete membership", func(cm log.CM) {
+				cm.Write(zap.Error(err))
+			})
+
 			txErr := rollback(err)
-			if txErr == nil {
+			if txErr != nil {
 
 			}
 			log.E(logger, "Membership delete failed.", func(cm log.CM) {
@@ -524,8 +564,12 @@ func DeleteMembershipHandler(app *App) func(c echo.Context) error {
 			payload.RequestorPublicID, membership.Level,
 		)
 		if err != nil {
+			log.E(logger, "Could not dispatch membership hook by public id", func(cm log.CM) {
+				cm.Write(zap.Error(err))
+			})
+
 			txErr := rollback(err)
-			if txErr == nil {
+			if txErr != nil {
 				log.E(logger, "Could not rollback transaction", func(cm log.CM) {
 					cm.Write(zap.Error(txErr))
 				})
@@ -553,7 +597,6 @@ func DeleteMembershipHandler(app *App) func(c echo.Context) error {
 // PromoteOrDemoteMembershipHandler is the handler responsible for promoting or demoting a member
 func PromoteOrDemoteMembershipHandler(app *App, action string) func(c echo.Context) error {
 	return func(c echo.Context) error {
-
 		c.Set("route", "PromoteOrDemoteMember")
 		start := time.Now()
 		clanPublicID := c.Param("clanPublicID")
