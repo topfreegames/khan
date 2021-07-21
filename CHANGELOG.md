@@ -1,3 +1,7 @@
+## [5.3.4]
+### Changed
+- Fix and improve logs in membership handlers
+
 ## [5.3.3]
 ### Changed
 - Add weights in mongo text index
