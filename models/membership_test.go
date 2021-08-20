@@ -828,6 +828,7 @@ var _ = Describe("Membership Model", func() {
 				Expect(dbMembership.Approved).To(Equal(true))
 				Expect(dbMembership.Denied).To(Equal(false))
 				Expect(dbMembership.Message).To(Equal("Please accept me"))
+				Expect(dbMembership.ApprovedAt).To(BeNumerically("~", util.NowMilli(), 1000))
 
 				dbPlayer, err := GetPlayerByID(testDb, fixtures.GetEncryptionKey(), player.ID)
 				Expect(err).NotTo(HaveOccurred())
@@ -1588,6 +1589,7 @@ var _ = Describe("Membership Model", func() {
 
 				Expect(dbMembership.ApproverID.Valid).To(BeTrue())
 				Expect(dbMembership.ApproverID.Int64).To(Equal(int64(players[0].ID)))
+				Expect(dbMembership.ApprovedAt).To(BeNumerically("~", util.NowMilli(), 1000))
 
 				dbPlayer, err := GetPlayerByID(testDb, fixtures.GetEncryptionKey(), players[0].ID)
 				Expect(err).NotTo(HaveOccurred())
@@ -1860,6 +1862,8 @@ var _ = Describe("Membership Model", func() {
 				Expect(dbMembership.ApproverID.Valid).To(BeTrue())
 				Expect(dbMembership.ApproverID.Int64).To(Equal(int64(owner.ID)))
 
+				Expect(dbMembership.ApprovedAt).To(BeNumerically("~", util.NowMilli(), 1000))
+
 				dbPlayer, err := GetPlayerByID(testDb, fixtures.GetEncryptionKey(), players[0].ID)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(dbPlayer.MembershipCount).To(Equal(1))
@@ -1900,6 +1904,8 @@ var _ = Describe("Membership Model", func() {
 
 				Expect(updatedMembership.ApproverID.Valid).To(BeTrue())
 				Expect(updatedMembership.ApproverID.Int64).To(Equal(int64(players[0].ID)))
+
+				Expect(updatedMembership.ApprovedAt).To(BeNumerically("~", util.NowMilli(), 1000))
 
 				dbMembership, err := GetMembershipByID(testDb, updatedMembership.ID)
 				Expect(err).NotTo(HaveOccurred())

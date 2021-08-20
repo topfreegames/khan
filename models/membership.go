@@ -579,6 +579,7 @@ func createMembershipHelper(db DB, gameID, level string, playerID, clanID, reque
 
 	if approved {
 		membership.ApproverID = sql.NullInt64{Int64: requestorID, Valid: true}
+		membership.ApprovedAt = util.NowMilli()
 	}
 	err := db.Insert(membership)
 	if err != nil {
