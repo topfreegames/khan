@@ -41,7 +41,7 @@ var _ = Describe("Membership Model", func() {
 				Expect(totalInvites).To(Equal(20))
 			})
 		})
-		Describe("Create Membership", func() {
+		Describe("GetMembershipByID", func() {
 			It("Should create a new Membership", func() {
 				_, _, _, _, memberships, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				Expect(err).NotTo(HaveOccurred())
@@ -58,6 +58,7 @@ var _ = Describe("Membership Model", func() {
 				Expect(dbMembership.ClanID).To(Equal(membership.ClanID))
 			})
 
+		Describe("Create Membership", func() {
 			It("Should not create a new membership for a member with max number of invitations", func() {
 				gameID := uuid.NewV4().String()
 				_, player, err := fixtures.GetTestPlayerWithMemberships(testDb, gameID, 0, 0, 0, 20)
@@ -472,6 +473,7 @@ var _ = Describe("Membership Model", func() {
 				Expect(dbMembership.PlayerID).To(Equal(player.ID))
 				Expect(dbMembership.ClanID).To(Equal(clan.ID))
 				Expect(dbMembership.Approved).To(BeTrue())
+				Expect(dbMembership.ApprovedAt).To(BeNumerically("~", util.NowMilli(), 1000))
 				Expect(dbMembership.ApproverID.Int64).To(BeEquivalentTo(player.ID))
 			})
 
@@ -1222,6 +1224,7 @@ var _ = Describe("Membership Model", func() {
 				dbMembership, err := GetMembershipByID(testDb, membership.ID)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(dbMembership.Approved).To(BeTrue())
+				Expect(dbMembership.ApprovedAt).To(BeNumerically("~", util.NowMilli(), 1000))
 				Expect(dbMembership.Denied).To(Equal(false))
 
 				dbPlayer, err := GetPlayerByID(testDb, fixtures.GetEncryptionKey(), dbMembership.PlayerID)
