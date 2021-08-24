@@ -744,7 +744,7 @@ var _ = Describe("Membership Model", func() {
 
 					dbClan, err := GetClanByID(testDb, clan.ID)
 					Expect(err).NotTo(HaveOccurred())
-					Expect(dbClan.MembershipCount).To(Equal(1))
+					Expect(dbClan.MembershipCount).To(Equal(2))
 				})
 
 				It("Should approve it automatically if requestor is the player, clan.AllowApplication=true and clan.AutoJoin=true", func() {
