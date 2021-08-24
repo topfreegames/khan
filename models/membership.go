@@ -156,56 +156,6 @@ func GetOldestMemberWithHighestLevel(db DB, gameID, clanPublicID string) (*Membe
 	return memberships[0], nil
 }
 
-func clanReachedMaxMemberships(db DB, game *Game, clan *Clan, clanID int64) error {
-	var err error
-	if clan == nil {
-		clan, err = GetClanByID(db, clanID)
-		if err != nil {
-			return err
-		}
-	}
-	if clan.MembershipCount >= game.MaxMembers {
-		return &ClanReachedMaxMembersError{clan.PublicID}
-	}
-	return nil
-}
-
-func playerReachedMaxInvites(db DB, encryptionKey []byte, game *Game, playerID int64) error {
-	player, err := GetPlayerByID(db, encryptionKey, playerID)
-	if err != nil {
-		return err
-	}
-
-	pendingInvites, err := GetNumberOfPendingInvites(db, player)
-	if err != nil {
-		return err
-	}
-
-	if game.MaxPendingInvites > 0 && pendingInvites >= game.MaxPendingInvites {
-		return &PlayerReachedMaxInvitesError{ID: player.PublicID}
-	}
-
-	return nil
-}
-
-func playerReachedMaxClans(db DB, encryptionKey []byte, game *Game, player *Player) error {
-	playerID := player.ID
-	if player.MembershipCount+player.OwnershipCount >= game.MaxClansPerPlayer {
-		err := UpdatePlayerMembershipCount(db, playerID)
-		if err != nil {
-			return err
-		}
-		player, err = GetPlayerByID(db, encryptionKey, playerID)
-		if err != nil {
-			return err
-		}
-		if player.MembershipCount+player.OwnershipCount >= game.MaxClansPerPlayer {
-			return &PlayerReachedMaxClansError{player.PublicID}
-		}
-	}
-	return nil
-}
-
 // GetNumberOfPendingInvites gets total number of pending invites for player
 func GetNumberOfPendingInvites(db DB, player *Player) (int, error) {
 	membershipCount, err := db.SelectInt(`
@@ -302,11 +252,80 @@ func ApproveOrDenyMembershipApplication(db DB, encryptionKey []byte, game *Game,
 		return approveOrDenyMembershipHelper(db, membership, action, requestor)
 	}
 
-	levelInt := GetLevelIntByLevel(reqMembership.Level, game.MembershipLevels)
+	levelInt := getLevelIntByLevel(reqMembership.Level, game.MembershipLevels)
 	if !reqMembership.Approved || levelInt < game.MinLevelToAcceptApplication {
 		return nil, &PlayerCannotPerformMembershipActionError{action, playerPublicID, clanPublicID, requestorPublicID}
 	}
 	return approveOrDenyMembershipHelper(db, membership, action, requestor)
+}
+
+// PromoteOrDemoteMember increments or decrements Membership.LevelInt by one
+func PromoteOrDemoteMember(db DB, game *Game, gameID, playerPublicID, clanPublicID, requestorPublicID, action string) (*Membership, error) {
+	demote := action == "demote"
+	promote := action == "promote"
+
+	levelOffset := game.MinLevelOffsetToDemoteMember
+	if promote {
+		levelOffset = game.MinLevelOffsetToPromoteMember
+	}
+
+	if playerPublicID == requestorPublicID {
+		return nil, &PlayerCannotPerformMembershipActionError{action, playerPublicID, clanPublicID, requestorPublicID}
+	}
+
+	membership, err := GetValidMembershipByClanAndPlayerPublicID(db, gameID, clanPublicID, playerPublicID)
+	if err != nil {
+		return nil, err
+	}
+	if !isValidMember(membership) {
+		return nil, &CannotPromoteOrDemoteInvalidMemberError{action}
+	}
+
+	levelInt := getLevelIntByLevel(membership.Level, game.MembershipLevels)
+	if promote && levelInt >= game.MaxMembershipLevel || demote && levelInt <= game.MinMembershipLevel {
+		return nil, &CannotPromoteOrDemoteMemberLevelError{action, levelInt}
+	}
+
+	reqMembership, _ := GetValidMembershipByClanAndPlayerPublicID(db, gameID, clanPublicID, requestorPublicID)
+	if reqMembership == nil {
+		_, clanErr := GetClanByPublicIDAndOwnerPublicID(db, gameID, clanPublicID, requestorPublicID)
+		if clanErr != nil {
+			return nil, &PlayerCannotPerformMembershipActionError{action, playerPublicID, clanPublicID, requestorPublicID}
+		}
+		return promoteOrDemoteMemberHelper(db, membership, action, game.MembershipLevels)
+	}
+
+	reqLevelInt := getLevelIntByLevel(reqMembership.Level, game.MembershipLevels)
+	if isValidMember(reqMembership) && reqLevelInt >= levelInt+levelOffset {
+		return promoteOrDemoteMemberHelper(db, membership, action, game.MembershipLevels)
+	}
+	return nil, &PlayerCannotPerformMembershipActionError{action, playerPublicID, clanPublicID, requestorPublicID}
+}
+
+// DeleteMembership soft deletes a membership
+func DeleteMembership(db DB, game *Game, gameID, playerPublicID, clanPublicID, requestorPublicID string) (*Membership, error) {
+	membership, err := GetValidMembershipByClanAndPlayerPublicID(db, gameID, clanPublicID, playerPublicID)
+	if err != nil {
+		return nil, err
+	}
+	if playerPublicID == requestorPublicID {
+		return deleteMembershipHelper(db, membership, membership.PlayerID)
+	}
+	reqMembership, _ := GetValidMembershipByClanAndPlayerPublicID(db, gameID, clanPublicID, requestorPublicID)
+	if reqMembership == nil {
+		clan, clanErr := GetClanByPublicIDAndOwnerPublicID(db, gameID, clanPublicID, requestorPublicID)
+		if clanErr != nil {
+			return nil, &PlayerCannotPerformMembershipActionError{"delete", playerPublicID, clanPublicID, requestorPublicID}
+		}
+		return deleteMembershipHelper(db, membership, clan.OwnerID)
+	}
+
+	levelInt := getLevelIntByLevel(membership.Level, game.MembershipLevels)
+	reqLevelInt := getLevelIntByLevel(reqMembership.Level, game.MembershipLevels)
+	if isValidMember(reqMembership) && reqLevelInt >= game.MinLevelToRemoveMember && reqLevelInt >= levelInt+game.MinLevelOffsetToRemoveMember {
+		return deleteMembershipHelper(db, membership, reqMembership.PlayerID)
+	}
+	return nil, &PlayerCannotPerformMembershipActionError{"delete", playerPublicID, clanPublicID, requestorPublicID}
 }
 
 // CreateMembership creates a new membership
@@ -450,7 +469,7 @@ func inviteMember(db DB, encryptionKey []byte, game *Game, membership *Membershi
 		return nil, reachedMaxMembersError
 	}
 
-	levelInt := GetLevelIntByLevel(reqMembership.Level, game.MembershipLevels)
+	levelInt := getLevelIntByLevel(reqMembership.Level, game.MembershipLevels)
 
 	if isValidMember(reqMembership) && levelInt >= game.MinLevelToCreateInvitation {
 		if previousMembership {
@@ -461,73 +480,54 @@ func inviteMember(db DB, encryptionKey []byte, game *Game, membership *Membershi
 	return nil, &PlayerCannotCreateMembershipError{requestorPublicID, clan.PublicID}
 }
 
-// PromoteOrDemoteMember increments or decrements Membership.LevelInt by one
-func PromoteOrDemoteMember(db DB, game *Game, gameID, playerPublicID, clanPublicID, requestorPublicID, action string) (*Membership, error) {
-	demote := action == "demote"
-	promote := action == "promote"
-
-	levelOffset := game.MinLevelOffsetToDemoteMember
-	if promote {
-		levelOffset = game.MinLevelOffsetToPromoteMember
-	}
-
-	if playerPublicID == requestorPublicID {
-		return nil, &PlayerCannotPerformMembershipActionError{action, playerPublicID, clanPublicID, requestorPublicID}
-	}
-
-	membership, err := GetValidMembershipByClanAndPlayerPublicID(db, gameID, clanPublicID, playerPublicID)
-	if err != nil {
-		return nil, err
-	}
-	if !isValidMember(membership) {
-		return nil, &CannotPromoteOrDemoteInvalidMemberError{action}
-	}
-
-	levelInt := GetLevelIntByLevel(membership.Level, game.MembershipLevels)
-	if promote && levelInt >= game.MaxMembershipLevel || demote && levelInt <= game.MinMembershipLevel {
-		return nil, &CannotPromoteOrDemoteMemberLevelError{action, levelInt}
-	}
-
-	reqMembership, _ := GetValidMembershipByClanAndPlayerPublicID(db, gameID, clanPublicID, requestorPublicID)
-	if reqMembership == nil {
-		_, clanErr := GetClanByPublicIDAndOwnerPublicID(db, gameID, clanPublicID, requestorPublicID)
-		if clanErr != nil {
-			return nil, &PlayerCannotPerformMembershipActionError{action, playerPublicID, clanPublicID, requestorPublicID}
+func clanReachedMaxMemberships(db DB, game *Game, clan *Clan, clanID int64) error {
+	var err error
+	if clan == nil {
+		clan, err = GetClanByID(db, clanID)
+		if err != nil {
+			return err
 		}
-		return promoteOrDemoteMemberHelper(db, membership, action, game.MembershipLevels)
 	}
-
-	reqLevelInt := GetLevelIntByLevel(reqMembership.Level, game.MembershipLevels)
-	if isValidMember(reqMembership) && reqLevelInt >= levelInt+levelOffset {
-		return promoteOrDemoteMemberHelper(db, membership, action, game.MembershipLevels)
+	if clan.MembershipCount >= game.MaxMembers {
+		return &ClanReachedMaxMembersError{clan.PublicID}
 	}
-	return nil, &PlayerCannotPerformMembershipActionError{action, playerPublicID, clanPublicID, requestorPublicID}
+	return nil
 }
 
-// DeleteMembership soft deletes a membership
-func DeleteMembership(db DB, game *Game, gameID, playerPublicID, clanPublicID, requestorPublicID string) (*Membership, error) {
-	membership, err := GetValidMembershipByClanAndPlayerPublicID(db, gameID, clanPublicID, playerPublicID)
+func playerReachedMaxInvites(db DB, encryptionKey []byte, game *Game, playerID int64) error {
+	player, err := GetPlayerByID(db, encryptionKey, playerID)
 	if err != nil {
-		return nil, err
-	}
-	if playerPublicID == requestorPublicID {
-		return deleteMembershipHelper(db, membership, membership.PlayerID)
-	}
-	reqMembership, _ := GetValidMembershipByClanAndPlayerPublicID(db, gameID, clanPublicID, requestorPublicID)
-	if reqMembership == nil {
-		clan, clanErr := GetClanByPublicIDAndOwnerPublicID(db, gameID, clanPublicID, requestorPublicID)
-		if clanErr != nil {
-			return nil, &PlayerCannotPerformMembershipActionError{"delete", playerPublicID, clanPublicID, requestorPublicID}
-		}
-		return deleteMembershipHelper(db, membership, clan.OwnerID)
+		return err
 	}
 
-	levelInt := GetLevelIntByLevel(membership.Level, game.MembershipLevels)
-	reqLevelInt := GetLevelIntByLevel(reqMembership.Level, game.MembershipLevels)
-	if isValidMember(reqMembership) && reqLevelInt >= game.MinLevelToRemoveMember && reqLevelInt >= levelInt+game.MinLevelOffsetToRemoveMember {
-		return deleteMembershipHelper(db, membership, reqMembership.PlayerID)
+	pendingInvites, err := GetNumberOfPendingInvites(db, player)
+	if err != nil {
+		return err
 	}
-	return nil, &PlayerCannotPerformMembershipActionError{"delete", playerPublicID, clanPublicID, requestorPublicID}
+
+	if game.MaxPendingInvites > 0 && pendingInvites >= game.MaxPendingInvites {
+		return &PlayerReachedMaxInvitesError{ID: player.PublicID}
+	}
+
+	return nil
+}
+
+func playerReachedMaxClans(db DB, encryptionKey []byte, game *Game, player *Player) error {
+	playerID := player.ID
+	if player.MembershipCount+player.OwnershipCount >= game.MaxClansPerPlayer {
+		err := UpdatePlayerMembershipCount(db, playerID)
+		if err != nil {
+			return err
+		}
+		player, err = GetPlayerByID(db, encryptionKey, playerID)
+		if err != nil {
+			return err
+		}
+		if player.MembershipCount+player.OwnershipCount >= game.MaxClansPerPlayer {
+			return &PlayerReachedMaxClansError{player.PublicID}
+		}
+	}
+	return nil
 }
 
 func isValidMember(membership *Membership) bool {
@@ -628,11 +628,11 @@ func updatePreviousMembershipHelper(db DB, membership *Membership, level string,
 }
 
 func promoteOrDemoteMemberHelper(db DB, membership *Membership, action string, levels map[string]interface{}) (*Membership, error) {
-	levelInt := GetLevelIntByLevel(membership.Level, levels)
+	levelInt := getLevelIntByLevel(membership.Level, levels)
 	if action == "promote" {
-		membership.Level = GetLevelByLevelInt(levelInt+1, levels)
+		membership.Level = getLevelByLevelInt(levelInt+1, levels)
 	} else if action == "demote" {
-		membership.Level = GetLevelByLevelInt(levelInt-1, levels)
+		membership.Level = getLevelByLevelInt(levelInt-1, levels)
 	} else {
 		return nil, &InvalidMembershipActionError{action}
 	}
@@ -675,8 +675,7 @@ func deleteMembershipHelper(db DB, membership *Membership, deletedBy int64) (*Me
 	return membership, err
 }
 
-// GetLevelByLevelInt returns the level string given the level int
-func GetLevelByLevelInt(levelInt int, levels map[string]interface{}) string {
+func getLevelByLevelInt(levelInt int, levels map[string]interface{}) string {
 	for k, v := range levels {
 		switch v.(type) {
 		case float64:
@@ -692,8 +691,7 @@ func GetLevelByLevelInt(levelInt int, levels map[string]interface{}) string {
 	return ""
 }
 
-// GetLevelIntByLevel returns the level string given the level int
-func GetLevelIntByLevel(level string, levels map[string]interface{}) int {
+func getLevelIntByLevel(level string, levels map[string]interface{}) int {
 	v := levels[level]
 	switch v.(type) {
 	case float64:

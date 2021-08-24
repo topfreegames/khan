@@ -611,7 +611,7 @@ func TransferClanOwnership(db DB, encryptionKey []byte, gameID, clanPublicID, pl
 		return nil, nil, nil, err
 	}
 
-	level := GetLevelByLevelInt(maxLevel, levels)
+	level := getClanLevelByLevelInt(maxLevel, levels)
 	if level == "" {
 		return nil, nil, nil, &InvalidLevelForGameError{gameID, level}
 	}
@@ -678,6 +678,22 @@ func TransferClanOwnership(db DB, encryptionKey []byte, gameID, clanPublicID, pl
 	}
 
 	return clan, oldOwner, newOwner, nil
+}
+
+func getClanLevelByLevelInt(levelInt int, levels map[string]interface{}) string {
+	for k, v := range levels {
+		switch v.(type) {
+		case float64:
+			if int(v.(float64)) == levelInt {
+				return k
+			}
+		case int:
+			if v.(int) == levelInt {
+				return k
+			}
+		}
+	}
+	return ""
 }
 
 // UpdateClan updates an existing clan
