@@ -41,8 +41,9 @@ var _ = Describe("Membership Model", func() {
 				Expect(totalInvites).To(Equal(20))
 			})
 		})
-		Describe("Create Membership", func() {
-			It("Should create a new Membership", func() {
+
+		Describe("GetMembershipByID", func() {
+			It("Should get a  Membership", func() {
 				_, _, _, _, memberships, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
 				Expect(err).NotTo(HaveOccurred())
 
@@ -58,6 +59,62 @@ var _ = Describe("Membership Model", func() {
 				Expect(dbMembership.ClanID).To(Equal(membership.ClanID))
 			})
 
+			It("Should get existing Membership", func() {
+				_, _, _, _, memberships, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 1, "", "")
+				Expect(err).NotTo(HaveOccurred())
+
+				dbMembership, err := GetMembershipByID(testDb, memberships[0].ID)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(dbMembership.ID).To(Equal(memberships[0].ID))
+			})
+		})
+
+		Describe("GetOldestMemberWithHighestLevel", func() {
+			It("Should get the approved member with the highest level", func() {
+				_, clan, _, players, memberships, err := fixtures.GetClanWithMemberships(testDb, 2, 0, 0, 0, "", "")
+				Expect(err).NotTo(HaveOccurred())
+
+				memberships[0].Level = "CoLeader"
+				_, err = testDb.Update(memberships[0])
+
+				dbMembership, err := GetOldestMemberWithHighestLevel(testDb, clan.GameID, clan.PublicID)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(dbMembership.ID).To(Equal(memberships[0].ID))
+				Expect(dbMembership.PlayerID).To(Equal(players[0].ID))
+			})
+
+			It("Should not get pending memberships", func() {
+				_, clan, _, _, memberships, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 2, "", "")
+				Expect(err).NotTo(HaveOccurred())
+
+				memberships[0].Level = "CoLeader"
+				_, err = testDb.Update(memberships[0])
+
+				dbMembership, err := GetOldestMemberWithHighestLevel(testDb, clan.GameID, clan.PublicID)
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(Equal(fmt.Sprintf("Clan %v has no members", clan.PublicID)))
+				Expect(dbMembership).To(BeNil())
+			})
+
+			It("Should return an error if clan has no members", func() {
+				_, clan, _, _, _, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
+				Expect(err).NotTo(HaveOccurred())
+
+				dbMembership, err := GetOldestMemberWithHighestLevel(testDb, clan.GameID, clan.PublicID)
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(Equal(fmt.Sprintf("Clan %v has no members", clan.PublicID)))
+				Expect(dbMembership).To(BeNil())
+			})
+
+			It("Should return an error if clan does not exist", func() {
+				dbMembership, err := GetOldestMemberWithHighestLevel(testDb, "abc", "def")
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(Equal("Clan def has no members"))
+				Expect(dbMembership).To(BeNil())
+			})
+		})
+
+		Describe("Create Membership", func() {
 			It("Should not create a new membership for a member with max number of invitations", func() {
 				gameID := uuid.NewV4().String()
 				_, player, err := fixtures.GetTestPlayerWithMemberships(testDb, gameID, 0, 0, 0, 20)
