@@ -1,3 +1,7 @@
+## [5.3.5]
+### Changed
+- Fix `ApprovedAt` field update.
+
 ## [5.3.4]
 ### Changed
 - Fix and improve logs in membership handlers
