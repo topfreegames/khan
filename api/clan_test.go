@@ -263,6 +263,28 @@ var _ = Describe("Clan API Handler", func() {
 			Expect(dbClan.OwnerID).To(Equal(memberships[0].PlayerID))
 		})
 
+		It("Should leave and delete clan", func() {
+			_, clan, owner, _, _, err := fixtures.GetClanWithMemberships(testDb, 0, 0, 0, 0, "", "")
+			Expect(err).NotTo(HaveOccurred())
+
+			route := GetGameRoute(clan.GameID, fmt.Sprintf("clans/%s/leave", clan.PublicID))
+			status, body := PostJSON(app, route, map[string]interface{}{})
+
+			Expect(status).To(Equal(http.StatusOK))
+			var result map[string]interface{}
+			json.Unmarshal([]byte(body), &result)
+			Expect(result["success"]).To(BeTrue())
+			Expect(result["previousOwner"]).NotTo(BeNil())
+			Expect(result["newOwner"]).To(BeNil())
+
+			prevOwner := result["previousOwner"].(map[string]interface{})
+			Expect(prevOwner["publicID"]).To(BeEquivalentTo(owner.PublicID))
+
+			dbClan, err := models.GetClanByPublicID(db, clan.GameID, clan.PublicID)
+			Expect(err).To(HaveOccurred())
+			Expect(dbClan).To(BeNil())
+		})
+
 		It("Should not leave a clan if invalid clan", func() {
 			route := GetGameRoute("game-id", fmt.Sprintf("clans/%s/leave", "random-id"))
 			status, body := Post(app, route, "")
