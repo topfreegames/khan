@@ -15,10 +15,6 @@ require (
 	github.com/jarcoal/httpmock v1.0.4
 	github.com/jinzhu/inflection v0.0.0-20180308033659-04140366298a // indirect
 	github.com/jrallison/go-workers v0.0.0-20180112190529-dbf81d0b75bb
-	github.com/jteeuwen/go-bindata v3.0.7+incompatible // indirect
-	github.com/klauspost/compress v0.0.0-20161025140425-8df558b6cb6f // indirect
-	github.com/klauspost/cpuid v0.0.0-20160302075316-09cded8978dc // indirect
-	github.com/klauspost/crc32 v0.0.0-20161016154125-cb6bfca970f6 // indirect
 	github.com/kylelemons/go-gypsy v0.0.0-20160905020020-08cad365cd28 // indirect
 	github.com/labstack/echo v2.2.0+incompatible
 	github.com/lib/pq v1.0.0
@@ -40,15 +36,11 @@ require (
 	github.com/uber-go/zap v0.0.0-20160809182253-d11d2851fcab
 	github.com/uber/jaeger-client-go v2.29.1+incompatible
 	github.com/uber/jaeger-lib v2.4.1+incompatible // indirect
-	github.com/valyala/fasthttp v0.0.0-20160818100357-834fb48f1040 // indirect
+	github.com/valyala/fasthttp v1.34.0 // indirect
 	github.com/valyala/fasttemplate v0.0.0-20170224212429-dcecefd839c4
 	github.com/wildlife-studios/crypto v1.1.0
 	github.com/ziutek/mymysql v1.5.5-0.20160909221029-df6241f6355c // indirect
 	go.uber.org/atomic v1.8.0 // indirect
-	golang.org/x/crypto v0.0.0-20210220033148-5ea612d1eb83 // indirect
-	golang.org/x/sys v0.0.0-20210616094352-59db8d763f22 // indirect
-	golang.org/x/term v0.0.0-20210220032956-6a3ed077a48d // indirect
-	golang.org/x/tools v0.1.4 // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 	gopkg.in/olivere/elastic.v5 v5.0.66
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
